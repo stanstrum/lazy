@@ -65,14 +65,14 @@ fn compile() -> Result<(), LazyError> {
   let mut path = std::env::current_dir()
     .expect("Unable to get working directory");
 
-  path.push(input);
+  path.push(input.clone);
 
   let src = match std::fs::read_to_string(&path) {
     Ok(src) => src,
     Err(err) => { return IOSnafu { msg: format!("{}: {}", path.to_string_lossy(), err) }.fail() }
   };
 
-  let ref mut reader = aster::SourceReader::new(&src);
+  let ref mut reader = aster::SourceReader::new(input, &src);
 
   let lexed = match aster::asterize(reader) {
     Ok(lexed) => lexed,

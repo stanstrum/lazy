@@ -17,14 +17,23 @@ pub enum SourceReaderError {
 }
 
 pub struct SourceReader<'a> {
+  filename: String,
   src: &'a String,
-  offset: usize
+  offset: usize,
 }
 
-
 impl<'a> SourceReader<'a> {
-  pub fn new(src: &'a String) -> Self {
-    Self { src, offset: 0 }
+  pub fn new_anonymous(src: &'a String) -> Self {
+    Self {
+      src, offset: 0,
+      filename: "<anonymous>".to_string(),
+    }
+  }
+
+  pub fn new(filename: String, src: &'a String) -> Self {
+    Self {
+      filename, src, offset: 0,
+    }
   }
 
   // pub fn src(&self) -> &'a String {
@@ -90,7 +99,7 @@ impl<'a> SourceReader<'a> {
       return InvalidSeekRewindSnafu.fail();
     };
 
-    self.seek(len).unwrap();
+    self.seek(len)?;
 
     Ok(text)
   }

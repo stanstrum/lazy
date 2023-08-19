@@ -402,6 +402,8 @@ impl FunctionAST {
 }
 
 mod tests {
+  use crate::aster::{asterize, source_reader::formatting::Message};
+
   #[allow(unused)]
   use super::*;
 
@@ -412,7 +414,10 @@ mod tests {
         let src_as_str = include_str!(concat!("../snippets/", stringify!($name), ".zy"));
         let src = src_as_str.to_string();
 
-        let ref mut $reader = SourceReader::new(&src);
+        let ref mut $reader = SourceReader::new(
+          concat!("../snippets/", stringify!($name), ".zy").to_string(),
+          &src
+        );
 
         $body
       }
@@ -430,6 +435,30 @@ mod tests {
 
       seek::optional_whitespace(reader).unwrap();
       assert!(reader.remaining() == 0);
+    }
+  );
+
+  snippet_test!(
+    show_message, reader => {
+      let global = asterize(reader).unwrap();
+
+      dbg!(&global);
+
+      let main = global.map.get("main").unwrap();
+      let main = match main {
+        Structure::NamespaceAST(_) => panic!("main is of wrong structure type"),
+        Structure::FunctionAST(main) => main,
+      };
+
+      let expr = main.body.children.get(0).unwrap();
+
+      let mes = Message {
+        level: crate::aster::source_reader::formatting::Level::Debug,
+        msg: "testing 1234".to_string(),
+        span: expr.span(),
+      };
+
+      println!("{}", reader.show_message(mes));
     }
   );
 }

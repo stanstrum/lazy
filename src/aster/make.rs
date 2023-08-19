@@ -180,24 +180,24 @@ impl AtomExpressionAST {
           consts::punctuation::BACKSLASH => {
             match reader.read_ch() {
               Ok('\'') => text.push('\''),
-              Ok('\"') => text.push('"'),
+              Ok('"') => text.push('"'),
               Ok('\\') => text.push('\\'),
-              Ok('0') => text.push('\0'),
-              Ok('a') => text.push('\x07'),
-              Ok('b') => text.push('\x08'),
-              Ok('t') => text.push('\t'),
-              Ok('n') => text.push('\n'),
-              Ok('v') => text.push('\x0b'),
-              Ok('f') => text.push('\x0c'),
-              Ok('r') => text.push('\r'),
-              Ok('e') => text.push('\x1b'),
-              Ok('x') => {
+              Ok(consts::ascii::NL_ESCAPE) => text.push(consts::ascii::NL),
+              Ok(consts::ascii::BL_ESCAPE) => text.push(consts::ascii::BL),
+              Ok(consts::ascii::BS_ESCAPE) => text.push(consts::ascii::BS),
+              Ok(consts::ascii::HT_ESCAPE) => text.push(consts::ascii::HT),
+              Ok(consts::ascii::LF_ESCAPE) => text.push(consts::ascii::LF),
+              Ok(consts::ascii::VT_ESCAPE) => text.push(consts::ascii::VT),
+              Ok(consts::ascii::FF_ESCAPE) => text.push(consts::ascii::FF),
+              Ok(consts::ascii::CR_ESCAPE) => text.push(consts::ascii::CR),
+              Ok(consts::ascii::ES_ESCAPE) => text.push(consts::ascii::ES),
+              Ok(consts::ascii::HEX_ESCAPE) => {
                 return NotImplementedSnafu {
                   what: "Hexadecimal Escape",
                   offset: reader.offset()
                 }.fail();
               },
-              Ok('u') => {
+              Ok(consts::ascii::UNI_ESCAPE) => {
                 return NotImplementedSnafu {
                   what: "Unicode Escape",
                   offset: reader.offset()

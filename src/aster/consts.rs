@@ -42,3 +42,30 @@ pub mod grouping {
   pub const OPEN_MULTILINE_COMMENT: &str = "/*";
   pub const CLOSE_MULTILINE_COMMENT: &str = "*/";
 }
+
+pub mod ascii {
+  // we're going oldschool with this :3
+
+  pub const NL: char = '\0';
+  pub const BL: char = '\x07';
+  pub const BS: char = '\x08';
+  pub const HT: char = '\t';
+  pub const LF: char = '\n';
+  pub const VT: char = '\x0b';
+  pub const FF: char = '\x0c';
+  pub const CR: char = '\r';
+  pub const ES: char = '\x1b';
+
+  pub const NL_ESCAPE: char = '0';
+  pub const BL_ESCAPE: char = 'a';
+  pub const BS_ESCAPE: char = 'b';
+  pub const HT_ESCAPE: char = 't';
+  pub const LF_ESCAPE: char = 'n';
+  pub const VT_ESCAPE: char = 'v';
+  pub const FF_ESCAPE: char = 'f';
+  pub const CR_ESCAPE: char = 'r';
+  pub const ES_ESCAPE: char = 'e';
+
+  pub const HEX_ESCAPE: char = 'x';
+  pub const UNI_ESCAPE: char = 'u';
+}

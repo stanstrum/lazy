@@ -19,8 +19,8 @@ pub mod seek {
     };
 
     loop {
-      match reader.read(1) {
-        Ok("\n") | Err(_) => { break; },
+      match reader.read_ch() {
+        Ok('\n') | Err(_) => { break; },
         _ => ()
       };
     };
@@ -59,8 +59,8 @@ pub mod seek {
         multiline_comment(reader)?;
       };
 
-      match reader.read(1) {
-        Ok(" " | "\r" | "\n" | "\t" | "\x0b") => (),
+      match reader.read_ch() {
+        Ok(' ' | '\r' | '\n' | '\t' | '\x0b') => (),
         Err(_) => { break; },
         _ => {
           reader.rewind(1).unwrap();

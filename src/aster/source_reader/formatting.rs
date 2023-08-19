@@ -43,6 +43,21 @@ impl SourceReader<'_> {
     Span { start, end: self.offset }
   }
 
+  pub fn line_col(&self, start: usize) -> (usize, usize) {
+    let mut line: usize = 0;
+    for ch in self.src[..start].chars() {
+      if ch == '\n' {
+        // println!("line {}:{:#?}", line, ch);
+
+        line += 1;
+      };
+    };
+
+    let col = self.offset - start;
+
+    (line, col)
+  }
+
   pub fn at(&self) -> String {
     // seek to beginning of line
     let mut start = self.offset;
@@ -88,7 +103,6 @@ impl SourceReader<'_> {
       end -= 1;
     };
 
-
     if start == self.src.len() {
       dbg!(self.offset);
       return "<end of file>".to_string();
@@ -97,16 +111,8 @@ impl SourceReader<'_> {
     // println!("end: {}:{:#?}", end, self.src.chars().nth(end).unwrap());
     // println!("start: {}:{:#?}", start, self.src.chars().nth(start).unwrap());
 
-    let mut line: usize = 0;
-    for ch in self.src[..start].chars() {
-      if ch == '\n' {
-        // println!("line {}:{:#?}", line, ch);
+    let (line, col) = self.line_col(start);
 
-        line += 1;
-      };
-    };
-
-    let col = self.offset - start;
     // println!("offset: {offset}, start: {start}, end: {end}, line: {line}, col: {col}", offset=self.offset());
     // println!("on: {:#?}", self.src.chars().nth(start).unwrap());
 
@@ -126,5 +132,9 @@ impl SourceReader<'_> {
         + 3 // length of ":" and ": "
       )
     )
+  }
+
+  pub fn show_message(&self, message: Message) -> String {
+    todo!()
   }
 }

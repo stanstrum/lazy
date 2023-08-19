@@ -65,7 +65,7 @@ fn compile() -> Result<(), LazyError> {
   let mut path = std::env::current_dir()
     .expect("Unable to get working directory");
 
-  path.push(input.clone);
+  path.push(input.clone());
 
   let src = match std::fs::read_to_string(&path) {
     Ok(src) => src,

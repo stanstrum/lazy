@@ -7,6 +7,10 @@
 
 use std::collections::HashMap;
 
+pub trait GetSpan {
+  fn span(self) -> Span;
+}
+
 #[derive(Debug, Clone)]
 pub struct Span {
   pub start: usize,
@@ -26,6 +30,15 @@ pub enum Structure {
   FunctionAST(FunctionAST),
 }
 
+impl GetSpan for &Structure {
+  fn span(self) -> Span {
+    match self {
+      Structure::NamespaceAST(s) => &s.span,
+      Structure::FunctionAST(s) => &s.span,
+    }.clone()
+  }
+}
+
 #[derive(Debug)]
 pub struct Variable(pub TypeAST, pub IdentAST);
 
@@ -33,6 +46,15 @@ pub struct Variable(pub TypeAST, pub IdentAST);
 pub enum Expression {
   Atom(AtomExpressionAST),
   Block(BlockExpressionAST),
+}
+
+impl GetSpan for &Expression {
+  fn span(self) -> Span {
+    match self {
+      Expression::Atom(s) => &s.span,
+      Expression::Block(s) => &s.span,
+    }.clone()
+  }
 }
 
 #[derive(Debug, Clone)]
@@ -47,6 +69,7 @@ pub enum Literal {
 
 #[derive(Debug)]
 pub struct CondExpr(Expression, Expression);
+
 #[derive(Debug)]
 pub struct ElseBranch(Option<Expression>);
 

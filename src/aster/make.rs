@@ -400,3 +400,36 @@ impl FunctionAST {
     })
   }
 }
+
+mod tests {
+  #[allow(unused)]
+  use super::*;
+
+  macro_rules! snippet_test {
+    ($name:ident, $reader:ident => $body:tt) => {
+      #[test]
+      fn $name() {
+        let src_as_str = include_str!(concat!("../snippets/", stringify!($name), ".zy"));
+        let src = src_as_str.to_string();
+
+        let ref mut $reader = SourceReader::new(&src);
+
+        $body
+      }
+    };
+  }
+
+  snippet_test!(
+    type_make, reader => {
+      let b = TypeAST::make(reader)
+        .unwrap();
+
+      println!("{:#?}", b);
+
+      reader.read_ch().unwrap();
+
+      seek::optional_whitespace(reader).unwrap();
+      assert!(reader.remaining() == 0);
+    }
+  );
+}

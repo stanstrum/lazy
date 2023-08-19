@@ -1,0 +1,3 @@
+fn main {
+  str_to_num("hello, world", 16);
+}

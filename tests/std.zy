@@ -1,0 +1,75 @@
+export default mod std {
+  export interface Add<T> {
+    public fn __add -> T:
+      T lhs, T rhs;
+  }
+
+  export interface Sub<T> {
+    public fn __sub -> T:
+      T lhs, T rhs;
+  }
+
+  export interface IMul<T> {
+    public fn __imul -> T:
+      T lhs, T rhs;
+  }
+
+  export interface IDiv<T> {
+    public fn __idiv -> T:
+      T lhs, T rhs;
+  }
+
+  export interface IArithmetic implements Add, Sub, IMul, IDiv;
+
+  impl IArithmetic for u8 {
+    public fn __add -> u8:
+      u8 lhs, u8 rhs
+    __llvm {
+      %tmp1 = add u8 %lhs, %rhs
+      ret u8 %tmp1
+    }
+
+    public fn __sub -> u8:
+      u8 lhs, u8 rhs
+    __llvm {
+      %tmp1 = sub u8 %lhs, %rhs
+      ret u8 %tmp1
+    }
+
+    public fn __imul -> u8:
+      u8 lhs, u8 rhs
+    __llvm {
+      %tmp1 = imul u8 %lhs, %rhs
+      ret u8 %tmp1
+    }
+
+    public fn __idiv -> u8:
+      u8 lhs, u8 rhs
+    __llvm {
+      %tmp1 = idiv u8 %lhs, %rhs
+      ret u8 %tmp1
+    }
+  }
+
+  trait Double<T: IMul | FMul> {
+    public fn double -> T: T self
+    {
+      self * 2
+    }
+
+    public fn double_self -> T: mut T self {
+      &self =|> $.double()
+    }
+  }
+}
+
+test! {
+  fn double() {
+    let s = 40f32;
+
+    const b := s.double();
+    s = b;
+
+    s =|> $.double();
+  }
+}

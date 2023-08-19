@@ -1,0 +1,27 @@
+fn hello_explicit {
+  &str hello := "hello";
+  [5]u8 hello_bytes := b"hello";
+
+  usize n1234 := 1234;
+  u64 n5678 := 5678;
+
+  // should fail
+  u8 n256 := 256;
+}
+
+fn implicit {
+  // should be &str
+  hello := "hello";
+
+  // should be [5]u8
+  hello_bytes := b"hello";
+
+  // should be usize
+  n1234 := 1234usize;
+
+  // should be u64
+  n5678 := 5678u64;
+
+  // should fail
+  n256 := 256u8;
+}

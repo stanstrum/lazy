@@ -1,0 +1,19 @@
+namespace Whatever {
+  export namespace Stuff {
+    export fn do_stuff[&; T] -> &str:
+      T a, T b
+    {
+      let s := "hello, world";
+
+      defer! s {
+        drop! $;
+      };
+    }
+  }
+
+  export namespace SomethingElse {
+    export class SomeClass {
+
+    }
+  }
+}

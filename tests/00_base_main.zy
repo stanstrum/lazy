@@ -1,0 +1,19 @@
+fn other_function -> bool:
+  char argument_1,
+  u8 argument_2
+{
+  {};
+  {};
+  {
+    {
+      // test comment :)
+    };
+
+    {
+      // this should be parsed as the last expression
+      // and return
+    }
+
+    /* and this should be skipped */
+  };
+}

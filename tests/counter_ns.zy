@@ -1,0 +1,10 @@
+fn main {
+  u32 ctr := 0
+
+  while true {
+    buf := io::stdin.read_line();
+    const amt := str_to_num(buf);
+
+    println("Counter is {}", amt);
+  }
+}

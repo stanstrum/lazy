@@ -153,7 +153,11 @@ impl std::string::ToString for FunctionAST {
   fn to_string(&self) -> String {
     let mut w: Vec<u8> = vec![];
 
-    writeln!(&mut w, "fn {} -> {}:", self.ident.to_string(), self.ret.to_string()).unwrap();
+    if self.args.len() == 0 {
+      write!(&mut w, "fn {} -> {} ", self.ident.to_string(), self.ret.to_string()).unwrap();
+    } else {
+      writeln!(&mut w, "fn {} -> {}:", self.ident.to_string(), self.ret.to_string()).unwrap();
+    };
 
     for arg in self.args.iter() {
       writeln!(&mut w, "  {} {},", arg.0.to_string(), arg.1.to_string()).unwrap();

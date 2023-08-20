@@ -9,6 +9,8 @@ use crate::aster::to_string::str_line_pfx;
 
 use super::intrinsics;
 
+use super::seek_read::read;
+use super::source_reader::formatting::{Message, Level, show_message};
 use super::{
   ast::*, errors::*,
   source_reader::SourceReader,
@@ -123,24 +125,34 @@ impl TypeAST {
   }
 }
 
-fn try_make<T>(mut f: impl FnMut(&mut SourceReader) -> AsterResult<T>, reader: &mut SourceReader, pfx: &str) -> Option<T> {
+fn try_make<T: GetSpan + std::fmt::Debug>(mut f: impl FnMut(&mut SourceReader) -> AsterResult<T>, reader: &mut SourceReader, text: &str) -> Option<T> {
   let start = reader.offset();
   let res = f(reader);
 
   match res {
-    Ok(v) => Some(v),
+    Ok(v) => {
+      let msg = Message {
+        level: Level::Debug,
+        msg: format!("Successfully parsed {}", text),
+        span: v.span()
+      };
+
+      println!("{}", show_message(reader.src(), msg));
+
+      Some(v)
+    },
     Err(e) => {
-      println!(
-        "{}",
-        str_line_pfx(
-          format!(
-            "{} at:\n{}",
-            e.to_string(),
-            reader.at()
-          ),
-          format!("{}: ", pfx).as_str()
-        )
-      );
+      // println!(
+      //   "{}",
+      //   str_line_pfx(
+      //     format!(
+      //       "{} at:\n{}",
+      //       e.to_string(),
+      //       reader.at()
+      //     ),
+      //     format!("{}: ", text).as_str()
+      //   )
+      // );
 
       reader.rewind(reader.offset() - start).unwrap();
 
@@ -439,7 +451,7 @@ mod tests {
   );
 
   snippet_test!(
-    show_message, reader => {
+    message, reader => {
       let global = asterize(reader).unwrap();
 
       dbg!(&global);
@@ -458,7 +470,7 @@ mod tests {
         span: expr.span(),
       };
 
-      println!("{}", reader.show_message(mes));
+      println!("{}", show_message(reader.src(), mes));
     }
   );
 }

@@ -36,9 +36,9 @@ impl<'a> SourceReader<'a> {
     }
   }
 
-  // pub fn src(&self) -> &'a String {
-  //   &self.src
-  // }
+  pub fn src(&self) -> &'a String {
+    &self.src
+  }
 
   pub fn offset(&self) -> usize {
     self.offset

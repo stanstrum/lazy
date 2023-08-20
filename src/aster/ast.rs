@@ -8,7 +8,7 @@
 use std::collections::HashMap;
 
 pub trait GetSpan {
-  fn span(self) -> Span;
+  fn span(&self) -> Span;
 }
 
 #[derive(Debug, Clone)]
@@ -31,7 +31,7 @@ pub enum Structure {
 }
 
 impl GetSpan for &Structure {
-  fn span(self) -> Span {
+  fn span(&self) -> Span {
     match self {
       Structure::NamespaceAST(s) => &s.span,
       Structure::FunctionAST(s) => &s.span,
@@ -49,7 +49,7 @@ pub enum Expression {
 }
 
 impl GetSpan for &Expression {
-  fn span(self) -> Span {
+  fn span(&self) -> Span {
     match self {
       Expression::Atom(s) => &s.span,
       Expression::Block(s) => &s.span,
@@ -144,3 +144,25 @@ pub struct IdentAST {
   pub span: Span,
   pub text: String,
 }
+
+macro_rules! make_get_span [
+  ($i:ident) => {
+    impl GetSpan for $i {
+      fn span(&self) -> Span {
+        self.span.clone()
+      }
+    }
+  };
+
+  ($first:ident, $($rest:ident),+) => {
+    make_get_span!($first);
+    make_get_span!($($rest),+);
+  };
+];
+
+make_get_span![
+  IdentAST,
+  BlockExpressionAST,
+  AtomExpressionAST,
+  TypeAST
+];

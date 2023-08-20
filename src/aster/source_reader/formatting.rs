@@ -125,8 +125,8 @@ fn at(src: &String, offset: usize) -> String {
   // println!("offset: {offset}, start: {start}, end: {end}, line: {line}, col: {col}", offset=self.offset());
   // println!("on: {:#?}", &self.src.chars().nth(start).unwrap());
 
-  let line_no_length = num_length(line as u32);
-  let col_length = num_length(col as u32);
+  let line_no_length = num_length(line as u32 + 1);
+  let col_length = num_length(col as u32 + 1);
 
   format!(
     "{}:{}: {}\n{}^ here",
@@ -139,6 +139,42 @@ fn at(src: &String, offset: usize) -> String {
   )
 }
 
+pub fn show_message(src: &String, message: Message) -> String {
+  let (start_line, start_col) = line_col(src, message.span.start);
+  let (end_line, end_col) = line_col(src, message.span.end);
+
+  if start_line != end_line {
+    todo!("multiline message");
+  };
+
+  let mut w: Vec<u8> = vec![];
+
+  writeln!(&mut w, "{}: \x1b[1m{}\x1b[0m", message.level.to_string(), message.msg).unwrap();
+
+  let pfx_len = num_length(start_line as u32 + 1);
+
+  let Some((start, end)) = start_end(src, message.span.start) else {
+    return "<failed to write properly>".to_string();
+  };
+
+  // dbg!(start_line, start_col, end_line, end_col, start, end);
+
+  writeln!(&mut w, "{} |",
+    " ".repeat(pfx_len)
+  ).unwrap();
+  writeln!(&mut w, "{} | {}",
+    start_line + 1,
+    &src[start..=end]
+  ).unwrap();
+  writeln!(&mut w, "{} | {}{}",
+    " ".repeat(pfx_len),
+    " ".repeat(start_col),
+    "^".repeat(end_col - start_col)
+  ).unwrap();
+
+  String::from_utf8(w).expect("failed to read from buffer")
+}
+
 impl SourceReader<'_> {
   pub fn span_since(&self, start: usize) -> Span {
     Span { start, end: self.offset }
@@ -146,41 +182,5 @@ impl SourceReader<'_> {
 
   pub fn at(&self) -> String {
     at(&self.src, self.offset)
-  }
-
-  pub fn show_message(&self, message: Message) -> String {
-    let (start_line, start_col) = line_col(&self.src, message.span.start);
-    let (end_line, end_col) = line_col(&self.src, message.span.end);
-
-    if start_line != end_line {
-      todo!("multiline message");
-    };
-
-    let mut w: Vec<u8> = vec![];
-
-    writeln!(&mut w, "{}: \x1b[1m{}\x1b[0m", message.level.to_string(), message.msg).unwrap();
-
-    let pfx_len = num_length(start_line as u32 + 1);
-
-    let Some((start, end)) = start_end(&self.src, message.span.start) else {
-      return "<failed to write properly>".to_string();
-    };
-
-    // dbg!(start_line, start_col, end_line, end_col, start, end);
-
-    writeln!(&mut w, "{} |",
-      " ".repeat(pfx_len)
-    ).unwrap();
-    writeln!(&mut w, "{} | {}",
-      start_line + 1,
-      &self.src[start..=end]
-    ).unwrap();
-    writeln!(&mut w, "{} | {}{}",
-      " ".repeat(pfx_len),
-      " ".repeat(start_col),
-      "^".repeat(end_col - start_col)
-    ).unwrap();
-
-    String::from_utf8(w).expect("failed to read from buffer")
   }
 }

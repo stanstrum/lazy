@@ -6,6 +6,8 @@
  */
 
 use std::{io::{Write, /* Result */}, /* str::FromStr */};
+use crate::aster::consts;
+
 use super::ast::*;
 
 const INDENTATION: &str = "  ";
@@ -29,9 +31,71 @@ pub fn str_line_pfx(string: String, pfx: &str) -> String {
   new_string.trim_end().into()
 }
 
+impl std::string::ToString for Literal {
+  fn to_string(&self) -> String {
+    match self {
+      Literal::String(text) => {
+        let mut escaped = String::new();
+
+        for ch in text.chars() {
+          match ch {
+            '\\' | '"' => { escaped.push('\\'); escaped.push(ch); }
+            ' '..='~' => escaped.push(ch),
+            consts::ascii::NL => escaped.push_str("\\0"),
+            consts::ascii::BL => escaped.push_str("\\a"),
+            consts::ascii::BS => escaped.push_str("\\b"),
+            consts::ascii::HT => escaped.push_str("\\t"),
+            consts::ascii::LF => escaped.push_str("\\n"),
+            consts::ascii::VT => escaped.push_str("\\v"),
+            consts::ascii::FF => escaped.push_str("\\f"),
+            consts::ascii::CR => escaped.push_str("\\r"),
+            consts::ascii::ES => escaped.push_str("\\e"),
+            _ => {
+              escaped.push('\\');
+
+              let s = match ch as u32 {
+                0..=255 => format!("{:x<2}", ch as u32),
+                _ => todo!()
+              };
+
+              escaped.push_str(s.as_str());
+            }
+          };
+        };
+
+        format!("\"{}\"", escaped)
+      },
+      _ => todo!()
+    }
+  }
+}
+
 impl std::string::ToString for AtomExpressionAST {
   fn to_string(&self) -> String {
-    todo!()
+    match &self.a {
+      AtomExpression::Assignment {
+        ty, ident, value
+      } => {
+        match ty {
+          Some(ty) => {
+            format!(
+              "{} {} := {}",
+              ty.to_string(),
+              ident.to_string(),
+              value.to_string()
+            )
+          },
+          None => {
+            format!(
+              "{} := {}",
+              ident.to_string(),
+              value.to_string()
+            )
+          },
+        }
+      },
+      AtomExpression::Literal(lit) => lit.to_string(),
+    }
   }
 }
 

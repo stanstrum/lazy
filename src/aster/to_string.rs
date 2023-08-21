@@ -92,7 +92,7 @@ impl std::string::ToString for LiteralAST {
 impl std::string::ToString for AtomExpressionAST {
   fn to_string(&self) -> String {
     match &self.a {
-      AtomExpression::Assignment {
+      AtomExpression::Binding {
         ty, ident, value
       } => {
         match ty {

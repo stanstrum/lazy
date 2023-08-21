@@ -88,7 +88,7 @@ pub enum ControlFlow {
 
 #[derive(Debug)]
 pub enum AtomExpression {
-  Assignment {
+  Binding {
     ty: Option<TypeAST>,
     ident: IdentAST,
     value: Box<Expression>

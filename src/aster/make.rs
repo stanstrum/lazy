@@ -382,7 +382,7 @@ impl AtomExpressionAST {
 
     Ok(
       Self {
-        a: AtomExpression::Assignment {
+        a: AtomExpression::Binding {
           ident, ty, value
         },
         span: reader.span_since(start),
@@ -391,7 +391,7 @@ impl AtomExpressionAST {
     )
   }
 
-  pub fn make_assignment(reader: &mut SourceReader) -> AsterResult<Self> {
+  pub fn make_binding(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
     if let Some(binding) = try_make!(Self::make_blind_binding, reader, None) {
@@ -409,7 +409,7 @@ impl AtomExpressionAST {
       Ok(binding)
     } else {
       ExpectedSnafu {
-        what: "Assignment",
+        what: "Binding",
         offset: reader.offset()
       }.fail()
     }
@@ -418,7 +418,7 @@ impl AtomExpressionAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
-    if let Some(assn) = try_make!(AtomExpressionAST::make_assignment, reader) {
+    if let Some(assn) = try_make!(AtomExpressionAST::make_binding, reader) {
       Ok(assn)
     } else if let Some(lit) = try_make!(LiteralAST::make, reader) {
       Ok(Self {
@@ -623,7 +623,7 @@ mod tests {
 
   snippet_test!(
     string_ref, reader => {
-      let assn = AtomExpressionAST::make_assignment(reader);
+      let assn = AtomExpressionAST::make_binding(reader);
 
       dbg!(&assn);
 

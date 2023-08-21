@@ -16,10 +16,67 @@ use super::{
   consts
 };
 
+// try_make($func, $reader:ident, $($args),* concat!(stringify!($func), " from ", line!()))
 macro_rules! try_make {
-  ($func:expr, $reader:ident) => {
-    try_make($func, $reader, stringify!($func))
-  };
+  ($func:expr, $reader:ident $(, $args:expr)*) => {{
+    let start = $reader.offset();
+    let text = concat!(stringify!($func), " from ", line!());
+
+    println!("{}", format_message($reader.src(), Message {
+      level: Level::Note,
+      msg: format!("Trying {}", text),
+      sub: "here".to_owned(),
+      span: Span {
+        start: $reader.offset(),
+        end: $reader.offset()
+      }
+    }));
+
+    let res = $func($reader $(, $args)*);
+
+    match res {
+      Ok(v) => {
+        let msg = Message {
+          level: Level::Debug,
+          msg: format!("Successfully parsed {}", text),
+          sub: "here".to_owned(),
+          span: v.span()
+        };
+
+        println!("{}", format_message($reader.src(), msg));
+
+        Some(v)
+      },
+      Err(e) => {
+        let message = Message {
+          level: Level::Warning,
+          msg: format!("Failed to parse {}", text),
+          sub: e.to_string(),
+          span: Span {
+            start, end: start
+          }
+        };
+
+        println!("{}", format_message($reader.src(), message));
+
+        // println!(
+        //   "{}",
+        //   str_line_pfx(
+        //     format!(
+        //       "{} at:\n{}",
+        //       e.to_string(),
+        //       reader.at()
+        //     ),
+        //     format!("{}: ", text).as_str()
+        //   )
+        // );
+
+        $reader.rewind($reader.offset() - start).unwrap();
+
+        None
+      },
+    }
+  }};
 }
 
 impl IdentAST {
@@ -30,7 +87,10 @@ impl IdentAST {
 
     for ctr in 0usize.. {
       let Ok(first) = reader.read(1) else {
-        return ExpectedSnafu { what: "More characters (for Ident)", offset: reader.offset() }.fail();
+        return ExpectedSnafu {
+          what: "More characters (for Ident)",
+          offset: reader.offset()
+        }.fail();
       };
 
       let first = first.chars().nth(0).unwrap();
@@ -42,7 +102,10 @@ impl IdentAST {
         _ if ctr == 0 => {
           reader.rewind(1).unwrap();
 
-          return ExpectedSnafu { what: "Ident", offset: reader.offset() }.fail();
+          return ExpectedSnafu {
+            what: "Ident",
+            offset: reader.offset()
+          }.fail();
         },
         _ => {
           reader.rewind(1).unwrap();
@@ -64,14 +127,16 @@ impl TypeAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
-    println!("{}", reader.at());
+    // println!("{}", reader.at());
 
     if seek::begins_with(reader, consts::punctuation::AMPERSAND) {
-      println!("TypeAST::make ReferenceTo:");
+      // println!("TypeAST::make ReferenceTo:");
 
       // if seek::begins_with(reader, consts::keyword::MUT) {
       //   todo!();
       // };
+
+      seek::optional_whitespace(reader)?;
 
       let ty = Box::new(TypeAST::make(reader)?);
 
@@ -80,25 +145,20 @@ impl TypeAST {
         e: Type::ConstReferenceTo(ty)
       })
     } else if seek::begins_with(reader, consts::grouping::OPEN_BRACKET) {
-      let mut len: Option<u32> = None;
+      seek::optional_whitespace(reader)?;
 
-      loop {
-        let ch = reader.read_ch();
+      let len = try_make!(LiteralAST::make_numeric, reader);
 
-        match ch {
-          Ok('0'..='9') => {
-            len = Some(
-              // sponge: this is bad
-              ch.unwrap().to_digit(10).unwrap() +
-              len.unwrap_or_default()
-            );
-          },
-          Ok(']') => {
-            break;
-          },
-          _ => todo!("bad array size due to naive parsing")
-        }
+      seek::optional_whitespace(reader)?;
+
+      if !seek::begins_with(reader, consts::grouping::CLOSE_BRACKET) {
+        return ExpectedSnafu {
+          what: "Closing Bracket",
+          offset: reader.offset()
+        }.fail();
       };
+
+      seek::optional_whitespace(reader)?;
 
       let ty = Box::new(TypeAST::make(reader)?);
 
@@ -106,78 +166,18 @@ impl TypeAST {
         span: reader.span_since(start),
         e: Type::ArrayOf(len, ty)
       })
-    } else if let Some(e) = 'ident: {
-      let Some(ident) = try_make!(IdentAST::make, reader) else {
-        break 'ident None;
-      };
-
-      // println!("TypeAST{}", ident.to_string());
-
-      intrinsics::get_intrinsic(&ident.text)
-     } {
-      println!("TypeAST::make get_intrinsic:");
-
-      Ok(Self {
-        span: reader.span_since(start), e
-      })
-    } else if let Some(i) = try_make!(IdentAST::make, reader) {
-      Ok(Self {
-        span: reader.span_since(start),
-        e: Type::Unknown(i)
-      })
     } else {
-      println!("TypeAST::make fail:");
-
-      UnknownSnafu { what: "Type", offset: reader.offset() }.fail()
-    }
-  }
-}
-
-fn try_make<T: GetSpan + std::fmt::Debug>(mut f: impl FnMut(&mut SourceReader) -> AsterResult<T>, reader: &mut SourceReader, text: &str) -> Option<T> {
-  let start = reader.offset();
-  let res = f(reader);
-
-  match res {
-    Ok(v) => {
-      let msg = Message {
-        level: Level::Debug,
-        msg: format!("Successfully parsed {}", text),
-        sub: "here".to_owned(),
-        span: v.span()
+      let Some(ident) = try_make!(IdentAST::make, reader) else {
+        return ExpectedSnafu { what: "Ident", offset: reader.offset() }.fail();
       };
 
-      println!("{}", format_message(reader.src(), msg));
-
-      Some(v)
-    },
-    Err(e) => {
-      let message = Message {
-        level: Level::Warning,
-        msg: format!("Failed to parse {}", text),
-        sub: e.to_string(),
-        span: Span {
-          start, end: start
+      Ok(Self {
+        span: reader.span_since(start), e: match intrinsics::get_intrinsic(&ident.text) {
+          Some(ty) => ty,
+          None => Type::Unknown(ident),
         }
-      };
-
-      println!("{}", format_message(reader.src(), message));
-
-      // println!(
-      //   "{}",
-      //   str_line_pfx(
-      //     format!(
-      //       "{} at:\n{}",
-      //       e.to_string(),
-      //       reader.at()
-      //     ),
-      //     format!("{}: ", text).as_str()
-      //   )
-      // );
-
-      reader.rewind(reader.offset() - start).unwrap();
-
-      None
-    },
+      })
+    }
   }
 }
 
@@ -188,7 +188,10 @@ impl Expression {
     } else if let Some(expr) = try_make!(AtomExpressionAST::make, reader) {
       Ok(Expression::Atom(expr))
     } else {
-      ExpectedSnafu { what: "Expression (BlockExpression, AtomExpression)", offset: reader.offset() }.fail()
+      ExpectedSnafu {
+        what: "Expression (BlockExpression, AtomExpression)",
+        offset: reader.offset()
+      }.fail()
     }
   }
 }
@@ -203,7 +206,10 @@ impl Literal {
       },
       Some('"') => None,
       Some(_) | None => {
-        return ExpectedSnafu { what: "Byte String", offset: reader.offset() }.fail();
+        return ExpectedSnafu {
+          what: "Byte String",
+          offset: reader.offset()
+        }.fail();
       }
     };
 
@@ -218,14 +224,20 @@ impl Literal {
 
   pub fn make_string_body(reader: &mut SourceReader) -> AsterResult<String> {
     if !seek::begins_with(reader, consts::punctuation::QUOTE) {
-      return ExpectedSnafu { what: "Quote", offset: reader.offset() }.fail();
+      return ExpectedSnafu {
+        what: "Quote",
+        offset: reader.offset()
+      }.fail();
     };
 
     let mut text = String::new();
 
     loop {
       let Ok(ch) = reader.read(1) else {
-        return ExpectedSnafu { what: "Closing quote (\")", offset: reader.offset() }.fail();
+        return ExpectedSnafu {
+          what: "Closing quote (\")",
+          offset: reader.offset()
+        }.fail();
       };
 
       match ch {
@@ -283,6 +295,49 @@ impl Literal {
 }
 
 impl LiteralAST {
+  pub fn make_numeric(reader: &mut SourceReader) -> AsterResult<Self> {
+    let start = reader.offset();
+
+    loop {
+      match reader.peek_ch() {
+        Some('0'..='9') | Some('a'..='f') | Some('A'..='F') => {
+          reader.seek(1).unwrap();
+        },
+        _ => { break; }
+      }
+    };
+
+    if reader.offset() == start {
+      return ExpectedSnafu {
+        what: "Numeric Literal",
+        offset: reader.offset()
+      }.fail();
+    }
+
+    match true {
+      _ if seek::begins_with(reader, consts::punctuation::U8_SFX) => {},
+      _ if seek::begins_with(reader, consts::punctuation::U16_SFX) => {},
+      _ if seek::begins_with(reader, consts::punctuation::U32_SFX) => {},
+      _ if seek::begins_with(reader, consts::punctuation::U64_SFX) => {},
+      _ if seek::begins_with(reader, consts::punctuation::U128_SFX) => {},
+      _ if seek::begins_with(reader, consts::punctuation::USIZE_SFX) => {},
+      _ if seek::begins_with(reader, consts::punctuation::I8_SFX) => {},
+      _ if seek::begins_with(reader, consts::punctuation::I16_SFX) => {},
+      _ if seek::begins_with(reader, consts::punctuation::I32_SFX) => {},
+      _ if seek::begins_with(reader, consts::punctuation::I64_SFX) => {},
+      _ if seek::begins_with(reader, consts::punctuation::I128_SFX) => {},
+      _ if seek::begins_with(reader, consts::punctuation::ISIZE_SFX) => {},
+      _ => {}
+    };
+
+    Ok(Self {
+      span: reader.span_since(start),
+      l: Literal::NumericLiteral(
+        String::from(&reader.src()[start..reader.offset()])
+      )
+    })
+  }
+
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
@@ -290,29 +345,30 @@ impl LiteralAST {
       Ok(Self {
         span: reader.span_since(start), l
       })
+    } else if let Some(l) = try_make!(LiteralAST::make_numeric, reader) {
+      Ok(l)
     } else {
-      ExpectedSnafu { what: "Literal", offset: reader.offset() }.fail()
+      ExpectedSnafu {
+        what: "Literal",
+        offset: reader.offset()
+      }.fail()
     }
   }
 }
 
 impl AtomExpressionAST {
-  pub fn make_assignment(reader: &mut SourceReader) -> AsterResult<Self> {
+  fn make_blind_binding(reader: &mut SourceReader, ty: Option<TypeAST>) -> AsterResult<Self> {
     let start = reader.offset();
-
-    let ty = try_make!(TypeAST::make, reader);
-
-    match ty {
-      Some(_) => { seek::required_whitespace(reader)?; },
-      _ => {}
-    };
 
     let ident = IdentAST::make(reader)?;
 
     seek::optional_whitespace(reader)?;
 
     if !seek::begins_with(reader, consts::punctuation::BOLLOCKS) {
-      return ExpectedSnafu { what: "Punctuation (:=)", offset: reader.offset() }.fail();
+      return ExpectedSnafu {
+        what: "Punctuation (:=)",
+        offset: reader.offset()
+      }.fail();
     };
 
     seek::optional_whitespace(reader)?;
@@ -335,6 +391,30 @@ impl AtomExpressionAST {
     )
   }
 
+  pub fn make_assignment(reader: &mut SourceReader) -> AsterResult<Self> {
+    let start = reader.offset();
+
+    if let Some(binding) = try_make!(Self::make_blind_binding, reader, None) {
+      return Ok(binding);
+    };
+
+    let ty = try_make!(TypeAST::make, reader);
+
+    match ty {
+      Some(_) => { seek::required_whitespace(reader)?; },
+      _ => {}
+    };
+
+    if let Some(binding) = try_make!(Self::make_blind_binding, reader, ty) {
+      Ok(binding)
+    } else {
+      ExpectedSnafu {
+        what: "Assignment",
+        offset: reader.offset()
+      }.fail()
+    }
+  }
+
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
@@ -347,7 +427,10 @@ impl AtomExpressionAST {
         out: Type::Unresolved,
       })
     } else {
-      UnknownSnafu { what: "Expression", offset: reader.offset() }.fail()
+      UnknownSnafu {
+        what: "Expression",
+        offset: reader.offset()
+      }.fail()
     }
   }
 }
@@ -357,7 +440,10 @@ impl BlockExpressionAST {
     let start = reader.offset();
 
     if !seek::begins_with(reader, consts::grouping::OPEN_BRACE) {
-      return ExpectedSnafu { what: "Open Block Expression ({)", offset: reader.offset() }.fail();
+      return ExpectedSnafu {
+        what: "Open Curly Brace",
+        offset: reader.offset()
+      }.fail();
     };
 
     let mut children: Vec<Expression> = vec![];
@@ -374,7 +460,10 @@ impl BlockExpressionAST {
       } else if let Ok(expr) = BlockExpressionAST::make(reader) {
         children.push(Expression::Block(expr));
       } else {
-        return ExpectedSnafu { what: "Expression (block, atom)", offset: reader.offset() }.fail();
+        return ExpectedSnafu {
+          what: "Expression (block, atom)",
+          offset: reader.offset()
+        }.fail();
       };
 
       seek::optional_whitespace(reader)?;
@@ -383,7 +472,10 @@ impl BlockExpressionAST {
         if seek::begins_with(reader, consts::grouping::CLOSE_BRACE) {
           break true;
         } else {
-          return ExpectedSnafu { what: "Close Block Expression ('}') or Semicolon", offset: reader.offset() }.fail();
+          return ExpectedSnafu {
+            what: "Close Curly Brace or Semicolon",
+            offset: reader.offset()
+          }.fail();
         };
       };
     };
@@ -401,7 +493,10 @@ impl FunctionAST {
 
     // "fn"
     if !seek::begins_with(reader, consts::keyword::FN) {
-      return ExpectedSnafu { what: "Keyword (fn)", offset: reader.offset() }.fail();
+      return ExpectedSnafu {
+        what: "Keyword (fn)",
+        offset: reader.offset()
+      }.fail();
     };
 
     seek::required_whitespace(reader)?;
@@ -523,6 +618,17 @@ mod tests {
       };
 
       println!("{}", format_message(reader.src(), mes));
+    }
+  );
+
+  snippet_test!(
+    string_ref, reader => {
+      let assn = AtomExpressionAST::make_assignment(reader);
+
+      dbg!(&assn);
+
+      seek::optional_whitespace(reader).unwrap();
+      assert!(reader.remaining() == 0);
     }
   );
 }

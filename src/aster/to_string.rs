@@ -8,7 +8,7 @@
 use std::{io::{Write, /* Result */}, /* str::FromStr */};
 use crate::aster::consts;
 
-use super::ast::*;
+use super::{ast::*, formatting::format_message};
 
 use crate::colors::*;
 
@@ -33,41 +33,58 @@ pub fn str_line_pfx(string: String, pfx: &str) -> String {
   new_string.trim_end().into()
 }
 
+fn stringfiy_string(lit: &Literal) -> String {
+  let mut w: Vec<u8> = vec![];
+
+  let text = match lit {
+    Literal::String(text) => text,
+    Literal::ByteString(text) => {
+      write!(&mut w, "b").unwrap();
+
+      text
+    },
+    _ => todo!("exhaustive for literal ast: {:#?}", lit)
+  };
+
+  write!(&mut w, "{LIGHT_YELLOW}\"").unwrap();
+
+  for ch in text.chars() {
+    match ch {
+      '\\' | '"' => { write!(&mut w, "\\{ch}").unwrap(); }
+      ' '..='~' => { write!(&mut w, "{}", ch).unwrap(); },
+      consts::ascii::NL => { write!(&mut w, "\\0").unwrap(); },
+      consts::ascii::BL => { write!(&mut w, "\\a").unwrap(); },
+      consts::ascii::BS => { write!(&mut w, "\\b").unwrap(); },
+      consts::ascii::HT => { write!(&mut w, "\\t").unwrap(); },
+      consts::ascii::LF => { write!(&mut w, "\\n").unwrap(); },
+      consts::ascii::VT => { write!(&mut w, "\\v").unwrap(); },
+      consts::ascii::FF => { write!(&mut w, "\\f").unwrap(); },
+      consts::ascii::CR => { write!(&mut w, "\\r").unwrap(); },
+      consts::ascii::ES => { write!(&mut w, "\\e").unwrap(); },
+      _ => {
+        write!(&mut w, "\\").unwrap();
+
+        match ch as u32 {
+          0..=255 => { write!(&mut w, "{:x<2}", ch as u32).unwrap(); },
+          _ => todo!()
+        };
+      }
+    };
+  };
+
+  write!(&mut w, "\"{CLEAR}").unwrap();
+
+  String::from_utf8(w).unwrap()
+}
+
 impl std::string::ToString for LiteralAST {
   fn to_string(&self) -> String {
     match &self.l {
-      Literal::String(text) => {
-        let mut escaped = String::new();
-
-        for ch in text.chars() {
-          match ch {
-            '\\' | '"' => { escaped.push('\\'); escaped.push(ch); }
-            ' '..='~' => escaped.push(ch),
-            consts::ascii::NL => escaped.push_str("\\0"),
-            consts::ascii::BL => escaped.push_str("\\a"),
-            consts::ascii::BS => escaped.push_str("\\b"),
-            consts::ascii::HT => escaped.push_str("\\t"),
-            consts::ascii::LF => escaped.push_str("\\n"),
-            consts::ascii::VT => escaped.push_str("\\v"),
-            consts::ascii::FF => escaped.push_str("\\f"),
-            consts::ascii::CR => escaped.push_str("\\r"),
-            consts::ascii::ES => escaped.push_str("\\e"),
-            _ => {
-              escaped.push('\\');
-
-              let s = match ch as u32 {
-                0..=255 => format!("{:x<2}", ch as u32),
-                _ => todo!()
-              };
-
-              escaped.push_str(s.as_str());
-            }
-          };
-        };
-
-        format!("\"{}\"", escaped)
+      Literal::String(_) | Literal::ByteString(_) => stringfiy_string(&self.l),
+      Literal::NumericLiteral(s) => {
+        s.clone()
       },
-      _ => todo!()
+      _ => todo!("exhaustive for literal ast {:#?}", &self.l)
     }
   }
 }
@@ -143,8 +160,18 @@ impl std::string::ToString for TypeAST {
         let name = unsafe { (*ptr).name };
 
         format!(
-          "{DARK_GRAY}/* intrinsic */{CLEAR} {LIGHT_RED}{}{CLEAR}", name
+          "{LIGHT_RED}{}{CLEAR}", name
         )
+      },
+      Type::ConstReferenceTo(ref ty) => format!("&{}", ty.to_string()),
+      Type::ArrayOf(ref len, ref ty) => {
+        match len {
+          Some(ref lit) => format!("[{}]{}", lit.to_string(), ty.to_string()),
+          None => format!("[]{}", ty.to_string())
+        }
+      },
+      Type::Unknown(ref ident) => {
+        format!("{DARK_GRAY}/* unknown */{CLEAR} {}", ident.to_string())
       },
       _ => todo!("exhaustive typeast: {:#?}", self.e)
     }
@@ -183,7 +210,7 @@ impl std::string::ToString for Structure {
 
 impl std::string::ToString for IdentAST {
   fn to_string(&self) -> String {
-    format!("{LIGHT_GRAY}{}{CLEAR}", self.text)
+    format!("{LIGHT_GRAY}{BOLD}{}{CLEAR}", self.text)
   }
 }
 

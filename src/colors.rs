@@ -34,6 +34,7 @@ def_colors! {
   LIGHT_CYAN: "96",
   WHITE: "97",
 
+  UNDERLINE: "4",
   BOLD: "1",
   CLEAR: "0"
 }

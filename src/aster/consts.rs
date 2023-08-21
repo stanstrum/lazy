@@ -27,6 +27,23 @@ pub mod punctuation {
   pub const BACKSLASH: &str = "\\";
 
   pub const AMPERSAND: &str = "&";
+
+  pub const HEX_PFX: &str = "0x";
+  pub const BIN_PFX: &str = "0b";
+  pub const OCT_PFX: &str = "0o";
+
+  pub const U8_SFX: &str = "u8";
+  pub const U16_SFX: &str = "u16";
+  pub const U32_SFX: &str = "u32";
+  pub const U64_SFX: &str = "u64";
+  pub const U128_SFX: &str = "u128";
+  pub const USIZE_SFX: &str = "usize";
+  pub const I8_SFX: &str = "i8";
+  pub const I16_SFX: &str = "i16";
+  pub const I32_SFX: &str = "i32";
+  pub const I64_SFX: &str = "i64";
+  pub const I128_SFX: &str = "i128";
+  pub const ISIZE_SFX: &str = "isize";
 }
 
 pub mod grouping {

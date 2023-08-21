@@ -11,7 +11,6 @@ static INTRINSICS: &[IntrinsicType] = &[
   IntrinsicType { name: "void", bytes: 0 },
   IntrinsicType { name: "bool", bytes: 1 },
   IntrinsicType { name: "char", bytes: 1 },
-  IntrinsicType { name: "str", bytes: 0 },
   IntrinsicType { name: "u8", bytes: 1 },
   IntrinsicType { name: "u16", bytes: 2 },
   IntrinsicType { name: "u32", bytes: 4 },

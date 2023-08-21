@@ -63,11 +63,10 @@ pub enum Literal {
   ByteString(String),
   Char,
   ByteChar,
-  NumericLiteral,
-  SuffixedNumericLiteral,
+  NumericLiteral(String),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LiteralAST {
   pub span: Span,
   pub l: Literal,
@@ -133,7 +132,7 @@ pub enum Type {
   MutReferenceTo(Box<TypeAST>),
   ConstPtrTo(Box<TypeAST>),
   MutPtrTo(Box<TypeAST>),
-  ArrayOf(Option<u32>, Box<TypeAST>),
+  ArrayOf(Option<LiteralAST>, Box<TypeAST>),
   Defined(*mut TypeAST),
   Unknown(IdentAST),
   Unresolved,

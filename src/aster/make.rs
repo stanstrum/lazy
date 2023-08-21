@@ -5,11 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use crate::aster::to_string::str_line_pfx;
-
 use super::intrinsics;
 
-use super::seek_read::read;
+// use super::seek_read::read;
 use super::source_reader::formatting::{Message, Level, format_message};
 use super::{
   ast::*, errors::*,
@@ -152,7 +150,7 @@ fn try_make<T: GetSpan + std::fmt::Debug>(mut f: impl FnMut(&mut SourceReader) -
       let message = Message {
         level: Level::Warning,
         msg: format!("Failed to parse {}", text),
-        sub: "here".to_owned(),
+        sub: e.to_string(),
         span: Span {
           start, end: start
         }
@@ -366,7 +364,7 @@ impl BlockExpressionAST {
         if seek::begins_with(reader, consts::grouping::CLOSE_BRACE) {
           break true;
         } else {
-          return ExpectedSnafu { what: "Close Block Expression (}) or Semicolon", offset: reader.offset() }.fail();
+          return ExpectedSnafu { what: "Close Block Expression ('}') or Semicolon", offset: reader.offset() }.fail();
         };
       };
     };
@@ -447,6 +445,7 @@ impl FunctionAST {
 }
 
 mod tests {
+  #[allow(unused)]
   use crate::aster::{asterize, source_reader::formatting::Message};
 
   #[allow(unused)]

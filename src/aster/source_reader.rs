@@ -26,7 +26,7 @@ impl<'a> SourceReader<'a> {
   pub fn new_anonymous(src: &'a String) -> Self {
     Self {
       src, offset: 0,
-      filename: "<anonymous>".to_string(),
+      filename: "<anonymous>".to_owned(),
     }
   }
 
@@ -84,7 +84,7 @@ impl<'a> SourceReader<'a> {
 
   pub fn read_ch(&mut self) -> Result<char, SourceReaderError> {
     if self.remaining() >= 1 {
-      let ch = self.src.chars().nth(self.offset()).unwrap();
+      let ch = self.src.chars().nth(self.offset).unwrap();
 
       self.offset += 1;
 

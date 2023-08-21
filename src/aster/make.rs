@@ -118,8 +118,12 @@ impl TypeAST {
       println!("TypeAST::make get_intrinsic:");
 
       Ok(Self {
+        span: reader.span_since(start), e
+      })
+    } else if let Some(i) = try_make!(IdentAST::make, reader) {
+      Ok(Self {
         span: reader.span_since(start),
-        e
+        e: Type::Unknown(i)
       })
     } else {
       println!("TypeAST::make fail:");
@@ -189,86 +193,103 @@ impl Expression {
   }
 }
 
-impl LiteralAST {
-  pub fn make_string(reader: &mut SourceReader) -> AsterResult<Self> {
-    let start = reader.offset();
+impl Literal {
+  pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
+    let first = match reader.peek_ch() {
+      Some('b') => {
+        reader.seek(1).unwrap();
 
-    if seek::begins_with(reader, consts::punctuation::QUOTE) {
-      let mut text = String::new();
+        Some('b')
+      },
+      Some('"') => None,
+      Some(_) | None => {
+        return ExpectedSnafu { what: "Byte String", offset: reader.offset() }.fail();
+      }
+    };
 
-      loop {
-        let Ok(ch) = reader.read(1) else {
-          return ExpectedSnafu { what: "Closing quote (\")", offset: reader.offset() }.fail();
-        };
+    let l = Literal::make_string_body(reader)?;
 
-        match ch {
-          consts::punctuation::QUOTE => {
-            break;
-          },
-          consts::punctuation::BACKSLASH => {
-            match reader.read_ch() {
-              Ok('\'') => text.push('\''),
-              Ok('"') => text.push('"'),
-              Ok('\\') => text.push('\\'),
-              Ok(consts::ascii::NL_ESCAPE) => text.push(consts::ascii::NL),
-              Ok(consts::ascii::BL_ESCAPE) => text.push(consts::ascii::BL),
-              Ok(consts::ascii::BS_ESCAPE) => text.push(consts::ascii::BS),
-              Ok(consts::ascii::HT_ESCAPE) => text.push(consts::ascii::HT),
-              Ok(consts::ascii::LF_ESCAPE) => text.push(consts::ascii::LF),
-              Ok(consts::ascii::VT_ESCAPE) => text.push(consts::ascii::VT),
-              Ok(consts::ascii::FF_ESCAPE) => text.push(consts::ascii::FF),
-              Ok(consts::ascii::CR_ESCAPE) => text.push(consts::ascii::CR),
-              Ok(consts::ascii::ES_ESCAPE) => text.push(consts::ascii::ES),
-              Ok(consts::ascii::HEX_ESCAPE) => {
-                return NotImplementedSnafu {
-                  what: "Hexadecimal Escape",
-                  offset: reader.offset()
-                }.fail();
-              },
-              Ok(consts::ascii::UNI_ESCAPE) => {
-                return NotImplementedSnafu {
-                  what: "Unicode Escape",
-                  offset: reader.offset()
-                }.fail();
-              },
-              Ok(escaped) => {
-                return UnknownSnafu {
-                  what: format!(
-                    "Escaped Character ({:#?})",
-                    escaped
-                  ),
-                  offset:
-                  reader.offset()
-                }.fail();
-              },
-              Err(_) => {
-                return ExpectedSnafu {
-                  what: "Escaped Character",
-                  offset: reader.offset()
-                }.fail();
-              }
-            }
-          },
-          _ => {
-            text.push_str(ch);
-          }
-        };
-      };
-
-      Ok(LiteralAST {
-        span: reader.span_since(start),
-        l: Literal::String(text)
-      })
-    } else {
-      todo!()
+    match first {
+      Some('b') => Ok(Literal::ByteString(l)),
+      None => Ok(Literal::String(l)),
+      _ => panic!("invalid string prefix retained")
     }
   }
 
+  pub fn make_string_body(reader: &mut SourceReader) -> AsterResult<String> {
+    if !seek::begins_with(reader, consts::punctuation::QUOTE) {
+      return ExpectedSnafu { what: "Quote", offset: reader.offset() }.fail();
+    };
+
+    let mut text = String::new();
+
+    loop {
+      let Ok(ch) = reader.read(1) else {
+        return ExpectedSnafu { what: "Closing quote (\")", offset: reader.offset() }.fail();
+      };
+
+      match ch {
+        consts::punctuation::QUOTE => { break; },
+        consts::punctuation::BACKSLASH => {
+          match reader.read_ch() {
+            Ok('\'') => text.push('\''),
+            Ok('"') => text.push('"'),
+            Ok('\\') => text.push('\\'),
+            Ok(consts::ascii::NL_ESCAPE) => text.push(consts::ascii::NL),
+            Ok(consts::ascii::BL_ESCAPE) => text.push(consts::ascii::BL),
+            Ok(consts::ascii::BS_ESCAPE) => text.push(consts::ascii::BS),
+            Ok(consts::ascii::HT_ESCAPE) => text.push(consts::ascii::HT),
+            Ok(consts::ascii::LF_ESCAPE) => text.push(consts::ascii::LF),
+            Ok(consts::ascii::VT_ESCAPE) => text.push(consts::ascii::VT),
+            Ok(consts::ascii::FF_ESCAPE) => text.push(consts::ascii::FF),
+            Ok(consts::ascii::CR_ESCAPE) => text.push(consts::ascii::CR),
+            Ok(consts::ascii::ES_ESCAPE) => text.push(consts::ascii::ES),
+            Ok(consts::ascii::HEX_ESCAPE) => {
+              return NotImplementedSnafu {
+                what: "Hexadecimal Escape",
+                offset: reader.offset()
+              }.fail();
+            },
+            Ok(consts::ascii::UNI_ESCAPE) => {
+              return NotImplementedSnafu {
+                what: "Unicode Escape",
+                offset: reader.offset()
+              }.fail();
+            },
+            Ok(escaped) => {
+              return UnknownSnafu {
+                what: format!(
+                  "Escaped Character ({:#?})",
+                  escaped
+                ),
+                offset:
+                reader.offset()
+              }.fail();
+            },
+            Err(_) => {
+              return ExpectedSnafu {
+                what: "Escaped Character",
+                offset: reader.offset()
+              }.fail();
+            }
+          }
+        },
+        _ => { text.push_str(ch); }
+      };
+    };
+
+    Ok(text)
+  }
+}
+
+impl LiteralAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
-    if false {
-      todo!()
+    if let Ok(l) = Literal::make(reader) {
+      Ok(Self {
+        span: reader.span_since(start), l
+      })
     } else {
       ExpectedSnafu { what: "Literal", offset: reader.offset() }.fail()
     }
@@ -317,9 +338,7 @@ impl AtomExpressionAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
-
-
-    if let Some(assn) = try_make!(Self::make_assignment, reader) {
+    if let Some(assn) = try_make!(AtomExpressionAST::make_assignment, reader) {
       Ok(assn)
     } else if let Some(lit) = try_make!(LiteralAST::make, reader) {
       Ok(Self {

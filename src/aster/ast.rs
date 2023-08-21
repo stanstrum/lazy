@@ -60,7 +60,7 @@ impl GetSpan for &Expression {
 #[derive(Debug, Clone)]
 pub enum Literal {
   String(String),
-  ByteString,
+  ByteString(String),
   Char,
   ByteChar,
   NumericLiteral,

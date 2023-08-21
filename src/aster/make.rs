@@ -10,13 +10,19 @@ use crate::aster::to_string::str_line_pfx;
 use super::intrinsics;
 
 use super::seek_read::read;
-use super::source_reader::formatting::{Message, Level, show_message};
+use super::source_reader::formatting::{Message, Level, format_message};
 use super::{
   ast::*, errors::*,
   source_reader::SourceReader,
   seek_read::seek,
   consts
 };
+
+macro_rules! try_make {
+  ($func:expr, $reader:ident) => {
+    try_make($func, $reader, stringify!($func))
+  };
+}
 
 impl IdentAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
@@ -103,7 +109,7 @@ impl TypeAST {
         e: Type::ArrayOf(len, ty)
       })
     } else if let Some(e) = 'ident: {
-      let Some(ident) = try_make(IdentAST::make, reader, "IdentAST::make for TypeAST::make") else {
+      let Some(ident) = try_make!(IdentAST::make, reader) else {
         break 'ident None;
       };
 
@@ -134,14 +140,26 @@ fn try_make<T: GetSpan + std::fmt::Debug>(mut f: impl FnMut(&mut SourceReader) -
       let msg = Message {
         level: Level::Debug,
         msg: format!("Successfully parsed {}", text),
+        sub: "here".to_owned(),
         span: v.span()
       };
 
-      println!("{}", show_message(reader.src(), msg));
+      println!("{}", format_message(reader.src(), msg));
 
       Some(v)
     },
     Err(e) => {
+      let message = Message {
+        level: Level::Warning,
+        msg: format!("Failed to parse {}", text),
+        sub: "here".to_owned(),
+        span: Span {
+          start, end: start
+        }
+      };
+
+      println!("{}", format_message(reader.src(), message));
+
       // println!(
       //   "{}",
       //   str_line_pfx(
@@ -163,9 +181,9 @@ fn try_make<T: GetSpan + std::fmt::Debug>(mut f: impl FnMut(&mut SourceReader) -
 
 impl Expression {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
-    if let Some(expr) = try_make(BlockExpressionAST::make, reader, "BlockExpressionAST::make for Expression::make") {
+    if let Some(expr) = try_make!(BlockExpressionAST::make, reader) {
       Ok(Expression::Block(expr))
-    } else if let Some(expr) = try_make(AtomExpressionAST::make, reader, "AtomExpressionAST::make for Expression::make") {
+    } else if let Some(expr) = try_make!(AtomExpressionAST::make, reader) {
       Ok(Expression::Atom(expr))
     } else {
       ExpectedSnafu { what: "Expression (BlockExpression, AtomExpression)", offset: reader.offset() }.fail()
@@ -254,7 +272,7 @@ impl AtomExpressionAST {
   pub fn make_assignment(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
-    let ty = try_make(TypeAST::make, reader, "TypeAST::make for AtomicExpressionAST::make_assignment");
+    let ty = try_make!(TypeAST::make, reader);
 
     match ty {
       Some(_) => { seek::required_whitespace(reader)?; },
@@ -292,9 +310,9 @@ impl AtomExpressionAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     // assignment
 
-    if let Some(assn) = try_make(Self::make_assignment, reader, "AtomExpressionAST::make_assignment for AtomicExpressionAST::make") {
+    if let Some(assn) = try_make!(Self::make_assignment, reader) {
       Ok(assn)
-    } else if let Some(lit) = try_make(Self::make_literal, reader, "AtomExpressionAST::make_literal for AtomicExpressionAST::make") {
+    } else if let Some(lit) = try_make!(Self::make_literal, reader) {
       Ok(lit)
     } else {
       UnknownSnafu { what: "Expression", offset: reader.offset() }.fail()
@@ -466,11 +484,12 @@ mod tests {
 
       let mes = Message {
         level: crate::aster::source_reader::formatting::Level::Debug,
-        msg: "testing 1234".to_string(),
+        msg: "testing 1234".to_owned(),
+        sub: "sub message".to_owned(),
         span: expr.span(),
       };
 
-      println!("{}", show_message(reader.src(), mes));
+      println!("{}", format_message(reader.src(), mes));
     }
   );
 }

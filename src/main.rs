@@ -12,6 +12,8 @@ use getopts::{self, Options};
 // const DEFAULT_OUTPUT: &str = "a.out";
 
 use snafu::prelude::*;
+use crate::aster::formatting::*;
+
 #[derive(Debug, Snafu)]
 enum LazyError {
   BadArguments,
@@ -77,21 +79,24 @@ fn compile() -> Result<(), LazyError> {
   let lexed = match aster::asterize(reader) {
     Ok(lexed) => lexed,
     Err(err) => {
+      let message = Message {
+        level: Level::Error,
+        msg: err.to_string(),
+        sub: "here".to_owned(),
+        span: aster::Span {
+          start: reader.offset(), end: reader.offset()
+        }
+      };
+
       return CompilationSnafu {
-        msg: format!(
-          "{} at:\n{}",
-          err.to_string(),
-          reader.at()
-        )
-      }.fail()
+        msg: format_message(reader.src(), message)
+      }.fail();
     }
   };
 
   dbg!(&lexed);
 
-  println!("{}",
-    lexed.to_string()
-  );
+  println!("{}", lexed.to_string());
 
   todo!()
 }

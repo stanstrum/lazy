@@ -9,6 +9,7 @@ mod ast;
 use std::collections::HashMap;
 
 use ast::*;
+pub use ast::Span;
 
 mod intrinsics;
 
@@ -16,15 +17,13 @@ mod errors;
 use errors::*;
 
 mod source_reader;
-pub use source_reader::SourceReader;
+pub use source_reader::*;
 
 mod seek_read;
 use seek_read::{seek, read};
 
 mod make;
-
 mod consts;
-
 mod to_string;
 
 pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {
@@ -36,7 +35,7 @@ pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {
     ident, map: HashMap::new()
   };
 
-  println!("{}", reader.at());
+  // println!("{}", reader.at());
 
   loop {
     seek::optional_whitespace(reader)?;

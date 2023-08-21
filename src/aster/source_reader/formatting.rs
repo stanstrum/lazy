@@ -5,8 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
- use super::{SourceReader, Span};
+use super::{SourceReader, Span};
 use std::io::Write;
+
+use crate::colors::*;
 
 fn num_length<T: std::convert::Into<f64>>(n: T) -> usize {
   f64::from(
@@ -25,18 +27,18 @@ impl std::string::ToString for Level {
   fn to_string(&self) -> String {
     match self {
       Level::Debug => {
-        concat!("\x1b[1;35m", "debug", "\x1b[0m")
+        format!("{BOLD}{MAGENTA}debug{CLEAR}")
       },
       Level::Note => {
-        concat!("\x1b[1;36m", "note", "\x1b[0m")
+        format!("{BOLD}{CYAN}note{CLEAR}")
       },
       Level::Warning => {
-        concat!("\x1b[1;33m", "warning", "\x1b[0m")
+        format!("{BOLD}{YELLOW}warning{CLEAR}")
       },
       Level::Error => {
-        concat!("\x1b[1;31m", "error", "\x1b[0m")
+        format!("{BOLD}{RED}error{CLEAR}")
       },
-    }.to_string()
+    }
   }
 }
 
@@ -151,7 +153,7 @@ pub fn format_message(src: &String, message: Message) -> String {
 
   let mut w: Vec<u8> = vec![];
 
-  writeln!(&mut w, "{}: \x1b[1m{}\x1b[0m", message.level.to_string(), message.msg).unwrap();
+  writeln!(&mut w, "{}: {BOLD}{}{CLEAR}", message.level.to_string(), message.msg).unwrap();
 
   let pfx_len = num_length(start_line as u32 + 1);
 

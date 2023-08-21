@@ -68,6 +68,12 @@ pub enum Literal {
 }
 
 #[derive(Debug)]
+pub struct LiteralAST {
+  pub span: Span,
+  pub l: Literal,
+}
+
+#[derive(Debug)]
 pub struct CondExpr(Expression, Expression);
 
 #[derive(Debug)]
@@ -88,7 +94,7 @@ pub enum AtomExpression {
     ident: IdentAST,
     value: Box<Expression>
   },
-  Literal(Literal)
+  Literal(LiteralAST)
 }
 
 #[derive(Debug)]
@@ -164,5 +170,6 @@ make_get_span![
   IdentAST,
   BlockExpressionAST,
   AtomExpressionAST,
-  TypeAST
+  TypeAST,
+  LiteralAST
 ];

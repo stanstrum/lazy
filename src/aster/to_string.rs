@@ -31,9 +31,9 @@ pub fn str_line_pfx(string: String, pfx: &str) -> String {
   new_string.trim_end().into()
 }
 
-impl std::string::ToString for Literal {
+impl std::string::ToString for LiteralAST {
   fn to_string(&self) -> String {
-    match self {
+    match &self.l {
       Literal::String(text) => {
         let mut escaped = String::new();
 

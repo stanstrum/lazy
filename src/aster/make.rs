@@ -191,8 +191,8 @@ impl Expression {
   }
 }
 
-impl AtomExpressionAST {
-  pub fn make_literal(reader: &mut SourceReader) -> AsterResult<Self> {
+impl LiteralAST {
+  pub fn make_string(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
     if seek::begins_with(reader, consts::punctuation::QUOTE) {
@@ -257,18 +257,27 @@ impl AtomExpressionAST {
         };
       };
 
-      Ok(Self {
+      Ok(LiteralAST {
         span: reader.span_since(start),
-        a: AtomExpression::Literal(
-          Literal::String(text)
-        ),
-        out: Type::Unresolved
+        l: Literal::String(text)
       })
+    } else {
+      todo!()
+    }
+  }
+
+  pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
+    let start = reader.offset();
+
+    if false {
+      todo!()
     } else {
       ExpectedSnafu { what: "Literal", offset: reader.offset() }.fail()
     }
   }
+}
 
+impl AtomExpressionAST {
   pub fn make_assignment(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
@@ -308,12 +317,18 @@ impl AtomExpressionAST {
   }
 
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
-    // assignment
+    let start = reader.offset();
+
+
 
     if let Some(assn) = try_make!(Self::make_assignment, reader) {
       Ok(assn)
-    } else if let Some(lit) = try_make!(Self::make_literal, reader) {
-      Ok(lit)
+    } else if let Some(lit) = try_make!(LiteralAST::make, reader) {
+      Ok(Self {
+        span: reader.span_since(start),
+        a: AtomExpression::Literal(lit),
+        out: Type::Unresolved,
+      })
     } else {
       UnknownSnafu { what: "Expression", offset: reader.offset() }.fail()
     }

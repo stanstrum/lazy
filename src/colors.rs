@@ -1,4 +1,11 @@
-macro_rules! def_colors {
+/* Copyright (c) 2023, Stan Strum
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+ macro_rules! def_colors {
   ($n:ident: $c:expr, $($ns:ident: $cs:expr),+) => {
     def_colors! { $n: $c }
     def_colors! { $($ns: $cs),+ }

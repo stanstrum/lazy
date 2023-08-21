@@ -192,10 +192,7 @@ impl std::string::ToString for NamespaceAST {
     let mut w: Vec<u8> = vec![];
 
     for (name, structure) in self.map.iter() {
-      let span = match structure {
-        Structure::FunctionAST(FunctionAST { span, .. }) => span,
-        Structure::NamespaceAST(NamespaceAST { span, .. }) => span,
-      };
+      let span = structure.span();
 
       writeln!(&mut w, "{DARK_GRAY}// {} ({}:{}){CLEAR}", name, span.start, span.end).unwrap();
       writeln!(&mut w, "{}", structure.to_string()).unwrap();

@@ -62,6 +62,14 @@ impl<'a> SourceReader<'a> {
     }
   }
 
+  pub fn peek_ch(&self) -> Option<char> {
+    if self.remaining() >= 1 {
+      self.src.chars().nth(self.offset)
+    } else {
+      None
+    }
+  }
+
   pub fn seek(&mut self, len: usize) -> Result<(), SourceReaderError> {
     if self.remaining() >= len {
       self.offset += len;

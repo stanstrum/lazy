@@ -14,6 +14,8 @@ use getopts::{self, Options};
 use snafu::prelude::*;
 use crate::aster::formatting::*;
 
+pub(crate) mod colors;
+
 #[derive(Debug, Snafu)]
 enum LazyError {
   BadArguments,

@@ -10,6 +10,8 @@ use crate::aster::consts;
 
 use super::ast::*;
 
+use crate::colors::*;
+
 const INDENTATION: &str = "  ";
 
 pub fn str_line_pfx(string: String, pfx: &str) -> String {
@@ -141,7 +143,7 @@ impl std::string::ToString for TypeAST {
         let name = unsafe { (*ptr).name };
 
         format!(
-          "/* intrinsic */ {}", name
+          "{DARK_GRAY}/* intrinsic */{CLEAR} {LIGHT_RED}{}{CLEAR}", name
         )
       },
       _ => todo!("exhaustive typeast: {:#?}", self.e)
@@ -154,9 +156,9 @@ impl std::string::ToString for FunctionAST {
     let mut w: Vec<u8> = vec![];
 
     if self.args.len() == 0 {
-      write!(&mut w, "fn {} -> {} ", self.ident.to_string(), self.ret.to_string()).unwrap();
+      write!(&mut w, "{LIGHT_RED}fn{CLEAR} {} -> {} ", self.ident.to_string(), self.ret.to_string()).unwrap();
     } else {
-      writeln!(&mut w, "fn {} -> {}:", self.ident.to_string(), self.ret.to_string()).unwrap();
+      writeln!(&mut w, "{LIGHT_RED}fn{CLEAR} {} -> {}:", self.ident.to_string(), self.ret.to_string()).unwrap();
     };
 
     for arg in self.args.iter() {
@@ -181,7 +183,7 @@ impl std::string::ToString for Structure {
 
 impl std::string::ToString for IdentAST {
   fn to_string(&self) -> String {
-    self.text.clone()
+    format!("{LIGHT_GRAY}{}{CLEAR}", self.text)
   }
 }
 
@@ -195,7 +197,7 @@ impl std::string::ToString for NamespaceAST {
         Structure::NamespaceAST(NamespaceAST { span, .. }) => span,
       };
 
-      writeln!(&mut w, "// {} ({}:{})", name, span.start, span.end).unwrap();
+      writeln!(&mut w, "{DARK_GRAY}// {} ({}:{}){CLEAR}", name, span.start, span.end).unwrap();
       writeln!(&mut w, "{}", structure.to_string()).unwrap();
       writeln!(&mut w).unwrap();
     }
@@ -204,7 +206,7 @@ impl std::string::ToString for NamespaceAST {
       .expect("Failed to write buffer to String");
 
     format!(
-      "namespace {} {{\n{}\n}}",
+      "{LIGHT_RED}namespace{CLEAR} {} {{\n{}\n}}",
       self.ident.to_string(),
       str_line_pfx(src, INDENTATION)
     )

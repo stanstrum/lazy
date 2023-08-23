@@ -216,7 +216,7 @@ impl std::string::ToString for TypeAST {
         }
       },
       Type::Unknown(ref ident) => {
-        format!("{DARK_GRAY}/* unknown */{CLEAR} {LIGHT_RED}{UNDERLINE}{}{CLEAR}", ident.text)
+        format!("{DARK_GRAY}/* unknown */{CLEAR} {LIGHT_RED}{UNDERLINE}{}{CLEAR}", ident.to_string())
       },
       _ => todo!("exhaustive typeast: {:#?}", self.e)
     }
@@ -261,9 +261,28 @@ impl std::string::ToString for Structure {
   }
 }
 
+impl std::string::ToString for QualifiedAST {
+  fn to_string(&self) -> String {
+    let mut w: Vec<u8> = vec![];
+
+    // will always have at least 1
+    let last = self.parts.len() - 1;
+
+    for (i, part) in self.parts.iter().enumerate() {
+      write!(&mut w, "{}", part.to_string()).unwrap();
+
+      if i != last {
+        write!(&mut w, "::").unwrap();
+      };
+    };
+
+    String::from_utf8(w).unwrap()
+  }
+}
+
 impl std::string::ToString for IdentAST {
   fn to_string(&self) -> String {
-    format!("{LIGHT_GRAY}{BOLD}{}{CLEAR}", self.text)
+    format!("{LIGHT_GRAY}{}{CLEAR}", self.text)
   }
 }
 

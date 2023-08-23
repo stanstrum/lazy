@@ -150,7 +150,7 @@ pub enum ControlFlow {
 pub enum FnCallee {
   // sponge: update this to take qualified names
   // and struct members
-  Qualified(IdentAST),
+  Qualified(QualifiedAST),
   SubExpression(SubExpressionAST)
 }
 
@@ -163,7 +163,7 @@ pub enum AtomExpression {
   },
   Literal(LiteralAST),
   FnCall(Box<FnCallee>, Vec<Expression>),
-  Variable(IdentAST),
+  Variable(QualifiedAST),
   OperatorExpr(OperatorExpr)
 }
 
@@ -205,7 +205,7 @@ pub enum Type {
   MutPtrTo(Box<TypeAST>),
   ArrayOf(Option<LiteralAST>, Box<TypeAST>),
   Defined(*const TypeAST),
-  Unknown(IdentAST),
+  Unknown(QualifiedAST),
   Unresolved,
 }
 
@@ -213,6 +213,12 @@ pub enum Type {
 pub struct TypeAST {
   pub span: Span,
   pub e: Type,
+}
+
+#[derive(Debug, Clone)]
+pub struct QualifiedAST {
+  pub span: Span,
+  pub parts: Vec<IdentAST>,
 }
 
 #[derive(Debug, Clone)]
@@ -237,6 +243,7 @@ macro_rules! make_get_span [
 ];
 
 make_get_span![
+  QualifiedAST,
   IdentAST,
   BlockExpressionAST,
   AtomExpressionAST,

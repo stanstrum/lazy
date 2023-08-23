@@ -20,7 +20,7 @@ use super::{
 macro_rules! try_make {
   ($func:expr, $reader:ident $(, $args:expr)*) => {{
     let start = $reader.offset();
-    let text = concat!(stringify!($func), " from ", line!());
+    // let text = concat!(stringify!($func), " from ", line!());
 
     // println!("{}", format_message($reader.src(), Message {
     //   level: Level::Note,
@@ -47,7 +47,7 @@ macro_rules! try_make {
 
         Some(v)
       },
-      Err(e) => {
+      Err(_) => {
         // let message = Message {
         //   level: Level::Warning,
         //   msg: format!("Failed to parse {}", text),
@@ -59,24 +59,48 @@ macro_rules! try_make {
 
         // println!("{}", format_message($reader.src(), message));
 
-        // println!(
-        //   "{}",
-        //   str_line_pfx(
-        //     format!(
-        //       "{} at:\n{}",
-        //       e.to_string(),
-        //       reader.at()
-        //     ),
-        //     format!("{}: ", text).as_str()
-        //   )
-        // );
-
         $reader.rewind($reader.offset() - start).unwrap();
 
         None
       },
     }
   }};
+}
+
+impl QualifiedAST {
+  pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
+    let start = reader.offset();
+    let mut parts: Vec<IdentAST> = vec![];
+
+    loop {
+      let Some(ident) = try_make!(IdentAST::make, reader) else {
+        break;
+      };
+
+      parts.push(ident);
+
+      let whitespace_len = seek::optional_whitespace(reader)?;
+
+      if !seek::begins_with(reader, consts::punctuation::DOUBLE_COLON) {
+        reader.rewind(whitespace_len).unwrap();
+
+        break;
+      };
+
+      seek::optional_whitespace(reader)?;
+    };
+
+    if parts.is_empty() {
+      return ExpectedSnafu {
+        what: "Qualified Ident",
+        offset: reader.offset()
+      }.fail();
+    };
+
+    Ok(Self {
+      span: reader.span_since(start), parts
+    })
+  }
 }
 
 impl IdentAST {
@@ -167,14 +191,14 @@ impl TypeAST {
         e: Type::ArrayOf(len, ty)
       })
     } else {
-      let Some(ident) = try_make!(IdentAST::make, reader) else {
-        return ExpectedSnafu { what: "Ident", offset: reader.offset() }.fail();
+      let Some(qual) = try_make!(QualifiedAST::make, reader) else {
+        return ExpectedSnafu { what: "Qualified Ident", offset: reader.offset() }.fail();
       };
 
       Ok(Self {
-        span: reader.span_since(start), e: match intrinsics::get_intrinsic(&ident.text) {
+        span: reader.span_since(start), e: match intrinsics::get_intrinsic(&qual) {
           Some(ty) => ty,
-          None => Type::Unknown(ident),
+          None => Type::Unknown(qual),
         }
       })
     }
@@ -449,8 +473,8 @@ impl AtomExpressionAST {
   fn make_fn_call(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
-    let callee = if let Some(ident) = try_make!(IdentAST::make, reader) {
-      FnCallee::Qualified(ident)
+    let callee = if let Some(qual) = try_make!(QualifiedAST::make, reader) {
+      FnCallee::Qualified(qual)
     } else if let Some(sub_expr) = try_make!(SubExpressionAST::make, reader) {
       FnCallee::SubExpression(sub_expr)
     } else {
@@ -515,11 +539,11 @@ impl AtomExpressionAST {
       }
     } else if let Some(fn_call) = try_make!(AtomExpressionAST::make_fn_call, reader) {
       fn_call
-    } else if let Some(ident) = try_make!(IdentAST::make, reader) {
+    } else if let Some(qual) = try_make!(QualifiedAST::make, reader) {
       Self {
         span: reader.span_since(start),
         out: Type::Unresolved,
-        a: AtomExpression::Variable(ident)
+        a: AtomExpression::Variable(qual)
       }
     } else {
       return UnknownSnafu {
@@ -700,8 +724,7 @@ impl FunctionAST {
       // due to the fact that a void return type is implicitly inferred
       TypeAST {
         span: reader.span_since(start),
-        e: intrinsics::get_intrinsic("void")
-          .expect("Could not resolve `void` intrinsic")
+        e: Type::Intrinsic(&intrinsics::VOID)
       }
     };
 

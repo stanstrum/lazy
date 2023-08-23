@@ -18,6 +18,8 @@ pub mod punctuation {
 
   pub const SEMICOLON: &str = ";";
 
+  pub const DOUBLE_COLON: &str = "::";
+
   pub const LINE_COMMENT: &str = "//";
 
   pub const BOLLOCKS: &str = ":=";

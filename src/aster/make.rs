@@ -181,12 +181,45 @@ impl TypeAST {
   }
 }
 
+impl SubExpressionAST {
+  pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
+    let start = reader.offset();
+
+    if !seek::begins_with(reader, consts::grouping::OPEN_PARENTHESIS) {
+      return ExpectedSnafu {
+        what: "Open Parenthesis",
+        offset: reader.offset()
+      }.fail();
+    };
+
+    seek::optional_whitespace(reader)?;
+
+    let expr = Expression::make(reader)?;
+
+    seek::optional_whitespace(reader)?;
+
+    if !seek::begins_with(reader, consts::grouping::CLOSE_PARENTHESIS) {
+      return ExpectedSnafu {
+        what: "Close Parenthesis",
+        offset: reader.offset()
+      }.fail();
+    };
+
+    Ok(Self {
+      span: reader.span_since(start),
+      e: Box::new(expr)
+    })
+  }
+}
+
 impl Expression {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     if let Some(expr) = try_make!(BlockExpressionAST::make, reader) {
       Ok(Expression::Block(expr))
     } else if let Some(expr) = try_make!(AtomExpressionAST::make, reader) {
       Ok(Expression::Atom(expr))
+    } else if let Some(sub_expr) = try_make!(SubExpressionAST::make, reader) {
+      Ok(Expression::SubExpression(sub_expr))
     } else {
       ExpectedSnafu {
         what: "Expression (BlockExpression, AtomExpression)",

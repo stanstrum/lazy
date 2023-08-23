@@ -86,3 +86,60 @@ pub mod ascii {
   pub const HEX_ESCAPE: char = 'x';
   pub const UNI_ESCAPE: char = 'u';
 }
+
+pub mod operator {
+  pub const REF: &str = "&";
+  pub const DEREF: &str = "*";
+  pub const NOT: &str = "!";
+  pub const NEG: &str = "-";
+  pub const NOTNEG: &str = "+";
+  pub const INVERT: &str = "~";
+
+  pub const INCREMENT: &str = "++";
+  pub const DECREMENT: &str = "--";
+
+  pub const ADD: &str = "+";
+  pub const SUB: &str = "-";
+  pub const MUL: &str = "*";
+  pub const DIV: &str = "/";
+  pub const EXP: &str = "**";
+  pub const MOD: &str = "%";
+
+  pub const ASSIGN: &str = "=";
+  pub const EQUALS: &str = "==";
+  pub const NOTEQUALS: &str = "!=";
+
+  pub const GT: &str = ">";
+  pub const GEQ: &str = ">=";
+  pub const LT: &str = "<";
+  pub const LEQ: &str = "<=";
+
+  pub const PIPE: &str = "|>";
+  pub const LOGICALAND: &str = "&&";
+  pub const LOGICALOR: &str = "||";
+  pub const LOGICALXOR: &str = "^^";
+  pub const BITAND: &str = "&";
+  pub const BITOR: &str = "|";
+  pub const BITXOR: &str = "^";
+  pub const ASHR: &str = ">>";
+  pub const LSHR: &str = ">>>";
+  pub const LSHL: &str = "<<";
+
+  pub const ADD_ASSIGN: &str = "+=";
+  pub const SUB_ASSIGN: &str = "-=";
+  pub const MUL_ASSIGN: &str = "*=";
+  pub const DIV_ASSIGN: &str = "/=";
+  pub const EXP_ASSIGN: &str = "**=";
+  pub const MOD_ASSIGN: &str = "%=";
+
+  pub const PIPE_ASSIGN: &str = "|>=";
+  pub const LOGICALAND_ASSIGN: &str = "&&=";
+  pub const LOGICALOR_ASSIGN: &str = "||=";
+  pub const LOGICALXOR_ASSIGN: &str = "^^=";
+  pub const BITAND_ASSIGN: &str = "&=";
+  pub const BITOR_ASSIGN: &str = "|=";
+  pub const BITXOR_ASSIGN: &str = "^=";
+  pub const ASHR_ASSIGN: &str = ">>=";
+  pub const LSHR_ASSIGN: &str = ">>>=";
+  pub const LSHL_ASSIGN: &str = "<<=";
+}

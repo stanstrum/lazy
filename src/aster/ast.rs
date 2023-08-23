@@ -43,17 +43,79 @@ impl GetSpan for &Structure {
 pub struct Variable(pub TypeAST, pub IdentAST);
 
 #[derive(Debug)]
+pub struct SubExpressionAST {
+  pub span: Span,
+  pub e: Box<Expression>
+}
+
+impl GetSpan for SubExpressionAST {
+  fn span(&self) -> Span {
+    GetSpan::span(&*self.e)
+  }
+}
+
+type BoxExpr = Box<Expression>;
+
+#[derive(Debug)]
+pub enum OperatorExpr {
+  // Unary Prefix
+  Ref(BoxExpr),
+  Deref(BoxExpr),
+  Not(BoxExpr),
+  Neg(BoxExpr),
+  NotNeg(BoxExpr),
+
+  // Unary Suffix
+  // ?
+
+  // Binary
+  Add(BoxExpr, BoxExpr),
+  Sub(BoxExpr, BoxExpr),
+  Mul(BoxExpr, BoxExpr),
+  Div(BoxExpr, BoxExpr),
+
+  Mod(BoxExpr, BoxExpr),
+
+  // :)
+  Pipe(BoxExpr, BoxExpr),
+
+  // sponge: use qualified for asignee
+  Assign(IdentAST, BoxExpr),
+  AssignPipe(IdentAST, BoxExpr),
+
+  Equals(BoxExpr, BoxExpr),
+  NotEquals(BoxExpr, BoxExpr),
+
+  LogicalAnd(BoxExpr, BoxExpr),
+  LogicalOr(BoxExpr, BoxExpr),
+  BitAnd(BoxExpr, BoxExpr),
+  BitOr(BoxExpr, BoxExpr),
+  BitXor(BoxExpr, BoxExpr),
+
+  // Ternary
+  Between(BoxExpr, BoxExpr, BoxExpr),
+}
+
+#[derive(Debug)]
 pub enum Expression {
   Atom(AtomExpressionAST),
   Block(BlockExpressionAST),
+  SubExpression(SubExpressionAST),
 }
 
-impl GetSpan for &Expression {
+impl GetSpan for Expression {
   fn span(&self) -> Span {
     match self {
-      Expression::Atom(s) => &s.span,
-      Expression::Block(s) => &s.span,
-    }.clone()
+      Expression::Atom(s) => {
+        return s.span.clone();
+      },
+      Expression::Block(s) => {
+        return s.span.clone();
+      },
+      Expression::SubExpression(s) => {
+        return s.span();
+      }
+    };
   }
 }
 
@@ -73,10 +135,8 @@ pub struct LiteralAST {
 }
 
 #[derive(Debug)]
-pub struct CondExpr(Expression, Expression);
-
-#[derive(Debug)]
-pub struct ElseBranch(Option<Expression>);
+pub struct CondExpr(Expression, BlockExpressionAST);
+pub type ElseBranch = Option<BlockExpressionAST>;
 
 #[derive(Debug)]
 pub enum ControlFlow {
@@ -87,13 +147,24 @@ pub enum ControlFlow {
 }
 
 #[derive(Debug)]
+pub enum FnCallee {
+  // sponge: update this to take qualified names
+  // and struct members
+  Qualified(IdentAST),
+  SubExpression(SubExpressionAST)
+}
+
+#[derive(Debug)]
 pub enum AtomExpression {
   Binding {
     ty: Option<TypeAST>,
     ident: IdentAST,
     value: Box<Expression>
   },
-  Literal(LiteralAST)
+  Literal(LiteralAST),
+  FnCall(Box<FnCallee>, Vec<Expression>),
+  Variable(IdentAST),
+  OperatorExpr(OperatorExpr)
 }
 
 #[derive(Debug)]

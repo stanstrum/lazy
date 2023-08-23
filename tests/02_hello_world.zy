@@ -5,6 +5,20 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-fn main {
-  printf("Hello, world!");
+fn println -> usize:
+  &[]u8 text
+{
+  sz1 := write(text);
+  sz2 := write(b"\n");
+
+  sz1 + sz2
+}
+
+fn main -> i32:
+  i32 argc,
+  &[]str argv
+{
+  println(b"Hello, world!");
+
+  0i32
 }

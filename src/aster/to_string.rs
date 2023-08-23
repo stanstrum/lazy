@@ -114,6 +114,44 @@ impl std::string::ToString for AtomExpressionAST {
         }
       },
       AtomExpression::Literal(lit) => lit.to_string(),
+      AtomExpression::FnCall(callee, args) => {
+        let mut w: Vec<u8> = vec![];
+
+        match &**callee {
+          FnCallee::Qualified(ident) => {
+            write!(&mut w, "{}", ident.to_string()).unwrap();
+          },
+          FnCallee::SubExpression(_) => todo!("subexpr fncallee"),
+        };
+
+        write!(&mut w, "(").unwrap();
+
+        if args.len() != 0 {
+          let last = args.len() - 1;
+
+          for (i, arg) in args.iter().enumerate() {
+            write!(&mut w, "{}", arg.to_string()).unwrap();
+
+            if i != last {
+              write!(&mut w, ", ").unwrap();
+            };
+          };
+        };
+
+        write!(&mut w, ")").unwrap();
+
+        String::from_utf8(w).unwrap()
+      },
+      AtomExpression::Variable(ident) => ident.to_string(),
+      AtomExpression::OperatorExpr(o) => {
+        match o {
+            OperatorExpr::Add(a, b) => format!("{} + {}", a.to_string(), b.to_string()),
+            OperatorExpr::Sub(a, b) => format!("{} - {}", a.to_string(), b.to_string()),
+            OperatorExpr::Mul(a, b) => format!("{} * {}", a.to_string(), b.to_string()),
+            OperatorExpr::Div(a, b) => format!("{} / {}", a.to_string(), b.to_string()),
+            _ => todo!("operatorexpr {:#?}", o)
+        }
+      },
     }
   }
 }
@@ -144,11 +182,18 @@ impl std::string::ToString for BlockExpressionAST {
   }
 }
 
+impl std::string::ToString for SubExpressionAST {
+  fn to_string(&self) -> String {
+    format!("({})", self.e.to_string())
+  }
+}
+
 impl std::string::ToString for Expression {
   fn to_string(&self) -> String {
     match self {
       Expression::Atom(a) => a.to_string(),
       Expression::Block(a) => a.to_string(),
+      Expression::SubExpression(a) => a.to_string(),
     }
   }
 }
@@ -171,7 +216,7 @@ impl std::string::ToString for TypeAST {
         }
       },
       Type::Unknown(ref ident) => {
-        format!("{DARK_GRAY}/* unknown */{CLEAR} {}", ident.to_string())
+        format!("{DARK_GRAY}/* unknown */{CLEAR} {LIGHT_RED}{UNDERLINE}{}{CLEAR}", ident.text)
       },
       _ => todo!("exhaustive typeast: {:#?}", self.e)
     }
@@ -186,13 +231,21 @@ impl std::string::ToString for FunctionAST {
       write!(&mut w, "{LIGHT_RED}fn{CLEAR} {} -> {} ", self.ident.to_string(), self.ret.to_string()).unwrap();
     } else {
       writeln!(&mut w, "{LIGHT_RED}fn{CLEAR} {} -> {}:", self.ident.to_string(), self.ret.to_string()).unwrap();
+
+      let last = self.args.len() - 1;
+
+      for (i, arg) in self.args.iter().enumerate() {
+        write!(&mut w, "  {} {}", arg.0.to_string(), arg.1.to_string()).unwrap();
+
+        if i != last {
+          write!(&mut w, ",").unwrap();
+        };
+
+        writeln!(&mut w).unwrap();
+      };
     };
 
-    for arg in self.args.iter() {
-      writeln!(&mut w, "  {} {},", arg.0.to_string(), arg.1.to_string()).unwrap();
-    };
-
-    writeln!(&mut w, "{}", self.body.to_string()).unwrap();
+    write!(&mut w, "{}", self.body.to_string()).unwrap();
 
     String::from_utf8(w)
       .expect("Failed to write buffer to String")

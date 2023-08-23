@@ -425,8 +425,6 @@ impl AtomExpressionAST {
   }
 
   pub fn make_binding(reader: &mut SourceReader) -> AsterResult<Self> {
-    let start = reader.offset();
-
     if let Some(binding) = try_make!(Self::make_blind_binding, reader, None) {
       return Ok(binding);
     };
@@ -448,22 +446,172 @@ impl AtomExpressionAST {
     }
   }
 
+  fn make_fn_call(reader: &mut SourceReader) -> AsterResult<Self> {
+    let start = reader.offset();
+
+    let callee = if let Some(ident) = try_make!(IdentAST::make, reader) {
+      FnCallee::Qualified(ident)
+    } else if let Some(sub_expr) = try_make!(SubExpressionAST::make, reader) {
+      FnCallee::SubExpression(sub_expr)
+    } else {
+      return ExpectedSnafu {
+        what: "Ident or Sub-Expression",
+        offset: reader.offset()
+      }.fail();
+    };
+
+    seek::optional_whitespace(reader)?;
+
+    if !seek::begins_with(reader, consts::grouping::OPEN_PARENTHESIS) {
+      return ExpectedSnafu {
+        what: "Open Parenthesis",
+        offset: reader.offset()
+      }.fail();
+    };
+
+    let mut args: Vec<Expression> = vec![];
+
+    loop {
+      seek::optional_whitespace(reader)?;
+
+      if seek::begins_with(reader, consts::grouping::CLOSE_PARENTHESIS) {
+        break;
+      };
+
+      let arg_expr = Expression::make(reader)?;
+      args.push(arg_expr);
+
+      seek::optional_whitespace(reader)?;
+
+      if !seek::begins_with(reader, consts::punctuation::COMMA) {
+        if !seek::begins_with(reader, consts::grouping::CLOSE_PARENTHESIS) {
+          return ExpectedSnafu {
+            what: "Close Parenthesis",
+            offset: reader.offset()
+          }.fail();
+        } else {
+          break;
+        };
+      };
+    };
+
+    Ok(Self {
+      span: reader.span_since(start),
+      out: Type::Unresolved,
+      a: AtomExpression::FnCall(Box::new(callee), args)
+    })
+  }
+
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
-    if let Some(assn) = try_make!(AtomExpressionAST::make_binding, reader) {
-      Ok(assn)
+    let a = if let Some(assn) = try_make!(AtomExpressionAST::make_binding, reader) {
+      assn
     } else if let Some(lit) = try_make!(LiteralAST::make, reader) {
-      Ok(Self {
+      Self {
         span: reader.span_since(start),
         a: AtomExpression::Literal(lit),
         out: Type::Unresolved,
-      })
+      }
+    } else if let Some(fn_call) = try_make!(AtomExpressionAST::make_fn_call, reader) {
+      fn_call
+    } else if let Some(ident) = try_make!(IdentAST::make, reader) {
+      Self {
+        span: reader.span_since(start),
+        out: Type::Unresolved,
+        a: AtomExpression::Variable(ident)
+      }
     } else {
-      UnknownSnafu {
+      return UnknownSnafu {
         what: "Expression",
         offset: reader.offset()
-      }.fail()
+      }.fail();
+    };
+
+    seek::optional_whitespace(reader)?;
+
+    if let Some(b) = {
+      if seek::begins_with(reader, consts::operator::ADD) {
+        seek::optional_whitespace(reader)?;
+        try_make!(Expression::make, reader)
+      } else {
+        None
+      }
+    } {
+      Ok(Self {
+        span: reader.span_since(start),
+        out: Type::Unresolved,
+        a: AtomExpression::OperatorExpr(OperatorExpr::Add(
+          Box::new(Expression::Atom(a)),
+          Box::new(b)
+        ))
+      })
+    } else if let Some(b) = {
+      if seek::begins_with(reader, consts::operator::SUB) {
+        seek::optional_whitespace(reader)?;
+        try_make!(Expression::make, reader)
+      } else {
+        None
+      }
+    } {
+      Ok(Self {
+        span: reader.span_since(start),
+        out: Type::Unresolved,
+        a: AtomExpression::OperatorExpr(OperatorExpr::Sub(
+          Box::new(Expression::Atom(a)),
+          Box::new(b)
+        ))
+      })
+    } else if let Some(b) = {
+      if seek::begins_with(reader, consts::operator::MUL) {
+        seek::optional_whitespace(reader)?;
+        try_make!(Expression::make, reader)
+      } else {
+        None
+      }
+    } {
+      Ok(Self {
+        span: reader.span_since(start),
+        out: Type::Unresolved,
+        a: AtomExpression::OperatorExpr(OperatorExpr::Mul(
+          Box::new(Expression::Atom(a)),
+          Box::new(b)
+        ))
+      })
+    } else if let Some(b) = {
+      if seek::begins_with(reader, consts::operator::DIV) {
+        seek::optional_whitespace(reader)?;
+        try_make!(Expression::make, reader)
+      } else {
+        None
+      }
+    } {
+      Ok(Self {
+        span: reader.span_since(start),
+        out: Type::Unresolved,
+        a: AtomExpression::OperatorExpr(OperatorExpr::Div(
+          Box::new(Expression::Atom(a)),
+          Box::new(b)
+        ))
+      })
+    } else if let Some(b) = {
+      if seek::begins_with(reader, consts::operator::MOD) {
+        seek::optional_whitespace(reader)?;
+        try_make!(Expression::make, reader)
+      } else {
+        None
+      }
+    } {
+      Ok(Self {
+        span: reader.span_since(start),
+        out: Type::Unresolved,
+        a: AtomExpression::OperatorExpr(OperatorExpr::Mod(
+          Box::new(Expression::Atom(a)),
+          Box::new(b)
+        ))
+      })
+    } else {
+      Ok(a)
     }
   }
 }
@@ -577,7 +725,7 @@ impl FunctionAST {
         if !seek::begins_with(reader, consts::punctuation::COMMA) {
           break;
         }
-      }
+      };
 
       seek::optional_whitespace(reader)?;
     };

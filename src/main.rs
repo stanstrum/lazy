@@ -78,8 +78,8 @@ fn compile() -> Result<(), LazyError> {
 
   let ref mut reader = aster::SourceReader::new(input, &src);
 
-  let lexed = match aster::asterize(reader) {
-    Ok(lexed) => lexed,
+  let asterized = match aster::asterize(reader) {
+    Ok(asterized) => asterized,
     Err(err) => {
       let message = Message {
         level: Level::Error,
@@ -96,11 +96,14 @@ fn compile() -> Result<(), LazyError> {
     }
   };
 
-  dbg!(&lexed);
+  dbg!(&asterized);
+  println!("{}", asterized.to_string());
+
+  // sponge: insert here an algorithm to rearrange operators by precedence
 
   println!("{}", lexed.to_string());
 
-  todo!()
+  todo!("code generation")
 }
 
 fn print_usage(program: &str, opts: Options) {

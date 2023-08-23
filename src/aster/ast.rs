@@ -204,7 +204,7 @@ pub enum Type {
   ConstPtrTo(Box<TypeAST>),
   MutPtrTo(Box<TypeAST>),
   ArrayOf(Option<LiteralAST>, Box<TypeAST>),
-  Defined(*mut TypeAST),
+  Defined(*const TypeAST),
   Unknown(IdentAST),
   Unresolved,
 }

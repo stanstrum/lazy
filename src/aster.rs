@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-mod ast;
+pub(crate) mod ast;
 use std::collections::HashMap;
 
 use ast::*;

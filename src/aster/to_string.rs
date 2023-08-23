@@ -8,7 +8,7 @@
 use std::{io::{Write, /* Result */}, /* str::FromStr */};
 use crate::aster::consts;
 
-use super::{ast::*, formatting::format_message};
+use super::ast::*;
 
 use crate::colors::*;
 
@@ -65,8 +65,8 @@ fn stringfiy_string(lit: &Literal) -> String {
         write!(&mut w, "\\").unwrap();
 
         match ch as u32 {
-          0..=255 => { write!(&mut w, "{:x<2}", ch as u32).unwrap(); },
-          _ => todo!()
+          0..=255 => { write!(&mut w, "x{:x<2}", ch as u32).unwrap(); },
+          _ => { write!(&mut w, "u{:x<8}", ch as u32).unwrap(); }
         };
       }
     };

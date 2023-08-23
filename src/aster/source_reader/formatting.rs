@@ -147,17 +147,17 @@ pub fn format_message(src: &String, message: Message) -> String {
   let (start_line, start_col) = line_col(src, message.span.start);
   let (end_line, end_col) = line_col(src, message.span.end);
 
-  if start_line != end_line {
-    todo!("multiline message");
-  };
+  dbg!(start_line, start_col, end_line, end_col);
 
   let mut w: Vec<u8> = vec![];
+
+  if start_line != end_line {
+    todo!()
+  };
 
   writeln!(&mut w, "{}: {BOLD}{}{CLEAR}", message.level.to_string(), message.msg).unwrap();
 
   let pfx_len = num_length(start_line as u32 + 1);
-
-  // dbg!(start_line, start_col, end_line, end_col);
 
   writeln!(&mut w, "{} |",
     " ".repeat(pfx_len)

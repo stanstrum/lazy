@@ -33,7 +33,7 @@ pub fn str_line_pfx(string: String, pfx: &str) -> String {
   new_string.trim_end().into()
 }
 
-fn stringfiy_string(lit: &Literal) -> String {
+fn stringify_string(lit: &Literal) -> String {
   let mut w: Vec<u8> = vec![];
 
   let text = match lit {
@@ -80,7 +80,7 @@ fn stringfiy_string(lit: &Literal) -> String {
 impl std::string::ToString for LiteralAST {
   fn to_string(&self) -> String {
     match &self.l {
-      Literal::String(_) | Literal::ByteString(_) => stringfiy_string(&self.l),
+      Literal::String(_) | Literal::ByteString(_) => stringify_string(&self.l),
       Literal::NumericLiteral(s) => {
         s.clone()
       },

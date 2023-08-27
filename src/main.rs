@@ -101,7 +101,7 @@ fn compile() -> Result<(), LazyError> {
 
   // sponge: insert here an algorithm to rearrange operators by precedence
 
-  println!("{}", lexed.to_string());
+  println!("{}", asterized.to_string());
 
   todo!("code generation")
 }

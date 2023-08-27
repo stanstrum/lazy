@@ -26,15 +26,15 @@ pub struct NamespaceAST {
 
 #[derive(Debug)]
 pub enum Structure {
-  NamespaceAST(NamespaceAST),
-  FunctionAST(FunctionAST),
+  Namespace(NamespaceAST),
+  Function(FunctionAST),
 }
 
 impl GetSpan for &Structure {
   fn span(&self) -> Span {
     match self {
-      Structure::NamespaceAST(s) => &s.span,
-      Structure::FunctionAST(s) => &s.span,
+      Structure::Namespace(s) => &s.span,
+      Structure::Function(s) => &s.span,
     }.clone()
   }
 }

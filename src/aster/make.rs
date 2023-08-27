@@ -808,8 +808,8 @@ mod tests {
 
       let main = global.map.get("main").unwrap();
       let main = match main {
-        Structure::NamespaceAST(_) => panic!("main is of wrong structure type"),
-        Structure::FunctionAST(main) => main,
+        Structure::Namespace(_) => panic!("main is of wrong structure type"),
+        Structure::Function(main) => main,
       };
 
       let expr = main.body.children.get(0).unwrap();

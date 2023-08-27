@@ -49,7 +49,7 @@ pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {
 
       global.map.insert(
         func.ident.text.clone(),
-        Structure::FunctionAST(func)
+        Structure::Function(func)
       );
     } else {
       return UnknownSnafu { what: "Structure", offset: reader.offset() }.fail();

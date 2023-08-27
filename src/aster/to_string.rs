@@ -255,8 +255,8 @@ impl std::string::ToString for FunctionAST {
 impl std::string::ToString for Structure {
   fn to_string(&self) -> String {
     match self {
-      Structure::NamespaceAST(ns) => ns.to_string(),
-      Structure::FunctionAST(func) => func.to_string()
+      Structure::Namespace(ns) => ns.to_string(),
+      Structure::Function(func) => func.to_string()
     }
   }
 }

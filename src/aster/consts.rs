@@ -8,7 +8,27 @@
 pub mod keyword {
   pub const FN: &str = "fn";
 
+  pub const TYPE: &str = "type";
+  pub const STRUCT: &str = "struct";
+  pub const INTERFACE: &str = "interface";
+
+  pub const TRAIT: &str = "trait";
+
+  pub const IMPL: &str = "impl";
+  pub const FOR: &str = "for";
+  pub const IMPLEMENTS: &str = "implements";
+  pub const EXTENDS: &str = "extends";
+
+  pub const PUB: &str = "pub";
+  pub const STATIC: &str = "static";
+
   pub const MUT: &str = "mut";
+
+  pub const INFER: &str = "infer";
+
+  pub const IMPORT: &str = "import";
+  pub const FROM: &str = "from";
+  pub const EXPORT: &str = "export";
 }
 
 pub mod punctuation {
@@ -144,4 +164,8 @@ pub mod operator {
   pub const ASHR_ASSIGN: &str = ">>=";
   pub const LSHR_ASSIGN: &str = ">>>=";
   pub const LSHL_ASSIGN: &str = "<<=";
+}
+
+pub mod reserved {
+  pub const IMPL_INFIX: &str = "!impl_";
 }

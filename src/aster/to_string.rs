@@ -256,7 +256,8 @@ impl std::string::ToString for Structure {
   fn to_string(&self) -> String {
     match self {
       Structure::Namespace(ns) => ns.to_string(),
-      Structure::Function(func) => func.to_string()
+      Structure::Function(func) => func.to_string(),
+      _ => todo!("structure tostring {:#?}", self)
     }
   }
 }

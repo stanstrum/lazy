@@ -1,0 +1,26 @@
+fn main {
+  a := 0u8 + 1u8;
+
+  0i32
+}
+
+trait IAdd {
+  pub iadd -> Self:
+    rhs: Self;
+}
+
+impl IAdd: i32 {
+  pub iadd -> i32:
+    rhs: i32
+  {
+    // do stuff
+
+    Self::new()
+  }
+}
+
+impl i32 {
+  static new -> i32 {
+    0i32
+  }
+}

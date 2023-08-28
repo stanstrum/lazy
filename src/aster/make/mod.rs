@@ -11,13 +11,9 @@ mod expression;
 mod qualified;
 mod literal;
 mod function;
-
-pub use r#type::*;
-pub use ident::*;
-pub use expression::*;
-pub use qualified::*;
-pub use literal::*;
-pub use function::*;
+mod structure;
+mod r#trait;
+mod member_function_decl;
 
 pub use super::{
   seek_read::{seek, read},
@@ -132,8 +128,8 @@ mod tests {
 
       let main = global.map.get("main").unwrap();
       let main = match main {
-        Structure::Namespace(_) => panic!("main is of wrong structure type"),
         Structure::Function(main) => main,
+        _ => panic!("main is of wrong structure type"),
       };
 
       let expr = main.body.children.get(0).unwrap();

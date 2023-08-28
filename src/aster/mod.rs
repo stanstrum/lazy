@@ -20,7 +20,7 @@ mod source_reader;
 pub use source_reader::*;
 
 mod seek_read;
-use seek_read::{seek, read};
+use seek_read::seek;
 
 mod make;
 mod consts;
@@ -44,16 +44,9 @@ pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {
       break;
     };
 
-    if read::begins_with(reader, consts::keyword::FN) {
-      let func = FunctionAST::make(reader)?;
+    let (name, structure) = Structure::make(reader)?;
 
-      global.map.insert(
-        func.ident.text.clone(),
-        Structure::Function(func)
-      );
-    } else {
-      return UnknownSnafu { what: "Structure", offset: reader.offset() }.fail();
-    };
+    global.map.insert(name, structure);
   };
 
   Ok(global)

@@ -25,9 +25,63 @@ pub struct NamespaceAST {
 }
 
 #[derive(Debug)]
+pub struct MemberFunctionDeclAST {
+  pub span: Span,
+
+  pub public: bool,
+  pub r#static: bool,
+  pub r#mut: bool,
+
+  pub ident: IdentAST,
+}
+
+#[derive(Debug)]
+pub struct MemberFunctionAST {
+  pub span: Span,
+
+  pub decl: MemberFunctionDeclAST,
+  pub body: BlockExpressionAST
+}
+
+#[derive(Debug)]
+pub struct TraitAST {
+  pub span: Span,
+  pub ident: IdentAST,
+  pub decls: Vec<MemberFunctionDeclAST>
+}
+
+#[derive(Debug)]
+pub struct ImplAST {
+  pub span: Span,
+
+  // impl ...
+  pub ty: TypeAST,
+  // {
+  pub methods: Vec<MemberFunctionAST>,
+  // }
+}
+
+#[derive(Debug)]
+pub struct ImplForAST {
+  pub span: Span,
+
+  // impl ...
+  pub r#trait: QualifiedAST,
+  // for ...
+  pub ty: TypeAST,
+  // {
+  pub methods: Vec<MemberFunctionAST>
+  // }
+}
+
+#[derive(Debug)]
 pub enum Structure {
   Namespace(NamespaceAST),
   Function(FunctionAST),
+  // Struct(StructAST),
+  Trait(TraitAST),
+  Impl(ImplAST),
+  ImplFor(ImplForAST)
 }
 
 impl GetSpan for &Structure {
@@ -35,6 +89,9 @@ impl GetSpan for &Structure {
     match self {
       Structure::Namespace(s) => &s.span,
       Structure::Function(s) => &s.span,
+      Structure::Trait(s) => &s.span,
+      Structure::Impl(s) => &s.span,
+      Structure::ImplFor(s) => &s.span,
     }.clone()
   }
 }

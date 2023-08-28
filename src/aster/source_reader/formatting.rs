@@ -143,35 +143,105 @@ fn get_code<'a>(src: &'a String, offset: usize) -> &'a str {
   }
 }
 
+fn space_pad_line_to_len<T: Into<u32>>(pfx_len: usize, line_no: T) -> String {
+  let line_no = line_no.into() + 1;
+
+  let line_no_len = num_length(line_no);
+
+  format!(
+    "{}{}",
+    " ".repeat(pfx_len - line_no_len),
+    line_no
+  )
+}
+
+fn get_code_of_line(src: &String, line: usize) -> &str {
+  let mut ctr: usize = 0;
+
+  for (i, ch) in src.chars().enumerate() {
+    if ctr == line {
+      return get_code(src, i);
+    };
+
+    if ch == '\n' {
+      ctr += 1;
+    };
+  };
+
+  panic!("Line out of bounds");
+}
+
 pub fn format_message(src: &String, message: Message) -> String {
-  let (start_line, start_col) = line_col(src, message.span.start);
-  let (end_line, end_col) = line_col(src, message.span.end);
+  let start = message.span.start;
+  let end = message.span.end;
+
+  let (start_line, start_col) = line_col(src, start);
+  let (end_line, end_col) = line_col(src, end);
 
   // dbg!(start_line, start_col, end_line, end_col);
 
   let mut w: Vec<u8> = vec![];
 
-  if start_line != end_line {
-    todo!("multiline message")
-  };
-
   writeln!(&mut w, "{}: {BOLD}{}{CLEAR}", message.level.to_string(), message.msg).unwrap();
+  if start_line != end_line {
+    let pfx_len = num_length(end_line as u32 + 1);
 
-  let pfx_len = num_length(start_line as u32 + 1);
+    writeln!(&mut w, "{} |",
+      " ".repeat(pfx_len)
+    ).unwrap();
 
-  writeln!(&mut w, "{} |",
-    " ".repeat(pfx_len)
-  ).unwrap();
-  writeln!(&mut w, "{} | {}",
-    start_line + 1,
-    get_code(src, message.span.start)
-  ).unwrap();
-  writeln!(&mut w, "{} | {}{} {}",
-    " ".repeat(pfx_len),
-    " ".repeat(start_col),
-    "─".repeat((end_col - start_col).max(1)),
-    message.sub
-  ).unwrap();
+    writeln!(&mut w, "{} | {}",
+      space_pad_line_to_len(pfx_len, start_line as u32),
+      get_code(src, start)
+    ).unwrap();
+
+    // let (_, end_of_first_line) = line_col(src, start_end(src, start).1);
+    let (start_of_first_line, end_of_first_line) = start_end(src, start);
+
+    writeln!(&mut w, "{} | {}{}",
+      " ".repeat(pfx_len),
+      " ".repeat(start_col),
+      "─".repeat(end_of_first_line - start_of_first_line - start_col)
+    ).unwrap();
+
+    for between_line in (start_line + 1)..end_line {
+      let code = get_code_of_line(src, between_line);
+
+      writeln!(&mut w,
+        "{} | {}",
+        space_pad_line_to_len(pfx_len, between_line as u32),
+        code
+      ).unwrap();
+
+      write!(&mut w,
+        "{} | {}",
+        " ".repeat(pfx_len),
+        "─".repeat(code.len())
+      ).unwrap();
+
+      if between_line == end_line - 1 {
+        write!(&mut w, " {}", message.sub).unwrap();
+      };
+
+      writeln!(&mut w).unwrap();
+    };
+  } else {
+    let pfx_len = num_length(start_line as u32 + 1);
+
+    writeln!(&mut w, "{} |",
+      " ".repeat(pfx_len)
+    ).unwrap();
+    writeln!(&mut w, "{} | {}",
+      start_line + 1,
+      get_code(src, message.span.start)
+    ).unwrap();
+    writeln!(&mut w, "{} | {}{} {}",
+      " ".repeat(pfx_len),
+      " ".repeat(start_col),
+      "─".repeat((end_col - start_col).max(1)),
+      message.sub
+    ).unwrap();
+  };
 
   String::from_utf8(w).expect("failed to read from buffer")
 }

@@ -15,54 +15,58 @@ mod structure;
 mod r#trait;
 mod member_function;
 mod keyword;
+mod r#impl;
 
 pub use super::{
   seek_read::{seek, read},
-  ast::*
+  ast::*,
+  formatting::*
 };
 
 #[macro_export]
 macro_rules! try_make {
   ($func:expr, $reader:ident $(, $args:expr)*) => {{
-    let start = $reader.offset();
-    // let text = concat!(stringify!($func), " from ", line!());
+    use crate::aster::formatting::*;
 
-    // println!("{}", format_message($reader.src(), Message {
-    //   level: Level::Note,
-    //   msg: format!("Trying {}", text),
-    //   sub: "here".to_owned(),
-    //   span: Span {
-    //     start: $reader.offset(),
-    //     end: $reader.offset()
-    //   }
-    // }));
+    let start = $reader.offset();
+    let text = concat!(stringify!($func), " from ", file!(), ":", line!());
+
+    println!("{}", format_message($reader.src(), Message {
+      level: Level::Note,
+      msg: format!("Trying {}", text),
+      sub: "here".to_owned(),
+      span: Span {
+        start: $reader.offset(),
+        end: $reader.offset()
+      }
+    }));
 
     let res = $func($reader $(, $args)*);
 
     match res {
       Ok(v) => {
-        // let msg = Message {
-        //   level: Level::Debug,
-        //   msg: format!("Successfully parsed {}", text),
-        //   sub: "here".to_owned(),
-        //   span: v.span()
-        // };
+        let msg = Message {
+          level: Level::Debug,
+          msg: format!("Successfully parsed {}", text),
+          sub: "here".to_owned(),
+          span: v.span()
+        };
 
-        // println!("{}", format_message($reader.src(), msg));
+        println!("{}", format_message($reader.src(), msg));
 
         Some(v)
       },
-      Err(_) => {
-        // let message = Message {
-        //   level: Level::Warning,
-        //   msg: format!("Failed to parse {}", text),
-        //   sub: e.to_string(),
-        //   span: Span {
-        //     start, end: start
-        //   }
-        // };
+      Err(e) => {
+        let message = Message {
+          level: Level::Warning,
+          msg: format!("Failed to parse {}", text),
+          sub: e.to_string(),
+          span: Span {
+            start, end: start
+          }
+        };
 
-        // println!("{}", format_message($reader.src(), message));
+        println!("{}", format_message($reader.src(), message));
 
         $reader.rewind($reader.offset() - start).unwrap();
 
@@ -74,21 +78,13 @@ macro_rules! try_make {
 
 pub use try_make;
 
+#[allow(unused_imports)]
 mod tests {
-  #[allow(unused)]
-  use crate::aster::{
-    asterize,
-    source_reader::{
-      SourceReader,
-      formatting::{
-        Message,
-        format_message
-      }
-    }
-  };
-
-  #[allow(unused)]
-  use super::*;
+  use crate::aster::SourceReader;
+  use crate::aster::ast::*;
+  use crate::aster::seek_read::seek;
+  use crate::aster::asterize;
+  use crate::aster::formatting::*;
 
   macro_rules! snippet_test {
     ($name:ident, $reader:ident => $body:tt) => {

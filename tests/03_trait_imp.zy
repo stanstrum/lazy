@@ -9,6 +9,12 @@ trait IAdd {
     Self rhs;
 }
 
+impl i32 {
+  pub static fn new -> i32 {
+    0i32
+  };
+}
+
 impl IAdd: i32 {
   pub fn iadd -> i32:
     i32 rhs
@@ -16,11 +22,5 @@ impl IAdd: i32 {
     // do stuff
 
     Self::new()
-  }
-}
-
-impl i32 {
-  static fn new -> i32 {
-    0i32
-  }
+  };
 }

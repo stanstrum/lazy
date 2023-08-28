@@ -165,7 +165,3 @@ pub mod operator {
   pub const LSHR_ASSIGN: &str = ">>>=";
   pub const LSHL_ASSIGN: &str = "<<=";
 }
-
-pub mod reserved {
-  pub const IMPL_INFIX: &str = "!impl_";
-}

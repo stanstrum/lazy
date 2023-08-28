@@ -60,7 +60,7 @@ pub struct ImplAST {
   pub span: Span,
 
   // impl ...
-  pub ty: QualifiedAST,
+  pub ty: TypeAST,
   // {
   pub methods: Vec<MemberFunctionAST>,
   // }
@@ -73,7 +73,7 @@ pub struct ImplForAST {
   // impl ...
   pub r#trait: QualifiedAST,
   // for ...
-  pub ty: QualifiedAST,
+  pub ty: TypeAST,
   // {
   pub methods: Vec<MemberFunctionAST>
   // }
@@ -287,7 +287,61 @@ pub enum Type {
   ArrayOf(Option<LiteralAST>, Box<TypeAST>),
   Defined(*const TypeAST),
   Unknown(QualifiedAST),
-  Unresolved,
+  Unresolved
+}
+
+impl TypeAST {
+  pub fn to_hashable(&self) -> String {
+    self.e.to_hashable()
+  }
+}
+
+impl LiteralAST {
+  pub fn to_hashable(&self) -> String {
+    match &self.l {
+      Literal::NumericLiteral(text) => text.to_owned(),
+      _ => panic!("to_hashable run on non-numeric")
+    }
+  }
+}
+
+impl Type {
+  pub fn to_hashable(&self) -> String {
+    match self {
+      Type::Intrinsic(s) => {
+        unsafe { (**s).name }.to_owned()
+      },
+      Type::ConstReferenceTo(ty) => {
+        format!("&{}", (**ty).e.to_hashable())
+      },
+      Type::MutReferenceTo(ty) => {
+        format!("&mut {}", (**ty).e.to_hashable())
+      },
+      Type::ConstPtrTo(ty) => {
+        format!("*{}", (**ty).e.to_hashable())
+      },
+      Type::MutPtrTo(ty) => {
+        format!("*mut {}", (**ty).e.to_hashable())
+      },
+      Type::ArrayOf(sz, ty) => {
+        match sz {
+          Some(sz) => {
+            format!("[{}]{}", sz.to_hashable(), (**ty).e.to_hashable())
+          },
+          None => {
+            format!("[]{}", (**ty).e.to_hashable())
+          },
+        }
+      },
+      Type::Defined(ty) => unsafe {
+        (**ty).e.to_hashable()
+      },
+      Type::Unknown(qual) => {
+        qual.to_hashable()
+      },
+      _ => unimplemented!("to_hashable for {:#?}", self)
+    }
+  }
 }
 
 #[derive(Debug, Clone)]
@@ -300,6 +354,16 @@ pub struct TypeAST {
 pub struct QualifiedAST {
   pub span: Span,
   pub parts: Vec<IdentAST>,
+}
+
+impl QualifiedAST {
+  pub fn to_hashable(&self) -> String {
+    self.parts
+      .iter()
+      .map(|ident| ident.text.to_owned())
+      .collect::<Vec<String>>()
+      .join("::")
+  }
 }
 
 #[derive(Debug, Clone)]
@@ -329,5 +393,8 @@ make_get_span![
   BlockExpressionAST,
   AtomExpressionAST,
   TypeAST,
-  LiteralAST
+  LiteralAST,
+  ImplAST,
+  ImplForAST,
+  KeywordAST
 ];

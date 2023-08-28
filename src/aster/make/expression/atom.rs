@@ -12,9 +12,9 @@
     AsterResult,
     seek_read::seek,
     consts,
-    errors::*
+    errors::*,
   },
-  try_make
+  try_make,
 };
 
 impl AtomExpressionAST {

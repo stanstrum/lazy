@@ -223,20 +223,18 @@ impl std::string::ToString for TypeAST {
   }
 }
 
-impl std::string::ToString for FunctionAST {
+impl std::string::ToString for FunctionDeclAST {
   fn to_string(&self) -> String {
     let mut w: Vec<u8> = vec![];
 
-    let decl = &self.decl;
-
-    if decl.args.len() == 0 {
-      write!(&mut w, "{LIGHT_RED}fn{CLEAR} {} -> {} ", decl.ident.to_string(), decl.ret.to_string()).unwrap();
+    if self.args.len() == 0 {
+      write!(&mut w, "{LIGHT_RED}fn{CLEAR} {} -> {} ", self.ident.to_string(), self.ret.to_string()).unwrap();
     } else {
-      writeln!(&mut w, "{LIGHT_RED}fn{CLEAR} {} -> {}:", decl.ident.to_string(), decl.ret.to_string()).unwrap();
+      writeln!(&mut w, "{LIGHT_RED}fn{CLEAR} {} -> {}:", self.ident.to_string(), self.ret.to_string()).unwrap();
 
-      let last = decl.args.len() - 1;
+      let last = self.args.len() - 1;
 
-      for (i, arg) in decl.args.iter().enumerate() {
+      for (i, arg) in self.args.iter().enumerate() {
         write!(&mut w, "  {} {}", arg.0.to_string(), arg.1.to_string()).unwrap();
 
         if i != last {
@@ -247,10 +245,119 @@ impl std::string::ToString for FunctionAST {
       };
     };
 
+    String::from_utf8(w).unwrap()
+  }
+}
+
+impl std::string::ToString for FunctionAST {
+  fn to_string(&self) -> String {
+    let mut w: Vec<u8> = vec![];
+
+    write!(&mut w, "{}", self.decl.to_string()).unwrap();
     write!(&mut w, "{}", self.body.to_string()).unwrap();
 
     String::from_utf8(w)
       .expect("Failed to write buffer to String")
+  }
+}
+
+impl std::string::ToString for MemberFunctionDeclAST {
+  fn to_string(&self) -> String {
+    let mut w: Vec<u8> = vec![];
+
+    if self.public.is_some() {
+      write!(&mut w, "{LIGHT_RED}pub{CLEAR} ").unwrap();
+    };
+
+    if self.r#static.is_some() {
+      write!(&mut w, "{LIGHT_RED}static{CLEAR} ").unwrap();
+    };
+
+    if self.r#mut.is_some() {
+      write!(&mut w, "{LIGHT_RED}mut{CLEAR} ").unwrap();
+    };
+
+    write!(&mut w, "{}", self.decl.to_string()).unwrap();
+
+    String::from_utf8(w).unwrap()
+  }
+}
+
+impl std::string::ToString for MemberFunctionAST {
+  fn to_string(&self) -> String {
+    format!("{}{};", self.decl.to_string(), self.body.to_string())
+  }
+}
+
+fn methods_to_string(methods: &Vec<MemberFunctionAST>) -> String {
+  let mut w: Vec<u8> = vec![];
+
+  for (i, method) in methods.iter().enumerate() {
+    writeln!(&mut w, "{}",
+      str_line_pfx(
+        method.to_string(),
+        "  "
+      )
+    ).unwrap();
+
+    if i != methods.len() - 1 {
+      writeln!(&mut w).unwrap();
+    };
+  };
+
+  String::from_utf8(w).unwrap()
+}
+
+impl std::string::ToString for ImplAST {
+  fn to_string(&self) -> String {
+    let mut w: Vec<u8> = vec![];
+
+    writeln!(&mut w, "{LIGHT_RED}impl{CLEAR} {} {{", self.ty.to_string()).unwrap();
+
+    write!(&mut w, "{}", methods_to_string(&self.methods)).unwrap();
+
+    write!(&mut w, "}}").unwrap();
+
+    String::from_utf8(w).unwrap()
+  }
+}
+
+impl std::string::ToString for ImplForAST {
+  fn to_string(&self) -> String {
+    let mut w: Vec<u8> = vec![];
+
+    writeln!(&mut w, "{LIGHT_RED}impl{CLEAR} {}: {} {{", self.r#trait.to_string(), self.ty.to_string()).unwrap();
+
+    write!(&mut w, "{}", methods_to_string(&self.methods)).unwrap();
+
+    write!(&mut w, "}}").unwrap();
+
+    String::from_utf8(w).unwrap()
+  }
+}
+
+impl std::string::ToString for TraitAST {
+  fn to_string(&self) -> String {
+    let mut w: Vec<u8> = vec![];
+
+    writeln!(&mut w, "{LIGHT_RED}trait{CLEAR} {} {{", self.ident.to_string()).unwrap();
+
+    for (i, decl) in self.decls.iter().enumerate() {
+      writeln!(&mut w, "{};",
+        str_line_pfx(
+          decl.to_string().trim_end().to_string(),
+          "  "
+        )
+      ).unwrap();
+
+      if i != self.decls.len() - 1 {
+        writeln!(&mut w).unwrap();
+      };
+    };
+
+    write!(&mut w, "}}").unwrap();
+
+    String::from_utf8(w).unwrap()
   }
 }
 
@@ -259,6 +366,9 @@ impl std::string::ToString for Structure {
     match self {
       Structure::Namespace(ns) => ns.to_string(),
       Structure::Function(func) => func.to_string(),
+      Structure::Trait(r#trait) => r#trait.to_string(),
+      Structure::Impl(Impl::Impl(r#impl)) => r#impl.to_string(),
+      Structure::Impl(Impl::ImplFor(impl_for)) => impl_for.to_string(),
       _ => todo!("structure tostring {:#?}", self)
     }
   }
@@ -285,7 +395,7 @@ impl std::string::ToString for QualifiedAST {
 
 impl std::string::ToString for IdentAST {
   fn to_string(&self) -> String {
-    format!("{LIGHT_GRAY}{}{CLEAR}", self.text)
+    self.text.to_owned()
   }
 }
 

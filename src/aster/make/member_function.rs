@@ -10,7 +10,6 @@ use crate::try_make;
 use super::super::{
   ast::*,
   SourceReader,
-  AsterResult,
   errors::*,
   consts,
   seek_read::seek
@@ -43,6 +42,23 @@ impl MemberFunctionDeclAST {
     Ok(Self {
       span: reader.span_since(start),
       public, r#static, r#mut, decl
+    })
+  }
+}
+
+impl MemberFunctionAST {
+  pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
+    let start = reader.offset();
+
+    let decl = MemberFunctionDeclAST::make(reader)?;
+
+    seek::optional_whitespace(reader)?;
+
+    let body = BlockExpressionAST::make(reader)?;
+
+    Ok(Self {
+      span: reader.span_since(start),
+      decl, body
     })
   }
 }

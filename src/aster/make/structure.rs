@@ -5,7 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
- use super::super::{
+ use crate::try_make;
+
+use super::super::{
   ast::*,
   SourceReader,
   seek_read::read,
@@ -30,11 +32,19 @@ impl Structure {
         r#trait.ident.text.to_owned(),
         Structure::Trait(r#trait)
       ))
-    } else if read::begins_with(reader, consts::keyword::IMPL) {
-      NotImplementedSnafu {
-        what: "Impl",
-        offset: reader.offset()
-      }.fail()
+    } else if let Some(r#impl) = try_make!(ImplAST::make, reader) {
+      Ok((
+        format!(
+          "impl!{}",
+          r#impl.ty.to_hashable()
+        ),
+        Structure::Impl(Impl::Impl(r#impl))
+      ))
+    } else if let Some(impl_for) = try_make!(ImplForAST::make, reader) {
+      Ok((
+        format!("impl!{}!{}", impl_for.ty.to_hashable(), impl_for.r#trait.to_hashable()),
+        Structure::Impl(Impl::ImplFor(impl_for))
+      ))
     } else {
       UnknownSnafu { what: "Structure", offset: reader.offset() }.fail()
     }

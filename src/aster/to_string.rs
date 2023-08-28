@@ -8,7 +8,7 @@
 use std::{io::{Write, /* Result */}, /* str::FromStr */};
 use crate::aster::consts;
 
-use super::ast::*;
+use super::{ast::*, intrinsics};
 
 use crate::colors::*;
 
@@ -227,10 +227,19 @@ impl std::string::ToString for FunctionDeclAST {
   fn to_string(&self) -> String {
     let mut w: Vec<u8> = vec![];
 
+    write!(&mut w, "{}", self.ident.to_string()).unwrap();
+
+    match self.ret.e {
+      Type::Intrinsic(ptr) if ptr == &intrinsics::VOID => {},
+      _ => {
+        write!(&mut w, " -> {}", self.ret.to_string()).unwrap();
+      }
+    };
+
     if self.args.len() == 0 {
-      write!(&mut w, "{LIGHT_RED}fn{CLEAR} {} -> {} ", self.ident.to_string(), self.ret.to_string()).unwrap();
+      write!(&mut w, " ").unwrap();
     } else {
-      writeln!(&mut w, "{LIGHT_RED}fn{CLEAR} {} -> {}:", self.ident.to_string(), self.ret.to_string()).unwrap();
+      write!(&mut w, ":\n").unwrap();
 
       let last = self.args.len() - 1;
 
@@ -254,7 +263,7 @@ impl std::string::ToString for FunctionAST {
     let mut w: Vec<u8> = vec![];
 
     write!(&mut w, "{}", self.decl.to_string()).unwrap();
-    write!(&mut w, "{}", self.body.to_string()).unwrap();
+    write!(&mut w, "{};", self.body.to_string()).unwrap();
 
     String::from_utf8(w)
       .expect("Failed to write buffer to String")
@@ -316,7 +325,7 @@ impl std::string::ToString for ImplAST {
 
     write!(&mut w, "{}", methods_to_string(&self.methods)).unwrap();
 
-    write!(&mut w, "}}").unwrap();
+    write!(&mut w, "}};").unwrap();
 
     String::from_utf8(w).unwrap()
   }
@@ -330,7 +339,7 @@ impl std::string::ToString for ImplForAST {
 
     write!(&mut w, "{}", methods_to_string(&self.methods)).unwrap();
 
-    write!(&mut w, "}}").unwrap();
+    write!(&mut w, "}};").unwrap();
 
     String::from_utf8(w).unwrap()
   }
@@ -355,7 +364,7 @@ impl std::string::ToString for TraitAST {
       };
     };
 
-    write!(&mut w, "}}").unwrap();
+    write!(&mut w, "}};").unwrap();
 
     String::from_utf8(w).unwrap()
   }
@@ -403,7 +412,12 @@ impl std::string::ToString for NamespaceAST {
   fn to_string(&self) -> String {
     let mut w: Vec<u8> = vec![];
 
-    for (name, structure) in self.map.iter() {
+    let mut collected: Vec<(&String, &Structure)> = self.map.iter().collect();
+    collected.sort_by(
+      |(_, a), (_, b)| a.span().start.cmp(&b.span().start)
+    );
+
+    for (name, structure) in collected {
       let span = structure.span();
 
       writeln!(&mut w, "{DARK_GRAY}// {} ({}:{}){CLEAR}", name, span.start, span.end).unwrap();
@@ -415,7 +429,7 @@ impl std::string::ToString for NamespaceAST {
       .expect("Failed to write buffer to String");
 
     format!(
-      "{LIGHT_RED}namespace{CLEAR} {} {{\n{}\n}}",
+      "{LIGHT_RED}namespace{CLEAR} {} {{\n{}\n}};",
       self.ident.to_string(),
       str_line_pfx(src, INDENTATION)
     )

@@ -59,9 +59,8 @@ impl AtomExpressionAST {
 
     let ty = try_make!(TypeAST::make, reader);
 
-    match ty {
-      Some(_) => { seek::required_whitespace(reader)?; },
-      _ => {}
+    if ty.is_some() {
+      seek::required_whitespace(reader)?;
     };
 
     if let Some(binding) = try_make!(Self::make_blind_binding, reader, ty) {

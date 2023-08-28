@@ -15,7 +15,7 @@
   intrinsics
 };
 
-impl FunctionAST {
+impl FunctionDeclAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
@@ -76,11 +76,24 @@ impl FunctionAST {
       seek::optional_whitespace(reader)?;
     };
 
+    Ok(Self {
+      span: reader.span_since(start),
+      ident, args, ret
+    })
+  }
+}
+
+impl FunctionAST {
+  pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
+    let start = reader.offset();
+
+    let decl = FunctionDeclAST::make(reader)?;
+
     let body = BlockExpressionAST::make(reader)?;
 
     Ok(Self {
       span: reader.span_since(start),
-      ident, args, ret, body
+      decl, body
     })
   }
 }

@@ -227,14 +227,16 @@ impl std::string::ToString for FunctionAST {
   fn to_string(&self) -> String {
     let mut w: Vec<u8> = vec![];
 
-    if self.args.len() == 0 {
-      write!(&mut w, "{LIGHT_RED}fn{CLEAR} {} -> {} ", self.ident.to_string(), self.ret.to_string()).unwrap();
+    let decl = &self.decl;
+
+    if decl.args.len() == 0 {
+      write!(&mut w, "{LIGHT_RED}fn{CLEAR} {} -> {} ", decl.ident.to_string(), decl.ret.to_string()).unwrap();
     } else {
-      writeln!(&mut w, "{LIGHT_RED}fn{CLEAR} {} -> {}:", self.ident.to_string(), self.ret.to_string()).unwrap();
+      writeln!(&mut w, "{LIGHT_RED}fn{CLEAR} {} -> {}:", decl.ident.to_string(), decl.ret.to_string()).unwrap();
 
-      let last = self.args.len() - 1;
+      let last = decl.args.len() - 1;
 
-      for (i, arg) in self.args.iter().enumerate() {
+      for (i, arg) in decl.args.iter().enumerate() {
         write!(&mut w, "  {} {}", arg.0.to_string(), arg.1.to_string()).unwrap();
 
         if i != last {

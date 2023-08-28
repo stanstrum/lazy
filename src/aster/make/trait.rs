@@ -51,8 +51,11 @@ impl TraitAST {
 
       seek::optional_whitespace(reader)?;
 
-      if seek::begins_with(reader, consts::punctuation::SEMICOLON) {
-        break;
+      if !seek::begins_with(reader, consts::punctuation::SEMICOLON) {
+        return ExpectedSnafu {
+          what: "Punctuation (\";\")",
+          offset: reader.offset()
+        }.fail();
       };
     };
 

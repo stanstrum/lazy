@@ -20,7 +20,7 @@ impl Structure {
       let func = FunctionAST::make(reader)?;
 
       Ok((
-        func.ident.text.to_owned(),
+        func.decl.ident.text.to_owned(),
         Structure::Function(func)
       ))
     } else if read::begins_with(reader, consts::keyword::TRAIT) {

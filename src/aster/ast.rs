@@ -25,14 +25,19 @@ pub struct NamespaceAST {
 }
 
 #[derive(Debug)]
+pub struct KeywordAST {
+  pub span: Span,
+}
+
+#[derive(Debug)]
 pub struct MemberFunctionDeclAST {
   pub span: Span,
 
-  pub public: bool,
-  pub r#static: bool,
-  pub r#mut: bool,
+  pub public: Option<KeywordAST>,
+  pub r#static: Option<KeywordAST>,
+  pub r#mut: Option<KeywordAST>,
 
-  pub ident: IdentAST,
+  pub decl: FunctionDeclAST
 }
 
 #[derive(Debug)]
@@ -240,11 +245,17 @@ pub struct BlockExpressionAST {
 }
 
 #[derive(Debug)]
-pub struct FunctionAST {
+pub struct FunctionDeclAST {
   pub span: Span,
   pub ident: IdentAST,
   pub args: Vec<Variable>,
   pub ret: TypeAST,
+}
+
+#[derive(Debug)]
+pub struct FunctionAST {
+  pub span: Span,
+  pub decl: FunctionDeclAST,
   pub body: BlockExpressionAST,
 }
 

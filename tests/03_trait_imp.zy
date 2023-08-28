@@ -5,13 +5,13 @@ fn main {
 }
 
 trait IAdd {
-  pub iadd -> Self:
-    rhs: Self;
+  pub fn iadd -> Self:
+    Self rhs;
 }
 
 impl IAdd: i32 {
-  pub iadd -> i32:
-    rhs: i32
+  pub fn iadd -> i32:
+    i32 rhs
   {
     // do stuff
 
@@ -20,7 +20,7 @@ impl IAdd: i32 {
 }
 
 impl i32 {
-  static new -> i32 {
+  static fn new -> i32 {
     0i32
   }
 }

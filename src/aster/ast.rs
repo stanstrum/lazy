@@ -60,7 +60,7 @@ pub struct ImplAST {
   pub span: Span,
 
   // impl ...
-  pub ty: TypeAST,
+  pub ty: QualifiedAST,
   // {
   pub methods: Vec<MemberFunctionAST>,
   // }
@@ -73,10 +73,25 @@ pub struct ImplForAST {
   // impl ...
   pub r#trait: QualifiedAST,
   // for ...
-  pub ty: TypeAST,
+  pub ty: QualifiedAST,
   // {
   pub methods: Vec<MemberFunctionAST>
   // }
+}
+
+#[derive(Debug)]
+pub enum Impl {
+  Impl(ImplAST),
+  ImplFor(ImplForAST)
+}
+
+impl GetSpan for Impl {
+  fn span(&self) -> Span {
+    match self {
+      Impl::Impl(s) => &s.span,
+      Impl::ImplFor(s) => &s.span,
+    }.clone()
+  }
 }
 
 #[derive(Debug)]
@@ -85,19 +100,17 @@ pub enum Structure {
   Function(FunctionAST),
   // Struct(StructAST),
   Trait(TraitAST),
-  Impl(ImplAST),
-  ImplFor(ImplForAST)
+  Impl(Impl),
 }
 
 impl GetSpan for &Structure {
   fn span(&self) -> Span {
     match self {
-      Structure::Namespace(s) => &s.span,
-      Structure::Function(s) => &s.span,
-      Structure::Trait(s) => &s.span,
-      Structure::Impl(s) => &s.span,
-      Structure::ImplFor(s) => &s.span,
-    }.clone()
+      Structure::Namespace(s) => s.span.to_owned(),
+      Structure::Function(s) => s.span.to_owned(),
+      Structure::Trait(s) => s.span.to_owned(),
+      Structure::Impl(s) => s.span(),
+    }
   }
 }
 

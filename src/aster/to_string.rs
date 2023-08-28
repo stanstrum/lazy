@@ -82,7 +82,7 @@ impl std::string::ToString for LiteralAST {
     match &self.l {
       Literal::String(_) | Literal::ByteString(_) => stringify_string(&self.l),
       Literal::NumericLiteral(s) => {
-        s.clone()
+        format!("{MINT}{s}{CLEAR}")
       },
       _ => todo!("exhaustive for literal ast {:#?}", &self.l)
     }
@@ -227,7 +227,7 @@ impl std::string::ToString for FunctionDeclAST {
   fn to_string(&self) -> String {
     let mut w: Vec<u8> = vec![];
 
-    write!(&mut w, "{}", self.ident.to_string()).unwrap();
+    write!(&mut w, "{CREME}{}{CLEAR}", self.ident.to_string()).unwrap();
 
     match self.ret.e {
       Type::Intrinsic(ptr) if ptr == &intrinsics::VOID => {},
@@ -321,7 +321,7 @@ impl std::string::ToString for ImplAST {
   fn to_string(&self) -> String {
     let mut w: Vec<u8> = vec![];
 
-    writeln!(&mut w, "{LIGHT_RED}impl{CLEAR} {} {{", self.ty.to_string()).unwrap();
+    writeln!(&mut w, "{LIGHT_RED}impl{CLEAR} {CREME}{}{CLEAR} {{", self.ty.to_string()).unwrap();
 
     write!(&mut w, "{}", methods_to_string(&self.methods)).unwrap();
 
@@ -335,7 +335,7 @@ impl std::string::ToString for ImplForAST {
   fn to_string(&self) -> String {
     let mut w: Vec<u8> = vec![];
 
-    writeln!(&mut w, "{LIGHT_RED}impl{CLEAR} {}: {} {{", self.r#trait.to_string(), self.ty.to_string()).unwrap();
+    writeln!(&mut w, "{LIGHT_RED}impl{CLEAR} {}: {CREME}{}{CLEAR} {{", self.ty.to_string(), self.r#trait.to_string()).unwrap();
 
     write!(&mut w, "{}", methods_to_string(&self.methods)).unwrap();
 
@@ -349,7 +349,7 @@ impl std::string::ToString for TraitAST {
   fn to_string(&self) -> String {
     let mut w: Vec<u8> = vec![];
 
-    writeln!(&mut w, "{LIGHT_RED}trait{CLEAR} {} {{", self.ident.to_string()).unwrap();
+    writeln!(&mut w, "{LIGHT_RED}trait{CLEAR} {CREME}{}{CLEAR} {{", self.ident.to_string()).unwrap();
 
     for (i, decl) in self.decls.iter().enumerate() {
       writeln!(&mut w, "{};",
@@ -429,7 +429,7 @@ impl std::string::ToString for NamespaceAST {
       .expect("Failed to write buffer to String");
 
     format!(
-      "{LIGHT_RED}namespace{CLEAR} {} {{\n{}\n}};",
+      "{LIGHT_RED}namespace{CLEAR} {CREME}{}{CLEAR} {{\n{}\n}};",
       self.ident.to_string(),
       str_line_pfx(src, INDENTATION)
     )

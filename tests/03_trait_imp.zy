@@ -15,7 +15,7 @@ impl i32 {
   };
 };
 
-impl IAdd: i32 {
+impl i32: IAdd {
   pub iadd -> i32:
     i32 rhs
   {

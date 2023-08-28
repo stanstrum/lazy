@@ -81,7 +81,7 @@ impl ImplForAST {
 
     seek::required_whitespace(reader)?;
 
-    let r#trait = QualifiedAST::make(reader)?;
+    let ty = TypeAST::make(reader)?;
 
     seek::optional_whitespace(reader)?;
 
@@ -94,7 +94,7 @@ impl ImplForAST {
 
     seek::optional_whitespace(reader)?;
 
-    let ty = TypeAST::make(reader)?;
+    let r#trait = QualifiedAST::make(reader)?;
 
     seek::optional_whitespace(reader)?;
 

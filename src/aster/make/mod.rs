@@ -26,47 +26,47 @@ pub use super::{
 #[macro_export]
 macro_rules! try_make {
   ($func:expr, $reader:ident $(, $args:expr)*) => {{
-    use crate::aster::formatting::*;
+    // use crate::aster::formatting::*;
 
     let start = $reader.offset();
-    let text = concat!(stringify!($func), " from ", file!(), ":", line!());
+    // let text = concat!(stringify!($func), " from ", file!(), ":", line!());
 
-    println!("{}", format_message($reader.src(), Message {
-      level: Level::Note,
-      msg: format!("Trying {}", text),
-      sub: "here".to_owned(),
-      span: Span {
-        start: $reader.offset(),
-        end: $reader.offset()
-      }
-    }));
+    // println!("{}", format_message($reader.src(), Message {
+    //   level: Level::Note,
+    //   msg: format!("Trying {}", text),
+    //   sub: "here".to_owned(),
+    //   span: Span {
+    //     start: $reader.offset(),
+    //     end: $reader.offset()
+    //   }
+    // }));
 
     let res = $func($reader $(, $args)*);
 
     match res {
       Ok(v) => {
-        let msg = Message {
-          level: Level::Debug,
-          msg: format!("Successfully parsed {}", text),
-          sub: "here".to_owned(),
-          span: v.span()
-        };
+        // let msg = Message {
+        //   level: Level::Debug,
+        //   msg: format!("Successfully parsed {}", text),
+        //   sub: "here".to_owned(),
+        //   span: v.span()
+        // };
 
-        println!("{}", format_message($reader.src(), msg));
+        // println!("{}", format_message($reader.src(), msg));
 
         Some(v)
       },
       Err(e) => {
-        let message = Message {
-          level: Level::Warning,
-          msg: format!("Failed to parse {}", text),
-          sub: e.to_string(),
-          span: Span {
-            start, end: start
-          }
-        };
+        // let message = Message {
+        //   level: Level::Warning,
+        //   msg: format!("Failed to parse {}", text),
+        //   sub: e.to_string(),
+        //   span: Span {
+        //     start, end: start
+        //   }
+        // };
 
-        println!("{}", format_message($reader.src(), message));
+        // println!("{}", format_message($reader.src(), message));
 
         $reader.rewind($reader.offset() - start).unwrap();
 

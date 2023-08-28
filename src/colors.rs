@@ -28,11 +28,15 @@ def_colors! {
   DARK_GRAY: "90",
   LIGHT_RED: "91",
   LIGHT_GREEN: "92",
-  LIGHT_YELLOW: "93",
-  LIGHT_BLUE: "94",
+  LIGHT_YELLOW: "38;5;215",
+  LIGHT_BLUE: "38;5;159",
   LIGHT_MAGENTA: "95",
   LIGHT_CYAN: "96",
   WHITE: "97",
+
+  CREME: "38;5;230",
+  TEAL: "38;5;159",
+  MINT: "38;5;158",
 
   UNDERLINE: "4",
   BOLD: "1",

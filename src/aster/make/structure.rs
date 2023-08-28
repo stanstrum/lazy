@@ -42,7 +42,7 @@ impl Structure {
       ))
     } else if let Some(impl_for) = try_make!(ImplForAST::make, reader) {
       Ok((
-        format!("impl!{}!{}", impl_for.ty.to_hashable(), impl_for.r#trait.to_hashable()),
+        format!("impl!{}!{}", impl_for.r#trait.to_hashable(), impl_for.ty.to_hashable()),
         Structure::Impl(Impl::ImplFor(impl_for))
       ))
     } else {

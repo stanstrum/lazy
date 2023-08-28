@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
- use crate::try_make;
+use crate::try_make;
 
 use super::super::{
   ast::*,

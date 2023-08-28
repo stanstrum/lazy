@@ -13,7 +13,7 @@ mod literal;
 mod function;
 mod structure;
 mod r#trait;
-mod member_function_decl;
+mod member_function;
 mod keyword;
 
 pub use super::{

@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-fn other_function -> bool:
+other_function -> bool:
   char argument_1,
   u8 argument_2
 {
@@ -23,4 +23,4 @@ fn other_function -> bool:
 
     /* and this should be skipped */
   };
-}
+};

@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-fn hello_explicit {
+hello_explicit {
   &str hello := "hello";
   [5]u8 hello_bytes := b"hello";
 
@@ -14,9 +14,9 @@ fn hello_explicit {
 
   // should fail
   u8 n256 := 256;
-}
+};
 
-fn implicit {
+implicit {
   // should be &str
   hello := "hello";
 
@@ -31,4 +31,4 @@ fn implicit {
 
   // should fail
   n256 := 256u8;
-}
+};

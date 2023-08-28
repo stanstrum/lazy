@@ -1,26 +1,26 @@
-fn main {
+main {
   a := 0u8 + 1u8;
 
   0i32
-}
+};
 
 trait IAdd {
-  pub fn iadd -> Self:
+  pub iadd -> Self:
     Self rhs;
-}
+};
 
 impl i32 {
-  pub static fn new -> i32 {
+  pub static new -> i32 {
     0i32
   };
-}
+};
 
 impl IAdd: i32 {
-  pub fn iadd -> i32:
+  pub iadd -> i32:
     i32 rhs
   {
     // do stuff
 
     Self::new()
   };
-}
+};

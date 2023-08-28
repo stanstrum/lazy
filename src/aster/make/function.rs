@@ -19,16 +19,6 @@ impl FunctionDeclAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
-    // "fn"
-    if !seek::begins_with(reader, consts::keyword::FN) {
-      return ExpectedSnafu {
-        what: "Keyword (fn)",
-        offset: reader.offset()
-      }.fail();
-    };
-
-    seek::required_whitespace(reader)?;
-
     let ident = IdentAST::make(reader)?;
 
     seek::optional_whitespace(reader)?;

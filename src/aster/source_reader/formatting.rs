@@ -128,7 +128,7 @@ fn get_code<'a>(src: &'a String, offset: usize) -> &'a str {
     panic!("end offset is out of range");
   };
 
-  while src.chars().nth(start).unwrap() == '\n' {
+  while start < src.len() && src.chars().nth(start).unwrap() == '\n' {
     start += 1;
   };
 

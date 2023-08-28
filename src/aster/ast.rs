@@ -396,5 +396,6 @@ make_get_span![
   LiteralAST,
   ImplAST,
   ImplForAST,
-  KeywordAST
+  KeywordAST,
+  FunctionAST
 ];

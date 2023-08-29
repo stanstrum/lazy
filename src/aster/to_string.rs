@@ -188,12 +188,46 @@ impl std::string::ToString for SubExpressionAST {
   }
 }
 
+impl std::string::ToString for ControlFlowAST {
+  fn to_string(&self) -> String {
+    let mut w: Vec<u8> = vec![];
+
+    match &self.e {
+      ControlFlow::If(branches, r#else) => {
+        for (i, (cond, block)) in branches.iter().enumerate() {
+          if i != 0 {
+            write!(&mut w, " else ").unwrap();
+          };
+
+          write!(&mut w, "{} {}", cond.to_string(), block.to_string()).unwrap();
+        };
+
+        match r#else {
+          Some(r#else) => {
+            write!(&mut w, " else {}", r#else.to_string()).unwrap();
+          },
+          _ => {}
+        };
+      },
+      ControlFlow::While(a, b) => {
+        write!(&mut w, "{LIGHT_RED}while{CLEAR} {} {}", a.to_string(), b.to_string()).unwrap();
+      },
+      ControlFlow::DoWhile(a, b) => {
+        todo!()
+      },
+    };
+
+    String::from_utf8(w).unwrap()
+  }
+}
+
 impl std::string::ToString for Expression {
   fn to_string(&self) -> String {
     match self {
       Expression::Atom(a) => a.to_string(),
       Expression::Block(a) => a.to_string(),
       Expression::SubExpression(a) => a.to_string(),
+      Expression::ControlFlow(a) => a.to_string()
     }
   }
 }

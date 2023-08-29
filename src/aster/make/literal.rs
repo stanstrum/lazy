@@ -120,7 +120,7 @@ impl LiteralAST {
 
     loop {
       match reader.peek_ch() {
-        Some('0'..='9') | Some('a'..='f') | Some('A'..='F') => {
+        Some('0'..='9') => {
           reader.seek(1).unwrap();
         },
         _ => { break; }

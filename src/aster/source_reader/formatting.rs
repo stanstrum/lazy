@@ -204,7 +204,7 @@ pub fn format_message(src: &String, message: Message) -> String {
       "─".repeat(end_of_first_line - start_of_first_line - start_col)
     ).unwrap();
 
-    for between_line in (start_line + 1)..end_line {
+    for between_line in (start_line + 1)..=end_line {
       let code = get_code_of_line(src, between_line);
 
       writeln!(&mut w,

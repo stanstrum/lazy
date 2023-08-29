@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
- use super::{
+use super::{
   super::{
     SourceReader,
     AsterResult,
@@ -18,15 +18,18 @@
 mod atom;
 mod block;
 mod sub;
+mod control_flow;
 
 impl Expression {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
-    if let Some(expr) = try_make!(BlockExpressionAST::make, reader) {
+    if let Some(ctrl_flow) = try_make!(ControlFlowAST::make, reader) {
+      Ok(Expression::ControlFlow(ctrl_flow))
+    } else if let Some(expr) = try_make!(BlockExpressionAST::make, reader) {
       Ok(Expression::Block(expr))
-    } else if let Some(expr) = try_make!(AtomExpressionAST::make, reader) {
-      Ok(Expression::Atom(expr))
     } else if let Some(sub_expr) = try_make!(SubExpressionAST::make, reader) {
       Ok(Expression::SubExpression(sub_expr))
+    } else if let Some(expr) = try_make!(AtomExpressionAST::make, reader) {
+      Ok(Expression::Atom(expr))
     } else {
       ExpectedSnafu {
         what: "Expression (BlockExpression, AtomExpression)",

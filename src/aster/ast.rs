@@ -176,21 +176,17 @@ pub enum Expression {
   Atom(AtomExpressionAST),
   Block(BlockExpressionAST),
   SubExpression(SubExpressionAST),
+  ControlFlow(ControlFlowAST),
 }
 
 impl GetSpan for Expression {
   fn span(&self) -> Span {
     match self {
-      Expression::Atom(s) => {
-        return s.span.clone();
-      },
-      Expression::Block(s) => {
-        return s.span.clone();
-      },
-      Expression::SubExpression(s) => {
-        return s.span();
-      }
-    };
+      Expression::Atom(s) => s.span.clone(),
+      Expression::Block(s) => s.span.clone(),
+      Expression::SubExpression(s) => s.span(),
+      Expression::ControlFlow(s) => s.span()
+    }
   }
 }
 
@@ -210,15 +206,30 @@ pub struct LiteralAST {
 }
 
 #[derive(Debug)]
-pub struct CondExpr(Expression, BlockExpressionAST);
-pub type ElseBranch = Option<BlockExpressionAST>;
+pub enum ControlFlow {
+  If(
+    Vec<
+      (Box<Expression>, Box<BlockExpressionAST>)
+    >,
+    Option<BlockExpressionAST>
+  ),
+  While(
+    Box<Expression>,
+    Box<BlockExpressionAST>
+  ),
+  DoWhile(
+    Box<BlockExpressionAST>,
+    Box<Expression>
+  ),
+  // For(
+  //   CondExpr, ElseBranch
+  // ),
+}
 
 #[derive(Debug)]
-pub enum ControlFlow {
-  If(Vec<CondExpr>, ElseBranch),
-  While(CondExpr),
-  DoWhile(CondExpr),
-  For(CondExpr, ElseBranch),
+pub struct ControlFlowAST {
+  pub span: Span,
+  pub e: ControlFlow
 }
 
 #[derive(Debug)]
@@ -397,5 +408,6 @@ make_get_span![
   ImplAST,
   ImplForAST,
   KeywordAST,
-  FunctionAST
+  FunctionAST,
+  ControlFlowAST
 ];

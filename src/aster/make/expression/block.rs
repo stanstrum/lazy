@@ -34,16 +34,18 @@ impl BlockExpressionAST {
         break false;
       };
 
-      if let Ok(expr) = AtomExpressionAST::make(reader) {
-        children.push(Expression::Atom(expr));
-      } else if let Ok(expr) = BlockExpressionAST::make(reader) {
-        children.push(Expression::Block(expr));
-      } else {
-        return ExpectedSnafu {
-          what: "Expression (block, atom)",
-          offset: reader.offset()
-        }.fail();
-      };
+      children.push(Expression::make(reader)?);
+
+      // if let Ok(expr) = AtomExpressionAST::make(reader) {
+      //   children.push(Expression::Atom(expr));
+      // } else if let Ok(expr) = BlockExpressionAST::make(reader) {
+      //   children.push(Expression::Block(expr));
+      // } else {
+      //   return ExpectedSnafu {
+      //     what: "Expression (block, atom)",
+      //     offset: reader.offset()
+      //   }.fail();
+      // };
 
       seek::optional_whitespace(reader)?;
 

@@ -15,7 +15,6 @@ pub mod keyword {
   pub const TRAIT: &str = "trait";
 
   pub const IMPL: &str = "impl";
-  pub const FOR: &str = "for";
   pub const IMPLEMENTS: &str = "implements";
   pub const EXTENDS: &str = "extends";
 
@@ -29,6 +28,11 @@ pub mod keyword {
   pub const IMPORT: &str = "import";
   pub const FROM: &str = "from";
   pub const EXPORT: &str = "export";
+
+  pub const IF: &str = "if";
+  pub const DO: &str = "do";
+  pub const WHILE: &str = "while";
+  pub const FOR: &str = "for";
 }
 
 pub mod punctuation {

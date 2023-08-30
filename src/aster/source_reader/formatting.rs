@@ -66,7 +66,7 @@ pub fn start_end(src: &String, offset: usize) -> (usize, usize) {
   };
 
   loop {
-    if end == 0 {
+    if end + 1 >= src.len() {
       break;
     };
 
@@ -168,7 +168,11 @@ fn get_code_of_line(src: &String, line: usize) -> &str {
     };
   };
 
-  panic!("Line out of bounds");
+  get_code(src, if src.len() != 0 {
+    src.len() - 1
+  } else {
+    0
+  })
 }
 
 pub fn format_message(src: &String, message: Message) -> String {
@@ -228,12 +232,21 @@ pub fn format_message(src: &String, message: Message) -> String {
   } else {
     let pfx_len = num_length(start_line as u32 + 1);
 
+    let line_code = get_code(src, message.span.start);
+    let empty = format!("{DARK_GRAY}[blank line]{CLEAR}");
+
+    let code = if line_code.trim().is_empty() {
+      empty.as_str()
+    } else {
+      line_code
+    };
+
     writeln!(&mut w, "{} |",
       " ".repeat(pfx_len)
     ).unwrap();
     writeln!(&mut w, "{} | {}",
       start_line + 1,
-      get_code(src, message.span.start)
+      code
     ).unwrap();
     writeln!(&mut w, "{} | {}{} {}",
       " ".repeat(pfx_len),

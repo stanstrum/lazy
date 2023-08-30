@@ -62,7 +62,8 @@ macro_rules! try_make {
           msg: format!("Failed to parse {}", text),
           sub: e.to_string(),
           span: Span {
-            start, end: start
+            start: $reader.offset(),
+            end: $reader.offset()
           }
         };
 

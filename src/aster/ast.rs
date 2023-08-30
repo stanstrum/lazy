@@ -209,7 +209,7 @@ pub struct LiteralAST {
 pub enum ControlFlow {
   If(
     Vec<
-      (Box<Expression>, Box<BlockExpressionAST>)
+      (Expression, BlockExpressionAST)
     >,
     Option<BlockExpressionAST>
   ),

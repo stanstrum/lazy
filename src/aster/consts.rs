@@ -30,6 +30,7 @@ pub mod keyword {
   pub const EXPORT: &str = "export";
 
   pub const IF: &str = "if";
+  pub const ELSE: &str = "else";
   pub const DO: &str = "do";
   pub const WHILE: &str = "while";
   pub const FOR: &str = "for";
@@ -120,6 +121,8 @@ pub mod operator {
   pub const NEG: &str = "-";
   pub const NOTNEG: &str = "+";
   pub const INVERT: &str = "~";
+
+  pub const DOT: &str = ".";
 
   pub const INCREMENT: &str = "++";
   pub const DECREMENT: &str = "--";

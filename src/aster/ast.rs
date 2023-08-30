@@ -148,8 +148,16 @@ pub enum OperatorExpr {
   Sub(BoxExpr, BoxExpr),
   Mul(BoxExpr, BoxExpr),
   Div(BoxExpr, BoxExpr),
-
+  Exp(BoxExpr, BoxExpr),
   Mod(BoxExpr, BoxExpr),
+
+  Equals(BoxExpr, BoxExpr),
+  NotEquals(BoxExpr, BoxExpr),
+  Greater(BoxExpr, BoxExpr),
+  GreaterThanEquals(BoxExpr, BoxExpr),
+  LessThan(BoxExpr, BoxExpr),
+  LessThanEquals(BoxExpr, BoxExpr),
+  LogicalXOR(BoxExpr, BoxExpr),
 
   // :)
   Pipe(BoxExpr, BoxExpr),
@@ -158,14 +166,14 @@ pub enum OperatorExpr {
   Assign(IdentAST, BoxExpr),
   AssignPipe(IdentAST, BoxExpr),
 
-  Equals(BoxExpr, BoxExpr),
-  NotEquals(BoxExpr, BoxExpr),
-
   LogicalAnd(BoxExpr, BoxExpr),
   LogicalOr(BoxExpr, BoxExpr),
   BitAnd(BoxExpr, BoxExpr),
   BitOr(BoxExpr, BoxExpr),
   BitXor(BoxExpr, BoxExpr),
+  ArithmeticShr(BoxExpr, BoxExpr),
+  LogicalShr(BoxExpr, BoxExpr),
+  LogicalShl(BoxExpr, BoxExpr),
 
   // Ternary
   Between(BoxExpr, BoxExpr, BoxExpr),

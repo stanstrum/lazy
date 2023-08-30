@@ -115,6 +115,8 @@ pub mod ascii {
 }
 
 pub mod operator {
+  pub const ASSIGN: &str = "=";
+
   pub const REF: &str = "&";
   pub const DEREF: &str = "*";
   pub const NOT: &str = "!";
@@ -134,7 +136,6 @@ pub mod operator {
   pub const EXP: &str = "**";
   pub const MOD: &str = "%";
 
-  pub const ASSIGN: &str = "=";
   pub const EQUALS: &str = "==";
   pub const NOTEQUALS: &str = "!=";
 

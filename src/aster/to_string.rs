@@ -196,15 +196,15 @@ impl std::string::ToString for ControlFlowAST {
       ControlFlow::If(branches, r#else) => {
         for (i, (cond, block)) in branches.iter().enumerate() {
           if i != 0 {
-            write!(&mut w, " else ").unwrap();
+            write!(&mut w, " {LIGHT_RED}else{CLEAR} ").unwrap();
           };
 
-          write!(&mut w, "{} {}", cond.to_string(), block.to_string()).unwrap();
+          write!(&mut w, "{LIGHT_RED}if{CLEAR} {} {}", cond.to_string(), block.to_string()).unwrap();
         };
 
         match r#else {
           Some(r#else) => {
-            write!(&mut w, " else {}", r#else.to_string()).unwrap();
+            write!(&mut w, " {LIGHT_RED}else{CLEAR} {}", r#else.to_string()).unwrap();
           },
           _ => {}
         };

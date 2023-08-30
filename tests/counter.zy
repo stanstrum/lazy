@@ -5,37 +5,37 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-fn str_to_num -> u32:
-  &u8[] str
+str_to_num -> u32:
+  &str string
 {
   usize i := 0;
   u32 sum := 0;
 
-  while i < str.len() {
-    const ch := *{ str.ptr + i };
+  while i < (str.len)() {
+    // ch := *{ str.ptr + i };
 
-    sum *= 10
-    sum += {
-      if b'0' <= ch <= b'9' {
-        ch - b'0'
-      } else {
-        return 0
-      }
-    };
+    // sum *= 10
+    // sum += {
+    //   if b"0" <= ch && ch <= b"9" {
+    //     ch - b"0"
+    //   } else {
+    //     return 0
+    //   }
+    // };
   };
 
   sum
-}
+};
 
-fn main -> u32:
-  u32 argc, &u8[] argv
+main -> u32:
+  u32 argc, &[]str argv
 {
   u32 ctr := 0;
 
   while true {
-    const buf := io::stdin.read();
-    const amt := str_to_num(buf);
+    buf := io::stdin();
+    amt := str_to_num(buf);
 
     println("Counter is {}", amt);
   };
-}
+};

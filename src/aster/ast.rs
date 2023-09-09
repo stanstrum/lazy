@@ -157,23 +157,41 @@ pub enum OperatorExpr {
   GreaterThanEquals(BoxExpr, BoxExpr),
   LessThan(BoxExpr, BoxExpr),
   LessThanEquals(BoxExpr, BoxExpr),
+
+  LogicalAnd(BoxExpr, BoxExpr),
+  LogicalOr(BoxExpr, BoxExpr),
   LogicalXOR(BoxExpr, BoxExpr),
+  BitAnd(BoxExpr, BoxExpr),
+  BitOr(BoxExpr, BoxExpr),
+  BitXOR(BoxExpr, BoxExpr),
+  ArithmeticShr(BoxExpr, BoxExpr),
+  LogicalShr(BoxExpr, BoxExpr),
+  LogicalShl(BoxExpr, BoxExpr),
 
   // :)
   Pipe(BoxExpr, BoxExpr),
 
   // sponge: use qualified for asignee
   Assign(IdentAST, BoxExpr),
-  AssignPipe(IdentAST, BoxExpr),
 
-  LogicalAnd(BoxExpr, BoxExpr),
-  LogicalOr(BoxExpr, BoxExpr),
-  BitAnd(BoxExpr, BoxExpr),
-  BitOr(BoxExpr, BoxExpr),
-  BitXor(BoxExpr, BoxExpr),
-  ArithmeticShr(BoxExpr, BoxExpr),
-  LogicalShr(BoxExpr, BoxExpr),
-  LogicalShl(BoxExpr, BoxExpr),
+  AddAssign(BoxExpr, BoxExpr),
+  SubAssign(BoxExpr, BoxExpr),
+  MulAssign(BoxExpr, BoxExpr),
+  DivAssign(BoxExpr, BoxExpr),
+  ExpAssign(BoxExpr, BoxExpr),
+  ModAssign(BoxExpr, BoxExpr),
+
+  LogicalAndAssign(BoxExpr, BoxExpr),
+  LogicalOrAssign(BoxExpr, BoxExpr),
+  LogicalXORAssign(BoxExpr, BoxExpr),
+  BitAndAssign(BoxExpr, BoxExpr),
+  BitOrAssign(BoxExpr, BoxExpr),
+  BitXORAssign(BoxExpr, BoxExpr),
+  ArithmeticShrAssign(BoxExpr, BoxExpr),
+  LogicalShrAssign(BoxExpr, BoxExpr),
+  LogicalShlAssign(BoxExpr, BoxExpr),
+
+  AssignPipe(IdentAST, BoxExpr),
 
   // Ternary
   Between(BoxExpr, BoxExpr, BoxExpr),

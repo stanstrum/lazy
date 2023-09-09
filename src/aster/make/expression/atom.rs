@@ -132,113 +132,27 @@ impl AtomExpressionAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
-    let a = if let Some(assn) = try_make!(AtomExpressionAST::make_binding, reader) {
-      assn
+    if let Some(assn) = try_make!(AtomExpressionAST::make_binding, reader) {
+      Ok(assn)
     } else if let Some(lit) = try_make!(LiteralAST::make, reader) {
-      Self {
+      Ok(Self {
         span: reader.span_since(start),
         a: AtomExpression::Literal(lit),
         out: Type::Unresolved,
-      }
+      })
     } else if let Some(fn_call) = try_make!(AtomExpressionAST::make_fn_call, reader) {
-      fn_call
+      Ok(fn_call)
     } else if let Some(qual) = try_make!(QualifiedAST::make, reader) {
-      Self {
+      Ok(Self {
         span: reader.span_since(start),
         out: Type::Unresolved,
         a: AtomExpression::Variable(qual)
-      }
+      })
     } else {
-      return UnknownSnafu {
+      UnknownSnafu {
         what: "Expression",
         offset: reader.offset()
-      }.fail();
-    };
-
-    seek::optional_whitespace(reader)?;
-
-    if let Some(b) = {
-      if seek::begins_with(reader, consts::operator::ADD) {
-        seek::optional_whitespace(reader)?;
-        try_make!(Expression::make, reader)
-      } else {
-        None
-      }
-    } {
-      Ok(Self {
-        span: reader.span_since(start),
-        out: Type::Unresolved,
-        a: AtomExpression::OperatorExpr(OperatorExpr::Add(
-          Box::new(Expression::Atom(a)),
-          Box::new(b)
-        ))
-      })
-    } else if let Some(b) = {
-      if seek::begins_with(reader, consts::operator::SUB) {
-        seek::optional_whitespace(reader)?;
-        try_make!(Expression::make, reader)
-      } else {
-        None
-      }
-    } {
-      Ok(Self {
-        span: reader.span_since(start),
-        out: Type::Unresolved,
-        a: AtomExpression::OperatorExpr(OperatorExpr::Sub(
-          Box::new(Expression::Atom(a)),
-          Box::new(b)
-        ))
-      })
-    } else if let Some(b) = {
-      if seek::begins_with(reader, consts::operator::MUL) {
-        seek::optional_whitespace(reader)?;
-        try_make!(Expression::make, reader)
-      } else {
-        None
-      }
-    } {
-      Ok(Self {
-        span: reader.span_since(start),
-        out: Type::Unresolved,
-        a: AtomExpression::OperatorExpr(OperatorExpr::Mul(
-          Box::new(Expression::Atom(a)),
-          Box::new(b)
-        ))
-      })
-    } else if let Some(b) = {
-      if seek::begins_with(reader, consts::operator::DIV) {
-        seek::optional_whitespace(reader)?;
-        try_make!(Expression::make, reader)
-      } else {
-        None
-      }
-    } {
-      Ok(Self {
-        span: reader.span_since(start),
-        out: Type::Unresolved,
-        a: AtomExpression::OperatorExpr(OperatorExpr::Div(
-          Box::new(Expression::Atom(a)),
-          Box::new(b)
-        ))
-      })
-    } else if let Some(b) = {
-      if seek::begins_with(reader, consts::operator::MOD) {
-        seek::optional_whitespace(reader)?;
-        try_make!(Expression::make, reader)
-      } else {
-        None
-      }
-    } {
-      Ok(Self {
-        span: reader.span_since(start),
-        out: Type::Unresolved,
-        a: AtomExpression::OperatorExpr(OperatorExpr::Mod(
-          Box::new(Expression::Atom(a)),
-          Box::new(b)
-        ))
-      })
-    } else {
-      Ok(a)
+      }.fail()
     }
   }
 }

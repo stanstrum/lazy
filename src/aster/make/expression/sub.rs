@@ -40,6 +40,7 @@ impl SubExpressionAST {
 
     Ok(Self {
       span: reader.span_since(start),
+      out: Type::Unresolved,
       e: Box::new(expr)
     })
   }

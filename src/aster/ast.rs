@@ -120,6 +120,7 @@ pub struct Variable(pub TypeAST, pub IdentAST);
 #[derive(Debug)]
 pub struct SubExpressionAST {
   pub span: Span,
+  pub out: Type,
   pub e: Box<Expression>
 }
 
@@ -132,7 +133,14 @@ impl GetSpan for SubExpressionAST {
 type BoxExpr = Box<Expression>;
 
 #[derive(Debug)]
-pub enum OperatorExpr {
+pub struct OperatorExpressionAST {
+  pub span: Span,
+  pub out: Type,
+  pub o: Operator
+}
+
+#[derive(Debug)]
+pub enum Operator {
   // Unary Prefix
   Ref(BoxExpr),
   Deref(BoxExpr),
@@ -203,6 +211,7 @@ pub enum Expression {
   Block(BlockExpressionAST),
   SubExpression(SubExpressionAST),
   ControlFlow(ControlFlowAST),
+  Operator(OperatorExpressionAST),
 }
 
 impl GetSpan for Expression {
@@ -211,7 +220,8 @@ impl GetSpan for Expression {
       Expression::Atom(s) => s.span.clone(),
       Expression::Block(s) => s.span.clone(),
       Expression::SubExpression(s) => s.span(),
-      Expression::ControlFlow(s) => s.span()
+      Expression::ControlFlow(s) => s.span(),
+      Expression::Operator(s) => s.span()
     }
   }
 }
@@ -275,23 +285,22 @@ pub enum AtomExpression {
   },
   Literal(LiteralAST),
   FnCall(Box<FnCallee>, Vec<Expression>),
-  Variable(QualifiedAST),
-  OperatorExpr(OperatorExpr)
+  Variable(QualifiedAST)
 }
 
 #[derive(Debug)]
 pub struct AtomExpressionAST {
   pub span: Span,
-  pub a: AtomExpression,
   pub out: Type,
+  pub a: AtomExpression,
 }
 
 #[derive(Debug)]
 pub struct BlockExpressionAST {
   pub span: Span,
+  pub out: Type,
   pub children: Vec<Expression>,
   pub returns_last: bool,
-  pub out: Type,
 }
 
 #[derive(Debug)]
@@ -435,5 +444,6 @@ make_get_span![
   ImplForAST,
   KeywordAST,
   FunctionAST,
-  ControlFlowAST
+  ControlFlowAST,
+  OperatorExpressionAST
 ];

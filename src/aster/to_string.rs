@@ -143,15 +143,6 @@ impl std::string::ToString for AtomExpressionAST {
         String::from_utf8(w).unwrap()
       },
       AtomExpression::Variable(ident) => ident.to_string(),
-      AtomExpression::OperatorExpr(o) => {
-        match o {
-            OperatorExpr::Add(a, b) => format!("{} + {}", a.to_string(), b.to_string()),
-            OperatorExpr::Sub(a, b) => format!("{} - {}", a.to_string(), b.to_string()),
-            OperatorExpr::Mul(a, b) => format!("{} * {}", a.to_string(), b.to_string()),
-            OperatorExpr::Div(a, b) => format!("{} / {}", a.to_string(), b.to_string()),
-            _ => todo!("operatorexpr {:#?}", o)
-        }
-      },
     }
   }
 }
@@ -227,7 +218,16 @@ impl std::string::ToString for Expression {
       Expression::Atom(a) => a.to_string(),
       Expression::Block(a) => a.to_string(),
       Expression::SubExpression(a) => a.to_string(),
-      Expression::ControlFlow(a) => a.to_string()
+      Expression::ControlFlow(a) => a.to_string(),
+      Expression::Operator(o) => {
+        match &o.o {
+            Operator::Add(a, b) => format!("{} + {}", a.to_string(), b.to_string()),
+            Operator::Sub(a, b) => format!("{} - {}", a.to_string(), b.to_string()),
+            Operator::Mul(a, b) => format!("{} * {}", a.to_string(), b.to_string()),
+            Operator::Div(a, b) => format!("{} / {}", a.to_string(), b.to_string()),
+            _ => todo!("operatorexpr {:#?}", o)
+        }
+      }
     }
   }
 }

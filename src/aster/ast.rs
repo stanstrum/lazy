@@ -136,73 +136,78 @@ type BoxExpr = Box<Expression>;
 pub struct OperatorExpressionAST {
   pub span: Span,
   pub out: Type,
-  pub o: Operator
+  pub exprs: Vec<Expression>,
+  pub ops: Vec<BinaryOperator>
 }
 
 #[derive(Debug)]
-pub enum Operator {
-  // Unary Prefix
-  Ref(BoxExpr),
-  Deref(BoxExpr),
-  Not(BoxExpr),
-  Neg(BoxExpr),
-  NotNeg(BoxExpr),
+pub enum UnaryPfxOperator {
+  Ref,
+  Deref,
+  Not,
+  Neg,
+  NotNeg,
+  PreIncrement,
+  PreDecrement,
+}
 
-  // Unary Suffix
-  // ?
+pub enum UnarySfxOperator {
+  PostIncrement(BoxExpr),
+  PostDecrement(BoxExpr),
+}
 
-  // Binary
-  Add(BoxExpr, BoxExpr),
-  Sub(BoxExpr, BoxExpr),
-  Mul(BoxExpr, BoxExpr),
-  Div(BoxExpr, BoxExpr),
-  Exp(BoxExpr, BoxExpr),
-  Mod(BoxExpr, BoxExpr),
+#[derive(Debug)]
+pub enum BinaryOperator {
+  Dot,
+  DerefDot,
 
-  Equals(BoxExpr, BoxExpr),
-  NotEquals(BoxExpr, BoxExpr),
-  Greater(BoxExpr, BoxExpr),
-  GreaterThanEquals(BoxExpr, BoxExpr),
-  LessThan(BoxExpr, BoxExpr),
-  LessThanEquals(BoxExpr, BoxExpr),
+  Add,
+  Sub,
+  Mul,
+  Div,
+  Exp,
+  Mod,
 
-  LogicalAnd(BoxExpr, BoxExpr),
-  LogicalOr(BoxExpr, BoxExpr),
-  LogicalXOR(BoxExpr, BoxExpr),
-  BitAnd(BoxExpr, BoxExpr),
-  BitOr(BoxExpr, BoxExpr),
-  BitXOR(BoxExpr, BoxExpr),
-  ArithmeticShr(BoxExpr, BoxExpr),
-  LogicalShr(BoxExpr, BoxExpr),
-  LogicalShl(BoxExpr, BoxExpr),
+  Equals,
+  NotEquals,
+  Greater,
+  GreaterThanEquals,
+  LessThan,
+  LessThanEquals,
+
+  LogicalAnd,
+  LogicalOr,
+  LogicalXOR,
+  BitAnd,
+  BitOr,
+  BitXOR,
+  ArithmeticShr,
+  LogicalShr,
+  LogicalShl,
 
   // :)
-  Pipe(BoxExpr, BoxExpr),
+  Pipe,
 
-  // sponge: use qualified for asignee
-  Assign(IdentAST, BoxExpr),
+  Assign,
 
-  AddAssign(BoxExpr, BoxExpr),
-  SubAssign(BoxExpr, BoxExpr),
-  MulAssign(BoxExpr, BoxExpr),
-  DivAssign(BoxExpr, BoxExpr),
-  ExpAssign(BoxExpr, BoxExpr),
-  ModAssign(BoxExpr, BoxExpr),
+  AddAssign,
+  SubAssign,
+  MulAssign,
+  DivAssign,
+  ExpAssign,
+  ModAssign,
 
-  LogicalAndAssign(BoxExpr, BoxExpr),
-  LogicalOrAssign(BoxExpr, BoxExpr),
-  LogicalXORAssign(BoxExpr, BoxExpr),
-  BitAndAssign(BoxExpr, BoxExpr),
-  BitOrAssign(BoxExpr, BoxExpr),
-  BitXORAssign(BoxExpr, BoxExpr),
-  ArithmeticShrAssign(BoxExpr, BoxExpr),
-  LogicalShrAssign(BoxExpr, BoxExpr),
-  LogicalShlAssign(BoxExpr, BoxExpr),
+  LogicalAndAssign,
+  LogicalOrAssign,
+  LogicalXORAssign,
+  BitAndAssign,
+  BitOrAssign,
+  BitXORAssign,
+  ArithmeticShrAssign,
+  LogicalShrAssign,
+  LogicalShlAssign,
 
-  AssignPipe(IdentAST, BoxExpr),
-
-  // Ternary
-  Between(BoxExpr, BoxExpr, BoxExpr),
+  AssignPipe,
 }
 
 #[derive(Debug)]

@@ -121,7 +121,9 @@ impl std::string::ToString for AtomExpressionAST {
           FnCallee::Qualified(ident) => {
             write!(&mut w, "{}", ident.to_string()).unwrap();
           },
-          FnCallee::SubExpression(_) => todo!("subexpr fncallee"),
+          FnCallee::SubExpression(SubExpressionAST { e, .. }) => {
+            write!(&mut w, "({})", e.to_string()).unwrap();
+          },
         };
 
         write!(&mut w, "(").unwrap();
@@ -212,6 +214,72 @@ impl std::string::ToString for ControlFlowAST {
   }
 }
 
+impl std::string::ToString for OperatorExpressionAST {
+  fn to_string(&self) -> String {
+    assert!(self.exprs.len() == self.ops.len() + 1);
+
+    let mut w: Vec<u8> = vec![];
+
+    let ops: Vec<Option<&BinaryOperator>> = (0..=self.ops.len()).map(
+      |i| self.ops.get(i)
+    ).collect();
+
+    for (expr, op) in self.exprs.iter().zip(ops.iter()) {
+      write!(&mut w, "{}", expr.to_string()).unwrap();
+
+      if op.is_none() {
+        break;
+      };
+
+      let op_txt = match op.unwrap() {
+        BinaryOperator::Dot => write!(&mut w, "{}", consts::operator::DOT).unwrap(),
+        BinaryOperator::DerefDot => write!(&mut w, "{}", consts::operator::DEREF_DOT).unwrap(),
+        BinaryOperator::Add => write!(&mut w, " {} ", consts::operator::ADD).unwrap(),
+        BinaryOperator::Sub => write!(&mut w, " {} ", consts::operator::SUB).unwrap(),
+        BinaryOperator::Mul => write!(&mut w, " {} ", consts::operator::MUL).unwrap(),
+        BinaryOperator::Div => write!(&mut w, " {} ", consts::operator::DIV).unwrap(),
+        BinaryOperator::Exp => write!(&mut w, " {} ", consts::operator::EXP).unwrap(),
+        BinaryOperator::Mod => write!(&mut w, " {} ", consts::operator::MOD).unwrap(),
+        BinaryOperator::Equals => write!(&mut w, " {} ", consts::operator::EQUALS).unwrap(),
+        BinaryOperator::NotEquals => write!(&mut w, " {} ", consts::operator::NOTEQUALS).unwrap(),
+        BinaryOperator::Greater => write!(&mut w, " {} ", consts::operator::GT).unwrap(),
+        BinaryOperator::GreaterThanEquals => write!(&mut w, " {} ", consts::operator::GEQ).unwrap(),
+        BinaryOperator::LessThan => write!(&mut w, " {} ", consts::operator::LT).unwrap(),
+        BinaryOperator::LessThanEquals => write!(&mut w, " {} ", consts::operator::LEQ).unwrap(),
+        BinaryOperator::LogicalAnd => write!(&mut w, " {} ", consts::operator::LOGICALAND).unwrap(),
+        BinaryOperator::LogicalOr => write!(&mut w, " {} ", consts::operator::LOGICALOR).unwrap(),
+        BinaryOperator::LogicalXOR => write!(&mut w, " {} ", consts::operator::LOGICALXOR).unwrap(),
+        BinaryOperator::BitAnd => write!(&mut w, " {} ", consts::operator::BITAND).unwrap(),
+        BinaryOperator::BitOr => write!(&mut w, " {} ", consts::operator::BITOR).unwrap(),
+        BinaryOperator::BitXOR => write!(&mut w, " {} ", consts::operator::BITXOR).unwrap(),
+        BinaryOperator::ArithmeticShr => write!(&mut w, " {} ", consts::operator::ASHR).unwrap(),
+        BinaryOperator::LogicalShr => write!(&mut w, " {} ", consts::operator::LSHR).unwrap(),
+        BinaryOperator::LogicalShl => write!(&mut w, " {} ", consts::operator::LSHL).unwrap(),
+        BinaryOperator::Pipe => write!(&mut w, " {} ", consts::operator::PIPE).unwrap(),
+        BinaryOperator::Assign => write!(&mut w, " {} ", consts::operator::ASSIGN).unwrap(),
+        BinaryOperator::AddAssign => write!(&mut w, " {} ", consts::operator::ADD_ASSIGN).unwrap(),
+        BinaryOperator::SubAssign => write!(&mut w, " {} ", consts::operator::SUB_ASSIGN).unwrap(),
+        BinaryOperator::MulAssign => write!(&mut w, " {} ", consts::operator::MUL_ASSIGN).unwrap(),
+        BinaryOperator::DivAssign => write!(&mut w, " {} ", consts::operator::DIV_ASSIGN).unwrap(),
+        BinaryOperator::ExpAssign => write!(&mut w, " {} ", consts::operator::EXP_ASSIGN).unwrap(),
+        BinaryOperator::ModAssign => write!(&mut w, " {} ", consts::operator::MOD_ASSIGN).unwrap(),
+        BinaryOperator::LogicalAndAssign => write!(&mut w, " {} ", consts::operator::LOGICALAND_ASSIGN).unwrap(),
+        BinaryOperator::LogicalOrAssign => write!(&mut w, " {} ", consts::operator::LOGICALOR_ASSIGN).unwrap(),
+        BinaryOperator::LogicalXORAssign => write!(&mut w, " {} ", consts::operator::LOGICALXOR_ASSIGN).unwrap(),
+        BinaryOperator::BitAndAssign => write!(&mut w, " {} ", consts::operator::BITAND_ASSIGN).unwrap(),
+        BinaryOperator::BitOrAssign => write!(&mut w, " {} ", consts::operator::BITOR_ASSIGN).unwrap(),
+        BinaryOperator::BitXORAssign => write!(&mut w, " {} ", consts::operator::BITXOR_ASSIGN).unwrap(),
+        BinaryOperator::ArithmeticShrAssign => write!(&mut w, " {} ", consts::operator::ASHR_ASSIGN).unwrap(),
+        BinaryOperator::LogicalShrAssign => write!(&mut w, " {} ", consts::operator::LSHR_ASSIGN).unwrap(),
+        BinaryOperator::LogicalShlAssign => write!(&mut w, " {} ", consts::operator::LSHL_ASSIGN).unwrap(),
+        BinaryOperator::AssignPipe => write!(&mut w, " {} ", consts::operator::PIPE_ASSIGN).unwrap(),
+      };
+    };
+
+    String::from_utf8(w).unwrap()
+  }
+}
+
 impl std::string::ToString for Expression {
   fn to_string(&self) -> String {
     match self {
@@ -219,15 +287,7 @@ impl std::string::ToString for Expression {
       Expression::Block(a) => a.to_string(),
       Expression::SubExpression(a) => a.to_string(),
       Expression::ControlFlow(a) => a.to_string(),
-      Expression::Operator(o) => {
-        match &o.o {
-            Operator::Add(a, b) => format!("{} + {}", a.to_string(), b.to_string()),
-            Operator::Sub(a, b) => format!("{} - {}", a.to_string(), b.to_string()),
-            Operator::Mul(a, b) => format!("{} * {}", a.to_string(), b.to_string()),
-            Operator::Div(a, b) => format!("{} / {}", a.to_string(), b.to_string()),
-            _ => todo!("operatorexpr {:#?}", o)
-        }
-      }
+      Expression::Operator(a) => a.to_string(),
     }
   }
 }

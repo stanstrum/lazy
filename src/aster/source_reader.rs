@@ -90,6 +90,16 @@ impl<'a> SourceReader<'a> {
     }
   }
 
+  pub fn to(&mut self, offset: usize) -> Result<(), SourceReaderError> {
+    if offset >= self.len() {
+      return InvalidSeekRewindSnafu.fail();
+    };
+
+    self.offset = offset;
+
+    Ok(())
+  }
+
   pub fn read_ch(&mut self) -> Result<char, SourceReaderError> {
     if self.remaining() >= 1 {
       let ch = self.src.chars().nth(self.offset).unwrap();

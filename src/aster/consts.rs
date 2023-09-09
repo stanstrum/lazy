@@ -125,6 +125,7 @@ pub mod operator {
   pub const INVERT: &str = "~";
 
   pub const DOT: &str = ".";
+  pub const DEREF_DOT: &str = "->";
 
   pub const INCREMENT: &str = "++";
   pub const DECREMENT: &str = "--";

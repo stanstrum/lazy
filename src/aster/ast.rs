@@ -136,8 +136,11 @@ type BoxExpr = Box<Expression>;
 pub struct OperatorExpressionAST {
   pub span: Span,
   pub out: Type,
-  pub exprs: Vec<Expression>,
-  pub ops: Vec<BinaryOperator>
+
+  pub a: Box<Expression>,
+  pub b: Box<Expression>,
+
+  pub op: BinaryOperator
 }
 
 #[derive(Debug)]

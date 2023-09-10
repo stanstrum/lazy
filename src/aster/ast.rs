@@ -134,13 +134,27 @@ type BoxExpr = Box<Expression>;
 
 #[derive(Debug)]
 pub struct OperatorExpressionAST {
-  pub span: Span,
   pub out: Type,
 
   pub a: Box<Expression>,
   pub b: Box<Expression>,
 
   pub op: BinaryOperator
+}
+
+impl GetSpan for OperatorExpressionAST {
+  fn span(&self) -> Span {
+    Span {
+      start: std::cmp::min(
+        (*self.a).span().start,
+        (*self.b).span().start,
+      ),
+      end: std::cmp::max(
+        (*self.a).span().end,
+        (*self.b).span().end,
+      ),
+    }
+  }
 }
 
 #[derive(Debug)]
@@ -452,6 +466,5 @@ make_get_span![
   ImplForAST,
   KeywordAST,
   FunctionAST,
-  ControlFlowAST,
-  OperatorExpressionAST
+  ControlFlowAST
 ];

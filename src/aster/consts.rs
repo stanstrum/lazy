@@ -114,63 +114,57 @@ pub mod ascii {
   pub const UNI_ESCAPE: char = 'u';
 }
 
+use crate::aster::ast::{
+  UnaryPfxOperator,
+  UnarySfxOperator,
+  BinaryOperator,
+};
+
 pub mod operator {
-  pub const ASSIGN: &str = "=";
+  use super::*;
+  use phf::phf_map;
 
-  pub const REF: &str = "&";
-  pub const DEREF: &str = "*";
-  pub const NOT: &str = "!";
-  pub const NEG: &str = "-";
-  pub const NOTNEG: &str = "+";
-  pub const INVERT: &str = "~";
-
-  pub const DOT: &str = ".";
-  pub const DEREF_DOT: &str = "->";
-
-  pub const INCREMENT: &str = "++";
-  pub const DECREMENT: &str = "--";
-
-  pub const ADD: &str = "+";
-  pub const SUB: &str = "-";
-  pub const MUL: &str = "*";
-  pub const DIV: &str = "/";
-  pub const EXP: &str = "**";
-  pub const MOD: &str = "%";
-
-  pub const EQUALS: &str = "==";
-  pub const NOTEQUALS: &str = "!=";
-
-  pub const GT: &str = ">";
-  pub const GEQ: &str = ">=";
-  pub const LT: &str = "<";
-  pub const LEQ: &str = "<=";
-
-  pub const PIPE: &str = "|>";
-  pub const LOGICALAND: &str = "&&";
-  pub const LOGICALOR: &str = "||";
-  pub const LOGICALXOR: &str = "^^";
-  pub const BITAND: &str = "&";
-  pub const BITOR: &str = "|";
-  pub const BITXOR: &str = "^";
-  pub const ASHR: &str = ">>";
-  pub const LSHR: &str = ">>>";
-  pub const LSHL: &str = "<<";
-
-  pub const ADD_ASSIGN: &str = "+=";
-  pub const SUB_ASSIGN: &str = "-=";
-  pub const MUL_ASSIGN: &str = "*=";
-  pub const DIV_ASSIGN: &str = "/=";
-  pub const EXP_ASSIGN: &str = "**=";
-  pub const MOD_ASSIGN: &str = "%=";
-
-  pub const PIPE_ASSIGN: &str = "|>=";
-  pub const LOGICALAND_ASSIGN: &str = "&&=";
-  pub const LOGICALOR_ASSIGN: &str = "||=";
-  pub const LOGICALXOR_ASSIGN: &str = "^^=";
-  pub const BITAND_ASSIGN: &str = "&=";
-  pub const BITOR_ASSIGN: &str = "|=";
-  pub const BITXOR_ASSIGN: &str = "^=";
-  pub const ASHR_ASSIGN: &str = ">>=";
-  pub const LSHR_ASSIGN: &str = ">>>=";
-  pub const LSHL_ASSIGN: &str = "<<=";
+  pub static BIN_MAP: phf::Map<&'static str, BinaryOperator> = phf_map! {
+    "+=" => BinaryOperator::AddAssign,
+    "-=" => BinaryOperator::SubAssign,
+    "*=" => BinaryOperator::MulAssign,
+    "/=" => BinaryOperator::DivAssign,
+    "**=" => BinaryOperator::ExpAssign,
+    "%=" => BinaryOperator::ModAssign,
+    "&&=" => BinaryOperator::LogicalAndAssign,
+    "||=" => BinaryOperator::LogicalOrAssign,
+    "^^=" => BinaryOperator::LogicalXORAssign,
+    "&=" => BinaryOperator::BitAndAssign,
+    "|=" => BinaryOperator::BitOrAssign,
+    "^=" => BinaryOperator::BitXORAssign,
+    ">>=" => BinaryOperator::ArithmeticShrAssign,
+    ">>>=" => BinaryOperator::LogicalShrAssign,
+    "<<=" => BinaryOperator::LogicalShlAssign,
+    "|>=" => BinaryOperator::AssignPipe,
+    "." => BinaryOperator::Dot,
+    "->" => BinaryOperator::DerefDot,
+    "+" => BinaryOperator::Add,
+    "-" => BinaryOperator::Sub,
+    "**" => BinaryOperator::Exp,
+    "*" => BinaryOperator::Mul,
+    "/" => BinaryOperator::Div,
+    "%" => BinaryOperator::Mod,
+    "==" => BinaryOperator::Equals,
+    "!=" => BinaryOperator::NotEquals,
+    ">" => BinaryOperator::Greater,
+    ">=" => BinaryOperator::GreaterThanEquals,
+    "<" => BinaryOperator::LessThan,
+    "<=" => BinaryOperator::LessThanEquals,
+    "&&" => BinaryOperator::LogicalAnd,
+    "||" => BinaryOperator::LogicalOr,
+    "^^" => BinaryOperator::LogicalXOR,
+    "&" => BinaryOperator::BitAnd,
+    "|" => BinaryOperator::BitOr,
+    "^" => BinaryOperator::BitXOR,
+    ">>" => BinaryOperator::ArithmeticShr,
+    ">>>" => BinaryOperator::LogicalShr,
+    "<<" => BinaryOperator::LogicalShl,
+    "|>" => BinaryOperator::Pipe,
+    "=" => BinaryOperator::Assign
+  };
 }

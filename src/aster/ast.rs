@@ -117,7 +117,7 @@ impl GetSpan for &Structure {
 #[derive(Debug)]
 pub struct Variable(pub TypeAST, pub IdentAST);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SubExpressionAST {
   pub span: Span,
   pub out: Type,
@@ -132,7 +132,7 @@ impl GetSpan for SubExpressionAST {
 
 type BoxExpr = Box<Expression>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct OperatorExpressionAST {
   pub out: Type,
 
@@ -173,7 +173,7 @@ pub enum UnarySfxOperator {
   PostDecrement(BoxExpr),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum BinaryOperator {
   Dot,
   DerefDot,
@@ -227,7 +227,7 @@ pub enum BinaryOperator {
   AssignPipe,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Expression {
   Atom(AtomExpressionAST),
   Block(BlockExpressionAST),
@@ -263,7 +263,7 @@ pub struct LiteralAST {
   pub l: Literal,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ControlFlow {
   If(
     Vec<
@@ -284,13 +284,13 @@ pub enum ControlFlow {
   // ),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ControlFlowAST {
   pub span: Span,
   pub e: ControlFlow
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum FnCallee {
   // sponge: update this to take qualified names
   // and struct members
@@ -298,7 +298,7 @@ pub enum FnCallee {
   SubExpression(SubExpressionAST)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum AtomExpression {
   Binding {
     ty: Option<TypeAST>,
@@ -310,14 +310,14 @@ pub enum AtomExpression {
   Variable(QualifiedAST)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AtomExpressionAST {
   pub span: Span,
   pub out: Type,
   pub a: AtomExpression,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BlockExpressionAST {
   pub span: Span,
   pub out: Type,

@@ -9,3 +9,5 @@ edition = "2021"
 getopts = "0.2.21"
 snafu = "0.7.5"
 lazy_static = "1.4.0"
+phf = { version = "0.11.2", features = ["macros"] }
+enum-iterator = "1.4.1"

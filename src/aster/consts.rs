@@ -122,9 +122,9 @@ use crate::aster::ast::{
 
 pub mod operator {
   use super::*;
-  use phf::phf_map;
+  use phf::phf_ordered_map;
 
-  pub static BIN_MAP: phf::Map<&'static str, BinaryOperator> = phf_map! {
+  pub static BIN_MAP: phf::OrderedMap<&'static str, BinaryOperator> = phf_ordered_map! {
     "+=" => BinaryOperator::AddAssign,
     "-=" => BinaryOperator::SubAssign,
     "*=" => BinaryOperator::MulAssign,

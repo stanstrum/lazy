@@ -121,7 +121,9 @@ impl std::string::ToString for AtomExpressionAST {
           FnCallee::Qualified(ident) => {
             write!(&mut w, "{}", ident.to_string()).unwrap();
           },
-          FnCallee::SubExpression(_) => todo!("subexpr fncallee"),
+          FnCallee::SubExpression(s) => {
+            write!(&mut w, "({})", s.e.to_string()).unwrap();
+          },
         };
 
         write!(&mut w, "(").unwrap();
@@ -220,12 +222,40 @@ impl std::string::ToString for Expression {
       Expression::SubExpression(a) => a.to_string(),
       Expression::ControlFlow(a) => a.to_string(),
       Expression::Operator(o) => {
-        match &o.op {
-          BinaryOperator::Add => format!("{} + {}", o.a.to_string(), o.b.to_string()),
-          BinaryOperator::Sub => format!("{} - {}", o.a.to_string(), o.b.to_string()),
-          BinaryOperator::Mul => format!("{} * {}", o.a.to_string(), o.b.to_string()),
-          BinaryOperator::Div => format!("{} / {}", o.a.to_string(), o.b.to_string()),
-          _ => todo!("operatorexpr {:#?}", o)
+        // match &o.op {
+        //   BinaryOperator::Add => format!("{} + {}", o.a.to_string(), o.b.to_string()),
+        //   BinaryOperator::Sub => format!("{} - {}", o.a.to_string(), o.b.to_string()),
+        //   BinaryOperator::Mul => format!("{} * {}", o.a.to_string(), o.b.to_string()),
+        //   BinaryOperator::Div => format!("{} / {}", o.a.to_string(), o.b.to_string()),
+        //   _ => todo!("operatorexpr {:#?}", o)
+        // }
+
+        let txt = consts::operator::BIN_MAP.into_iter()
+          .find_map(
+            |(key, val)|
+              if *val == o.op {
+                Some(key)
+              } else {
+                None
+              }
+          ).expect(
+            format!("no operator for variant {:#?}", &o.op).as_str()
+          );
+
+        match o.op {
+          BinaryOperator::Dot | BinaryOperator::DerefDot =>
+            format!(
+              "{}{}{}",
+              o.a.to_string(),
+              txt,
+              o.b.to_string()
+            ),
+          _ => format!(
+            "{} {} {}",
+            o.a.to_string(),
+            txt,
+            o.b.to_string()
+          )
         }
       }
     }

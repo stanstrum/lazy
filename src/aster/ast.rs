@@ -158,19 +158,30 @@ impl GetSpan for OperatorExpressionAST {
 }
 
 #[derive(Debug)]
+pub enum Operator {
+  UnaryPfx(UnaryPfxOperator),
+  UnarySfx(UnarySfxOperator),
+  Binary(BinaryOperator),
+}
+
+#[derive(Debug)]
 pub enum UnaryPfxOperator {
   Ref,
   Deref,
   Not,
   Neg,
   NotNeg,
+  BitInvert,
   PreIncrement,
   PreDecrement,
 }
 
+#[derive(Debug)]
 pub enum UnarySfxOperator {
-  PostIncrement(BoxExpr),
-  PostDecrement(BoxExpr),
+  PostIncrement,
+  PostDecrement,
+  Subscript,
+  Call
 }
 
 #[derive(Debug, Clone, PartialEq)]

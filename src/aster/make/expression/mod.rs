@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use std::arch::x86_64::_MM_FROUND_TO_POS_INF;
+
 use super::{
   super::{
     SourceReader,
@@ -27,6 +29,8 @@ use enum_iterator::{Sequence, all};
 #[derive(Debug, Sequence)]
 enum PEMDAS {
   Dot,
+  SubscriptCall,
+  Unary,
   Bit,
   Exp,
   MulDivMod,
@@ -37,80 +41,101 @@ enum PEMDAS {
 }
 
 impl PEMDAS {
-  fn includes(&self, op: &BinaryOperator) -> bool {
+  fn includes(&self, op: &Operator) -> bool {
     match self {
       PEMDAS::Dot => {
         match op {
-          BinaryOperator::Dot => true,
-          BinaryOperator::DerefDot => true,
+          Operator::Binary(BinaryOperator::Dot) => true,
+          Operator::Binary(BinaryOperator::DerefDot) => true,
+          _ => false
+        }
+      },
+      PEMDAS::SubscriptCall => {
+        match op {
+          Operator::UnarySfx(UnarySfxOperator::Subscript) => true,
+          Operator::UnarySfx(UnarySfxOperator::Call) => true,
+          _ => false
+        }
+      },
+      PEMDAS::Unary => {
+        match op {
+          Operator::UnarySfx(UnarySfxOperator::PostIncrement) => true,
+          Operator::UnarySfx(UnarySfxOperator::PostDecrement) => true,
+          Operator::UnaryPfx(UnaryPfxOperator::Ref) => true,
+          Operator::UnaryPfx(UnaryPfxOperator::Deref) => true,
+          Operator::UnaryPfx(UnaryPfxOperator::Not) => true,
+          Operator::UnaryPfx(UnaryPfxOperator::Neg) => true,
+          Operator::UnaryPfx(UnaryPfxOperator::NotNeg) => true,
+          Operator::UnaryPfx(UnaryPfxOperator::PreIncrement) => true,
+          Operator::UnaryPfx(UnaryPfxOperator::PreDecrement) => true,
           _ => false
         }
       },
       PEMDAS::Bit => {
         match op {
-          BinaryOperator::BitAnd => true,
-          BinaryOperator::BitOr => true,
-          BinaryOperator::BitXOR => true,
+          Operator::Binary(BinaryOperator::BitAnd) => true,
+          Operator::Binary(BinaryOperator::BitOr) => true,
+          Operator::Binary(BinaryOperator::BitXOR) => true,
           _ => false
         }
       },
       PEMDAS::Exp => {
         match op {
-          BinaryOperator::Exp => true,
+          Operator::Binary(BinaryOperator::Exp) => true,
           _ => false
         }
       },
       PEMDAS::MulDivMod => {
         match op {
-          BinaryOperator::Mul => true,
-          BinaryOperator::Div => true,
-          BinaryOperator::Mod => true,
+          Operator::Binary(BinaryOperator::Mul) => true,
+          Operator::Binary(BinaryOperator::Div) => true,
+          Operator::Binary(BinaryOperator::Mod) => true,
           _ => false
         }
       },
       PEMDAS::AddSub => {
         match op {
-          BinaryOperator::Add => true,
-          BinaryOperator::Sub => true,
+          Operator::Binary(BinaryOperator::Add) => true,
+          Operator::Binary(BinaryOperator::Sub) => true,
           _ => false
         }
       },
       PEMDAS::Comparison => {
         match op {
-          BinaryOperator::Equals => true,
-          BinaryOperator::NotEquals => true,
-          BinaryOperator::Greater => true,
-          BinaryOperator::GreaterThanEquals => true,
-          BinaryOperator::LessThan => true,
-          BinaryOperator::LessThanEquals => true,
+          Operator::Binary(BinaryOperator::Equals) => true,
+          Operator::Binary(BinaryOperator::NotEquals) => true,
+          Operator::Binary(BinaryOperator::Greater) => true,
+          Operator::Binary(BinaryOperator::GreaterThanEquals) => true,
+          Operator::Binary(BinaryOperator::LessThan) => true,
+          Operator::Binary(BinaryOperator::LessThanEquals) => true,
           _ => false
         }
       },
       PEMDAS::Assignation => {
         match op {
-          BinaryOperator::AddAssign => true,
-          BinaryOperator::SubAssign => true,
-          BinaryOperator::MulAssign => true,
-          BinaryOperator::DivAssign => true,
-          BinaryOperator::ExpAssign => true,
-          BinaryOperator::ModAssign => true,
-          BinaryOperator::LogicalAndAssign => true,
-          BinaryOperator::LogicalOrAssign => true,
-          BinaryOperator::LogicalXORAssign => true,
-          BinaryOperator::BitAndAssign => true,
-          BinaryOperator::BitOrAssign => true,
-          BinaryOperator::BitXORAssign => true,
-          BinaryOperator::ArithmeticShrAssign => true,
-          BinaryOperator::LogicalShrAssign => true,
-          BinaryOperator::LogicalShlAssign => true,
-          BinaryOperator::AssignPipe => true,
-          BinaryOperator::Assign => true,
+          Operator::Binary(BinaryOperator::AddAssign) => true,
+          Operator::Binary(BinaryOperator::SubAssign) => true,
+          Operator::Binary(BinaryOperator::MulAssign) => true,
+          Operator::Binary(BinaryOperator::DivAssign) => true,
+          Operator::Binary(BinaryOperator::ExpAssign) => true,
+          Operator::Binary(BinaryOperator::ModAssign) => true,
+          Operator::Binary(BinaryOperator::LogicalAndAssign) => true,
+          Operator::Binary(BinaryOperator::LogicalOrAssign) => true,
+          Operator::Binary(BinaryOperator::LogicalXORAssign) => true,
+          Operator::Binary(BinaryOperator::BitAndAssign) => true,
+          Operator::Binary(BinaryOperator::BitOrAssign) => true,
+          Operator::Binary(BinaryOperator::BitXORAssign) => true,
+          Operator::Binary(BinaryOperator::ArithmeticShrAssign) => true,
+          Operator::Binary(BinaryOperator::LogicalShrAssign) => true,
+          Operator::Binary(BinaryOperator::LogicalShlAssign) => true,
+          Operator::Binary(BinaryOperator::AssignPipe) => true,
+          Operator::Binary(BinaryOperator::Assign) => true,
           _ => false
         }
       },
       PEMDAS::Pipe => {
         match op {
-          BinaryOperator::Pipe => true,
+          Operator::Binary(BinaryOperator::Pipe) => true,
           _ => false
         }
       },
@@ -136,19 +161,16 @@ impl Expression {
     }
   }
 
-  pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
-    let mut exprs: Vec<Expression> = vec![Expression::make_expr_body(reader)?];
-    let mut ops: Vec<BinaryOperator> = vec![];
+  pub fn make_binary_half(reader: &mut SourceReader) -> AsterResult<(BinaryOperator, Expression)> {
+    let start = reader.offset();
 
-    loop {
-      let start_of_nth = reader.offset();
-
+    let result = 'result: {
       seek::optional_whitespace(reader)?;
 
       let op = 'find_operator: {
         for (txt, variant) in consts::operator::BIN_MAP.into_iter() {
           if seek::begins_with(reader, txt) {
-            break 'find_operator Some(variant);
+            break 'find_operator Some(variant.to_owned());
           };
         };
 
@@ -156,21 +178,55 @@ impl Expression {
       };
 
       if op.is_none() {
-        reader.to(start_of_nth).unwrap();
-
-        break;
+        break 'result None;
       };
 
       seek::optional_whitespace(reader)?;
 
       let Ok(expr) = Expression::make_expr_body(reader) else {
-        reader.to(start_of_nth).unwrap();
-
-        break;
+        break 'result None;
       };
 
-      exprs.push(expr);
-      ops.push(op.unwrap().to_owned());
+      Some((op.unwrap(), expr))
+    };
+
+    if let Some(result) = result {
+      Ok(result)
+    } else {
+      reader.to(start).unwrap();
+
+      ExpectedSnafu {
+        what: "Binary Operator Latter Half",
+        offset: reader.offset()
+      }.fail()
+    }
+  }
+
+  pub fn make_unary_pfx(reader: &mut SourceReader) -> AsterResult<(UnaryPfxOperator, Expression)> {
+    NotImplementedSnafu {
+      what: "make UnaryPfxOperator",
+      offset: reader.offset()
+    }.fail()
+  }
+
+  pub fn make_unary_sfx(reader: &mut SourceReader) -> AsterResult<(UnarySfxOperator, Expression)> {
+    NotImplementedSnafu {
+      what: "make UnaryPfxOperator",
+      offset: reader.offset()
+    }.fail()
+  }
+
+  pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
+    let mut exprs: Vec<Expression> = vec![Expression::make_expr_body(reader)?];
+    let mut ops: Vec<Operator> = vec![];
+
+    loop {
+      if let Ok((op, expr)) = Expression::make_binary_half(reader) {
+        exprs.push(expr);
+        ops.push(Operator::Binary(op));
+      } else {
+        break;
+      }
     };
 
     while exprs.len() > 1 {
@@ -180,16 +236,23 @@ impl Expression {
             let op = &ops[i];
 
             if state.includes(op) {
-              let a = Box::new(exprs[i].to_owned());
-              let b = Box::new(exprs.remove(i + 1));
+              match op {
+                Operator::Binary(_) => {
+                  let a = Box::new(exprs[i].to_owned());
+                  let b = Box::new(exprs.remove(i + 1));
 
-              let op = ops.remove(i);
+                  let Operator::Binary(op) = ops.remove(i) else {
+                    unreachable!("op type does not match prior op type");
+                  };
 
-              exprs[i] = Expression::Operator(OperatorExpressionAST {
-                a, b, op, out: Type::Unresolved
-              });
+                  exprs[i] = Expression::Operator(OperatorExpressionAST {
+                    a, b, op, out: Type::Unresolved
+                  });
 
-              continue 'pemdas;
+                  continue 'pemdas;
+                },
+                _ => todo!("{:#?}", op)
+              }
             };
           };
 

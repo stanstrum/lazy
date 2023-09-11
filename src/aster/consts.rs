@@ -167,4 +167,23 @@ pub mod operator {
     "|>" => BinaryOperator::Pipe,
     "=" => BinaryOperator::Assign
   };
+
+  pub static UNARY_PFX_MAP: phf::OrderedMap<&'static str, UnaryPfxOperator> = phf_ordered_map! {
+    "&" => UnaryPfxOperator::Ref,
+    "*" => UnaryPfxOperator::Deref,
+    "!" => UnaryPfxOperator::Not,
+    "-" => UnaryPfxOperator::Neg,
+    "+" => UnaryPfxOperator::NotNeg,
+    "~" => UnaryPfxOperator::BitInvert,
+    "++" => UnaryPfxOperator::PreIncrement,
+    "--" => UnaryPfxOperator::PreDecrement,
+  };
+
+  pub static UNARY_SFX_MAP: phf::OrderedMap<&'static str, UnarySfxOperator> = phf_ordered_map! {
+    "++" => UnarySfxOperator::PostIncrement,
+    "--" => UnarySfxOperator::PostDecrement,
+    // these work differently ...
+    // "[...]" => UnarySfxOperator::Subscript,
+    // "(...)" => UnarySfxOperator::Call
+  };
 }

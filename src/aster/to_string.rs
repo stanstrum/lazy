@@ -222,15 +222,8 @@ impl std::string::ToString for Expression {
       Expression::SubExpression(a) => a.to_string(),
       Expression::ControlFlow(a) => a.to_string(),
       Expression::Operator(o) => {
-        // match &o.op {
-        //   BinaryOperator::Add => format!("{} + {}", o.a.to_string(), o.b.to_string()),
-        //   BinaryOperator::Sub => format!("{} - {}", o.a.to_string(), o.b.to_string()),
-        //   BinaryOperator::Mul => format!("{} * {}", o.a.to_string(), o.b.to_string()),
-        //   BinaryOperator::Div => format!("{} / {}", o.a.to_string(), o.b.to_string()),
-        //   _ => todo!("operatorexpr {:#?}", o)
-        // }
-
-        let txt = consts::operator::BIN_MAP.into_iter()
+        let txt = consts::operator::BIN_MAP
+          .into_iter()
           .find_map(
             |(key, val)|
               if *val == o.op {
@@ -245,13 +238,13 @@ impl std::string::ToString for Expression {
         match o.op {
           BinaryOperator::Dot | BinaryOperator::DerefDot =>
             format!(
-              "{}{}{}",
+              "{DARK_GRAY}({CLEAR}{}{}{}{DARK_GRAY}){CLEAR}",
               o.a.to_string(),
               txt,
               o.b.to_string()
             ),
           _ => format!(
-            "{} {} {}",
+            "{DARK_GRAY}({CLEAR}{} {} {}{DARK_GRAY}){CLEAR}",
             o.a.to_string(),
             txt,
             o.b.to_string()

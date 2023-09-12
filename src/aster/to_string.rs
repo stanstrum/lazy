@@ -274,6 +274,16 @@ impl std::string::ToString for UnaryOperator {
   }
 }
 
+impl std::string::ToString for Operator {
+  fn to_string(&self) -> String {
+    match self {
+      Operator::UnaryPfx(op) => op.to_string(),
+      Operator::UnarySfx(op) => op.to_string(),
+      Operator::Binary(op) => op.to_string(),
+    }
+  }
+}
+
 impl std::string::ToString for Expression {
   fn to_string(&self) -> String {
     match self {

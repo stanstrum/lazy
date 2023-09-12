@@ -293,11 +293,19 @@ impl Expression {
 
                   continue 'pemdas;
                 },
-                Operator::UnarySfx(UnarySfxOperator::Subscript { .. }) => {
-                  todo!("unarysfxoperator subscript");
-                },
-                Operator::UnarySfx(UnarySfxOperator::Call { .. }) => {
-                  todo!("unarysfxoperator call");
+                Operator::UnaryPfx(_) => {
+                  let expr = Box::new(exprs[i].to_owned());
+                  let Operator::UnaryPfx(op) = ops.remove(i) else {
+                    unreachable!();
+                  };
+
+                  let new_expr = Expression::UnaryOperator(UnaryOperatorExpressionAST {
+                    span: expr.span(),
+                    out: Type::Unresolved,
+                    expr, op: UnaryOperator::UnaryPfx(op)
+                  });
+
+                  exprs[i] = new_expr;
                 },
                 Operator::UnarySfx(_) => {
                   let expr = Box::new(exprs[i].to_owned());

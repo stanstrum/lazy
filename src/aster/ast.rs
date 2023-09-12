@@ -133,7 +133,16 @@ impl GetSpan for SubExpressionAST {
 type BoxExpr = Box<Expression>;
 
 #[derive(Debug, Clone)]
-pub struct OperatorExpressionAST {
+pub struct UnaryOperatorExpressionAST {
+  pub span: Span,
+  pub out: Type,
+
+  pub expr: Box<Expression>,
+  pub op: UnaryOperator
+}
+
+#[derive(Debug, Clone)]
+pub struct BinaryOperatorExpressionAST {
   pub out: Type,
 
   pub a: Box<Expression>,
@@ -142,7 +151,7 @@ pub struct OperatorExpressionAST {
   pub op: BinaryOperator
 }
 
-impl GetSpan for OperatorExpressionAST {
+impl GetSpan for BinaryOperatorExpressionAST {
   fn span(&self) -> Span {
     Span {
       start: std::cmp::min(
@@ -164,7 +173,13 @@ pub enum Operator {
   Binary(BinaryOperator),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+pub enum UnaryOperator {
+  UnaryPfx(UnaryPfxOperator),
+  UnarySfx(UnarySfxOperator),
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum UnaryPfxOperator {
   Ref,
   Deref,
@@ -176,13 +191,22 @@ pub enum UnaryPfxOperator {
   PreDecrement,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum UnarySfxOperator {
   PostIncrement,
   PostDecrement,
-  Subscript,
-  Call
+  Subscript { arg: Box<Expression> },
+  Call { args: Vec<Expression> }
 }
+
+impl PartialEq for UnarySfxOperator {
+  fn eq(&self, other: &Self) -> bool {
+    std::mem::discriminant(self) == std::mem::discriminant(other)
+  }
+}
+
+// Last words: "I know what I'm doing."
+unsafe impl Sync for UnarySfxOperator {}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum BinaryOperator {
@@ -244,17 +268,19 @@ pub enum Expression {
   Block(BlockExpressionAST),
   SubExpression(SubExpressionAST),
   ControlFlow(ControlFlowAST),
-  Operator(OperatorExpressionAST),
+  BinaryOperator(BinaryOperatorExpressionAST),
+  UnaryOperator(UnaryOperatorExpressionAST),
 }
 
 impl GetSpan for Expression {
   fn span(&self) -> Span {
     match self {
-      Expression::Atom(s) => s.span.clone(),
-      Expression::Block(s) => s.span.clone(),
+      Expression::Atom(s) => s.span(),
+      Expression::Block(s) => s.span(),
       Expression::SubExpression(s) => s.span(),
       Expression::ControlFlow(s) => s.span(),
-      Expression::Operator(s) => s.span()
+      Expression::BinaryOperator(s) => s.span(),
+      Expression::UnaryOperator(s) => s.span()
     }
   }
 }
@@ -477,5 +503,6 @@ make_get_span![
   ImplForAST,
   KeywordAST,
   FunctionAST,
-  ControlFlowAST
+  ControlFlowAST,
+  UnaryOperatorExpressionAST
 ];

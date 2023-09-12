@@ -7,6 +7,8 @@
 
 use std::arch::x86_64::_MM_FROUND_TO_POS_INF;
 
+use crate::aster::consts::operator::UNARY_PFX_MAP;
+
 use super::{
   super::{
     SourceReader,
@@ -52,8 +54,8 @@ impl PEMDAS {
       },
       PEMDAS::SubscriptCall => {
         match op {
-          Operator::UnarySfx(UnarySfxOperator::Subscript) => true,
-          Operator::UnarySfx(UnarySfxOperator::Call) => true,
+          Operator::UnarySfx(UnarySfxOperator::Subscript { .. }) => true,
+          Operator::UnarySfx(UnarySfxOperator::Call { .. }) => true,
           _ => false
         }
       },
@@ -202,18 +204,54 @@ impl Expression {
     }
   }
 
-  pub fn make_unary_pfx(reader: &mut SourceReader) -> AsterResult<(UnaryPfxOperator, Expression)> {
-    NotImplementedSnafu {
-      what: "make UnaryPfxOperator",
-      offset: reader.offset()
-    }.fail()
+  pub fn make_unary_pfx(reader: &mut SourceReader) -> AsterResult<(UnaryPfxOperator)> {
+    let start = reader.offset();
+
+    let result = 'result: {
+      for (txt, variant) in consts::operator::UNARY_PFX_MAP.into_iter() {
+        if seek::begins_with(reader, txt) {
+          break 'result Some(variant.to_owned());
+        };
+      };
+
+      None
+    };
+
+    if let Some(result) = result {
+      Ok(result)
+    } else {
+      reader.to(start).unwrap();
+
+      ExpectedSnafu {
+        what: "Unary Prefix Operator",
+        offset: reader.offset()
+      }.fail()
+    }
   }
 
-  pub fn make_unary_sfx(reader: &mut SourceReader) -> AsterResult<(UnarySfxOperator, Expression)> {
-    NotImplementedSnafu {
-      what: "make UnaryPfxOperator",
-      offset: reader.offset()
-    }.fail()
+  pub fn make_unary_sfx(reader: &mut SourceReader) -> AsterResult<(UnarySfxOperator)> {
+    let start = reader.offset();
+
+    let result = 'result: {
+      for (txt, variant) in consts::operator::UNARY_SFX_MAP.into_iter() {
+        if seek::begins_with(reader, txt) {
+          break 'result Some(variant.to_owned());
+        };
+      };
+
+      None
+    };
+
+    if let Some(result) = result {
+      Ok(result)
+    } else {
+      reader.to(start).unwrap();
+
+      ExpectedSnafu {
+        what: "Unary Prefix Operator",
+        offset: reader.offset()
+      }.fail()
+    }
   }
 
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
@@ -224,12 +262,16 @@ impl Expression {
       if let Ok((op, expr)) = Expression::make_binary_half(reader) {
         exprs.push(expr);
         ops.push(Operator::Binary(op));
+      } else if let Ok(op) = Expression::make_unary_sfx(reader) {
+        ops.push(Operator::UnarySfx(op));
+      } else if let Ok(op) = Expression::make_unary_pfx(reader) {
+        ops.push(Operator::UnaryPfx(op));
       } else {
         break;
       }
     };
 
-    while exprs.len() > 1 {
+    while ops.len() >= 1 {
       for state in all::<PEMDAS>() {
         'pemdas: loop {
           for i in 0..ops.len() {
@@ -242,14 +284,34 @@ impl Expression {
                   let b = Box::new(exprs.remove(i + 1));
 
                   let Operator::Binary(op) = ops.remove(i) else {
-                    unreachable!("op type does not match prior op type");
+                    unreachable!();
                   };
 
-                  exprs[i] = Expression::Operator(OperatorExpressionAST {
+                  exprs[i] = Expression::BinaryOperator(BinaryOperatorExpressionAST {
                     a, b, op, out: Type::Unresolved
                   });
 
                   continue 'pemdas;
+                },
+                Operator::UnarySfx(UnarySfxOperator::Subscript { .. }) => {
+                  todo!("unarysfxoperator subscript");
+                },
+                Operator::UnarySfx(UnarySfxOperator::Call { .. }) => {
+                  todo!("unarysfxoperator call");
+                },
+                Operator::UnarySfx(_) => {
+                  let expr = Box::new(exprs[i].to_owned());
+                  let Operator::UnarySfx(op) = ops.remove(i) else {
+                    unreachable!();
+                  };
+
+                  let new_expr = Expression::UnaryOperator(UnaryOperatorExpressionAST {
+                    span: expr.span(),
+                    out: Type::Unresolved,
+                    expr, op: UnaryOperator::UnarySfx(op)
+                  });
+
+                  exprs[i] = new_expr;
                 },
                 _ => todo!("{:#?}", op)
               }

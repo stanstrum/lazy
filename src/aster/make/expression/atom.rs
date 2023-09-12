@@ -140,8 +140,8 @@ impl AtomExpressionAST {
         a: AtomExpression::Literal(lit),
         out: Type::Unresolved,
       })
-    } else if let Some(fn_call) = try_make!(AtomExpressionAST::make_fn_call, reader) {
-      Ok(fn_call)
+    // } else if let Some(fn_call) = try_make!(AtomExpressionAST::make_fn_call, reader) {
+    //   Ok(fn_call)
     } else if let Some(qual) = try_make!(QualifiedAST::make, reader) {
       Ok(Self {
         span: reader.span_since(start),

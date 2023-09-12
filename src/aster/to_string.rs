@@ -214,6 +214,66 @@ impl std::string::ToString for ControlFlowAST {
   }
 }
 
+impl std::string::ToString for BinaryOperator {
+  fn to_string(&self) -> String {
+    consts::operator::BIN_MAP
+      .into_iter()
+      .find_map(
+        |(key, val)|
+          if val == self {
+            Some(key)
+          } else {
+            None
+          }
+      ).expect(
+        format!("no operator for variant {:#?}", self).as_str()
+      ).to_string()
+  }
+}
+
+impl std::string::ToString for UnaryPfxOperator {
+  fn to_string(&self) -> String {
+    consts::operator::UNARY_PFX_MAP
+      .into_iter()
+      .find_map(
+        |(key, val)|
+          if val == self {
+            Some(key)
+          } else {
+            None
+          }
+      ).expect(
+        format!("no operator for variant {:#?}", self).as_str()
+      ).to_string()
+  }
+}
+
+impl std::string::ToString for UnarySfxOperator {
+  fn to_string(&self) -> String {
+    consts::operator::UNARY_SFX_MAP
+      .into_iter()
+      .find_map(
+        |(key, val)|
+          if val == self {
+            Some(key)
+          } else {
+            None
+          }
+      ).expect(
+        format!("no operator for variant {:#?}", self).as_str()
+      ).to_string()
+  }
+}
+
+impl std::string::ToString for UnaryOperator {
+  fn to_string(&self) -> String {
+    match self {
+      UnaryOperator::UnaryPfx(pfx) => pfx.to_string(),
+      UnaryOperator::UnarySfx(sfx) => sfx.to_string(),
+    }
+  }
+}
+
 impl std::string::ToString for Expression {
   fn to_string(&self) -> String {
     match self {
@@ -221,36 +281,36 @@ impl std::string::ToString for Expression {
       Expression::Block(a) => a.to_string(),
       Expression::SubExpression(a) => a.to_string(),
       Expression::ControlFlow(a) => a.to_string(),
-      Expression::Operator(o) => {
-        let txt = consts::operator::BIN_MAP
-          .into_iter()
-          .find_map(
-            |(key, val)|
-              if *val == o.op {
-                Some(key)
-              } else {
-                None
-              }
-          ).expect(
-            format!("no operator for variant {:#?}", &o.op).as_str()
-          );
-
-        match o.op {
+      Expression::BinaryOperator(BinaryOperatorExpressionAST { a, b, op, .. }) => {
+        match op {
           BinaryOperator::Dot | BinaryOperator::DerefDot =>
             format!(
               "{DARK_GRAY}({CLEAR}{}{}{}{DARK_GRAY}){CLEAR}",
-              o.a.to_string(),
-              txt,
-              o.b.to_string()
+              a.to_string(),
+              op.to_string(),
+              b.to_string()
             ),
           _ => format!(
             "{DARK_GRAY}({CLEAR}{} {} {}{DARK_GRAY}){CLEAR}",
-            o.a.to_string(),
-            txt,
-            o.b.to_string()
+            a.to_string(),
+            op.to_string(),
+            b.to_string()
           )
         }
-      }
+      },
+      Expression::UnaryOperator(UnaryOperatorExpressionAST { expr, op, ..}) => {
+        match op {
+          UnaryOperator::UnarySfx(UnarySfxOperator::Subscript { .. }) => todo!("tostring unarysfxoperator subscript"),
+          UnaryOperator::UnarySfx(UnarySfxOperator::Call { .. }) => todo!("tostring unarysfxoperator call"),
+          UnaryOperator::UnarySfx(_) => {
+            format!("{DARK_GRAY}({CLEAR}{}{}{DARK_GRAY}){CLEAR}", expr.to_string(), op.to_string())
+          },
+          #[allow(unreachable_patterns)]
+          _ => todo!("{:#?}", op)
+        }
+      },
+      #[allow(unreachable_patterns)]
+      _ => todo!("{:#?}", self)
     }
   }
 }

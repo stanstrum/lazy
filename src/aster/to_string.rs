@@ -195,11 +195,8 @@ impl std::string::ToString for ControlFlowAST {
           write!(&mut w, "{LIGHT_RED}if{CLEAR} {} {}", cond.to_string(), block.to_string()).unwrap();
         };
 
-        match r#else {
-          Some(r#else) => {
-            write!(&mut w, " {LIGHT_RED}else{CLEAR} {}", r#else.to_string()).unwrap();
-          },
-          _ => {}
+        if let Some(r#else) = r#else {
+          write!(&mut w, " {LIGHT_RED}else{CLEAR} {}", r#else.to_string()).unwrap();
         };
       },
       ControlFlow::While(a, b) => {
@@ -315,12 +312,11 @@ impl std::string::ToString for Expression {
           UnaryOperator::UnarySfx(_) => {
             format!("{DARK_GRAY}({CLEAR}{}{}{DARK_GRAY}){CLEAR}", expr.to_string(), op.to_string())
           },
-          #[allow(unreachable_patterns)]
-          _ => todo!("{:#?}", op)
+          UnaryOperator::UnaryPfx(_) => {
+            format!("{DARK_GRAY}({CLEAR}{}{}{DARK_GRAY}){CLEAR}", op.to_string(), expr.to_string())
+          },
         }
       },
-      #[allow(unreachable_patterns)]
-      _ => todo!("{:#?}", self)
     }
   }
 }
@@ -505,7 +501,6 @@ impl std::string::ToString for Structure {
       Structure::Trait(r#trait) => r#trait.to_string(),
       Structure::Impl(Impl::Impl(r#impl)) => r#impl.to_string(),
       Structure::Impl(Impl::ImplFor(impl_for)) => impl_for.to_string(),
-      _ => todo!("structure tostring {:#?}", self)
     }
   }
 }

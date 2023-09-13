@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
- use super::super::{
+use super::super::{
   SourceReader,
   AsterResult,
   ast::*,
@@ -118,13 +118,8 @@ impl LiteralAST {
   pub fn make_numeric(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
-    loop {
-      match reader.peek_ch() {
-        Some('0'..='9') => {
-          reader.seek(1).unwrap();
-        },
-        _ => { break; }
-      }
+    while let Some('0'..='9') = reader.peek_ch() {
+      reader.seek(1).unwrap();
     };
 
     if reader.offset() == start {

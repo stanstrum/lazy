@@ -48,7 +48,6 @@ pub mod seek {
     Ok(())
   }
 
-  #[must_use]
   pub fn optional_whitespace(reader: &mut SourceReader) -> AsterResult<usize> {
     let mut ctr: usize = 0;
 

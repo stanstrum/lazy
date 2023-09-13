@@ -28,6 +28,7 @@ mod control_flow;
 
 use enum_iterator::{Sequence, all};
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, Sequence)]
 enum PEMDAS {
   Dot,
@@ -46,100 +47,90 @@ impl PEMDAS {
   fn includes(&self, op: &Operator) -> bool {
     match self {
       PEMDAS::Dot => {
-        match op {
-          Operator::Binary(BinaryOperator::Dot) => true,
-          Operator::Binary(BinaryOperator::DerefDot) => true,
-          _ => false
-        }
+        matches!(op,
+          | Operator::Binary(BinaryOperator::Dot)
+          | Operator::Binary(BinaryOperator::DerefDot)
+        )
       },
       PEMDAS::SubscriptCall => {
-        match op {
-          Operator::UnarySfx(UnarySfxOperator::Subscript { .. }) => true,
-          Operator::UnarySfx(UnarySfxOperator::Call { .. }) => true,
-          _ => false
-        }
+        matches!(op,
+          | Operator::UnarySfx(UnarySfxOperator::Subscript { .. })
+          | Operator::UnarySfx(UnarySfxOperator::Call { .. })
+        )
       },
       PEMDAS::Unary => {
-        match op {
-          Operator::UnarySfx(UnarySfxOperator::PostIncrement) => true,
-          Operator::UnarySfx(UnarySfxOperator::PostDecrement) => true,
-          Operator::UnaryPfx(UnaryPfxOperator::Ref) => true,
-          Operator::UnaryPfx(UnaryPfxOperator::Deref) => true,
-          Operator::UnaryPfx(UnaryPfxOperator::Not) => true,
-          Operator::UnaryPfx(UnaryPfxOperator::Neg) => true,
-          Operator::UnaryPfx(UnaryPfxOperator::NotNeg) => true,
-          Operator::UnaryPfx(UnaryPfxOperator::PreIncrement) => true,
-          Operator::UnaryPfx(UnaryPfxOperator::PreDecrement) => true,
-          _ => false
-        }
+        matches!(op,
+          | Operator::UnarySfx(UnarySfxOperator::PostIncrement)
+          | Operator::UnarySfx(UnarySfxOperator::PostDecrement)
+          | Operator::UnaryPfx(UnaryPfxOperator::Ref)
+          | Operator::UnaryPfx(UnaryPfxOperator::Deref)
+          | Operator::UnaryPfx(UnaryPfxOperator::Not)
+          | Operator::UnaryPfx(UnaryPfxOperator::Neg)
+          | Operator::UnaryPfx(UnaryPfxOperator::NotNeg)
+          | Operator::UnaryPfx(UnaryPfxOperator::PreIncrement)
+          | Operator::UnaryPfx(UnaryPfxOperator::PreDecrement)
+        )
       },
       PEMDAS::Bit => {
-        match op {
-          Operator::Binary(BinaryOperator::BitAnd) => true,
-          Operator::Binary(BinaryOperator::BitOr) => true,
-          Operator::Binary(BinaryOperator::BitXOR) => true,
-          _ => false
-        }
+        matches!(op,
+          | Operator::Binary(BinaryOperator::BitAnd)
+          | Operator::Binary(BinaryOperator::BitOr)
+          | Operator::Binary(BinaryOperator::BitXOR)
+        )
       },
       PEMDAS::Exp => {
-        match op {
-          Operator::Binary(BinaryOperator::Exp) => true,
-          _ => false
-        }
+        matches!(op,
+          | Operator::Binary(BinaryOperator::Exp)
+        )
       },
       PEMDAS::MulDivMod => {
-        match op {
-          Operator::Binary(BinaryOperator::Mul) => true,
-          Operator::Binary(BinaryOperator::Div) => true,
-          Operator::Binary(BinaryOperator::Mod) => true,
-          _ => false
-        }
+        matches!(op,
+          | Operator::Binary(BinaryOperator::Mul)
+          | Operator::Binary(BinaryOperator::Div)
+          | Operator::Binary(BinaryOperator::Mod)
+        )
       },
       PEMDAS::AddSub => {
-        match op {
-          Operator::Binary(BinaryOperator::Add) => true,
-          Operator::Binary(BinaryOperator::Sub) => true,
-          _ => false
-        }
+        matches!(op,
+          | Operator::Binary(BinaryOperator::Add)
+          | Operator::Binary(BinaryOperator::Sub)
+        )
       },
       PEMDAS::Comparison => {
-        match op {
-          Operator::Binary(BinaryOperator::Equals) => true,
-          Operator::Binary(BinaryOperator::NotEquals) => true,
-          Operator::Binary(BinaryOperator::Greater) => true,
-          Operator::Binary(BinaryOperator::GreaterThanEquals) => true,
-          Operator::Binary(BinaryOperator::LessThan) => true,
-          Operator::Binary(BinaryOperator::LessThanEquals) => true,
-          _ => false
-        }
+        matches!(op,
+          | Operator::Binary(BinaryOperator::Equals)
+          | Operator::Binary(BinaryOperator::NotEquals)
+          | Operator::Binary(BinaryOperator::Greater)
+          | Operator::Binary(BinaryOperator::GreaterThanEquals)
+          | Operator::Binary(BinaryOperator::LessThan)
+          | Operator::Binary(BinaryOperator::LessThanEquals)
+        )
       },
       PEMDAS::Assignation => {
-        match op {
-          Operator::Binary(BinaryOperator::AddAssign) => true,
-          Operator::Binary(BinaryOperator::SubAssign) => true,
-          Operator::Binary(BinaryOperator::MulAssign) => true,
-          Operator::Binary(BinaryOperator::DivAssign) => true,
-          Operator::Binary(BinaryOperator::ExpAssign) => true,
-          Operator::Binary(BinaryOperator::ModAssign) => true,
-          Operator::Binary(BinaryOperator::LogicalAndAssign) => true,
-          Operator::Binary(BinaryOperator::LogicalOrAssign) => true,
-          Operator::Binary(BinaryOperator::LogicalXORAssign) => true,
-          Operator::Binary(BinaryOperator::BitAndAssign) => true,
-          Operator::Binary(BinaryOperator::BitOrAssign) => true,
-          Operator::Binary(BinaryOperator::BitXORAssign) => true,
-          Operator::Binary(BinaryOperator::ArithmeticShrAssign) => true,
-          Operator::Binary(BinaryOperator::LogicalShrAssign) => true,
-          Operator::Binary(BinaryOperator::LogicalShlAssign) => true,
-          Operator::Binary(BinaryOperator::AssignPipe) => true,
-          Operator::Binary(BinaryOperator::Assign) => true,
-          _ => false
-        }
+        matches!(op,
+          | Operator::Binary(BinaryOperator::AddAssign)
+          | Operator::Binary(BinaryOperator::SubAssign)
+          | Operator::Binary(BinaryOperator::MulAssign)
+          | Operator::Binary(BinaryOperator::DivAssign)
+          | Operator::Binary(BinaryOperator::ExpAssign)
+          | Operator::Binary(BinaryOperator::ModAssign)
+          | Operator::Binary(BinaryOperator::LogicalAndAssign)
+          | Operator::Binary(BinaryOperator::LogicalOrAssign)
+          | Operator::Binary(BinaryOperator::LogicalXORAssign)
+          | Operator::Binary(BinaryOperator::BitAndAssign)
+          | Operator::Binary(BinaryOperator::BitOrAssign)
+          | Operator::Binary(BinaryOperator::BitXORAssign)
+          | Operator::Binary(BinaryOperator::ArithmeticShrAssign)
+          | Operator::Binary(BinaryOperator::LogicalShrAssign)
+          | Operator::Binary(BinaryOperator::LogicalShlAssign)
+          | Operator::Binary(BinaryOperator::AssignPipe)
+          | Operator::Binary(BinaryOperator::Assign)
+        )
       },
       PEMDAS::Pipe => {
-        match op {
-          Operator::Binary(BinaryOperator::Pipe) => true,
-          _ => false
-        }
+        matches!(op,
+          | Operator::Binary(BinaryOperator::Pipe)
+        )
       },
     }
   }
@@ -375,7 +366,6 @@ impl Expression {
 
                   exprs[i] = new_expr;
                 },
-                _ => todo!("{:#?}", op)
               }
             };
           };

@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#![allow(unused)]
+
 pub mod keyword {
   pub const FN: &str = "fn";
 

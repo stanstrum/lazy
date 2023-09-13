@@ -121,7 +121,7 @@ pub struct Variable(pub TypeAST, pub IdentAST);
 pub struct SubExpressionAST {
   pub span: Span,
   pub out: Type,
-  pub e: Box<Expression>
+  pub e: BoxExpr
 }
 
 impl GetSpan for SubExpressionAST {
@@ -137,7 +137,7 @@ pub struct UnaryOperatorExpressionAST {
   pub span: Span,
   pub out: Type,
 
-  pub expr: Box<Expression>,
+  pub expr: BoxExpr,
   pub op: UnaryOperator
 }
 
@@ -145,8 +145,8 @@ pub struct UnaryOperatorExpressionAST {
 pub struct BinaryOperatorExpressionAST {
   pub out: Type,
 
-  pub a: Box<Expression>,
-  pub b: Box<Expression>,
+  pub a: BoxExpr,
+  pub b: BoxExpr,
 
   pub op: BinaryOperator
 }
@@ -195,7 +195,7 @@ pub enum UnaryPfxOperator {
 pub enum UnarySfxOperator {
   PostIncrement,
   PostDecrement,
-  Subscript { arg: Box<Expression> },
+  Subscript { arg: BoxExpr },
   Call { args: Vec<Expression> }
 }
 
@@ -285,6 +285,7 @@ impl GetSpan for Expression {
   }
 }
 
+#[allow(unused)]
 #[derive(Debug, Clone)]
 pub enum Literal {
   String(String),
@@ -300,6 +301,7 @@ pub struct LiteralAST {
   pub l: Literal,
 }
 
+#[allow(unused)]
 #[derive(Debug, Clone)]
 pub enum ControlFlow {
   If(
@@ -309,12 +311,12 @@ pub enum ControlFlow {
     Option<BlockExpressionAST>
   ),
   While(
-    Box<Expression>,
+    BoxExpr,
     Box<BlockExpressionAST>
   ),
   DoWhile(
     Box<BlockExpressionAST>,
-    Box<Expression>
+    BoxExpr
   ),
   // For(
   //   CondExpr, ElseBranch
@@ -340,7 +342,7 @@ pub enum AtomExpression {
   Binding {
     ty: Option<TypeAST>,
     ident: IdentAST,
-    value: Box<Expression>
+    value: BoxExpr
   },
   Literal(LiteralAST),
   FnCall(Box<FnCallee>, Vec<Expression>),
@@ -382,6 +384,7 @@ pub struct IntrinsicType {
   pub bytes: usize,
 }
 
+#[allow(unused)]
 #[derive(Debug, Clone)]
 pub enum Type {
   Intrinsic(*const IntrinsicType),

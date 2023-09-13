@@ -12,6 +12,7 @@
   };
 
   ($n:ident: $c:expr) => {
+    #[allow(unused)]
     pub const $n: &str = concat! { "\x1b[", $c, "m" };
   };
 }

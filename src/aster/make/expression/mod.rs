@@ -204,7 +204,7 @@ impl Expression {
     }
   }
 
-  pub fn make_unary_pfx(reader: &mut SourceReader) -> AsterResult<(UnaryPfxOperator)> {
+  pub fn make_unary_pfx(reader: &mut SourceReader) -> AsterResult<UnaryPfxOperator> {
     let start = reader.offset();
 
     let result = 'result: {
@@ -229,7 +229,7 @@ impl Expression {
     }
   }
 
-  pub fn make_unary_sfx(reader: &mut SourceReader) -> AsterResult<(UnarySfxOperator)> {
+  pub fn make_unary_sfx(reader: &mut SourceReader) -> AsterResult<UnarySfxOperator> {
     let start = reader.offset();
 
     let result = 'result: {

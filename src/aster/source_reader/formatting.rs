@@ -11,9 +11,7 @@ use std::io::Write;
 use crate::colors::*;
 
 fn num_length<T: std::convert::Into<f64>>(n: T) -> usize {
-  f64::from(
-    (n.into().log10() + 1.0).floor().max(1.0)
-  ) as usize
+  (n.into().log10() + 1.0).floor().max(1.0) as usize
 }
 
 pub enum Level {
@@ -121,7 +119,7 @@ fn at(src: &String, offset: usize) -> String {
   )
 }
 
-fn get_code<'a>(src: &'a String, offset: usize) -> &'a str {
+fn get_code(src: &String, offset: usize) -> &str {
   let (mut start, mut end) = start_end(src, offset);
 
   if end >= src.len() {
@@ -168,7 +166,7 @@ fn get_code_of_line(src: &String, line: usize) -> &str {
     };
   };
 
-  get_code(src, if src.len() != 0 {
+  get_code(src, if !src.is_empty() {
     src.len() - 1
   } else {
     0
@@ -265,6 +263,6 @@ impl SourceReader<'_> {
   }
 
   pub fn at(&self) -> String {
-    at(&self.src, self.offset)
+    at(self.src, self.offset)
   }
 }

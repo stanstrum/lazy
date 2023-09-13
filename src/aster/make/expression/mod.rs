@@ -5,9 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::arch::x86_64::_MM_FROUND_TO_POS_INF;
 
-use crate::aster::consts::operator::UNARY_PFX_MAP;
+
+
 
 use super::{
   super::{
@@ -325,7 +325,7 @@ impl Expression {
       }
     };
 
-    while ops.len() >= 1 {
+    while !ops.is_empty() {
       for state in all::<PEMDAS>() {
         'pemdas: loop {
           for i in 0..ops.len() {

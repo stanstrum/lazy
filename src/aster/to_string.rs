@@ -128,7 +128,7 @@ impl std::string::ToString for AtomExpressionAST {
 
         write!(&mut w, "(").unwrap();
 
-        if args.len() != 0 {
+        if !args.is_empty() {
           let last = args.len() - 1;
 
           for (i, arg) in args.iter().enumerate() {
@@ -153,7 +153,7 @@ impl std::string::ToString for BlockExpressionAST {
   fn to_string(&self) -> String {
     let mut w: Vec<u8> = vec![];
 
-    if self.children.len() == 0 {
+    if self.children.is_empty() {
       return "{}".into();
     };
 
@@ -205,7 +205,7 @@ impl std::string::ToString for ControlFlowAST {
       ControlFlow::While(a, b) => {
         write!(&mut w, "{LIGHT_RED}while{CLEAR} {} {}", a.to_string(), b.to_string()).unwrap();
       },
-      ControlFlow::DoWhile(a, b) => {
+      ControlFlow::DoWhile(_a, _b) => {
         todo!()
       },
     };
@@ -225,9 +225,7 @@ impl std::string::ToString for BinaryOperator {
           } else {
             None
           }
-      ).expect(
-        format!("no operator for variant {:#?}", self).as_str()
-      ).to_string()
+      ).unwrap_or_else(|| panic!("no operator for variant {:#?}", self)).to_string()
   }
 }
 
@@ -242,9 +240,7 @@ impl std::string::ToString for UnaryPfxOperator {
           } else {
             None
           }
-      ).expect(
-        format!("no operator for variant {:#?}", self).as_str()
-      ).to_string()
+      ).unwrap_or_else(|| panic!("no operator for variant {:#?}", self)).to_string()
   }
 }
 
@@ -259,9 +255,7 @@ impl std::string::ToString for UnarySfxOperator {
           } else {
             None
           }
-      ).expect(
-        format!("no operator for variant {:#?}", self).as_str()
-      ).to_string()
+      ).unwrap_or_else(|| panic!("no operator for variant {:#?}", self)).to_string()
   }
 }
 
@@ -369,10 +363,10 @@ impl std::string::ToString for FunctionDeclAST {
       }
     };
 
-    if self.args.len() == 0 {
+    if self.args.is_empty() {
       write!(&mut w, " ").unwrap();
     } else {
-      write!(&mut w, ":\n").unwrap();
+      writeln!(&mut w, ":").unwrap();
 
       let last = self.args.len() - 1;
 

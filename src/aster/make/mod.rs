@@ -26,7 +26,7 @@ pub use super::{
 #[macro_export]
 macro_rules! try_make {
   ($func:expr, $reader:ident $(, $args:expr)*) => {{
-    use crate::aster::formatting::*;
+    use $crate::aster::formatting::*;
 
     let start = $reader.offset();
     let text = concat!(stringify!($func), " from ", file!(), ":", line!());

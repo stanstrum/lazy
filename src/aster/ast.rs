@@ -417,24 +417,24 @@ impl Type {
         unsafe { (**s).name }.to_owned()
       },
       Type::ConstReferenceTo(ty) => {
-        format!("&{}", (**ty).e.to_hashable())
+        format!("&{}", ty.e.to_hashable())
       },
       Type::MutReferenceTo(ty) => {
-        format!("&mut {}", (**ty).e.to_hashable())
+        format!("&mut {}", ty.e.to_hashable())
       },
       Type::ConstPtrTo(ty) => {
-        format!("*{}", (**ty).e.to_hashable())
+        format!("*{}", ty.e.to_hashable())
       },
       Type::MutPtrTo(ty) => {
-        format!("*mut {}", (**ty).e.to_hashable())
+        format!("*mut {}", ty.e.to_hashable())
       },
       Type::ArrayOf(sz, ty) => {
         match sz {
           Some(sz) => {
-            format!("[{}]{}", sz.to_hashable(), (**ty).e.to_hashable())
+            format!("[{}]{}", sz.to_hashable(), ty.e.to_hashable())
           },
           None => {
-            format!("[]{}", (**ty).e.to_hashable())
+            format!("[]{}", ty.e.to_hashable())
           },
         }
       },

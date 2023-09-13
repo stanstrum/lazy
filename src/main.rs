@@ -76,7 +76,7 @@ fn compile() -> Result<(), LazyError> {
     Err(err) => { return IOSnafu { msg: format!("{}: {}", path.to_string_lossy(), err) }.fail() }
   };
 
-  let ref mut reader = aster::SourceReader::new(input, &src);
+  let reader = &mut aster::SourceReader::new(input, &src);
 
   let asterized = match aster::asterize(reader) {
     Ok(asterized) => asterized,

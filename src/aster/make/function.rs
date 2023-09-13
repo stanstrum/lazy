@@ -11,7 +11,6 @@
   ast::*,
   consts,
   seek_read::seek,
-  errors::*,
   intrinsics
 };
 

@@ -311,7 +311,13 @@ impl std::string::ToString for Expression {
       Expression::UnaryOperator(UnaryOperatorExpressionAST { expr, op, ..}) => {
         match op {
           UnaryOperator::UnarySfx(UnarySfxOperator::Subscript { .. }) => todo!("tostring unarysfxoperator subscript"),
-          UnaryOperator::UnarySfx(UnarySfxOperator::Call { .. }) => todo!("tostring unarysfxoperator call"),
+          UnaryOperator::UnarySfx(UnarySfxOperator::Call { args }) => {
+            format!(
+              "{DARK_GRAY}({CLEAR}{}({}){DARK_GRAY}){CLEAR}",
+              expr.to_string(),
+              args.iter().map(|arg| arg.to_string()).collect::<Vec<String>>().join(", ")
+            )
+          },
           UnaryOperator::UnarySfx(_) => {
             format!("{DARK_GRAY}({CLEAR}{}{}{DARK_GRAY}){CLEAR}", expr.to_string(), op.to_string())
           },

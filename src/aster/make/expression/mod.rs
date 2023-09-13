@@ -254,6 +254,58 @@ impl Expression {
     }
   }
 
+  fn make_fn_call(reader: &mut SourceReader) -> AsterResult<UnarySfxOperator> {
+    let start = reader.offset();
+
+    let result = 'result: {
+      let mut args: Vec<Expression> = vec![];
+
+      if !seek::begins_with(reader, consts::grouping::OPEN_PARENTHESIS) {
+        break 'result None;
+      };
+
+      loop {
+        seek::optional_whitespace(reader)?;
+
+        if seek::begins_with(reader, consts::grouping::CLOSE_PARENTHESIS) {
+          break;
+        };
+
+        let Ok(arg_expr) = Expression::make(reader) else {
+          break 'result None;
+        };
+
+        args.push(arg_expr);
+
+        seek::optional_whitespace(reader)?;
+
+        if !seek::begins_with(reader, consts::punctuation::COMMA) {
+          if !seek::begins_with(reader, consts::grouping::CLOSE_PARENTHESIS) {
+            return ExpectedSnafu {
+              what: "Close Parenthesis",
+              offset: reader.offset()
+            }.fail();
+          } else {
+            break;
+          };
+        };
+      };
+
+      Some(UnarySfxOperator::Call { args })
+    };
+
+    if let Some(result) = result {
+      Ok(result)
+    } else {
+      reader.to(start).unwrap();
+
+      ExpectedSnafu {
+        what: "Unary Prefix Operator",
+        offset: reader.offset()
+      }.fail()
+    }
+  }
+
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let mut exprs: Vec<Expression> = vec![Expression::make_expr_body(reader)?];
     let mut ops: Vec<Operator> = vec![];
@@ -263,6 +315,8 @@ impl Expression {
         exprs.push(expr);
         ops.push(Operator::Binary(op));
       } else if let Ok(op) = Expression::make_unary_sfx(reader) {
+        ops.push(Operator::UnarySfx(op));
+      } else if let Ok(op) = Expression::make_fn_call(reader) {
         ops.push(Operator::UnarySfx(op));
       } else if let Ok(op) = Expression::make_unary_pfx(reader) {
         ops.push(Operator::UnaryPfx(op));

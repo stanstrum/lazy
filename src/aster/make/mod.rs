@@ -94,10 +94,7 @@ mod tests {
         let src_as_str = include_str!(concat!("../../snippets/", stringify!($name), ".zy"));
         let src = src_as_str.to_string();
 
-        let ref mut $reader = SourceReader::new(
-          concat!("../../snippets/", stringify!($name), ".zy").to_string(),
-          &src
-        );
+        let ref mut $reader = SourceReader::new(&src);
 
         $body
       }

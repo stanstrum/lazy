@@ -345,7 +345,6 @@ pub enum AtomExpression {
     value: BoxExpr
   },
   Literal(LiteralAST),
-  FnCall(Box<FnCallee>, Vec<Expression>),
   Variable(QualifiedAST)
 }
 

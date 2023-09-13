@@ -17,22 +17,14 @@ pub enum SourceReaderError {
 }
 
 pub struct SourceReader<'a> {
-  filename: String,
   src: &'a String,
   offset: usize,
 }
 
 impl<'a> SourceReader<'a> {
-  pub fn new_anonymous(src: &'a String) -> Self {
+  pub fn new(src: &'a String) -> Self {
     Self {
       src, offset: 0,
-      filename: "<anonymous>".to_owned(),
-    }
-  }
-
-  pub fn new(filename: String, src: &'a String) -> Self {
-    Self {
-      filename, src, offset: 0,
     }
   }
 

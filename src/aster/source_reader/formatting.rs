@@ -93,32 +93,6 @@ pub fn line_col(src: &String, offset: usize) -> (usize, usize) {
   (line, if col > 0 { col - 1 } else { 0 })
 }
 
-fn at(src: &String, offset: usize) -> String {
-  // seek to beginning of line
-  let (start, end) = start_end(src, offset);
-
-  println!("end: {}:{:#?}", end, src.chars().nth(end).unwrap());
-  println!("start: {}:{:#?}", start, src.chars().nth(start).unwrap());
-
-  let (line, col) = line_col(src, start);
-
-  println!("offset: {offset}, start: {start}, end: {end}, line: {line}, col: {col}");
-  println!("on: {:#?}", src.chars().nth(start).unwrap());
-
-  let line_no_length = num_length(line as u32 + 1);
-  let col_length = num_length(col as u32);
-
-  format!(
-    "{}:{}: {}\n{}^ here",
-    line + 1, col,
-    get_code(src, offset),
-    "~".repeat(
-      col + line_no_length + col_length
-      + 3 // length of ":" and ": "
-    )
-  )
-}
-
 fn get_code(src: &String, offset: usize) -> &str {
   let (mut start, mut end) = start_end(src, offset);
 
@@ -260,9 +234,5 @@ pub fn format_message(src: &String, message: Message) -> String {
 impl SourceReader<'_> {
   pub fn span_since(&self, start: usize) -> Span {
     Span { start, end: self.offset }
-  }
-
-  pub fn at(&self) -> String {
-    at(self.src, self.offset)
   }
 }

@@ -114,36 +114,6 @@ impl std::string::ToString for AtomExpressionAST {
         }
       },
       AtomExpression::Literal(lit) => lit.to_string(),
-      AtomExpression::FnCall(callee, args) => {
-        let mut w: Vec<u8> = vec![];
-
-        match &**callee {
-          FnCallee::Qualified(ident) => {
-            write!(&mut w, "{}", ident.to_string()).unwrap();
-          },
-          FnCallee::SubExpression(s) => {
-            write!(&mut w, "({})", s.e.to_string()).unwrap();
-          },
-        };
-
-        write!(&mut w, "(").unwrap();
-
-        if !args.is_empty() {
-          let last = args.len() - 1;
-
-          for (i, arg) in args.iter().enumerate() {
-            write!(&mut w, "{}", arg.to_string()).unwrap();
-
-            if i != last {
-              write!(&mut w, ", ").unwrap();
-            };
-          };
-        };
-
-        write!(&mut w, ")").unwrap();
-
-        String::from_utf8(w).unwrap()
-      },
       AtomExpression::Variable(ident) => ident.to_string(),
     }
   }

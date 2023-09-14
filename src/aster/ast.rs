@@ -330,14 +330,6 @@ pub struct ControlFlowAST {
 }
 
 #[derive(Debug, Clone)]
-pub enum FnCallee {
-  // sponge: update this to take qualified names
-  // and struct members
-  Qualified(QualifiedAST),
-  SubExpression(SubExpressionAST)
-}
-
-#[derive(Debug, Clone)]
 pub enum AtomExpression {
   Binding {
     ty: Option<TypeAST>,

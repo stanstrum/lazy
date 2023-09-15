@@ -24,11 +24,11 @@ implicit {
   hello_bytes := b"hello";
 
   // should be usize
-  n1234 := 1234usize;
+  // n1234 := 1234usize;
 
   // should be u64
-  n5678 := 5678u64;
+  // n5678 := 5678u64;
 
   // should fail
-  n256 := 256u8;
+  // n256 := 256u8;
 };

@@ -5,13 +5,36 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+str_to_num -> i32:
+  &str text
+{
+  acc := 0;
+  ctr := 0;
+
+  while ctr < text.len() {
+    ch := text[ctr];
+
+    if ch > b' ' && ch < b'~' {
+      acc += ch;
+    } else {
+      return 0;
+    };
+
+    ctr++;
+  };
+
+  ctr
+};
+
 main {
-  u32 ctr := 0;
+  mut [16]u8 buf;
+  mut acc := 0;
 
-  while true {
-    buf := io::stdin();
-    amt := str_to_num(buf);
+  loop {
+    io::stdin.read_line(&mut buf);
 
-    println("Counter is {}", amt);
+    acc += str_to_num(&buf);
+
+    io::println(acc.to_string());
   };
 };

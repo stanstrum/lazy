@@ -37,7 +37,7 @@ fn stringify_string(lit: &Literal) -> String {
   let mut w: Vec<u8> = vec![];
 
   let text = match lit {
-    Literal::String(text) => text,
+    Literal::UnicodeString(text) => text,
     Literal::ByteString(text) => {
       write!(&mut w, "b").unwrap();
 
@@ -80,7 +80,7 @@ fn stringify_string(lit: &Literal) -> String {
 impl std::string::ToString for LiteralAST {
   fn to_string(&self) -> String {
     match &self.l {
-      Literal::String(_) | Literal::ByteString(_) => stringify_string(&self.l),
+      Literal::UnicodeString(_) | Literal::ByteString(_) => stringify_string(&self.l),
       Literal::NumericLiteral(s) => {
         format!("{MINT}{s}{CLEAR}")
       },

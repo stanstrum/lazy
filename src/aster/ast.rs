@@ -285,13 +285,13 @@ impl GetSpan for Expression {
   }
 }
 
-#[allow(unused)]
 #[derive(Debug, Clone)]
 pub enum Literal {
-  String(String),
+  UnicodeString(String),
   ByteString(String),
-  Char,
-  ByteChar,
+  CString(String),
+  Char(char),
+  ByteChar(char),
   NumericLiteral(String),
 }
 
@@ -337,7 +337,7 @@ pub enum AtomExpression {
     value: BoxExpr
   },
   Literal(LiteralAST),
-  Variable(QualifiedAST)
+  Variable(QualifiedAST),
 }
 
 #[derive(Debug, Clone)]

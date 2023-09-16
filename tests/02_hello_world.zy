@@ -20,5 +20,5 @@ main -> i32:
 {
   println(b"Hello, world!");
 
-  0i32
+  0
 };

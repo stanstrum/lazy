@@ -1,7 +1,7 @@
 main {
-  a := 0u8 + 1u8;
+  a := 0 + 1;
 
-  0i32
+  0
 };
 
 trait IAdd {

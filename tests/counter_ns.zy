@@ -8,8 +8,8 @@
 str_to_num -> i32:
   &str text
 {
-  acc := 0;
-  ctr := 0;
+  mut usize acc := 0;
+  mut usize ctr := 0;
 
   while ctr < text.len() {
     ch := text[ctr];
@@ -27,8 +27,8 @@ str_to_num -> i32:
 };
 
 main {
-  mut [16]u8 buf;
-  mut acc := 0;
+  [16]u8 buf;
+  mut usize acc := 0;
 
   loop {
     io::stdin.read_line(&mut buf);

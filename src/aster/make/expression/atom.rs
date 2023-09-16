@@ -10,82 +10,21 @@
     ast::*,
     SourceReader,
     AsterResult,
-    seek_read::seek,
-    consts,
     errors::*,
   },
   try_make,
 };
 
 impl AtomExpressionAST {
-  fn make_blind_binding(reader: &mut SourceReader, ty: Option<TypeAST>) -> AsterResult<Self> {
-    let start = reader.offset();
-
-    let ident = IdentAST::make(reader)?;
-
-    seek::optional_whitespace(reader)?;
-
-    if !seek::begins_with(reader, consts::punctuation::BOLLOCKS) {
-      return ExpectedSnafu {
-        what: "Punctuation (:=)",
-        offset: reader.offset()
-      }.fail();
-    };
-
-    seek::optional_whitespace(reader)?;
-
-    let value = Box::new(Expression::make(reader)?);
-
-    let out = match ty {
-      Some(TypeAST { ref e, .. }) => e.clone(),
-      _ => Type::Unresolved,
-    };
-
-    Ok(
-      Self {
-        a: AtomExpression::Binding {
-          ident, ty, value
-        },
-        span: reader.span_since(start),
-        out
-      }
-    )
-  }
-
-  pub fn make_binding(reader: &mut SourceReader) -> AsterResult<Self> {
-    if let Some(binding) = try_make!(Self::make_blind_binding, reader, None) {
-      return Ok(binding);
-    };
-
-    let ty = try_make!(TypeAST::make, reader);
-
-    if ty.is_some() {
-      seek::required_whitespace(reader)?;
-    };
-
-    if let Some(binding) = try_make!(Self::make_blind_binding, reader, ty) {
-      Ok(binding)
-    } else {
-      ExpectedSnafu {
-        what: "Binding",
-        offset: reader.offset()
-      }.fail()
-    }
-  }
-
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
-    if let Some(assn) = try_make!(AtomExpressionAST::make_binding, reader) {
-      Ok(assn)
-    } else if let Some(lit) = try_make!(LiteralAST::make, reader) {
+    if let Some(lit) = try_make!(LiteralAST::make, reader) {
       Ok(Self {
         span: reader.span_since(start),
         a: AtomExpression::Literal(lit),
         out: Type::Unresolved,
       })
-    // } else if let Some(fn_call) = try_make!(AtomExpressionAST::make_fn_call, reader) {
-    //   Ok(fn_call)
     } else if let Some(qual) = try_make!(QualifiedAST::make, reader) {
       Ok(Self {
         span: reader.span_since(start),

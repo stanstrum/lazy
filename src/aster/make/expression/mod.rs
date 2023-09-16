@@ -21,6 +21,7 @@ mod atom;
 mod block;
 mod sub;
 mod control_flow;
+mod binding;
 
 use enum_iterator::{Sequence, all};
 
@@ -343,20 +344,40 @@ impl Expression {
     let mut ops: Vec<Operator> = vec![];
 
     loop {
-      if let Ok((op, expr)) = Expression::make_binary_half(reader) {
-        exprs.push(expr);
-        ops.push(Operator::Binary(op));
-      } else if let Ok(op) = Expression::make_unary_sfx(reader) {
-        ops.push(Operator::UnarySfx(op));
-      } else if let Ok(op) = Expression::make_fn_call(reader) {
-        ops.push(Operator::UnarySfx(op));
-      } else if let Ok(op) = Expression::make_subscript(reader) {
-        ops.push(Operator::UnarySfx(op));
-      } else if let Ok(op) = Expression::make_unary_pfx(reader) {
+      if !exprs.is_empty() {
+        if let Ok((op, expr)) = Expression::make_binary_half(reader) {
+          exprs.push(expr);
+          ops.push(Operator::Binary(op));
+
+          continue;
+        };
+
+        if let Ok(op) = Expression::make_unary_sfx(reader) {
+          ops.push(Operator::UnarySfx(op));
+
+          continue;
+        };
+
+        if let Ok(op) = Expression::make_fn_call(reader) {
+          ops.push(Operator::UnarySfx(op));
+
+          continue;
+        };
+
+        if let Ok(op) = Expression::make_subscript(reader) {
+          ops.push(Operator::UnarySfx(op));
+
+          continue;
+        };
+      };
+
+      if let Ok(op) = Expression::make_unary_pfx(reader) {
         ops.push(Operator::UnaryPfx(op));
-      } else {
-        break;
-      }
+
+        continue;
+      };
+
+      break;
     };
 
     for state in all::<PEMDAS>() {

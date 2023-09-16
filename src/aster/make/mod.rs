@@ -142,7 +142,7 @@ mod tests {
 
   snippet_test!(
     string_ref, reader => {
-      let assn = AtomExpressionAST::make_binding(reader);
+      let assn = BindingAST::make(reader);
 
       dbg!(&assn);
 

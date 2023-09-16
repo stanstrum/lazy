@@ -36,6 +36,9 @@ pub mod keyword {
   pub const DO: &str = "do";
   pub const WHILE: &str = "while";
   pub const FOR: &str = "for";
+
+  pub const RETURN: &str = "return";
+  pub const BREAK: &str = "break";
 }
 
 pub mod punctuation {

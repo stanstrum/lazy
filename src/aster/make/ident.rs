@@ -9,7 +9,8 @@ use super::super::{
   SourceReader,
   AsterResult,
   errors::*,
-  ast::*
+  ast::*,
+  consts
 };
 
 impl IdentAST {
@@ -52,6 +53,22 @@ impl IdentAST {
 
     let span = reader.span_since(start);
 
-    Ok(Self { span, text })
+    if !matches!(text.as_str(),
+      | consts::keyword::MUT
+      | consts::keyword::IF
+      | consts::keyword::ELSE
+      | consts::keyword::DO
+      | consts::keyword::WHILE
+      | consts::keyword::FOR
+      | consts::keyword::RETURN
+      | consts::keyword::BREAK
+    ) {
+      Ok(Self { span, text })
+    } else {
+      ExpectedSnafu {
+        what: "Ident",
+        offset: reader.offset()
+      }.fail()
+    }
   }
 }

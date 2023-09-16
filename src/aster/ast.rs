@@ -24,7 +24,7 @@ pub struct NamespaceAST {
   pub map: HashMap<String, Structure>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct KeywordAST {
   pub span: Span,
 }
@@ -331,11 +331,6 @@ pub struct ControlFlowAST {
 
 #[derive(Debug, Clone)]
 pub enum AtomExpression {
-  Binding {
-    ty: Option<TypeAST>,
-    ident: IdentAST,
-    value: BoxExpr
-  },
   Literal(LiteralAST),
   Variable(QualifiedAST),
 }
@@ -351,8 +346,33 @@ pub struct AtomExpressionAST {
 pub struct BlockExpressionAST {
   pub span: Span,
   pub out: Type,
-  pub children: Vec<Expression>,
+  pub children: Vec<BlockExpressionChild>,
   pub returns_last: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct BindingAST {
+  pub span: Span,
+
+  pub r#mut: Option<KeywordAST>,
+  pub ty: Option<TypeAST>,
+  pub ident: IdentAST,
+  pub value: Option<BoxExpr>
+}
+
+#[derive(Debug, Clone)]
+pub enum BlockExpressionChild {
+  Binding(BindingAST),
+  Expression(Expression)
+}
+
+impl GetSpan for BlockExpressionChild {
+  fn span(&self) -> Span {
+    match self {
+      BlockExpressionChild::Binding(binding) => binding.span(),
+      BlockExpressionChild::Expression(expr) => expr.span(),
+    }
+  }
 }
 
 #[derive(Debug)]
@@ -498,5 +518,6 @@ make_get_span![
   KeywordAST,
   FunctionAST,
   ControlFlowAST,
-  UnaryOperatorExpressionAST
+  UnaryOperatorExpressionAST,
+  BindingAST
 ];

@@ -140,8 +140,6 @@ impl LiteralAST {
     let mut text = String::new();
 
     loop {
-      println!("hijkl;m");
-
       let ch = match reader.read_ch() {
         Ok('"') => break,
         Ok('\\') => make_escape_sequence(reader)?,

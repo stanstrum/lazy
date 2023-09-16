@@ -11,8 +11,10 @@ use super::super::super::{
   AsterResult,
   seek_read::seek,
   consts,
-  errors::*
+  errors::*,
 };
+
+use super::try_make;
 
 impl BlockExpressionAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
@@ -25,7 +27,7 @@ impl BlockExpressionAST {
       }.fail();
     };
 
-    let mut children: Vec<Expression> = vec![];
+    let mut children: Vec<BlockExpressionChild> = vec![];
 
     let returns_last = loop {
       seek::optional_whitespace(reader)?;
@@ -34,18 +36,20 @@ impl BlockExpressionAST {
         break false;
       };
 
-      children.push(Expression::make(reader)?);
+      let child = {
+        if let Some(binding) = try_make!(BindingAST::make, reader) {
+          BlockExpressionChild::Binding(binding)
+        } else if let Some(expr) = try_make!(Expression::make, reader) {
+          BlockExpressionChild::Expression(expr)
+        } else {
+          return ExpectedSnafu {
+            what: "Expression or Binding",
+            offset: reader.offset()
+          }.fail();
+        }
+      };
 
-      // if let Ok(expr) = AtomExpressionAST::make(reader) {
-      //   children.push(Expression::Atom(expr));
-      // } else if let Ok(expr) = BlockExpressionAST::make(reader) {
-      //   children.push(Expression::Block(expr));
-      // } else {
-      //   return ExpectedSnafu {
-      //     what: "Expression (block, atom)",
-      //     offset: reader.offset()
-      //   }.fail();
-      // };
+      children.push(child);
 
       seek::optional_whitespace(reader)?;
 

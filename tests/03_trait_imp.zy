@@ -11,7 +11,7 @@ trait IAdd {
 
 impl i32 {
   pub static new -> i32 {
-    0i32
+    0
   };
 };
 

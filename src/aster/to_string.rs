@@ -92,29 +92,47 @@ impl std::string::ToString for LiteralAST {
 impl std::string::ToString for AtomExpressionAST {
   fn to_string(&self) -> String {
     match &self.a {
-      AtomExpression::Binding {
-        ty, ident, value
-      } => {
-        match ty {
-          Some(ty) => {
-            format!(
-              "{} {} := {}",
-              ty.to_string(),
-              ident.to_string(),
-              value.to_string()
-            )
-          },
-          None => {
-            format!(
-              "{} := {}",
-              ident.to_string(),
-              value.to_string()
-            )
-          },
-        }
-      },
       AtomExpression::Literal(lit) => lit.to_string(),
       AtomExpression::Variable(ident) => ident.to_string(),
+    }
+  }
+}
+
+impl std::string::ToString for BlockExpressionChild {
+  fn to_string(&self) -> String {
+    match self {
+      BlockExpressionChild::Binding(BindingAST {
+        r#mut, ty, ident, value, ..
+      }) => {
+        let mut text = String::new();
+
+        if r#mut.is_some() {
+          text.push_str(consts::keyword::MUT);
+          text.push(' ');
+        };
+
+        if ty.is_some() {
+          text.push_str(
+            ty.as_ref().unwrap().to_string().as_str()
+          );
+          text.push(' ');
+        };
+
+        text.push_str(ident.to_string().as_str());
+
+        if value.is_some() {
+          text.push(' ');
+          text.push_str(consts::punctuation::BOLLOCKS);
+          text.push(' ');
+
+          text.push_str(
+            value.as_ref().unwrap().to_string().as_str()
+          );
+        };
+
+        text
+      },
+      BlockExpressionChild::Expression(expr) => expr.to_string(),
     }
   }
 }

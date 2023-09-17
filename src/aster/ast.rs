@@ -102,10 +102,17 @@ pub struct TypeAliasAST {
 }
 
 #[derive(Debug)]
+pub struct StructAST {
+  pub span: Span,
+  pub ident: IdentAST,
+  pub members: Vec<(TypeAST, IdentAST)>
+}
+
+#[derive(Debug)]
 pub enum Structure {
   Namespace(NamespaceAST),
   Function(FunctionAST),
-  // Struct(StructAST),
+  Struct(StructAST),
   Trait(TraitAST),
   Impl(Impl),
   TypeAlias(TypeAliasAST)
@@ -119,6 +126,7 @@ impl GetSpan for &Structure {
       Structure::Trait(s) => s.span(),
       Structure::Impl(s) => s.span(),
       Structure::TypeAlias(s) => s.span(),
+      Structure::Struct(s) => s.span()
     }
   }
 }
@@ -535,5 +543,6 @@ make_get_span![
   UnaryOperatorExpressionAST,
   BindingAST,
   NamespaceAST,
-  TypeAliasAST
+  TypeAliasAST,
+  StructAST
 ];

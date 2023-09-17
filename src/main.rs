@@ -97,7 +97,7 @@ fn compile() -> Result<(), LazyError> {
   };
 
   dbg!(&asterized);
-  println!("{}", asterized.to_string());
+  println!("{};", asterized.to_string());
 
   // sponge: insert here an algorithm to rearrange operators by precedence
 

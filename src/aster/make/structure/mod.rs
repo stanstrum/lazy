@@ -11,6 +11,7 @@ mod function;
 mod member_function;
 mod namespace;
 mod typealias;
+mod r#struct;
 
 use crate::aster::{
   ast::*,
@@ -59,6 +60,11 @@ impl Structure {
       Ok((
         ty_alias.ident.text.to_owned(),
         Structure::TypeAlias(ty_alias)
+      ))
+    } else if let Some(r#struct) = try_make!(StructAST::make, reader) {
+      Ok((
+        r#struct.ident.text.to_owned(),
+        Structure::Struct(r#struct)
       ))
     } else {
       UnknownSnafu { what: "Structure", offset: reader.offset() }.fail()

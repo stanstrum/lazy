@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::{io::{Write, /* Result */}, /* str::FromStr */};
+use std::{io::{Write, /* Result */}, process::id, /* str::FromStr */};
 use crate::aster::consts;
 
 use super::{ast::*, intrinsics};
@@ -508,7 +508,31 @@ impl std::string::ToString for Structure {
       }) => format!("{LIGHT_RED}type{CLEAR} {} := {}",
         ident.to_string(),
         ty.to_string()
-      )
+      ),
+      Structure::Struct(StructAST {
+        ident, members, ..
+      }) => {
+        let mut text = format!("{LIGHT_RED}struct{CLEAR} {} {{\n",
+          ident.to_string()
+        );
+
+        for (i, (ty, ident)) in members.iter().enumerate() {
+          text.push_str(format!("  {} {}",
+            ty.to_string(),
+            ident.to_string()
+          ).as_str());
+
+          if i != members.len() - 1 {
+            text.push(',');
+          };
+
+          text.push('\n');
+        };
+
+        text.push('}');
+
+        text
+      }
     }
   }
 }
@@ -559,7 +583,7 @@ impl std::string::ToString for NamespaceAST {
       .expect("Failed to write buffer to String");
 
     format!(
-      "{LIGHT_RED}namespace{CLEAR} {CREME}{}{CLEAR} {{\n{}\n}};",
+      "{LIGHT_RED}namespace{CLEAR} {CREME}{}{CLEAR} {{\n{}\n}}",
       self.ident.to_string(),
       str_line_pfx(src, INDENTATION)
     )

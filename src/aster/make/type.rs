@@ -23,15 +23,7 @@ impl TypeAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
-    // println!("{}", reader.at());
-
     if seek::begins_with(reader, consts::punctuation::AMPERSAND) {
-      // println!("TypeAST::make ReferenceTo:");
-
-      // if seek::begins_with(reader, consts::keyword::MUT) {
-      //   todo!();
-      // };
-
       seek::optional_whitespace(reader)?;
 
       let ty = Box::new(TypeAST::make(reader)?);

@@ -78,7 +78,7 @@ impl BindingAST {
     };
 
     let value = try_make!(BindingAST::make_value, reader)
-      .map(|v| Box::new(v));
+      .map(Box::new);
 
     if ty.is_none() && value.is_none() {
       return ExpectedSnafu {

@@ -72,9 +72,7 @@ impl ControlFlowAST {
 
     seek::required_whitespace(reader)?;
 
-    dbg!(reader.offset());
     let cond = Expression::make(reader)?;
-    dbg!(reader.offset());
     seek::required_whitespace(reader)?;
 
     let body = BlockExpressionAST::make(reader)?;

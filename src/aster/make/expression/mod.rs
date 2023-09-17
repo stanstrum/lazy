@@ -213,8 +213,6 @@ impl Expression {
 
     let result = 'result: {
       for (txt, variant) in consts::operator::UNARY_PFX_MAP.into_iter() {
-        println!("unarypfx {} {:#?}", txt, reader.peek(txt.len()));
-
         if seek::begins_with(reader, txt) {
           break 'result Some(variant.to_owned());
         };
@@ -269,36 +267,23 @@ impl Expression {
   fn make_fn_call(reader: &mut SourceReader) -> AsterResult<UnarySfxOperator> {
     let start = reader.offset();
 
-    println!("make_fn_call start");
-
     let result = 'result: {
       let mut args: Vec<Expression> = vec![];
-
-      println!("part 1 {}", reader.peek_ch().unwrap());
 
       if !seek::begins_with(reader, consts::grouping::OPEN_PARENTHESIS) {
         break 'result None;
       };
 
       loop {
-        println!("part 2 {}", reader.peek_ch().unwrap());
-
         seek::optional_whitespace(reader)?;
-
-        println!("part 3 {}", reader.peek_ch().unwrap());
 
         if seek::begins_with(reader, consts::grouping::CLOSE_PARENTHESIS) {
           break;
         };
 
-        println!("part 4 {}", reader.peek_ch().unwrap());
-
         let Ok(arg_expr) = Expression::make(reader) else {
           break 'result None;
         };
-
-        println!("part 5 {}", reader.peek_ch().unwrap());
-        dbg!(&arg_expr);
 
         args.push(arg_expr);
 
@@ -318,8 +303,6 @@ impl Expression {
 
       Some(UnarySfxOperator::Call { args })
     };
-
-    println!("make_fn_call end");
 
     if let Some(result) = result {
       Ok(result)
@@ -377,9 +360,6 @@ impl Expression {
     let mut last = LastExprComponent::Empty;
 
     loop {
-      dbg!(&exprs);
-      dbg!(&ops);
-
       match last {
         LastExprComponent::Empty => {
           if let Some(expr) = try_make!(Expression::make_expr_body, reader) {
@@ -436,21 +416,9 @@ impl Expression {
       };
     };
 
-    let mut le: usize = 0;
-    let mut lo: usize = 0;
-
     for state in all::<PEMDAS>() {
       'pemdas: loop {
         for i in 0..ops.len() {
-          if exprs.len() != le || ops.len() != lo {
-            dbg!(&exprs);
-            dbg!(&ops);
-            println!("{}", "-".repeat(52));
-
-            le = exprs.len();
-            lo = ops.len();
-          };
-
           let op = &ops[i];
 
           if state.includes(op) {

@@ -37,15 +37,15 @@ fn stringify_char(ch: char) -> String {
   match ch {
     '\\' | '"' => { format!("\\{ch}") },
     ' '..='~' => { format!("{}", ch) },
-    consts::ascii::NL => { format!("\\0") },
-    consts::ascii::BL => { format!("\\a") },
-    consts::ascii::BS => { format!("\\b") },
-    consts::ascii::HT => { format!("\\t") },
-    consts::ascii::LF => { format!("\\n") },
-    consts::ascii::VT => { format!("\\v") },
-    consts::ascii::FF => { format!("\\f") },
-    consts::ascii::CR => { format!("\\r") },
-    consts::ascii::ES => { format!("\\e") },
+    consts::ascii::NL => { "\\0".to_owned() },
+    consts::ascii::BL => { "\\a".to_owned() },
+    consts::ascii::BS => { "\\b".to_owned() },
+    consts::ascii::HT => { "\\t".to_owned() },
+    consts::ascii::LF => { "\\n".to_owned() },
+    consts::ascii::VT => { "\\v".to_owned() },
+    consts::ascii::FF => { "\\f".to_owned() },
+    consts::ascii::CR => { "\\r".to_owned() },
+    consts::ascii::ES => { "\\e".to_owned() },
     _ => {
       match ch as u32 {
         0..=255 => { format!("\\x{:x<2}", ch as u32) },
@@ -60,7 +60,7 @@ fn stringify_string(lit: &Literal) -> String {
     Literal::UnicodeString(text) | Literal::ByteString(text) => {
       text
         .chars()
-        .map(|ch| stringify_char(ch))
+        .map(stringify_char)
         .collect::<String>()
     },
     Literal::ByteChar(ch) => {

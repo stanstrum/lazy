@@ -77,17 +77,13 @@ impl LiteralAST {
     let numeric_body_start = reader.offset();
 
     let mut decimal = false;
-    loop {
-      let ch = match reader.peek_ch() {
-        Some(ch) => ch,
-        _ => break
-      };
-
+    #[allow(clippy::manual_is_ascii_check)]
+    while let Some(ch) = reader.peek_ch() {
       match base {
         Base::Binary if matches!(ch, '0' | '1') => {},
         Base::Octal if matches!(ch, '0'..='7') => {},
         Base::Decimal if matches!(ch, '0'..='9') => {},
-        Base::Decimal if decimal == false && ch == '.' => {
+        Base::Decimal if !decimal && ch == '.' => {
           decimal = true;
         },
         Base::Hexadecimal if matches!(ch, '0'..='9' | 'A'..='F' | 'a'..='f') => {},

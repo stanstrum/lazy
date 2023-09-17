@@ -10,6 +10,7 @@ mod r#trait;
 mod function;
 mod member_function;
 mod namespace;
+mod typealias;
 
 use crate::aster::{
   ast::*,
@@ -53,6 +54,11 @@ impl Structure {
       Ok((
         ns.ident.text.to_owned(),
         Structure::Namespace(ns)
+      ))
+    } else if let Some(ty_alias) = try_make!(TypeAliasAST::make, reader) {
+      Ok((
+        ty_alias.ident.text.to_owned(),
+        Structure::TypeAlias(ty_alias)
       ))
     } else {
       UnknownSnafu { what: "Structure", offset: reader.offset() }.fail()

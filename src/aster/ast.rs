@@ -95,21 +95,30 @@ impl GetSpan for Impl {
 }
 
 #[derive(Debug)]
+pub struct TypeAliasAST {
+  pub span: Span,
+  pub ident: IdentAST,
+  pub ty: TypeAST
+}
+
+#[derive(Debug)]
 pub enum Structure {
   Namespace(NamespaceAST),
   Function(FunctionAST),
   // Struct(StructAST),
   Trait(TraitAST),
   Impl(Impl),
+  TypeAlias(TypeAliasAST)
 }
 
 impl GetSpan for &Structure {
   fn span(&self) -> Span {
     match self {
-      Structure::Namespace(s) => s.span.to_owned(),
-      Structure::Function(s) => s.span.to_owned(),
-      Structure::Trait(s) => s.span.to_owned(),
+      Structure::Namespace(s) => s.span(),
+      Structure::Function(s) => s.span(),
+      Structure::Trait(s) => s.span(),
       Structure::Impl(s) => s.span(),
+      Structure::TypeAlias(s) => s.span(),
     }
   }
 }
@@ -519,10 +528,12 @@ make_get_span![
   LiteralAST,
   ImplAST,
   ImplForAST,
+  TraitAST,
   KeywordAST,
   FunctionAST,
   ControlFlowAST,
   UnaryOperatorExpressionAST,
   BindingAST,
-  NamespaceAST
+  NamespaceAST,
+  TypeAliasAST
 ];

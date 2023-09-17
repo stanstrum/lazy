@@ -450,7 +450,7 @@ impl std::string::ToString for ImplAST {
 
     write!(&mut w, "{}", methods_to_string(&self.methods)).unwrap();
 
-    write!(&mut w, "}};").unwrap();
+    write!(&mut w, "}}").unwrap();
 
     String::from_utf8(w).unwrap()
   }
@@ -464,7 +464,7 @@ impl std::string::ToString for ImplForAST {
 
     write!(&mut w, "{}", methods_to_string(&self.methods)).unwrap();
 
-    write!(&mut w, "}};").unwrap();
+    write!(&mut w, "}}").unwrap();
 
     String::from_utf8(w).unwrap()
   }
@@ -489,7 +489,7 @@ impl std::string::ToString for TraitAST {
       };
     };
 
-    write!(&mut w, "}};").unwrap();
+    write!(&mut w, "}}").unwrap();
 
     String::from_utf8(w).unwrap()
   }
@@ -503,6 +503,12 @@ impl std::string::ToString for Structure {
       Structure::Trait(r#trait) => r#trait.to_string(),
       Structure::Impl(Impl::Impl(r#impl)) => r#impl.to_string(),
       Structure::Impl(Impl::ImplFor(impl_for)) => impl_for.to_string(),
+      Structure::TypeAlias(TypeAliasAST {
+        ident, ty, ..
+      }) => format!("{LIGHT_RED}type{CLEAR} {} = {}",
+        ident.to_string(),
+        ty.to_string()
+      )
     }
   }
 }
@@ -545,7 +551,7 @@ impl std::string::ToString for NamespaceAST {
       let span = structure.span();
 
       writeln!(&mut w, "{DARK_GRAY}// {} ({}:{}){CLEAR}", name, span.start, span.end).unwrap();
-      writeln!(&mut w, "{}", structure.to_string()).unwrap();
+      writeln!(&mut w, "{};", structure.to_string()).unwrap();
       writeln!(&mut w).unwrap();
     }
 

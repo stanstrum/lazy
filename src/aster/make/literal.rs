@@ -119,10 +119,18 @@ impl LiteralAST {
     let start = reader.offset();
 
     let ty = match reader.peek_ch() {
-      Some('b') => StringType::Byte,
-      Some('c') => StringType::C,
-      Some(_) => StringType::Unicode,
-      None => {
+      Some('b') => {
+        reader.seek(1).unwrap();
+
+        StringType::Byte
+      },
+      Some('c') => {
+        reader.seek(1).unwrap();
+
+        StringType::C
+      },
+      Some('"') => StringType::Unicode,
+      Some(_) | None => {
         return ExpectedSnafu {
           what: "String Literal",
           offset: reader.offset()
@@ -153,13 +161,6 @@ impl LiteralAST {
       };
 
       text.push(ch);
-
-      if reader.seek(1).is_err() {
-        return ExpectedSnafu {
-          what: "String Literal",
-          offset: reader.offset()
-        }.fail();
-      };
     };
 
     let lit = match ty {

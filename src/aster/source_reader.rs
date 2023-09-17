@@ -83,7 +83,7 @@ impl<'a> SourceReader<'a> {
   }
 
   pub fn to(&mut self, offset: usize) -> Result<(), SourceReaderError> {
-    if offset >= self.len() {
+    if offset > self.len() {
       return InvalidSeekRewindSnafu.fail();
     };
 

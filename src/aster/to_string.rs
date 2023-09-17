@@ -505,7 +505,7 @@ impl std::string::ToString for Structure {
       Structure::Impl(Impl::ImplFor(impl_for)) => impl_for.to_string(),
       Structure::TypeAlias(TypeAliasAST {
         ident, ty, ..
-      }) => format!("{LIGHT_RED}type{CLEAR} {} = {}",
+      }) => format!("{LIGHT_RED}type{CLEAR} {} := {}",
         ident.to_string(),
         ty.to_string()
       )

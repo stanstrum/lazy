@@ -214,12 +214,10 @@ impl Expression {
     let result = 'result: {
       for (txt, variant) in consts::operator::UNARY_PFX_MAP.into_iter() {
         if seek::begins_with(reader, txt) {
-          if matches!(variant, UnaryPfxOperator::MutRef) {
-            if seek::optional_whitespace(reader)? == 0 {
-              reader.to(start).unwrap();
+          if matches!(variant, UnaryPfxOperator::MutRef) && seek::optional_whitespace(reader)? == 0 {
+            reader.to(start).unwrap();
 
-              continue;
-            };
+            continue;
           };
 
           break 'result Some(variant.to_owned());

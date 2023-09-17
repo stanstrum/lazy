@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::{io::{Write, /* Result */}, process::id, /* str::FromStr */};
+use std::{io::{Write, /* Result */}, /* str::FromStr */};
 use crate::aster::consts;
 
 use super::{ast::*, intrinsics};

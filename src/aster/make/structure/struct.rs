@@ -57,14 +57,14 @@ impl StructAST {
       seek::optional_whitespace(reader)?;
 
       if !seek::begins_with(reader, consts::punctuation::COMMA) {
-        if seek::begins_with(reader, consts::grouping::CLOSE_BRACE) {
-          break;
-        } else {
+        if !seek::begins_with(reader, consts::grouping::CLOSE_BRACE) {
           return ExpectedSnafu {
             what: "Close Brace",
             offset: reader.offset()
           }.fail();
         };
+
+        break;
       };
     };
 

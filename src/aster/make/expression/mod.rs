@@ -374,6 +374,10 @@ impl Expression {
             ops.push(Operator::Binary(op));
           } else if let Ok(op) = Expression::make_unary_sfx(reader) {
             ops.push(Operator::UnarySfx(op));
+          } else if let Ok(op) = Expression::make_fn_call(reader) {
+            ops.push(Operator::UnarySfx(op));
+          } else if let Ok(op) = Expression::make_subscript(reader) {
+            ops.push(Operator::UnarySfx(op));
           } else {
             break;
           };
@@ -384,6 +388,10 @@ impl Expression {
           if let Ok(expr) = Expression::make(reader) {
             exprs.push(expr);
           } else if let Ok(op) = Expression::make_unary_sfx(reader) {
+            ops.push(Operator::UnarySfx(op));
+          } else if let Ok(op) = Expression::make_fn_call(reader) {
+            ops.push(Operator::UnarySfx(op));
+          } else if let Ok(op) = Expression::make_subscript(reader) {
             ops.push(Operator::UnarySfx(op));
           } else {
             return ExpectedSnafu {

@@ -33,54 +33,52 @@ pub fn str_line_pfx(string: String, pfx: &str) -> String {
   new_string.trim_end().into()
 }
 
+fn stringify_char(ch: char) -> String {
+  match ch {
+    '\\' | '"' => { format!("\\{ch}") },
+    ' '..='~' => { format!("{}", ch) },
+    consts::ascii::NL => { format!("\\0") },
+    consts::ascii::BL => { format!("\\a") },
+    consts::ascii::BS => { format!("\\b") },
+    consts::ascii::HT => { format!("\\t") },
+    consts::ascii::LF => { format!("\\n") },
+    consts::ascii::VT => { format!("\\v") },
+    consts::ascii::FF => { format!("\\f") },
+    consts::ascii::CR => { format!("\\r") },
+    consts::ascii::ES => { format!("\\e") },
+    _ => {
+      match ch as u32 {
+        0..=255 => { format!("\\x{:x<2}", ch as u32) },
+        _ => { format!("\\u{:x<8}", ch as u32) }
+      }
+    }
+  }
+}
+
 fn stringify_string(lit: &Literal) -> String {
-  let mut w: Vec<u8> = vec![];
-
-  let text = match lit {
-    Literal::UnicodeString(text) => text,
-    Literal::ByteString(text) => {
-      write!(&mut w, "b").unwrap();
-
+ match lit {
+    Literal::UnicodeString(text) | Literal::ByteString(text) => {
       text
+        .chars()
+        .map(|ch| stringify_char(ch))
+        .collect::<String>()
+    },
+    Literal::ByteChar(ch) => {
+      stringify_char(*ch)
     },
     _ => todo!("exhaustive for literal ast: {:#?}", lit)
-  };
-
-  write!(&mut w, "{LIGHT_YELLOW}\"").unwrap();
-
-  for ch in text.chars() {
-    match ch {
-      '\\' | '"' => { write!(&mut w, "\\{ch}").unwrap(); }
-      ' '..='~' => { write!(&mut w, "{}", ch).unwrap(); },
-      consts::ascii::NL => { write!(&mut w, "\\0").unwrap(); },
-      consts::ascii::BL => { write!(&mut w, "\\a").unwrap(); },
-      consts::ascii::BS => { write!(&mut w, "\\b").unwrap(); },
-      consts::ascii::HT => { write!(&mut w, "\\t").unwrap(); },
-      consts::ascii::LF => { write!(&mut w, "\\n").unwrap(); },
-      consts::ascii::VT => { write!(&mut w, "\\v").unwrap(); },
-      consts::ascii::FF => { write!(&mut w, "\\f").unwrap(); },
-      consts::ascii::CR => { write!(&mut w, "\\r").unwrap(); },
-      consts::ascii::ES => { write!(&mut w, "\\e").unwrap(); },
-      _ => {
-        write!(&mut w, "\\").unwrap();
-
-        match ch as u32 {
-          0..=255 => { write!(&mut w, "x{:x<2}", ch as u32).unwrap(); },
-          _ => { write!(&mut w, "u{:x<8}", ch as u32).unwrap(); }
-        };
-      }
-    };
-  };
-
-  write!(&mut w, "\"{CLEAR}").unwrap();
-
-  String::from_utf8(w).unwrap()
+  }
 }
 
 impl std::string::ToString for LiteralAST {
   fn to_string(&self) -> String {
     match &self.l {
-      Literal::UnicodeString(_) | Literal::ByteString(_) => stringify_string(&self.l),
+      Literal::UnicodeString(_) =>
+        format!("\"{}\"", stringify_string(&self.l)),
+      Literal::ByteString(_) =>
+        format!("b\"{}\"", stringify_string(&self.l)),
+      Literal::ByteChar(_) =>
+        format!("b\'{}\'", stringify_string(&self.l)),
       Literal::NumericLiteral(s) => {
         format!("{MINT}{s}{CLEAR}")
       },
@@ -96,7 +94,7 @@ impl std::string::ToString for AtomExpressionAST {
       AtomExpression::Variable(ident) => ident.to_string(),
       AtomExpression::Return(expr) => {
         if expr.is_some() {
-          format!("return {}", expr.as_ref().unwrap().to_string())
+          format!("{LIGHT_RED}return{CLEAR} {}", expr.as_ref().unwrap().to_string())
         } else {
           "return".to_owned()
         }
@@ -115,7 +113,7 @@ impl std::string::ToString for BlockExpressionChild {
         let mut text = String::new();
 
         if r#mut.is_some() {
-          text.push_str(consts::keyword::MUT);
+          text.push_str(format!("{LIGHT_RED}mut{CLEAR}").as_str());
           text.push(' ');
         };
 
@@ -285,13 +283,13 @@ impl std::string::ToString for Expression {
         match op {
           BinaryOperator::Dot | BinaryOperator::DerefDot =>
             format!(
-              "{DARK_GRAY}({CLEAR}{}{}{}{DARK_GRAY}){CLEAR}",
+              "{DARK_GRAY}({CLEAR}{}{TEAL}{}{CLEAR}{}{DARK_GRAY}){CLEAR}",
               a.to_string(),
               op.to_string(),
               b.to_string()
             ),
           _ => format!(
-            "{DARK_GRAY}({CLEAR}{} {} {}{DARK_GRAY}){CLEAR}",
+            "{DARK_GRAY}({CLEAR}{} {TEAL}{}{CLEAR} {}{DARK_GRAY}){CLEAR}",
             a.to_string(),
             op.to_string(),
             b.to_string()
@@ -300,7 +298,9 @@ impl std::string::ToString for Expression {
       },
       Expression::UnaryOperator(UnaryOperatorExpressionAST { expr, op, ..}) => {
         match op {
-          UnaryOperator::UnarySfx(UnarySfxOperator::Subscript { .. }) => todo!("tostring unarysfxoperator subscript"),
+          UnaryOperator::UnarySfx(UnarySfxOperator::Subscript { arg }) => {
+            format!("{}[{}]", expr.to_string(), arg.to_string())
+          },
           UnaryOperator::UnarySfx(UnarySfxOperator::Call { args }) => {
             format!(
               "{DARK_GRAY}({CLEAR}{}({}){DARK_GRAY}){CLEAR}",
@@ -309,10 +309,13 @@ impl std::string::ToString for Expression {
             )
           },
           UnaryOperator::UnarySfx(_) => {
-            format!("{DARK_GRAY}({CLEAR}{}{}{DARK_GRAY}){CLEAR}", expr.to_string(), op.to_string())
+            format!("{DARK_GRAY}({CLEAR}{}{TEAL}{}{DARK_GRAY}){CLEAR}", expr.to_string(), op.to_string())
+          },
+          UnaryOperator::UnaryPfx(UnaryPfxOperator::MutRef) => {
+            format!("{DARK_GRAY}({CLEAR}{TEAL}{}{CLEAR} {}{DARK_GRAY}){CLEAR}", op.to_string(), expr.to_string())
           },
           UnaryOperator::UnaryPfx(_) => {
-            format!("{DARK_GRAY}({CLEAR}{}{}{DARK_GRAY}){CLEAR}", op.to_string(), expr.to_string())
+            format!("{DARK_GRAY}({CLEAR}{TEAL}{}{CLEAR}{}{DARK_GRAY}){CLEAR}", op.to_string(), expr.to_string())
           },
         }
       },

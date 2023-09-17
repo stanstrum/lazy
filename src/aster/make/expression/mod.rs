@@ -60,6 +60,7 @@ impl PEMDAS {
         matches!(op,
           | Operator::UnarySfx(UnarySfxOperator::PostIncrement)
           | Operator::UnarySfx(UnarySfxOperator::PostDecrement)
+          | Operator::UnaryPfx(UnaryPfxOperator::MutRef)
           | Operator::UnaryPfx(UnaryPfxOperator::Ref)
           | Operator::UnaryPfx(UnaryPfxOperator::Deref)
           | Operator::UnaryPfx(UnaryPfxOperator::Not)
@@ -141,6 +142,13 @@ impl PEMDAS {
   }
 }
 
+enum LastExprComponent {
+  Empty,
+  PfxOperator,
+  SfxOperator,
+  Body,
+}
+
 impl Expression {
   fn make_expr_body(reader: &mut SourceReader) -> AsterResult<Self> {
     if let Some(ctrl_flow) = try_make!(ControlFlowAST::make, reader) {
@@ -205,6 +213,8 @@ impl Expression {
 
     let result = 'result: {
       for (txt, variant) in consts::operator::UNARY_PFX_MAP.into_iter() {
+        println!("unarypfx {} {:#?}", txt, reader.peek(txt.len()));
+
         if seek::begins_with(reader, txt) {
           break 'result Some(variant.to_owned());
         };
@@ -243,33 +253,52 @@ impl Expression {
     } else {
       reader.to(start).unwrap();
 
-      ExpectedSnafu {
-        what: "Unary Prefix Operator",
-        offset: reader.offset()
-      }.fail()
+      if let Ok(fn_call) = Expression::make_fn_call(reader) {
+        Ok(fn_call)
+      } else if let Ok(subscript) = Expression::make_subscript(reader) {
+        Ok(subscript)
+      } else {
+        ExpectedSnafu {
+          what: "Unary Prefix Operator",
+          offset: reader.offset()
+        }.fail()
+      }
     }
   }
 
   fn make_fn_call(reader: &mut SourceReader) -> AsterResult<UnarySfxOperator> {
     let start = reader.offset();
 
+    println!("make_fn_call start");
+
     let result = 'result: {
       let mut args: Vec<Expression> = vec![];
+
+      println!("part 1 {}", reader.peek_ch().unwrap());
 
       if !seek::begins_with(reader, consts::grouping::OPEN_PARENTHESIS) {
         break 'result None;
       };
 
       loop {
+        println!("part 2 {}", reader.peek_ch().unwrap());
+
         seek::optional_whitespace(reader)?;
+
+        println!("part 3 {}", reader.peek_ch().unwrap());
 
         if seek::begins_with(reader, consts::grouping::CLOSE_PARENTHESIS) {
           break;
         };
 
+        println!("part 4 {}", reader.peek_ch().unwrap());
+
         let Ok(arg_expr) = Expression::make(reader) else {
           break 'result None;
         };
+
+        println!("part 5 {}", reader.peek_ch().unwrap());
+        dbg!(&arg_expr);
 
         args.push(arg_expr);
 
@@ -289,6 +318,8 @@ impl Expression {
 
       Some(UnarySfxOperator::Call { args })
     };
+
+    println!("make_fn_call end");
 
     if let Some(result) = result {
       Ok(result)
@@ -343,22 +374,22 @@ impl Expression {
     let mut exprs: Vec<Expression> = vec![];
     let mut ops: Vec<Operator> = vec![];
 
+    let mut last = LastExprComponent::Empty;
+
     loop {
       dbg!(&exprs);
       dbg!(&ops);
 
-      match (exprs.is_empty(), ops.last()) {
-        (true, _) => {
+      match last {
+        LastExprComponent::Empty => {
           if let Some(expr) = try_make!(Expression::make_expr_body, reader) {
             exprs.push(expr);
 
-            continue;
-          }
-
-          seek::optional_whitespace(reader)?;
-
-          if let Ok(pfx) = Expression::make_unary_pfx(reader) {
+            last = LastExprComponent::Body;
+          } else if let Ok(pfx) = Expression::make_unary_pfx(reader) {
             ops.push(Operator::UnaryPfx(pfx));
+
+            last = LastExprComponent::PfxOperator;
           } else {
             return ExpectedSnafu {
               what: "Expression",
@@ -366,46 +397,60 @@ impl Expression {
             }.fail();
           };
         },
-        (false, Some(Operator::Binary(_) | Operator::UnarySfx(_)) | None) => {
+        LastExprComponent::PfxOperator => {
           seek::optional_whitespace(reader)?;
+
+          if let Some(expr) = try_make!(Expression::make_expr_body, reader) {
+            exprs.push(expr);
+
+            last = LastExprComponent::Body;
+          } else if let Ok(pfx) = Expression::make_unary_pfx(reader) {
+            ops.push(Operator::UnaryPfx(pfx));
+
+            last = LastExprComponent::PfxOperator;
+          } else {
+            return ExpectedSnafu {
+              what: "Expression",
+              offset: reader.offset()
+            }.fail();
+          };
+        },
+        LastExprComponent::Body | LastExprComponent::SfxOperator => {
+          let space = seek::optional_whitespace(reader)?;
 
           if let Ok((op, expr)) = Expression::make_binary_half(reader) {
-            exprs.push(expr);
             ops.push(Operator::Binary(op));
-          } else if let Ok(op) = Expression::make_unary_sfx(reader) {
-            ops.push(Operator::UnarySfx(op));
-          } else if let Ok(op) = Expression::make_fn_call(reader) {
-            ops.push(Operator::UnarySfx(op));
-          } else if let Ok(op) = Expression::make_subscript(reader) {
-            ops.push(Operator::UnarySfx(op));
-          } else {
-            break;
-          };
-        },
-        (false, Some(Operator::UnaryPfx(_))) => {
-          seek::optional_whitespace(reader)?;
-
-          if let Ok(expr) = Expression::make(reader) {
             exprs.push(expr);
-          } else if let Ok(op) = Expression::make_unary_sfx(reader) {
-            ops.push(Operator::UnarySfx(op));
-          } else if let Ok(op) = Expression::make_fn_call(reader) {
-            ops.push(Operator::UnarySfx(op));
-          } else if let Ok(op) = Expression::make_subscript(reader) {
-            ops.push(Operator::UnarySfx(op));
+
+            last = LastExprComponent::Body;
+          } else if let Ok(sfx) = Expression::make_unary_sfx(reader) {
+            ops.push(Operator::UnarySfx(sfx));
+
+            last = LastExprComponent::SfxOperator;
           } else {
-            return ExpectedSnafu {
-              what: "Expression",
-              offset: reader.offset()
-            }.fail();
+            reader.rewind(space).unwrap();
+
+            break;
           };
         },
       };
     };
 
+    let mut le: usize = 0;
+    let mut lo: usize = 0;
+
     for state in all::<PEMDAS>() {
       'pemdas: loop {
         for i in 0..ops.len() {
+          if exprs.len() != le || ops.len() != lo {
+            dbg!(&exprs);
+            dbg!(&ops);
+            println!("{}", "-".repeat(52));
+
+            le = exprs.len();
+            lo = ops.len();
+          };
+
           let op = &ops[i];
 
           if state.includes(op) {
@@ -461,6 +506,9 @@ impl Expression {
     };
 
     if exprs.len() != 1 || !ops.is_empty() {
+      dbg!(&exprs);
+      dbg!(&ops);
+
       panic!("PEMDAS failed");
     };
 

@@ -5,25 +5,27 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-str_to_num -> i32:
-  &str text
-{
-  mut usize acc := 0;
-  mut usize ctr := 0;
+namespace ToString {
+  str_to_num -> i32:
+    &str text
+  {
+    mut usize acc := 0;
+    mut usize ctr := 0;
 
-  while ctr < text.len() {
-    ch := text[ctr];
+    while ctr < text.len() {
+      ch := text[ctr];
 
-    if ch > b' ' && ch < b'~' {
-      acc += ch;
-    } else {
-      return 0;
+      if ch > b' ' && ch < b'~' {
+        acc += ch;
+      } else {
+        return 0;
+      };
+
+      ctr++;
     };
 
-    ctr++;
+    ctr
   };
-
-  ctr
 };
 
 main {
@@ -33,7 +35,7 @@ main {
   loop {
     io::stdin.read_line(&mut buf);
 
-    acc += str_to_num(&buf);
+    acc += ToString::str_to_num(&buf);
 
     io::println(acc.to_string());
   };

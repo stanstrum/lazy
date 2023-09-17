@@ -31,6 +31,8 @@ impl NamespaceAST {
 
     let ident = IdentAST::make(reader)?;
 
+    seek::optional_whitespace(reader)?;
+
     let mut map: HashMap<String, Structure> = HashMap::new();
     if !seek::begins_with(reader, consts::grouping::OPEN_BRACE) {
       return ExpectedSnafu {

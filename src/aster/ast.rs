@@ -155,12 +155,12 @@ impl GetSpan for BinaryOperatorExpressionAST {
   fn span(&self) -> Span {
     Span {
       start: std::cmp::min(
-        (*self.a).span().start,
-        (*self.b).span().start,
+        self.a.span().start,
+        self.b.span().start,
       ),
       end: std::cmp::max(
-        (*self.a).span().end,
-        (*self.b).span().end,
+        self.a.span().end,
+        self.b.span().end,
       ),
     }
   }

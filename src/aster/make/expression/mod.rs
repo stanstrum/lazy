@@ -340,44 +340,59 @@ impl Expression {
   }
 
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
-    let mut exprs: Vec<Expression> = vec![Expression::make_expr_body(reader)?];
+    let mut exprs: Vec<Expression> = vec![];
     let mut ops: Vec<Operator> = vec![];
 
     loop {
-      if !exprs.is_empty() {
-        if let Ok((op, expr)) = Expression::make_binary_half(reader) {
-          exprs.push(expr);
-          ops.push(Operator::Binary(op));
+      dbg!(&exprs);
+      dbg!(&ops);
 
-          continue;
-        };
+      match (exprs.is_empty(), ops.last()) {
+        (true, _) => {
+          if let Some(expr) = try_make!(Expression::make_expr_body, reader) {
+            exprs.push(expr);
 
-        if let Ok(op) = Expression::make_unary_sfx(reader) {
-          ops.push(Operator::UnarySfx(op));
+            continue;
+          }
 
-          continue;
-        };
+          seek::optional_whitespace(reader)?;
 
-        if let Ok(op) = Expression::make_fn_call(reader) {
-          ops.push(Operator::UnarySfx(op));
+          if let Ok(pfx) = Expression::make_unary_pfx(reader) {
+            ops.push(Operator::UnaryPfx(pfx));
+          } else {
+            return ExpectedSnafu {
+              what: "Expression",
+              offset: reader.offset()
+            }.fail();
+          };
+        },
+        (false, Some(Operator::Binary(_) | Operator::UnarySfx(_)) | None) => {
+          seek::optional_whitespace(reader)?;
 
-          continue;
-        };
+          if let Ok((op, expr)) = Expression::make_binary_half(reader) {
+            exprs.push(expr);
+            ops.push(Operator::Binary(op));
+          } else if let Ok(op) = Expression::make_unary_sfx(reader) {
+            ops.push(Operator::UnarySfx(op));
+          } else {
+            break;
+          };
+        },
+        (false, Some(Operator::UnaryPfx(_))) => {
+          seek::optional_whitespace(reader)?;
 
-        if let Ok(op) = Expression::make_subscript(reader) {
-          ops.push(Operator::UnarySfx(op));
-
-          continue;
-        };
+          if let Ok(expr) = Expression::make(reader) {
+            exprs.push(expr);
+          } else if let Ok(op) = Expression::make_unary_sfx(reader) {
+            ops.push(Operator::UnarySfx(op));
+          } else {
+            return ExpectedSnafu {
+              what: "Expression",
+              offset: reader.offset()
+            }.fail();
+          };
+        },
       };
-
-      if let Ok(op) = Expression::make_unary_pfx(reader) {
-        ops.push(Operator::UnaryPfx(op));
-
-        continue;
-      };
-
-      break;
     };
 
     for state in all::<PEMDAS>() {

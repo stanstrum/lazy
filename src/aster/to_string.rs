@@ -94,6 +94,14 @@ impl std::string::ToString for AtomExpressionAST {
     match &self.a {
       AtomExpression::Literal(lit) => lit.to_string(),
       AtomExpression::Variable(ident) => ident.to_string(),
+      AtomExpression::Return(expr) => {
+        if expr.is_some() {
+          format!("return {}", expr.as_ref().unwrap().to_string())
+        } else {
+          "return".to_owned()
+        }
+      },
+      AtomExpression::Break(_) => todo!("atomexpression break"),
     }
   }
 }
@@ -193,6 +201,9 @@ impl std::string::ToString for ControlFlowAST {
       ControlFlow::DoWhile(_a, _b) => {
         todo!()
       },
+      ControlFlow::Loop(body) => {
+        write!(&mut w, "{LIGHT_RED}loop{CLEAR} {}", body.to_string()).unwrap();
+      }
     };
 
     String::from_utf8(w).unwrap()

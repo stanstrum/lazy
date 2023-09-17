@@ -181,6 +181,7 @@ pub enum UnaryOperator {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum UnaryPfxOperator {
+  MutRef,
   Ref,
   Deref,
   Not,
@@ -318,6 +319,7 @@ pub enum ControlFlow {
     Box<BlockExpressionAST>,
     BoxExpr
   ),
+  Loop(Box<BlockExpressionAST>),
   // For(
   //   CondExpr, ElseBranch
   // ),
@@ -333,6 +335,8 @@ pub struct ControlFlowAST {
 pub enum AtomExpression {
   Literal(LiteralAST),
   Variable(QualifiedAST),
+  Return(Option<BoxExpr>),
+  Break(Option<BoxExpr>),
 }
 
 #[derive(Debug, Clone)]

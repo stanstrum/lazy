@@ -9,7 +9,7 @@
   ast::*,
   SourceReader,
   errors::*,
-  seek_read::seek,
+  seek,
   consts
 }, try_make};
 
@@ -37,6 +37,26 @@ impl ControlFlowAST {
       e: ControlFlow::While(
         Box::new(cond), Box::new(body)
       )
+    })
+  }
+
+  fn make_loop(reader: &mut SourceReader) -> AsterResult<Self> {
+    let start = reader.offset();
+
+    if !seek::begins_with(reader, consts::keyword::LOOP) {
+      return ExpectedSnafu {
+        what: "Keyword (loop)",
+        offset: reader.offset()
+      }.fail();
+    };
+
+    seek::optional_whitespace(reader)?;
+
+    let expr = Box::new(BlockExpressionAST::make(reader)?);
+
+    Ok(Self {
+      span: reader.span_since(start),
+      e: ControlFlow::Loop(expr)
     })
   }
 
@@ -95,6 +115,8 @@ impl ControlFlowAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     if let Some(r#while) = try_make!(ControlFlowAST::make_while, reader) {
       Ok(r#while)
+    } else if let Some(r#loop) = try_make!(ControlFlowAST::make_loop, reader) {
+      Ok(r#loop)
     } else if let Some(r#if) = try_make!(ControlFlowAST::make_if, reader) {
       Ok(r#if)
     } else {

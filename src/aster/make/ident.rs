@@ -59,6 +59,7 @@ impl IdentAST {
       | consts::keyword::ELSE
       | consts::keyword::DO
       | consts::keyword::WHILE
+      | consts::keyword::LOOP
       | consts::keyword::FOR
       | consts::keyword::RETURN
       | consts::keyword::BREAK

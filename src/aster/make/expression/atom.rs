@@ -11,15 +11,50 @@
     SourceReader,
     AsterResult,
     errors::*,
+    seek,
+    consts
   },
   try_make,
 };
 
 impl AtomExpressionAST {
+  fn make_return(reader: &mut SourceReader) -> AsterResult<Self> {
+    let start = reader.offset();
+
+    if !seek::begins_with(reader, consts::keyword::RETURN) {
+      return ExpectedSnafu {
+        what: "Keyword (return)",
+        offset: reader.offset()
+      }.fail();
+    };
+
+    let after_ret = reader.offset();
+
+    let expr = if seek::optional_whitespace(reader)? != 0 {
+      if let Ok(expr) = Expression::make(reader) {
+        Some(Box::new(expr))
+      } else {
+        reader.to(after_ret).unwrap();
+
+        None
+      }
+    } else {
+      None
+    };
+
+    Ok(Self {
+      span: reader.span_since(start),
+      out: Type::Unresolved,
+      a: AtomExpression::Return(expr),
+    })
+  }
+
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
-    if let Some(lit) = try_make!(LiteralAST::make, reader) {
+    if let Some(ret) = try_make!(AtomExpressionAST::make_return, reader) {
+      Ok(ret)
+    } else if let Some(lit) = try_make!(LiteralAST::make, reader) {
       Ok(Self {
         span: reader.span_since(start),
         a: AtomExpression::Literal(lit),

@@ -35,6 +35,7 @@ pub mod keyword {
   pub const ELSE: &str = "else";
   pub const DO: &str = "do";
   pub const WHILE: &str = "while";
+  pub const LOOP: &str = "loop";
   pub const FOR: &str = "for";
 
   pub const RETURN: &str = "return";
@@ -174,6 +175,7 @@ pub mod operator {
   };
 
   pub static UNARY_PFX_MAP: phf::OrderedMap<&'static str, UnaryPfxOperator> = phf_ordered_map! {
+    "&mut" => UnaryPfxOperator::MutRef,
     "&" => UnaryPfxOperator::Ref,
     "*" => UnaryPfxOperator::Deref,
     "!" => UnaryPfxOperator::Not,

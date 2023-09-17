@@ -5,14 +5,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use crate::try_make;
+use super::try_make;
 
-use super::super::{
+use crate::aster::{
   ast::*,
   SourceReader,
   errors::*,
   consts,
-  seek_read::seek
+  seek
 };
 
 impl MemberFunctionDeclAST {

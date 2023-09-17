@@ -35,8 +35,6 @@ pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {
     ident, map: HashMap::new()
   };
 
-  // println!("{}", reader.at());
-
   loop {
     seek::optional_whitespace(reader)?;
 
@@ -45,6 +43,12 @@ pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {
     };
 
     let (name, structure) = Structure::make(reader)?;
+    if !seek::begins_with(reader, consts::punctuation::SEMICOLON) {
+      return ExpectedSnafu {
+        what: "Punctuation (\";\")",
+        offset: reader.offset()
+      }.fail();
+    };
 
     global.map.insert(name, structure);
   };

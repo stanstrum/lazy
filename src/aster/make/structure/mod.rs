@@ -5,55 +5,57 @@
  * LICENSE file in the root directory of this source tree.
  */
 
- use crate::try_make;
+mod r#impl;
+mod r#trait;
+mod function;
+mod member_function;
+mod namespace;
 
-use super::super::{
+use crate::aster::{
   ast::*,
   SourceReader,
-  seek_read::{seek, read},
+  seek_read::read,
   consts,
   errors::*,
   AsterResult
 };
 
+use super::try_make;
+
 impl Structure {
   pub fn make(reader: &mut SourceReader) -> AsterResult<(String, Self)> {
-    let structure = if let Some(func) = try_make!(FunctionAST::make, reader) {
-      (
+    if let Some(func) = try_make!(FunctionAST::make, reader) {
+      Ok((
         func.decl.ident.text.to_owned(),
         Structure::Function(func)
-      )
+      ))
     } else if read::begins_with(reader, consts::keyword::TRAIT) {
       let r#trait = TraitAST::make(reader)?;
 
-      (
+      Ok((
         r#trait.ident.text.to_owned(),
         Structure::Trait(r#trait)
-      )
+      ))
     } else if let Some(r#impl) = try_make!(ImplAST::make, reader) {
-      (
+      Ok((
         format!(
           "impl!{}",
           r#impl.ty.to_hashable()
         ),
         Structure::Impl(Impl::Impl(r#impl))
-      )
+      ))
     } else if let Some(impl_for) = try_make!(ImplForAST::make, reader) {
-      (
+      Ok((
         format!("impl!{}!{}", impl_for.ty.to_hashable(), impl_for.r#trait.to_hashable()),
         Structure::Impl(Impl::ImplFor(impl_for))
-      )
+      ))
+    } else if let Some(ns) = try_make!(NamespaceAST::make, reader) {
+      Ok((
+        ns.ident.text.to_owned(),
+        Structure::Namespace(ns)
+      ))
     } else {
-      return UnknownSnafu { what: "Structure", offset: reader.offset() }.fail()
-    };
-
-    if seek::begins_with(reader, consts::punctuation::SEMICOLON) {
-      Ok(structure)
-    } else {
-      ExpectedSnafu {
-        what: "Punctuation (\";\")",
-        offset: reader.offset()
-      }.fail()
+      UnknownSnafu { what: "Structure", offset: reader.offset() }.fail()
     }
   }
 }

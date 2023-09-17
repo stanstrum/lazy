@@ -20,6 +20,8 @@ pub mod keyword {
   pub const IMPLEMENTS: &str = "implements";
   pub const EXTENDS: &str = "extends";
 
+  pub const NAMESPACE: &str = "namespace";
+
   pub const PUB: &str = "pub";
   pub const STATIC: &str = "static";
 

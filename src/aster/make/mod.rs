@@ -10,12 +10,8 @@ mod ident;
 mod expression;
 mod qualified;
 mod literal;
-mod function;
 mod structure;
-mod r#trait;
-mod member_function;
 mod keyword;
-mod r#impl;
 
 pub use super::{
   seek_read::{seek, read},

@@ -523,5 +523,6 @@ make_get_span![
   FunctionAST,
   ControlFlowAST,
   UnaryOperatorExpressionAST,
-  BindingAST
+  BindingAST,
+  NamespaceAST
 ];

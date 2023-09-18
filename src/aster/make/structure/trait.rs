@@ -61,8 +61,7 @@ impl TraitAST {
 
     Ok(Self {
       span: reader.span_since(start),
-      ident,
-      decls,
+      ident, decls
     })
   }
 }

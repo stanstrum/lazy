@@ -6,6 +6,8 @@
  */
 
 mod aster;
+mod typecheck;
+mod codegen;
 
 use getopts::{self, Options};
 
@@ -101,7 +103,31 @@ fn compile() -> Result<(), LazyError> {
 
   // sponge: insert here an algorithm to rearrange operators by precedence
 
-  todo!("code generation")
+  let checked = {
+    match typecheck::check(asterized) {
+      Ok(checked) => checked,
+      Err(err) => {
+        return CompilationSnafu {
+          msg: format!("Type check failed: {}", err.to_string())
+        }.fail();
+      }
+    }
+  };
+
+  let code = {
+    match codegen::gen(&checked) {
+      Ok(code) => code,
+      Err(err) => {
+        return CompilationSnafu {
+          msg: format!("Code generation failed: {}", err.to_string())
+        }.fail();
+      }
+    }
+  };
+
+  /* write to file ... */
+
+  Ok(())
 }
 
 fn print_usage(program: &str, opts: Options) {

@@ -17,7 +17,7 @@ pub struct Span {
   pub end: usize,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct NamespaceAST {
   pub span: Span,
   pub ident: IdentAST,
@@ -29,7 +29,7 @@ pub struct KeywordAST {
   pub span: Span,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MemberFunctionDeclAST {
   pub span: Span,
 
@@ -40,7 +40,7 @@ pub struct MemberFunctionDeclAST {
   pub decl: FunctionDeclAST
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MemberFunctionAST {
   pub span: Span,
 
@@ -48,14 +48,14 @@ pub struct MemberFunctionAST {
   pub body: BlockExpressionAST
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TraitAST {
   pub span: Span,
   pub ident: IdentAST,
   pub decls: Vec<MemberFunctionDeclAST>
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ImplAST {
   pub span: Span,
 
@@ -66,7 +66,7 @@ pub struct ImplAST {
   // }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ImplForAST {
   pub span: Span,
 
@@ -79,7 +79,7 @@ pub struct ImplForAST {
   // }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Impl {
   Impl(ImplAST),
   ImplFor(ImplForAST)
@@ -94,21 +94,21 @@ impl GetSpan for Impl {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TypeAliasAST {
   pub span: Span,
   pub ident: IdentAST,
   pub ty: TypeAST
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct StructAST {
   pub span: Span,
   pub ident: IdentAST,
   pub members: Vec<(TypeAST, IdentAST)>
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Structure {
   Namespace(NamespaceAST),
   Function(FunctionAST),
@@ -131,7 +131,7 @@ impl GetSpan for &Structure {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Variable(pub TypeAST, pub IdentAST);
 
 #[derive(Debug, Clone)]
@@ -396,7 +396,7 @@ impl GetSpan for BlockExpressionChild {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FunctionDeclAST {
   pub span: Span,
   pub ident: IdentAST,
@@ -404,7 +404,7 @@ pub struct FunctionDeclAST {
   pub ret: TypeAST,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FunctionAST {
   pub span: Span,
   pub decl: FunctionDeclAST,

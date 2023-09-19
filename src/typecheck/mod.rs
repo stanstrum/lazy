@@ -6,10 +6,40 @@
  */
 
 mod errors;
+mod resolve;
+
 use errors::*;
 
-use crate::aster::ast::NamespaceAST;
+use crate::aster::ast::*;
 
-pub fn check(_global: NamespaceAST) -> TypeCheckResult<NamespaceAST> {
-  NotImplementedSnafu { what: "Type checking" }.fail()
+#[derive(Clone, Copy)]
+enum ScopePointer {
+  Namespace(*mut NamespaceAST),
+  Function(*mut FunctionAST),
+  Expression(*mut Expression),
+}
+
+impl ScopePointer {
+  pub fn new_ns(ptr: *mut NamespaceAST) -> Self {
+    Self::Namespace(ptr)
+  }
+
+  pub fn new_fn(ptr: *mut FunctionAST) -> Self {
+    Self::Function(ptr)
+  }
+
+  pub fn new_expr(ptr: *mut Expression) -> Self {
+    Self::Expression(ptr)
+  }
+}
+
+pub struct Checker {
+  stack: Vec<ScopePointer>
+}
+
+pub fn check(mut global: NamespaceAST) -> TypeCheckResult<NamespaceAST> {
+  let mut checker = Checker::new(&mut global);
+  checker.resolve_ns()?;
+
+  Ok(global)
 }

@@ -388,7 +388,7 @@ impl std::string::ToString for FunctionAST {
     let mut w: Vec<u8> = vec![];
 
     write!(&mut w, "{}", self.decl.to_string()).unwrap();
-    write!(&mut w, "{};", self.body.to_string()).unwrap();
+    write!(&mut w, "{}", self.body.to_string()).unwrap();
 
     String::from_utf8(w)
       .expect("Failed to write buffer to String")

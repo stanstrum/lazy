@@ -11,7 +11,10 @@ use snafu::prelude::*;
 #[snafu(visibility(pub))]
 pub enum TypeCheckError {
   #[snafu(display("Not implemented: {what}"))]
-  NotImplemented { what: String }
+  NotImplemented { what: String },
+
+  #[snafu(display("Unknown identifier"))]
+  UnknownIdent { text: String }
 }
 
 pub type TypeCheckResult<T> = Result<T, TypeCheckError>;

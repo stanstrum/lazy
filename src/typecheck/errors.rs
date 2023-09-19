@@ -7,6 +7,8 @@
 
 use snafu::prelude::*;
 
+use crate::aster::Span;
+
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub))]
 pub enum TypeCheckError {
@@ -14,10 +16,10 @@ pub enum TypeCheckError {
   NotImplemented { what: String },
 
   #[snafu(display("Unknown identifier: {text}"))]
-  UnknownIdent { text: String },
+  UnknownIdent { text: String, span: Span },
 
   #[snafu(display("Invalid type: {text}"))]
-  InvalidType { text: String }
+  InvalidType { text: String, span: Span }
 }
 
 pub type TypeCheckResult<T> = Result<T, TypeCheckError>;

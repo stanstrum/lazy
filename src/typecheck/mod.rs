@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-mod errors;
+pub mod errors;
 mod resolve;
 
 use errors::*;

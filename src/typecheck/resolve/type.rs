@@ -18,8 +18,13 @@ impl Checker {
         self.resolve_type(ast)
       },
       Type::ArrayOf(lit, ast) => {
-        if lit.as_ref().is_some_and(|lit| !is_valid_array_length(&lit)) {
-          return InvalidTypeSnafu { text: "Array length is invalid" }.fail();
+        let lit = lit.as_ref();
+
+        if lit.is_some_and(|lit| !is_valid_array_length(&lit)) {
+          return InvalidTypeSnafu {
+            text: "Array length is invalid",
+            span: lit.unwrap().span.clone()
+          }.fail();
         };
 
         self.resolve_type(&mut **ast)
@@ -57,7 +62,8 @@ impl Checker {
             },
             _ => {
               return UnknownIdentSnafu {
-                text: qual.to_hashable()
+                text: qual.to_hashable(),
+                span: qual.span.clone()
               }.fail();
             }
           }

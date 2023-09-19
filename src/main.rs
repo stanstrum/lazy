@@ -16,6 +16,8 @@ use getopts::{self, Options};
 use snafu::prelude::*;
 use crate::aster::formatting::*;
 
+use typecheck::errors::TypeCheckError;
+
 pub(crate) mod colors;
 
 #[derive(Debug, Snafu)]
@@ -107,6 +109,21 @@ fn compile() -> Result<(), LazyError> {
     match typecheck::check(asterized) {
       Ok(checked) => checked,
       Err(err) => {
+        match &err {
+          TypeCheckError::NotImplemented { what } => {},
+          TypeCheckError::UnknownIdent { text, span }
+          | TypeCheckError::InvalidType { text, span } => {
+            let message = Message {
+              level: Level::Error,
+              msg: err.to_string(),
+              sub: "here".to_owned(),
+              span: span.to_owned(),
+            };
+
+            println!("{}", format_message(&reader.src(), message));
+          },
+        };
+
         return CompilationSnafu {
           msg: format!("Type check failed: {}", err.to_string())
         }.fail();

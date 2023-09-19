@@ -409,6 +409,7 @@ pub struct FunctionAST {
   pub span: Span,
   pub decl: FunctionDeclAST,
   pub body: BlockExpressionAST,
+  pub vars: Vec<Variable>
 }
 
 pub struct IntrinsicType {

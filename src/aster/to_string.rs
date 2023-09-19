@@ -368,8 +368,8 @@ impl std::string::ToString for FunctionDeclAST {
 
       let last = self.args.len() - 1;
 
-      for (i, arg) in self.args.iter().enumerate() {
-        write!(&mut w, "  {} {}", arg.0.to_string(), arg.1.to_string()).unwrap();
+      for (i, (ident, ty)) in self.args.iter().enumerate() {
+        write!(&mut w, "  {} {}", ty.to_string(), ident.to_string()).unwrap();
 
         if i != last {
           write!(&mut w, ",").unwrap();

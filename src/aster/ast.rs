@@ -132,9 +132,6 @@ impl GetSpan for &Structure {
 }
 
 #[derive(Debug, Clone)]
-pub struct Variable(pub TypeAST, pub IdentAST);
-
-#[derive(Debug, Clone)]
 pub struct SubExpressionAST {
   pub span: Span,
   pub out: Type,
@@ -400,7 +397,7 @@ impl GetSpan for BlockExpressionChild {
 pub struct FunctionDeclAST {
   pub span: Span,
   pub ident: IdentAST,
-  pub args: Vec<Variable>,
+  pub args: HashMap<IdentAST, TypeAST>,
   pub ret: TypeAST,
 }
 
@@ -409,7 +406,7 @@ pub struct FunctionAST {
   pub span: Span,
   pub decl: FunctionDeclAST,
   pub body: BlockExpressionAST,
-  pub vars: Vec<Variable>
+  pub vars: HashMap<String, Type>
 }
 
 pub struct IntrinsicType {
@@ -512,6 +509,20 @@ pub struct IdentAST {
   pub span: Span,
   pub text: String,
 }
+
+impl std::hash::Hash for IdentAST {
+  fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    self.text.hash(state);
+  }
+}
+
+impl std::cmp::PartialEq for IdentAST {
+  fn eq(&self, other: &Self) -> bool {
+    self.text == other.text
+  }
+}
+
+impl std::cmp::Eq for IdentAST {}
 
 macro_rules! make_get_span [
   ($i:ident) => {

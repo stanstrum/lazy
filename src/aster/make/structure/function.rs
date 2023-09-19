@@ -5,7 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
- use crate::aster::{
+use std::collections::HashMap;
+
+use crate::aster::{
   SourceReader,
   AsterResult,
   ast::*,
@@ -40,7 +42,7 @@ impl FunctionDeclAST {
       }
     };
 
-    let mut args: Vec<Variable> = vec![];
+    let mut args: HashMap<IdentAST, TypeAST> = HashMap::new();
 
     // arguments (optional)
     if seek::begins_with(reader, consts::punctuation::COLON) {
@@ -55,7 +57,7 @@ impl FunctionDeclAST {
 
         seek::optional_whitespace(reader)?;
 
-        args.push(Variable(arg_ty, arg_ident));
+        args.insert(arg_ident, arg_ty);
 
         if !seek::begins_with(reader, consts::punctuation::COMMA) {
           break;
@@ -83,7 +85,7 @@ impl FunctionAST {
     Ok(Self {
       span: reader.span_since(start),
       decl, body,
-      vars: vec![]
+      vars: HashMap::new()
     })
   }
 }

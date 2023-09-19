@@ -13,7 +13,7 @@ pub enum TypeCheckError {
   #[snafu(display("Not implemented: {what}"))]
   NotImplemented { what: String },
 
-  #[snafu(display("Unknown identifier"))]
+  #[snafu(display("Unknown identifier: {text}"))]
   UnknownIdent { text: String }
 }
 

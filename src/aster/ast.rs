@@ -346,9 +346,15 @@ pub struct ControlFlowAST {
 }
 
 #[derive(Debug, Clone)]
+pub enum VariableReference {
+  Unresolved,
+  Resolved(*const BindingAST)
+}
+
+#[derive(Debug, Clone)]
 pub enum AtomExpression {
   Literal(LiteralAST),
-  Variable(QualifiedAST),
+  Variable(QualifiedAST, VariableReference),
   Return(Option<BoxExpr>),
   Break(Option<BoxExpr>),
 }
@@ -365,6 +371,7 @@ pub struct BlockExpressionAST {
   pub span: Span,
   pub out: Type,
   pub children: Vec<BlockExpressionChild>,
+  pub vars: HashMap<IdentAST, *mut BindingAST>,
   pub returns_last: bool,
 }
 
@@ -406,7 +413,6 @@ pub struct FunctionAST {
   pub span: Span,
   pub decl: FunctionDeclAST,
   pub body: BlockExpressionAST,
-  pub vars: HashMap<String, Type>
 }
 
 pub struct IntrinsicType {

@@ -16,6 +16,8 @@ use super::super::super::{
 
 use super::try_make;
 
+use std::collections::HashMap;
+
 impl BlockExpressionAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
@@ -67,7 +69,9 @@ impl BlockExpressionAST {
 
     Ok(Self {
       span: reader.span_since(start),
-      children, returns_last, out: Type::Unresolved
+      children, returns_last,
+      vars: HashMap::new(),
+      out: Type::Unresolved
     })
   }
 }

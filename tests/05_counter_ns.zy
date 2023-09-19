@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+type str := &[]u8;
+
 namespace ToString {
   str_to_num -> i32:
     &str text

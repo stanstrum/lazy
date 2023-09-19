@@ -85,7 +85,6 @@ impl FunctionAST {
     Ok(Self {
       span: reader.span_since(start),
       decl, body,
-      vars: HashMap::new()
     })
   }
 }

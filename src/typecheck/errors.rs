@@ -14,7 +14,10 @@ pub enum TypeCheckError {
   NotImplemented { what: String },
 
   #[snafu(display("Unknown identifier: {text}"))]
-  UnknownIdent { text: String }
+  UnknownIdent { text: String },
+
+  #[snafu(display("Invalid type: {text}"))]
+  InvalidType { text: String }
 }
 
 pub type TypeCheckResult<T> = Result<T, TypeCheckError>;

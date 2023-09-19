@@ -5,8 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+type str := []u32;
+type c_str := []u8;
+
 println -> usize:
-  &[]u8 text
+  &str text
 {
   sz1 := write(text);
   sz2 := write(b"\n");
@@ -16,7 +19,7 @@ println -> usize:
 
 main -> i32:
   i32 argc,
-  &[]str argv
+  &[]c_str argv
 {
   println(b"Hello, world!");
 

@@ -16,6 +16,7 @@ use crate::aster::ast::*;
 enum ScopePointer {
   Namespace(*mut NamespaceAST),
   Function(*mut FunctionAST),
+  Block(*mut BlockExpressionAST),
   Expression(*mut Expression),
 }
 
@@ -39,7 +40,7 @@ pub struct Checker {
 
 pub fn check(mut global: NamespaceAST) -> TypeCheckResult<NamespaceAST> {
   let mut checker = Checker::new(&mut global);
-  checker.resolve_ns()?;
+  checker.resolve_ns(&mut global)?;
 
   Ok(global)
 }

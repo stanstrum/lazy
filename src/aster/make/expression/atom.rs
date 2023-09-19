@@ -64,7 +64,7 @@ impl AtomExpressionAST {
       Ok(Self {
         span: reader.span_since(start),
         out: Type::Unresolved,
-        a: AtomExpression::Variable(qual)
+        a: AtomExpression::Variable(qual, VariableReference::Unresolved)
       })
     } else {
       UnknownSnafu {

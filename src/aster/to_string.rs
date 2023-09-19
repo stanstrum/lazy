@@ -91,7 +91,7 @@ impl std::string::ToString for AtomExpressionAST {
   fn to_string(&self) -> String {
     match &self.a {
       AtomExpression::Literal(lit) => lit.to_string(),
-      AtomExpression::Variable(ident) => ident.to_string(),
+      AtomExpression::Variable(ident, _) => ident.to_string(),
       AtomExpression::Return(expr) => {
         if expr.is_some() {
           format!("{LIGHT_RED}return{CLEAR} {}", expr.as_ref().unwrap().to_string())

@@ -114,6 +114,9 @@ fn compile() -> Result<(), LazyError> {
     }
   };
 
+  dbg!(&checked);
+  println!("{};", checked.to_string());
+
   let code = {
     match codegen::gen(&checked) {
       Ok(code) => code,
@@ -124,6 +127,9 @@ fn compile() -> Result<(), LazyError> {
       }
     }
   };
+
+  dbg!(&code);
+  // println!("{};", code.to_string());
 
   /* write to file ... */
 

@@ -74,11 +74,11 @@ impl std::string::ToString for LiteralAST {
   fn to_string(&self) -> String {
     match &self.l {
       Literal::UnicodeString(_) =>
-        format!("\"{}\"", stringify_string(&self.l)),
+        format!("{LIGHT_YELLOW}\"{}\"{CLEAR}", stringify_string(&self.l)),
       Literal::ByteString(_) =>
-        format!("b\"{}\"", stringify_string(&self.l)),
+        format!("{LIGHT_YELLOW}b\"{}\"{CLEAR}", stringify_string(&self.l)),
       Literal::ByteChar(_) =>
-        format!("b\'{}\'", stringify_string(&self.l)),
+        format!("{LIGHT_YELLOW}b\'{}\'{CLEAR}", stringify_string(&self.l)),
       Literal::NumericLiteral(s) => {
         format!("{MINT}{s}{CLEAR}")
       },

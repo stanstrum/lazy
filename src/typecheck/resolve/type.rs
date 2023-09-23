@@ -9,7 +9,7 @@ use super::*;
 
 impl Checker {
   pub fn resolve_type(&mut self, ast: &mut TypeAST) -> TypeCheckResult<()> {
-    match &mut ast.e {
+    match &mut ast.e.clone() {
       Type::Intrinsic(_) | Type::Defined(_) => Ok(()),
       Type::ConstReferenceTo(ast)
       | Type::MutReferenceTo(ast)
@@ -59,8 +59,12 @@ impl Checker {
             },
             (true, Some(Structure::TypeAlias(alias))) => {
               self.resolve_type(&mut alias.ty)?;
+
+              ast.e = Type::Defined(&alias.ty);
             },
             _ => {
+              dbg!(is_last, map.get_mut(&part));
+
               return UnknownIdentSnafu {
                 text: qual.to_hashable(),
                 span: qual.span.clone()

@@ -1,4 +1,4 @@
-/* Copyright (c) 2023, Stan Strum
+/* Copyright (c) 2023 Stan Strum
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -35,7 +35,7 @@ main {
   mut usize acc := 0;
 
   loop {
-    io::stdin.read_line(&mut buf);
+    io::stdin().read_line(&mut buf);
 
     acc += ToString::str_to_num(&buf);
 

@@ -28,8 +28,7 @@ use enum_iterator::{Sequence, all};
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, Sequence)]
 enum PEMDAS {
-  Dot,
-  SubscriptCall,
+  DotAndSubscriptAndCall,
   Unary,
   Bit,
   Exp,
@@ -44,14 +43,10 @@ enum PEMDAS {
 impl PEMDAS {
   fn includes(&self, op: &Operator) -> bool {
     match self {
-      PEMDAS::Dot => {
+      PEMDAS::DotAndSubscriptAndCall => {
         matches!(op,
           | Operator::Binary(BinaryOperator::Dot)
           | Operator::Binary(BinaryOperator::DerefDot)
-        )
-      },
-      PEMDAS::SubscriptCall => {
-        matches!(op,
           | Operator::UnarySfx(UnarySfxOperator::Subscript { .. })
           | Operator::UnarySfx(UnarySfxOperator::Call { .. })
         )
@@ -456,6 +451,8 @@ impl Expression {
                 });
 
                 exprs[i] = new_expr;
+
+                continue 'pemdas;
               },
               Operator::UnarySfx(_) => {
                 let expr = Box::new(exprs[i].to_owned());
@@ -470,6 +467,8 @@ impl Expression {
                 });
 
                 exprs[i] = new_expr;
+
+                continue 'pemdas;
               },
             }
           };

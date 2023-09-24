@@ -20,21 +20,21 @@ impl Checker {
         | Type::MutReferenceTo(ast)
         | Type::ConstPtrTo(ast)
         | Type::MutPtrTo(ast) => {
-          self.resolve_type(ast);
+          self.resolve_type(ast)?;
 
           return Ok(());
         },
         Type::ArrayOf(lit, ast) => {
           let lit = lit.as_ref();
 
-          if lit.is_some_and(|lit| !is_valid_array_length(&lit)) {
+          if lit.is_some_and(|lit| !is_valid_array_length(lit)) {
             return InvalidTypeSnafu {
               text: "Array length is invalid",
               span: lit.unwrap().span.clone()
             }.fail();
           };
 
-          self.resolve_type(&mut **ast)?;
+          self.resolve_type(ast)?;
 
           return Ok(());
         },
@@ -90,7 +90,6 @@ impl Checker {
         },
         Type::Unresolved => todo!("type alias dest unresolved"),
       };
-
     };
 
     ast.e = what_to_replace_with;

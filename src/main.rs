@@ -120,12 +120,12 @@ fn compile() -> Result<(), LazyError> {
               span: span.to_owned(),
             };
 
-            println!("{}", format_message(&reader.src(), message));
+            println!("{}", format_message(reader.src(), message));
           },
         };
 
         return CompilationSnafu {
-          msg: format!("Type check failed: {}", err.to_string())
+          msg: format!("Type check failed: {err}")
         }.fail();
       }
     }
@@ -139,7 +139,7 @@ fn compile() -> Result<(), LazyError> {
       Ok(code) => code,
       Err(err) => {
         return CompilationSnafu {
-          msg: format!("Code generation failed: {}", err.to_string())
+          msg: format!("Code generation failed: {err}")
         }.fail();
       }
     }

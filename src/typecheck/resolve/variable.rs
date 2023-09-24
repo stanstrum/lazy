@@ -34,7 +34,7 @@ impl Checker {
       .iter()
       .filter_map(
         |ptr|
-          match &*ptr {
+          match ptr {
             ScopePointer::Namespace(ns) => Some(*ns),
             _ => None
           }

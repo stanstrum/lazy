@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+type str := &[]u32;
+
 hello_explicit {
   &str hello := "hello";
   [5]u8 hello_bytes := b"hello";

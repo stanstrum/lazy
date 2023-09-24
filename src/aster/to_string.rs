@@ -343,6 +343,14 @@ impl std::string::ToString for TypeAST {
       Type::Unknown(ref ident) => {
         format!("{DARK_GRAY}/* unknown */{CLEAR} {LIGHT_RED}{UNDERLINE}{}{CLEAR}", ident.to_string())
       },
+      Type::Defined(defined) => {
+        let defined = unsafe { &*defined };
+        format!("{DARK_GRAY}/* {}:{} */{CLEAR} {}",
+          defined.span.start,
+          defined.span.end,
+          defined.to_string()
+        )
+      },
       _ => todo!("exhaustive typeast: {:#?}", self.e)
     }
   }

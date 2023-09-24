@@ -110,9 +110,9 @@ fn compile() -> Result<(), LazyError> {
       Ok(checked) => checked,
       Err(err) => {
         match &err {
-          TypeCheckError::NotImplemented { text, span }
-          | TypeCheckError::UnknownIdent { text, span }
-          | TypeCheckError::InvalidType { text, span } => {
+          TypeCheckError::NotImplemented { span, .. }
+          | TypeCheckError::UnknownIdent { span, .. }
+          | TypeCheckError::InvalidType { span, .. } => {
             let message = Message {
               level: Level::Error,
               msg: err.to_string(),

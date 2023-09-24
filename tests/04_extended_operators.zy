@@ -1,6 +1,8 @@
+type c_str := []u8;
+
 main -> i32:
   i32 argc,
-  &[]str argv
+  &[]c_str argv
 {
   a + b * c / 2 + e * m * c ** 2;
   a = a.b.c.d->c;

@@ -348,7 +348,8 @@ pub struct ControlFlowAST {
 #[derive(Debug, Clone)]
 pub enum VariableReference {
   Unresolved,
-  Resolved(*const BindingAST)
+  ResolvedVariable(*const BindingAST),
+  ResolvedFunction(*const FunctionAST),
 }
 
 #[derive(Debug, Clone)]
@@ -424,6 +425,7 @@ pub struct IntrinsicType {
 #[derive(Debug, Clone)]
 pub enum Type {
   Intrinsic(*const IntrinsicType),
+  Function(*const FunctionAST),
   ConstReferenceTo(Box<TypeAST>),
   MutReferenceTo(Box<TypeAST>),
   ConstPtrTo(Box<TypeAST>),

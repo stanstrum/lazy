@@ -10,7 +10,9 @@ use super::*;
 impl Checker {
   pub fn resolve_type(&mut self, ast: &mut TypeAST) -> TypeCheckResult<()> {
     match &mut ast.e.clone() {
-      Type::Intrinsic(_) | Type::Defined(_) => Ok(()),
+      Type::Intrinsic(_)
+      | Type::Defined(_)
+      | Type::Function(_) => Ok(()),
       Type::ConstReferenceTo(ast)
       | Type::MutReferenceTo(ast)
       | Type::ConstPtrTo(ast)
@@ -57,14 +59,18 @@ impl Checker {
             (false, Some(Structure::Namespace(ns))) => {
               res_stack.push(&mut *ns);
             },
+            (false, _) if part == "super" => {
+              res_stack.pop();
+            },
             (true, Some(Structure::TypeAlias(alias))) => {
               self.resolve_type(&mut alias.ty)?;
 
               ast.e = Type::Defined(&alias.ty);
             },
+            (true, Some(Structure::Function(func))) => {
+              ast.e = Type::Function(func);
+            },
             _ => {
-              dbg!(is_last, map.get_mut(&part));
-
               return UnknownIdentSnafu {
                 text: qual.to_hashable(),
                 span: qual.span.clone()

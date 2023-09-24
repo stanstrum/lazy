@@ -40,7 +40,10 @@ impl IsResolved for Type {
   fn is_resolved(&self) -> bool {
     match self {
       Type::Intrinsic(_) => true,
-      | Type::ConstReferenceTo(ast)
+      Type::Function(func) => {
+        todo!();
+      }
+      Type::ConstReferenceTo(ast)
       | Type::MutReferenceTo(ast)
       | Type::ConstPtrTo(ast)
       | Type::MutPtrTo(ast) => ast.is_resolved(),

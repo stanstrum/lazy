@@ -35,7 +35,7 @@ impl Checker {
         match &mut atom.a {
           AtomExpression::Literal(lit) => {},
           AtomExpression::Variable(qual, resolved) => {
-            *resolved = VariableReference::Resolved(self.resolve_variable(qual)?);
+            *resolved = self.resolve_variable(qual)?;
           },
           AtomExpression::Return(expr) => todo!("atom return"),
           AtomExpression::Break(_) => todo!("atom break"),
@@ -79,9 +79,6 @@ impl Checker {
       },
     };
 
-    NotImplementedSnafu {
-      text: "resolve_expression",
-      span: expr.span()
-    }.fail()
+    Ok(())
   }
 }

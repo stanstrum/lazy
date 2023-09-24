@@ -12,10 +12,14 @@ impl Checker {
     let map = &mut ns.map;
 
     // resolve names
-    let names = map
+    let mut names = map
       .keys()
       .map(|name| name.to_owned())
       .collect::<Vec<String>>();
+
+    names.sort_by(|a, b|
+      map.get(a).unwrap().span().start.cmp(&map.get(b).unwrap().span().start)
+    );
 
     for name in names.iter() {
       match map.get_mut(name).unwrap() {

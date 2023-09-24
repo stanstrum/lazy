@@ -80,7 +80,8 @@ impl Checker {
     };
 
     NotImplementedSnafu {
-      what: "resolve_expression"
+      text: "resolve_expression",
+      span: expr.span()
     }.fail()
   }
 }

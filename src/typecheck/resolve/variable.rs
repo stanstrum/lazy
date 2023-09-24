@@ -32,7 +32,8 @@ impl Checker {
       println!("{}", qual.to_string());
 
       return NotImplementedSnafu {
-        what: "Qualified variable"
+        text: "Qualified variable",
+        span: qual.span()
       }.fail();
     };
 

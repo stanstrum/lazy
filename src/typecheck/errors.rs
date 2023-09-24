@@ -12,8 +12,8 @@ use crate::aster::Span;
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub))]
 pub enum TypeCheckError {
-  #[snafu(display("Not implemented: {what}"))]
-  NotImplemented { what: String },
+  #[snafu(display("Not implemented: {text}"))]
+  NotImplemented { text: String, span: Span },
 
   #[snafu(display("Unknown identifier: {text}"))]
   UnknownIdent { text: String, span: Span },

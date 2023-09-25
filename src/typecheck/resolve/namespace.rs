@@ -17,9 +17,15 @@ impl Checker {
       .map(|name| name.to_owned())
       .collect::<Vec<String>>();
 
-    names.sort_by(|a, b|
-      map.get(a).unwrap().span().start.cmp(&map.get(b).unwrap().span().start)
-    );
+    let get_start = |name: &String|
+      map.get(name).unwrap().span().start;
+
+    names.sort_by(|a, b| {
+      let a = get_start(a);
+      let b = get_start(b);
+
+      a.cmp(&b)
+    });
 
     for name in names.iter() {
       match map.get_mut(name).unwrap() {

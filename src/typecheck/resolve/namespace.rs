@@ -46,18 +46,10 @@ impl Checker {
           for (ty, ident) in r#struct.members.iter_mut() {
             self.resolve_type(ty)?;
           };
-
-          for scope in self.stack.iter().rev() {
-            match scope {
-              ScopePointer::Namespace(_) => todo!(),
-              ScopePointer::Function(_) => todo!(),
-              ScopePointer::Block(_) => todo!(),
-              ScopePointer::Expression(_) => todo!(),
-            }
-          };
         },
-        Structure::Trait(_) => todo!(),
-        Structure::Impl(_) => todo!(),
+        Structure::Trait(_) => todo!("resolve trait"),
+        Structure::Impl(Impl::Impl(_)) => todo!("resolve impl"),
+        Structure::Impl(Impl::ImplFor(_)) => todo!("resolve implfor"),
       };
     };
 

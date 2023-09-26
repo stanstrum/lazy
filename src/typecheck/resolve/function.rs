@@ -12,8 +12,6 @@ impl Checker {
     let args = &mut func.decl.args;
 
     for (ident, ty) in args.iter_mut() {
-      // todo: make sure arg idents are unique
-
       self.resolve_type(ty)?;
     };
 

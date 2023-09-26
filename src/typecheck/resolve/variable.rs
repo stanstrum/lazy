@@ -8,21 +8,15 @@
 use super::*;
 
 impl Checker {
-  fn get_block_expr_scopes(&self) -> Vec<*const BlockExpressionAST> {
+  fn get_block_expr_scopes(&self) -> Vec<*mut BlockExpressionAST> {
     self.stack.iter().filter_map(|ptr|
       match ptr {
         | ScopePointer::Namespace(_)
         | ScopePointer::Function(_)
         | ScopePointer::Impl(_)
         | ScopePointer::MemberFunction(_)
-        | ScopePointer::Block(_) => None,
-        ScopePointer::Expression(expr) => {
-          if let Expression::Block(block) = unsafe { &mut **expr } {
-            Some(block as *const _)
-          } else {
-            None
-          }
-        },
+        | ScopePointer::Expression(_) => None,
+        ScopePointer::Block(block) => Some(*block)
       }
     ).collect()
   }
@@ -96,6 +90,14 @@ impl Checker {
 
     for block in blocks.iter().rev() {
       let block = unsafe { &**block };
+
+      println!("block: {}",
+        block.vars
+          .keys()
+          .map(|ident| ident.text.to_owned())
+          .collect::<Vec<String>>()
+          .join("\n")
+      );
 
       if block.vars.contains_key(name) {
         return Ok(VariableReference::ResolvedVariable(*block.vars.get(name).unwrap()));

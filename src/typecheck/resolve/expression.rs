@@ -46,7 +46,15 @@ impl Checker {
       Expression::ControlFlow(flow) => {
         match &mut flow.e {
           ControlFlow::If(_, _) => todo!("if"),
-          ControlFlow::While(_, _) => todo!("while"),
+          ControlFlow::While(cond, body) => {
+            self.stack.push(ScopePointer::Expression(&mut **cond));
+            self.resolve_expression(cond)?;
+            self.stack.pop();
+
+            self.stack.push(ScopePointer::Block(&mut **body));
+            self.resolve_block_expression(body)?;
+            self.stack.pop();
+          },
           ControlFlow::DoWhile(_, _) => todo!("dowhile"),
           ControlFlow::Loop(block) => {
             let block = &mut **block;

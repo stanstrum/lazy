@@ -57,7 +57,7 @@ impl Checker {
           AtomExpression::Variable(qual, resolved) => {
             *resolved = self.resolve_variable(qual)?;
 
-            // if resolved
+            atom.out = resolved.r#typeof().expect("couldn't resolve out type for atom");
           },
           AtomExpression::Return(_) => todo!("atom return"),
           AtomExpression::Break(_) => todo!("atom break"),
@@ -90,15 +90,53 @@ impl Checker {
         todo!("resolve controlflow");
       },
       Expression::BinaryOperator(binary) => {
-        let (a, b) = (&mut *binary.a, &mut *binary.b);
+        match binary.op {
+          BinaryOperator::Dot => {
+            let (a, b) = (&mut *binary.a, &mut *binary.b);
 
-        self.stack.push(ScopePointer::Expression(a));
-        self.resolve_expression(a)?;
-        self.stack.pop();
+            self.stack.push(ScopePointer::Expression(a));
+            self.resolve_expression(a)?;
+            self.stack.pop();
 
-        self.stack.push(ScopePointer::Expression(b));
-        self.resolve_expression(b)?;
-        self.stack.pop();
+            match b {
+              Expression::Atom(
+                AtomExpressionAST {
+                  a: AtomExpression::Variable(
+                    qual, _
+                  ), ..
+                }
+              ) => {
+                let ident = {
+                  if qual.parts.len() == 1 {
+                    qual.parts.first().unwrap()
+                  } else {
+                    return InvalidDotSnafu {
+                      span: b.span()
+                    }.fail();
+                  };
+                };
+
+                todo!("resolve out type of atom");
+              },
+              _ => {
+                return InvalidDotSnafu {
+                  span: b.span()
+                }.fail();
+              }
+            }
+          },
+          _ => {
+            let (a, b) = (&mut *binary.a, &mut *binary.b);
+
+            self.stack.push(ScopePointer::Expression(a));
+            self.resolve_expression(a)?;
+            self.stack.pop();
+
+            self.stack.push(ScopePointer::Expression(b));
+            self.resolve_expression(b)?;
+            self.stack.pop();
+          }
+        };
       },
       Expression::UnaryOperator(unary) => {
         let expr = &mut *unary.expr;

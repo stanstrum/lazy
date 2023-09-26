@@ -19,7 +19,10 @@ pub enum TypeCheckError {
   UnknownIdent { text: String, span: Span },
 
   #[snafu(display("Invalid type: {text}"))]
-  InvalidType { text: String, span: Span }
+  InvalidType { text: String, span: Span },
+
+  #[snafu(display("Invalid Dot/DerefDot Operator"))]
+  InvalidDot { span: Span }
 }
 
 pub type TypeCheckResult<T> = Result<T, TypeCheckError>;

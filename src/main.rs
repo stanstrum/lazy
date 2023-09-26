@@ -112,6 +112,7 @@ fn compile() -> Result<(), LazyError> {
         match &err {
           TypeCheckError::NotImplemented { span, .. }
           | TypeCheckError::UnknownIdent { span, .. }
+          | TypeCheckError::InvalidDot { span }
           | TypeCheckError::InvalidType { span, .. } => {
             let message = Message {
               level: Level::Error,

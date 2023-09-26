@@ -10,6 +10,7 @@ mod function;
 mod r#type;
 mod expression;
 mod variable;
+mod r#impl;
 
 use super::{
   Checker,
@@ -40,9 +41,8 @@ impl IsResolved for Type {
   fn is_resolved(&self) -> bool {
     match self {
       Type::Intrinsic(_) => true,
-      Type::Function(func) => {
-        todo!();
-      }
+      | Type::Function(_)
+      | Type::Struct(_) => true,
       Type::ConstReferenceTo(ast)
       | Type::MutReferenceTo(ast)
       | Type::ConstPtrTo(ast)
@@ -61,7 +61,8 @@ impl Checker {
     Self {
       stack: vec![
         ScopePointer::new_ns(global)
-      ]
+      ],
+      impls: vec![]
     }
   }
 

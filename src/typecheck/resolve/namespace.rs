@@ -48,8 +48,11 @@ impl Checker {
           };
         },
         Structure::Trait(_) => todo!("resolve trait"),
-        Structure::Impl(Impl::Impl(_)) => todo!("resolve impl"),
-        Structure::Impl(Impl::ImplFor(_)) => todo!("resolve implfor"),
+        Structure::Impl(r#impl) => {
+          self.stack.push(ScopePointer::new_impl(r#impl));
+          self.resolve_impl(r#impl)?;
+          self.stack.pop();
+        },
       };
     };
 

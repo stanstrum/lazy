@@ -426,6 +426,7 @@ pub struct IntrinsicType {
 pub enum Type {
   Intrinsic(*const IntrinsicType),
   Function(*const FunctionAST),
+  Struct(*const StructAST),
   ConstReferenceTo(Box<TypeAST>),
   MutReferenceTo(Box<TypeAST>),
   ConstPtrTo(Box<TypeAST>),
@@ -564,5 +565,6 @@ make_get_span![
   BindingAST,
   NamespaceAST,
   TypeAliasAST,
-  StructAST
+  StructAST,
+  MemberFunctionAST
 ];

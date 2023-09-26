@@ -13,6 +13,8 @@ impl Checker {
       match ptr {
         | ScopePointer::Namespace(_)
         | ScopePointer::Function(_)
+        | ScopePointer::Impl(_)
+        | ScopePointer::MemberFunction(_)
         | ScopePointer::Block(_) => None,
         ScopePointer::Expression(expr) => {
           if let Expression::Block(block) = unsafe { &mut **expr } {

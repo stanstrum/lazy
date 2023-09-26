@@ -13,6 +13,7 @@ impl Checker {
       match &mut ast.e {
         Type::Intrinsic(_)
         | Type::Defined(_)
+        | Type::Struct(_)
         | Type::Function(_) => {
           return Ok(());
         },
@@ -42,11 +43,12 @@ impl Checker {
           let mut res_stack: Vec<_> = self.stack.iter()
             .filter_map(|scope|
               match scope {
-                | ScopePointer::Function(_)
+                ScopePointer::Function(_)
                 | ScopePointer::Expression(_)
+                | ScopePointer::Impl(_)
+                | ScopePointer::MemberFunction(_)
                 | ScopePointer::Block(_) => None,
-                ScopePointer::Namespace(ns) =>
-                Some(*ns)
+                ScopePointer::Namespace(ns) => Some(*ns)
               }
             ).collect();
 
@@ -76,6 +78,9 @@ impl Checker {
               },
               (true, Some(Structure::Function(func))) => {
                 break 'replace_with Type::Function(func);
+              },
+              (true, Some(Structure::Struct(r#struct))) => {
+                break 'replace_with Type::Struct(r#struct);
               },
               _ => {
                 return UnknownIdentSnafu {

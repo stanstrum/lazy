@@ -18,6 +18,8 @@ enum ScopePointer {
   Function(*mut FunctionAST),
   Block(*mut BlockExpressionAST),
   Expression(*mut Expression),
+  Impl(*mut Impl),
+  MemberFunction(*mut MemberFunctionAST)
 }
 
 impl ScopePointer {
@@ -32,10 +34,19 @@ impl ScopePointer {
   pub fn new_expr(ptr: *mut Expression) -> Self {
     Self::Expression(ptr)
   }
+
+  pub fn new_impl(ptr: *mut Impl) -> Self {
+    Self::Impl(ptr)
+  }
+
+  pub fn new_member_fn(ptr: *mut MemberFunctionAST) -> Self {
+    Self::MemberFunction(ptr)
+  }
 }
 
 pub struct Checker {
-  stack: Vec<ScopePointer>
+  stack: Vec<ScopePointer>,
+  impls: Vec<(Type, *const Impl)>,
 }
 
 pub fn check(mut global: NamespaceAST) -> TypeCheckResult<NamespaceAST> {

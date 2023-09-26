@@ -520,9 +520,13 @@ impl std::string::ToString for Structure {
       Structure::Struct(StructAST {
         ident, members, ..
       }) => {
-        let mut text = format!("{LIGHT_RED}struct{CLEAR} {} {{\n",
+        let mut text = format!("{LIGHT_RED}struct{CLEAR} {} {{",
           ident.to_string()
         );
+
+        if !members.is_empty() {
+          text.push('\n');
+        };
 
         for (i, (ty, ident)) in members.iter().enumerate() {
           text.push_str(format!("  {} {}",

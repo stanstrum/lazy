@@ -13,7 +13,7 @@ namespace io {
   stdin -> Stdin {};
 
   impl Stdin {
-    read_line: &str dest {};
+    read_line: &super::str dest {};
   };
 };
 

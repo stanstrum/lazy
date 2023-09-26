@@ -33,11 +33,11 @@ impl Checker {
     match expr {
       Expression::Atom(atom) => {
         match &mut atom.a {
-          AtomExpression::Literal(lit) => {},
+          AtomExpression::Literal(_) => {},
           AtomExpression::Variable(qual, resolved) => {
             *resolved = self.resolve_variable(qual)?;
           },
-          AtomExpression::Return(expr) => todo!("atom return"),
+          AtomExpression::Return(_) => todo!("atom return"),
           AtomExpression::Break(_) => todo!("atom break"),
         };
       },

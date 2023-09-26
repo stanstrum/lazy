@@ -11,7 +11,7 @@ impl Checker {
   pub fn resolve_function(&mut self, func: &mut FunctionAST) -> TypeCheckResult<()> {
     let args = &mut func.decl.args;
 
-    for (ident, ty) in args.iter_mut() {
+    for ty in args.values_mut() {
       self.resolve_type(ty)?;
     };
 

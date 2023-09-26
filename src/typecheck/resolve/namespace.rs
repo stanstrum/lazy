@@ -38,12 +38,12 @@ impl Checker {
           self.stack.pop();
         },
         Structure::Function(func) => {
-          self.stack.push(ScopePointer::Function(func));
+          self.stack.push(ScopePointer::new_fn(func));
           self.resolve_function(func)?;
           self.stack.pop();
         },
         Structure::Struct(r#struct) => {
-          for (ty, ident) in r#struct.members.iter_mut() {
+          for (ty, _) in r#struct.members.iter_mut() {
             self.resolve_type(ty)?;
           };
         },

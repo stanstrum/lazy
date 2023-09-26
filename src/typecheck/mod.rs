@@ -22,28 +22,6 @@ enum ScopePointer {
   MemberFunction(*mut MemberFunctionAST)
 }
 
-impl ScopePointer {
-  pub fn new_ns(ptr: *mut NamespaceAST) -> Self {
-    Self::Namespace(ptr)
-  }
-
-  pub fn new_fn(ptr: *mut FunctionAST) -> Self {
-    Self::Function(ptr)
-  }
-
-  pub fn new_expr(ptr: *mut Expression) -> Self {
-    Self::Expression(ptr)
-  }
-
-  pub fn new_impl(ptr: *mut Impl) -> Self {
-    Self::Impl(ptr)
-  }
-
-  pub fn new_member_fn(ptr: *mut MemberFunctionAST) -> Self {
-    Self::MemberFunction(ptr)
-  }
-}
-
 pub struct Checker {
   stack: Vec<ScopePointer>,
   impls: Vec<(Type, *const Impl)>,

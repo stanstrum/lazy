@@ -52,7 +52,7 @@ impl Checker {
     };
 
     for method in methods.iter_mut() {
-      self.stack.push(ScopePointer::new_member_fn(method));
+      self.stack.push(ScopePointer::MemberFunction(method));
       self.resolve_member_fn(method)?;
       self.stack.pop();
     };

@@ -60,15 +60,9 @@ impl Checker {
   pub fn new(global: &mut NamespaceAST) -> Self {
     Self {
       stack: vec![
-        ScopePointer::new_ns(global)
+        ScopePointer::Namespace(global)
       ],
       impls: vec![]
     }
-  }
-
-  fn get_scope(&self) -> ScopePointer {
-    *self.stack
-      .last()
-      .unwrap()
   }
 }

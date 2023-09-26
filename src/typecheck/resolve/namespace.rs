@@ -33,12 +33,12 @@ impl Checker {
           self.resolve_alias(alias)?;
         },
         Structure::Namespace(ns) => {
-          self.stack.push(ScopePointer::new_ns(ns));
+          self.stack.push(ScopePointer::Namespace(ns));
           self.resolve_ns(ns)?;
           self.stack.pop();
         },
         Structure::Function(func) => {
-          self.stack.push(ScopePointer::new_fn(func));
+          self.stack.push(ScopePointer::Function(func));
           self.resolve_function(func)?;
           self.stack.pop();
         },
@@ -49,7 +49,7 @@ impl Checker {
         },
         Structure::Trait(_) => todo!("resolve trait"),
         Structure::Impl(r#impl) => {
-          self.stack.push(ScopePointer::new_impl(r#impl));
+          self.stack.push(ScopePointer::Impl(r#impl));
           self.resolve_impl(r#impl)?;
           self.stack.pop();
         },

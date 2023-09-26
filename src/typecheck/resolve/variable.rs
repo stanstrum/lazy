@@ -79,6 +79,35 @@ impl Checker {
     }
   }
 
+  fn resolve_arg_var(&self, ident: &IdentAST) -> Option<VariableReference> {
+    let decl = self.stack.iter().find(
+      |ptr|
+        matches!(ptr, ScopePointer::Function(_) | ScopePointer::MemberFunction(_))
+    ).map(
+      |ptr|
+        match ptr {
+          ScopePointer::Namespace(_)
+          | ScopePointer::Block(_)
+          | ScopePointer::Expression(_)
+          | ScopePointer::Impl(_) => unreachable!(),
+          ScopePointer::Function(func) => unsafe {
+            &(**func).decl
+          },
+          ScopePointer::MemberFunction(func) => unsafe {
+            &(**func).decl.decl
+          }
+        }
+    ).unwrap();
+
+    if decl.args.contains_key(ident) {
+      let arg = decl.args.get(ident).unwrap();
+
+      Some(VariableReference::ResolvedArgument(arg))
+    } else {
+      None
+    }
+  }
+
   pub fn resolve_variable(&self, qual: &mut QualifiedAST) -> TypeCheckResult<VariableReference> {
     let blocks = self.get_block_expr_scopes();
 
@@ -91,17 +120,15 @@ impl Checker {
     for block in blocks.iter().rev() {
       let block = unsafe { &**block };
 
-      println!("block: {}",
-        block.vars
-          .keys()
-          .map(|ident| ident.text.to_owned())
-          .collect::<Vec<String>>()
-          .join("\n")
-      );
-
       if block.vars.contains_key(name) {
-        return Ok(VariableReference::ResolvedVariable(*block.vars.get(name).unwrap()));
+        let binding = *block.vars.get(name).unwrap();
+
+        return Ok(VariableReference::ResolvedVariable(binding));
       };
+    };
+
+    if let Some(arg_var) = self.resolve_arg_var(name) {
+      return Ok(arg_var);
     };
 
     UnknownIdentSnafu {

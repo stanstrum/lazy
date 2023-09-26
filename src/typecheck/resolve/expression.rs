@@ -36,6 +36,8 @@ impl Checker {
           AtomExpression::Literal(_) => {},
           AtomExpression::Variable(qual, resolved) => {
             *resolved = self.resolve_variable(qual)?;
+
+            // if resolved
           },
           AtomExpression::Return(_) => todo!("atom return"),
           AtomExpression::Break(_) => todo!("atom break"),

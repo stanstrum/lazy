@@ -349,6 +349,7 @@ pub struct ControlFlowAST {
 pub enum VariableReference {
   Unresolved,
   ResolvedVariable(*const BindingAST),
+  ResolvedArgument(*const TypeAST),
   ResolvedFunction(*const FunctionAST),
 }
 
@@ -434,6 +435,7 @@ pub enum Type {
   ArrayOf(Option<LiteralAST>, Box<TypeAST>),
   Defined(*const TypeAST),
   Unknown(QualifiedAST),
+  UnresolvedNumeric(Literal),
   Unresolved
 }
 

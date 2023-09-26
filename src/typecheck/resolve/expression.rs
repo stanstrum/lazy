@@ -6,6 +6,7 @@
  */
 
 use super::*;
+use crate::aster::intrinsics;
 
 impl Checker {
   pub fn resolve_block_expression(&mut self, block: &mut BlockExpressionAST) -> TypeCheckResult<()> {
@@ -33,7 +34,26 @@ impl Checker {
     match expr {
       Expression::Atom(atom) => {
         match &mut atom.a {
-          AtomExpression::Literal(_) => {},
+          AtomExpression::Literal(lit) => {
+            match &lit.l {
+              Literal::UnicodeString(unicode) => {
+                let span = lit.span();
+
+                let len = LiteralAST {
+                  span, l: Literal::NumericLiteral(unicode.len().to_string()),
+                };
+
+                atom.out = Type::ArrayOf(Some(len), Box::new(TypeAST {
+                  span, e: Type::Intrinsic(&intrinsics::U32)
+                }));
+              },
+              Literal::ByteString(_) => todo!("resolve bytestr"),
+              Literal::CString(_) => todo!("resolve cstr"),
+              Literal::Char(_) => todo!("resolve char"),
+              Literal::ByteChar(_) => todo!("resolve bytechar"),
+              Literal::NumericLiteral(_) => todo!("resolve numeric literal"),
+            };
+          },
           AtomExpression::Variable(qual, resolved) => {
             *resolved = self.resolve_variable(qual)?;
 

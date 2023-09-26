@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use ast::*;
 pub use ast::Span;
 
-mod intrinsics;
+pub mod intrinsics;
 
 mod errors;
 use errors::*;

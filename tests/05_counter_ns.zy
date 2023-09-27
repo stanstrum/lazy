@@ -17,6 +17,12 @@ namespace io {
   };
 };
 
+namespace string {
+  impl &super::str {
+    len -> usize {};
+  };
+};
+
 namespace ToString {
   str_to_num -> i32:
     &super::str text
@@ -39,6 +45,7 @@ namespace ToString {
     ctr
   };
 };
+
 
 main {
   &str buf;

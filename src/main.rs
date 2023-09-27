@@ -123,6 +123,26 @@ fn compile() -> Result<(), LazyError> {
 
             println!("{}", format_message(reader.src(), message));
           },
+          TypeCheckError::DuplicateIdent { text, a, b } => {
+            let message_a = Message {
+              level: Level::Error,
+              msg: err.to_string(),
+              sub: "here".to_owned(),
+              span: a.to_owned()
+            };
+
+            let message_b = Message {
+              level: Level::Error,
+              msg: err.to_string(),
+              sub: "here".to_owned(),
+              span: b.to_owned(),
+            };
+
+            println!("{}\n...{}",
+              format_message(reader.src(), message_a),
+              format_message(reader.src(), message_b)
+            );
+          }
         };
 
         return CompilationSnafu {

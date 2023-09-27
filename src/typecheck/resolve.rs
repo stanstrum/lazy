@@ -12,6 +12,8 @@ mod expression;
 mod variable;
 mod r#impl;
 
+pub use super::TypeOf;
+
 use super::{
   Checker,
   ScopePointer,
@@ -40,9 +42,10 @@ fn is_valid_array_length(lit: &LiteralAST) -> bool {
 impl IsResolved for Type {
   fn is_resolved(&self) -> bool {
     match self {
-      Type::Intrinsic(_) => true,
+      Type::Intrinsic(_)
+      | Type::Struct(_)
       | Type::Function(_)
-      | Type::Struct(_) => true,
+      | Type::MemberFunction(_) => true,
       Type::ConstReferenceTo(ast)
       | Type::MutReferenceTo(ast)
       | Type::ConstPtrTo(ast)

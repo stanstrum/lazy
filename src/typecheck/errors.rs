@@ -18,6 +18,9 @@ pub enum TypeCheckError {
   #[snafu(display("Unknown identifier: {text}"))]
   UnknownIdent { text: String, span: Span },
 
+  #[snafu(display("Duplicate identifier: {text}"))]
+  DuplicateIdent { text: String, a: Span, b: Span },
+
   #[snafu(display("Invalid type: {text}"))]
   InvalidType { text: String, span: Span },
 

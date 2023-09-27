@@ -5,8 +5,43 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use std::collections::HashMap;
+
 use super::*;
 use crate::aster::intrinsics;
+
+fn extends(ty: &Type, base: &Type) -> bool {
+  println!("test: {:?} extends {:?}", ty, base);
+
+  let result = {
+    match (ty, base) {
+      (Type::Defined(ty), base) => {
+        let ast = unsafe { &**ty };
+
+        extends(&ast.e, base)
+      },
+      (ty, Type::Defined(base)) => {
+        let ast = unsafe { &**base };
+
+        extends(ty, &ast.e)
+      },
+      (Type::Struct(a), Type::Struct(b)) => {
+        a == b
+      },
+      _ => {
+        false
+      }
+    }
+  };
+
+  if result {
+    println!("does extend");
+  } else {
+    println!("doesn't extend");
+  };
+
+  result
+}
 
 impl Checker {
   pub fn resolve_block_expression(&mut self, block: &mut BlockExpressionAST) -> TypeCheckResult<()> {
@@ -28,6 +63,51 @@ impl Checker {
     };
 
     Ok(())
+  }
+
+  fn get_impls_for(&self, ty: Type) -> TypeCheckResult<HashMap<IdentAST, VariableReference>> {
+    let mut map = HashMap::<IdentAST, *const MemberFunctionAST>::new();
+
+    for (ty, r#impl) in self.impls.iter() {
+      let r#impl = unsafe { &**r#impl };
+
+      let (implemented_ty, methods) = match r#impl {
+        Impl::Impl(ImplAST { ty, methods, .. }) => {
+          (&ty.e, methods)
+        },
+        Impl::ImplFor(ImplForAST { ty, methods, .. }) => {
+          (&ty.e, methods)
+        }
+      };
+
+      if extends(ty, implemented_ty) {
+        for method in methods.iter() {
+          let ident = &method.decl.decl.ident;
+
+          if map.contains_key(ident) {
+            let original = unsafe { &**map.get(ident).unwrap() };
+
+            let span_a = original.span();
+            let span_b = method.span();
+
+            return DuplicateIdentSnafu {
+              text: ident.text.to_owned(),
+              a: span_a,
+              b: span_b,
+            }.fail()
+          };
+
+          map.insert(ident.clone(), method);
+        };
+      };
+    };
+
+    let map = map.iter().map(
+      |(k, v)|
+        (k.to_owned(), VariableReference::ResolvedMemberFunction(unsafe { &**v }))
+      ).collect::<HashMap<_, _>>();
+
+    Ok(map)
   }
 
   fn resolve_expression(&mut self, expr: &mut Expression) -> TypeCheckResult<()> {
@@ -57,7 +137,7 @@ impl Checker {
           AtomExpression::Variable(qual, resolved) => {
             *resolved = self.resolve_variable(qual)?;
 
-            atom.out = resolved.r#typeof().expect("couldn't resolve out type for atom");
+            atom.out = resolved.type_of().expect("couldn't resolve out type for atom");
           },
           AtomExpression::Return(_) => todo!("atom return"),
           AtomExpression::Break(_) => todo!("atom break"),
@@ -102,7 +182,7 @@ impl Checker {
               Expression::Atom(
                 AtomExpressionAST {
                   a: AtomExpression::Variable(
-                    qual, _
+                    qual, var_ref
                   ), ..
                 }
               ) => {
@@ -113,10 +193,23 @@ impl Checker {
                     return InvalidDotSnafu {
                       span: b.span()
                     }.fail();
-                  };
+                  }
                 };
 
-                todo!("resolve out type of atom");
+                let parent_ty = a.type_of().expect("need to know parent ty");
+
+                let impls = self.get_impls_for(parent_ty)?;
+
+                dbg!(impls.keys());
+
+                if !impls.contains_key(ident) {
+                  return UnknownIdentSnafu {
+                    text: ident.text.to_owned(),
+                    span: qual.span()
+                  }.fail();
+                };
+
+                *var_ref = impls.get(ident).unwrap().to_owned();
               },
               _ => {
                 return InvalidDotSnafu {

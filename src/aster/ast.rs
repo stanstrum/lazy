@@ -7,6 +7,8 @@
 
 use std::collections::HashMap;
 
+use super::intrinsics;
+
 pub trait GetSpan {
   fn span(&self) -> Span;
 }
@@ -351,39 +353,8 @@ pub enum VariableReference {
   ResolvedVariable(*const BindingAST),
   ResolvedArgument(*const TypeAST),
   ResolvedFunction(*const FunctionAST),
+  ResolvedMemberFunction(*const MemberFunctionAST),
   ResolvedMemberOf(*const VariableReference, *const IdentAST)
-}
-
-impl VariableReference {
-  pub fn r#typeof(&self) -> Option<Type> {
-    match self {
-      VariableReference::Unresolved => None,
-      VariableReference::ResolvedVariable(var) => {
-        let var = unsafe { &**var };
-        let ty = var.ty.as_ref().map(|ast| Type::Defined(ast));
-
-        ty
-      },
-      VariableReference::ResolvedArgument(arg) => {
-        let arg = unsafe { &**arg };
-
-        Some(Type::Defined(arg))
-      },
-      VariableReference::ResolvedFunction(func) => {
-        let func = unsafe { &**func };
-
-        Some(Type::Function(func))
-      },
-      VariableReference::ResolvedMemberOf(parent, ident) => {
-        let parent = unsafe { &**parent };
-        let ident = unsafe { &**ident };
-
-        let parent_ty = parent.r#typeof().expect("typeof of member needs to know parent type...");
-
-        todo!("resolved member of")
-      }
-    }
-  }
 }
 
 #[derive(Debug, Clone)]
@@ -460,6 +431,7 @@ pub struct IntrinsicType {
 pub enum Type {
   Intrinsic(*const IntrinsicType),
   Function(*const FunctionAST),
+  MemberFunction(*const MemberFunctionAST),
   Struct(*const StructAST),
   ConstReferenceTo(Box<TypeAST>),
   MutReferenceTo(Box<TypeAST>),

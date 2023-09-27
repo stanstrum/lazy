@@ -7,6 +7,9 @@
 
 pub mod errors;
 mod resolve;
+mod type_of;
+
+pub use type_of::TypeOf;
 
 use errors::*;
 

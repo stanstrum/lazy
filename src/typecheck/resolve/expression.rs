@@ -28,6 +28,15 @@ fn extends(ty: &Type, base: &Type) -> bool {
       (Type::Struct(a), Type::Struct(b)) => {
         a == b
       },
+      (Type::ConstReferenceTo(a), Type::ConstReferenceTo(b)) => {
+        extends(&a.e, &b.e)
+      },
+      (Type::ArrayOf(None, a), Type::ArrayOf(None, b)) => {
+        extends(&a.e, &b.e)
+      },
+      (Type::Intrinsic(a), Type::Intrinsic(b)) => {
+        a == b
+      }
       _ => {
         false
       }
@@ -137,7 +146,13 @@ impl Checker {
           AtomExpression::Variable(qual, resolved) => {
             *resolved = self.resolve_variable(qual)?;
 
-            atom.out = resolved.type_of().expect("couldn't resolve out type for atom");
+            let out = resolved.type_of();
+
+            if out.is_some() {
+              atom.out = out.unwrap();
+            } else {
+              panic!("failed to resolve atom type `{}`", atom.to_string());
+            };
           },
           AtomExpression::Return(_) => todo!("atom return"),
           AtomExpression::Break(_) => todo!("atom break"),
@@ -147,7 +162,33 @@ impl Checker {
       Expression::SubExpression(_) => todo!("resolve subexpression"),
       Expression::ControlFlow(flow) => {
         match &mut flow.e {
-          ControlFlow::If(_, _) => todo!("if"),
+          ControlFlow::If(cond_body, r#else) => {
+            let mut out_ty = None;
+
+            for (cond, body) in cond_body.iter_mut() {
+              self.resolve_expression(cond)?;
+
+              self.stack.push(ScopePointer::Block(body));
+              self.resolve_block_expression(body)?;
+              self.stack.pop();
+
+              if out_ty.is_none() {
+                out_ty = body.type_of();
+              } else if !extends(&body.type_of().unwrap(), out_ty.as_ref().unwrap()) {
+                panic!("doesn't match types in if block")
+              };
+            };
+
+            if r#else.is_some() {
+              let body = r#else.as_mut().unwrap();
+
+              self.stack.push(ScopePointer::Block(body));
+              self.resolve_block_expression(body)?;
+              self.stack.pop();
+            };
+
+            todo!("if")
+          },
           ControlFlow::While(cond, body) => {
             self.stack.push(ScopePointer::Expression(&mut **cond));
             self.resolve_expression(cond)?;
@@ -228,15 +269,24 @@ impl Checker {
             self.stack.push(ScopePointer::Expression(b));
             self.resolve_expression(b)?;
             self.stack.pop();
+
+            todo!("set out for binop");
           }
         };
       },
-      Expression::UnaryOperator(unary) => {
-        let expr = &mut *unary.expr;
-
-        self.stack.push(ScopePointer::Expression(expr));
+      Expression::UnaryOperator(UnaryOperatorExpressionAST { out, expr, op, .. }) => {
+        self.stack.push(ScopePointer::Expression(&mut **expr));
         self.resolve_expression(expr)?;
         self.stack.pop();
+
+        let expr_ty = expr.type_of();
+
+        match op {
+          UnaryOperator::UnaryPfx(_) => todo!("unarypfxop reso type"),
+          UnaryOperator::UnarySfx(_) => todo!("unarysfxop reso type"),
+        };
+
+        *out = todo!("set out for unaryop");
       },
     };
 

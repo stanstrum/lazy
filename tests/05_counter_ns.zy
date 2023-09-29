@@ -31,7 +31,7 @@ namespace ToString {
     mut usize ctr := 0;
 
     while ctr < text.len() {
-      ch := text[ctr];
+      ch := (*text)[ctr];
 
       if ch > b' ' && ch < b'~' {
         acc += ch;

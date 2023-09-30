@@ -26,6 +26,8 @@ use inkwell::module::Module;
 
 use codegen::Codegen;
 
+use std::process::Command;
+
 #[derive(Debug, Snafu)]
 enum LazyError {
   BadArguments,
@@ -182,12 +184,41 @@ fn compile() -> Result<(), LazyError> {
 
   // write to file
   let cwd = std::env::current_dir().expect("couldn't get working dir");
-  let out_file = cwd.join("out.ll");
+  let out_file = cwd.join("a.ll");
 
   codegen
     .module
     .print_to_file(out_file.to_str().unwrap())
     .expect("error printing to file");
+
+  // compile llvm code
+  Command::new("llc")
+    // this argument is surprisingly important
+    .arg("--relocation-model=pic")
+    .args(["-o a.s"])
+    .arg("a.ll")
+    .stdout(std::process::Stdio::piped())
+    .spawn().unwrap()
+    .wait()
+    .expect("error compiling emitted llvm code");
+
+  // assemble `llc` output
+  Command::new("as")
+    .args(["-o a.o"])
+    .arg("a.s")
+    .stdout(std::process::Stdio::piped())
+    .spawn().unwrap()
+    .wait()
+    .expect("error assembling emitted assembly code");
+
+  // link `as` output
+  Command::new("cc")
+    .args(["-o a.out"])
+    .arg("a.o")
+    .stdout(std::process::Stdio::piped())
+    .spawn().unwrap()
+    .wait()
+    .expect("error linking emitted object code");
 
   Ok(())
 }

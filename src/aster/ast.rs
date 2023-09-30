@@ -421,6 +421,7 @@ pub struct FunctionAST {
   pub body: BlockExpressionAST,
 }
 
+#[derive(Debug)]
 pub struct IntrinsicType {
   pub name: &'static str,
   pub bytes: usize,

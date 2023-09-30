@@ -6,7 +6,10 @@
  */
 
 mod errors;
+
 use errors::*;
+use inkwell::types::{FunctionType, VoidType};
+use inkwell::values::FunctionValue;
 
 use crate::aster::ast::NamespaceAST;
 
@@ -19,9 +22,11 @@ use inkwell::context::Context;
 // use inkwell::FloatPredicate;
 use inkwell::{
   builder::Builder,
-  // values::BasicValueEnum
-};
-use inkwell::{
+  // values::BasicValueEnum,
+  types::{
+    IntType,
+    BasicMetadataTypeEnum,
+  },
   module::Module,
   // values::PointerValue
 };
@@ -40,9 +45,138 @@ impl Codegen<'_, '_> {
   // }
 }
 
-impl Codegen<'_, '_> {
-  pub fn generate_namespace(&mut self, ns: &NamespaceAST) -> CodeGenResult<()> {
-    NotImplementedSnafu { what: "Code generation" }.fail()
+enum MetadataType<'ctx> {
+  Void(VoidType<'ctx>),
+  Int(IntType<'ctx>)
+}
+
+impl<'ctx> MetadataType<'ctx> {
+  pub fn fn_type(&self, param_types: &[BasicMetadataTypeEnum<'ctx>], is_var_args: bool) -> FunctionType<'ctx> {
+    match self {
+      MetadataType::Void(r#void) => r#void.fn_type(param_types, is_var_args),
+      MetadataType::Int(r#int) => int.fn_type(param_types, is_var_args),
+    }
+  }
+
+  pub fn to_basic_metadata(&self) -> BasicMetadataTypeEnum<'ctx> {
+    match self {
+      MetadataType::Void(r#void) => unimplemented!("generate basic metadata type (for arg type): void") /* BasicMetadataTypeEnum::VoidType(*r#void) */,
+      MetadataType::Int(r#int) => BasicMetadataTypeEnum::IntType(*r#int),
+    }
+  }
+}
+
+use crate::aster::{ast::*};
+
+impl<'a, 'ctx> Codegen<'a, 'ctx> {
+  fn generate_intrinsic_type(&self, intrinsic: &IntrinsicType) -> CodeGenResult<MetadataType<'ctx>> {
+    match intrinsic.name {
+      "void" => Ok(MetadataType::Void(self.context.void_type())),
+      "bool" => Ok(MetadataType::Int(self.context.bool_type())),
+      "char" => Ok(MetadataType::Int(self.context.i8_type())),
+      "u8" => Ok(MetadataType::Int(self.context.i8_type())),
+      "u16" => Ok(MetadataType::Int(self.context.i16_type())),
+      "u32" => Ok(MetadataType::Int(self.context.i32_type())),
+      "u64" => Ok(MetadataType::Int(self.context.i64_type())),
+      "usize" => Ok(MetadataType::Int(self.context.i64_type())),
+      "i8" => Ok(MetadataType::Int(self.context.i8_type())),
+      "i16" => Ok(MetadataType::Int(self.context.i16_type())),
+      "i32" => Ok(MetadataType::Int(self.context.i32_type())),
+      "i64" => Ok(MetadataType::Int(self.context.i64_type())),
+      "isize" => Ok(MetadataType::Int(self.context.i64_type())),
+      _ => {
+        dbg!(intrinsic);
+        unreachable!("unknown intrinsic...");
+      }
+    }
+  }
+
+  fn generate_arg_type(&self, ty: &Type) -> CodeGenResult<MetadataType<'ctx>> {
+    match ty {
+      Type::Intrinsic(intrinsic) => {
+        let intrinsic = unsafe { &**intrinsic };
+
+        self.generate_intrinsic_type(intrinsic)
+      },
+      Type::Function(_) => todo!("generate_arg_type function"),
+      Type::MemberFunction(_) => todo!("generate_arg_type memberfunction"),
+      Type::Struct(_) => todo!("generate_arg_type struct"),
+      Type::ConstReferenceTo(_) => todo!("generate_arg_type constreferenceto"),
+      Type::MutReferenceTo(_) => todo!("generate_arg_type mutreferenceto"),
+      Type::ConstPtrTo(_) => todo!("generate_arg_type constptrto"),
+      Type::MutPtrTo(_) => todo!("generate_arg_type mutptrto"),
+      Type::ArrayOf(_, _) => todo!("generate_arg_type arrayof"),
+      Type::Defined(_) => todo!("generate_arg_type defined"),
+      Type::Unknown(_) => todo!("generate_arg_type unknown"),
+      Type::UnresolvedNumeric(_) => todo!("generate_arg_type unresolvednumeric"),
+      Type::Unresolved => todo!("generate_arg_type unresolved"),
+    }
+  }
+
+  fn declare_function(&mut self, func: &FunctionAST) -> CodeGenResult<FunctionValue<'ctx>> {
+    let decl = &func.decl;
+
+    let ret_ty = self.generate_arg_type(&decl.ret.e)?;
+    let args = decl
+      .args
+      .values()
+      .map(
+        |ast|
+          self.generate_arg_type(&ast.e)
+      )
+      .collect::<Result<Vec<_>, _>>()?;
+
+    let args = args
+      .iter()
+      .map(|ty| ty.to_basic_metadata())
+      .collect::<Vec<_>>();
+
+    let func_ty = ret_ty.fn_type(args.as_slice(), false);
+
+    let name = &func.decl.ident.text;
+    Ok(self.module.add_function(name, func_ty, None))
+  }
+
+  fn generate_function(&mut self, ast: &FunctionAST, value: FunctionValue<'ctx>) -> CodeGenResult<()> {
+    let block = self.context.append_basic_block(value, "entry");
+    self.builder.position_at_end(block);
+
+    for expr in ast.body.children.iter() {
+      todo!("generate block expression");
+    };
+
+    if ast.body.returns_last {
+      todo!("returns last");
+    } else {
+      self.builder.build_return(None);
+    };
+
+    Ok(())
+  }
+
+  fn generate_namespace(&mut self, ns: &NamespaceAST) -> CodeGenResult<()> {
+    let mut asts_values: Vec<(&FunctionAST, FunctionValue<'ctx>)> = vec![];
+
+    for (name, structure) in ns.map.iter() {
+      match structure {
+        Structure::Namespace(ns) => {
+          self.generate_namespace(ns)?;
+        },
+        Structure::Function(func) => {
+          asts_values.push((
+            func,
+            self.declare_function(func)?
+          ));
+        },
+        _ => {}
+      };
+    };
+
+    for (ast, value) in asts_values {
+      self.generate_function(ast, value)?;
+    };
+
+    Ok(())
   }
 
   pub fn generate(&mut self, global: &NamespaceAST) -> CodeGenResult<()> {

@@ -21,12 +21,9 @@ use typecheck::errors::TypeCheckError;
 pub(crate) mod colors;
 
 use inkwell::context::Context;
-use inkwell::builder::Builder;
-use inkwell::module::Module;
-
 use codegen::Codegen;
 
-use std::process::Command;
+use std::process::{Command, ExitStatus};
 
 #[derive(Debug, Snafu)]
 enum LazyError {
@@ -90,6 +87,7 @@ fn compile() -> Result<(), LazyError> {
 
   let reader = &mut aster::SourceReader::new(&src);
 
+  println!("Parsing AST ...");
   let asterized = match aster::asterize(reader) {
     Ok(asterized) => asterized,
     Err(err) => {
@@ -113,6 +111,7 @@ fn compile() -> Result<(), LazyError> {
 
   // sponge: insert here an algorithm to rearrange operators by precedence
 
+  println!("Type checking ...");
   let checked = {
     match typecheck::check(asterized) {
       Ok(checked) => checked,
@@ -164,6 +163,8 @@ fn compile() -> Result<(), LazyError> {
   println!("{};", checked.to_string());
 
   // generate llvm
+  println!("Generating LLVM ...");
+
   let context = Context::create();
   let module = context.create_module("program");
   let builder = context.create_builder();
@@ -176,13 +177,15 @@ fn compile() -> Result<(), LazyError> {
 
   // codegen.init(todo!());
 
-  if let Err(err) = codegen.generate_namespace(&checked) {
+  if let Err(err) = codegen.generate(&checked) {
     return CompilationSnafu {
       msg: format!("Code generation failed: {err}")
     }.fail();
   };
 
   // write to file
+  println!("Writing LLVM to a.ll ...");
+
   let cwd = std::env::current_dir().expect("couldn't get working dir");
   let out_file = cwd.join("a.ll");
 
@@ -192,33 +195,63 @@ fn compile() -> Result<(), LazyError> {
     .expect("error printing to file");
 
   // compile llvm code
-  Command::new("llc")
-    // this argument is surprisingly important
-    .arg("--relocation-model=pic")
-    .args(["-o a.s"])
-    .arg("a.ll")
-    .stdout(std::process::Stdio::piped())
-    .spawn().unwrap()
-    .wait()
-    .expect("error compiling emitted llvm code");
+  let exit_status = {
+    println!("Running `llc` ...");
+    Command::new("llc")
+      // this argument is surprisingly important
+      .arg("--relocation-model=pic")
+      .args(["-o", "a.s"])
+      .arg("a.ll")
+      .stdout(std::process::Stdio::piped())
+      .spawn().unwrap()
+      .wait()
+      .expect("error compiling emitted llvm code")
+  };
+
+  if !exit_status.success() {
+    return CompilationSnafu {
+      msg: "llc failed"
+    }.fail();
+  };
 
   // assemble `llc` output
-  Command::new("as")
-    .args(["-o a.o"])
-    .arg("a.s")
-    .stdout(std::process::Stdio::piped())
-    .spawn().unwrap()
-    .wait()
-    .expect("error assembling emitted assembly code");
+  let exit_status = {
+    println!("Running `as` ...");
+    Command::new("as")
+      .args(["-o", "a.o"])
+      .arg("a.s")
+      .stdout(std::process::Stdio::piped())
+      .spawn().unwrap()
+      .wait()
+      .expect("error assembling emitted assembly code")
+  };
+
+  if !exit_status.success() {
+    return CompilationSnafu {
+      msg: "as failed"
+    }.fail();
+  };
 
   // link `as` output
-  Command::new("cc")
-    .args(["-o a.out"])
-    .arg("a.o")
-    .stdout(std::process::Stdio::piped())
-    .spawn().unwrap()
-    .wait()
-    .expect("error linking emitted object code");
+
+  let exit_status = {
+    println!("Running `cc` ...");
+    Command::new("cc")
+      .args(["-o", "program"])
+      .arg("a.o")
+      .stdout(std::process::Stdio::piped())
+      .spawn().unwrap()
+      .wait()
+      .expect("error linking emitted object code")
+  };
+
+  if !exit_status.success() {
+    return CompilationSnafu {
+      msg: "cc failed"
+    }.fail();
+  };
+
+  println!("Your shiny new Lazy program is located in `./program`.  Enjoy!");
 
   Ok(())
 }

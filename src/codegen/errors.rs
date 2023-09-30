@@ -11,7 +11,10 @@ use snafu::prelude::*;
 #[snafu(visibility(pub))]
 pub enum CodeGenError {
   #[snafu(display("Not implemented: {what}"))]
-  NotImplemented { what: String }
+  NotImplemented { what: String },
+
+  #[snafu(display("Validation failed: {message}"))]
+  ValidationFailed { message: String }
 }
 
 pub type CodeGenResult<T> = Result<T, CodeGenError>;

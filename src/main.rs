@@ -20,6 +20,12 @@ use typecheck::errors::TypeCheckError;
 
 pub(crate) mod colors;
 
+use inkwell::context::Context;
+use inkwell::builder::Builder;
+use inkwell::module::Module;
+
+use codegen::Codegen;
+
 #[derive(Debug, Snafu)]
 enum LazyError {
   BadArguments,
@@ -155,21 +161,33 @@ fn compile() -> Result<(), LazyError> {
   dbg!(&checked);
   println!("{};", checked.to_string());
 
-  let code = {
-    match codegen::gen(&checked) {
-      Ok(code) => code,
-      Err(err) => {
-        return CompilationSnafu {
-          msg: format!("Code generation failed: {err}")
-        }.fail();
-      }
-    }
+  // generate llvm
+  let context = Context::create();
+  let module = context.create_module("program");
+  let builder = context.create_builder();
+
+  let mut codegen = Codegen {
+    context: &context,
+    module: &module,
+    builder: &builder
   };
 
-  dbg!(&code);
-  // println!("{};", code.to_string());
+  // codegen.init(todo!());
 
-  /* write to file ... */
+  if let Err(err) = codegen.generate_namespace(&checked) {
+    return CompilationSnafu {
+      msg: format!("Code generation failed: {err}")
+    }.fail();
+  };
+
+  // write to file
+  let cwd = std::env::current_dir().expect("couldn't get working dir");
+  let out_file = cwd.join("out.ll");
+
+  codegen
+    .module
+    .print_to_file(out_file.to_str().unwrap())
+    .expect("error printing to file");
 
   Ok(())
 }
@@ -180,17 +198,11 @@ fn print_usage(program: &str, opts: Options) {
 }
 
 fn main() {
-  let result = compile();
-
-  match result {
-    Ok(_) | Err(LazyError::BadArguments) => (),
-    Err(ref err) => {
+  match compile() {
+    Ok(_) | Err(LazyError::BadArguments) => {},
+    Err(err) => {
       eprintln!("{}", err);
+      std::process::exit(1);
     }
   };
-
-  match result {
-    Ok(_) => (),
-    Err(_) => std::process::exit(1)
-  }
 }

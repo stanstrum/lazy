@@ -133,7 +133,7 @@ impl Checker {
 
     UnknownIdentSnafu {
       text: name.text.to_owned(),
-      span: qual.span.clone()
+      span: qual.span()
     }.fail()
   }
 }

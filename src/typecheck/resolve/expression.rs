@@ -148,8 +148,8 @@ impl Checker {
 
             let out = resolved.type_of();
 
-            if out.is_some() {
-              atom.out = out.unwrap();
+            if let Some(out) = out {
+              atom.out = out;
             } else {
               panic!("failed to resolve atom type `{}`", atom.to_string());
             };

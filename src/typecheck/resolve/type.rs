@@ -32,7 +32,7 @@ impl Checker {
           if lit.is_some_and(|lit| !is_valid_array_length(lit)) {
             return InvalidTypeSnafu {
               text: "Array length is invalid",
-              span: lit.unwrap().span.clone()
+              span: lit.unwrap().span()
             }.fail();
           };
 
@@ -86,7 +86,7 @@ impl Checker {
               _ => {
                 return UnknownIdentSnafu {
                   text: qual.to_hashable(),
-                  span: qual.span.clone()
+                  span: qual.span()
                 }.fail();
               }
             }

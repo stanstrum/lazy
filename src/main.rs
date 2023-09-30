@@ -23,7 +23,7 @@ pub(crate) mod colors;
 use inkwell::context::Context;
 use codegen::Codegen;
 
-use std::process::{Command, ExitStatus};
+use std::process::Command;
 
 #[derive(Debug, Snafu)]
 enum LazyError {

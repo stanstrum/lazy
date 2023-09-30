@@ -90,9 +90,9 @@ pub enum Impl {
 impl GetSpan for Impl {
   fn span(&self) -> Span {
     match self {
-      Impl::Impl(s) => &s.span,
-      Impl::ImplFor(s) => &s.span,
-    }.clone()
+      Impl::Impl(s) => s.span,
+      Impl::ImplFor(s) => s.span,
+    }
   }
 }
 

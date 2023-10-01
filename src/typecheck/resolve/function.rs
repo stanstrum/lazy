@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use crate::aster::intrinsics;
+
 use super::*;
 
 impl Checker {
@@ -20,6 +22,23 @@ impl Checker {
     self.stack.push(ScopePointer::Block(block));
     self.resolve_block_expression(block)?;
     self.stack.pop();
+
+    if func.body.returns_last {
+      let last_child = func.body.children.last().unwrap();
+
+      match last_child {
+        BlockExpressionChild::Binding(_) => todo!("throw error for returning value of binding"),
+        BlockExpressionChild::Expression(expr) => {
+          if !extends(&expr.type_of().unwrap(), &func.decl.ret.e) {
+            todo!("throw error for return last/return type mismatch");
+          };
+        },
+      };
+    } else {
+      if !extends(&func.decl.ret.e, &Type::Intrinsic(&intrinsics::VOID)) {
+        todo!("throw error for no return last/void mismatch");
+      };
+    };
 
     Ok(())
   }

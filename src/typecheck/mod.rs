@@ -15,6 +15,9 @@ use errors::*;
 
 use crate::aster::ast::*;
 
+mod extends;
+pub use extends::extends;
+
 #[derive(Clone, Copy)]
 enum ScopePointer {
   Namespace(*mut NamespaceAST),

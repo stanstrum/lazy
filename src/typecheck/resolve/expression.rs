@@ -10,48 +10,6 @@ use std::collections::HashMap;
 use super::*;
 use crate::aster::intrinsics;
 
-fn extends(ty: &Type, base: &Type) -> bool {
-  println!("test: {:?} extends {:?}", ty, base);
-
-  let result = {
-    match (ty, base) {
-      (Type::Defined(ty), base) => {
-        let ast = unsafe { &**ty };
-
-        extends(&ast.e, base)
-      },
-      (ty, Type::Defined(base)) => {
-        let ast = unsafe { &**base };
-
-        extends(ty, &ast.e)
-      },
-      (Type::Struct(a), Type::Struct(b)) => {
-        a == b
-      },
-      (Type::ConstReferenceTo(a), Type::ConstReferenceTo(b)) => {
-        extends(&a.e, &b.e)
-      },
-      (Type::ArrayOf(None, a), Type::ArrayOf(None, b)) => {
-        extends(&a.e, &b.e)
-      },
-      (Type::Intrinsic(a), Type::Intrinsic(b)) => {
-        a == b
-      }
-      _ => {
-        false
-      }
-    }
-  };
-
-  if result {
-    println!("does extend");
-  } else {
-    println!("doesn't extend");
-  };
-
-  result
-}
-
 impl Checker {
   pub fn resolve_block_expression(&mut self, block: &mut BlockExpressionAST) -> TypeCheckResult<()> {
     for expr in block.children.iter_mut() {

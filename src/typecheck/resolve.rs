@@ -22,6 +22,8 @@ use super::{
 
 use crate::aster::ast::*;
 
+pub use super::extends;
+
 trait IsResolved {
   fn is_resolved(&self) -> bool;
 }

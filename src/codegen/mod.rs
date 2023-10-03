@@ -32,10 +32,31 @@ use inkwell::{
   // values::PointerValue
 };
 
+use crate::aster::consts;
+
 pub struct Codegen<'a, 'ctx> {
   pub context: &'ctx Context,
   pub module: &'a Module<'ctx>,
   pub builder: &'a Builder<'ctx>,
+}
+
+fn parse_int_literal(text: &String) -> u64 {
+  if text.starts_with(consts::punctuation::BIN_PFX) {
+    todo!("parse_int_literal bin");
+  };
+
+  if text.starts_with(consts::punctuation::OCT_PFX) {
+    todo!("parse_int_literal oct");
+  };
+
+  if text.starts_with(consts::punctuation::HEX_PFX) {
+    todo!("parse_int_literal hex");
+  };
+
+  let clean = text.chars().filter(|ch| *ch != '_').collect::<String>();
+
+  clean.parse()
+    .expect("failed to parse int literal")
 }
 
 impl Codegen<'_, '_> {
@@ -194,7 +215,24 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
   }
 
   fn generate_literal(&mut self, lit: &LiteralAST, ty: &Type) -> CodeGenResult<BasicValueEnum<'ctx>> {
-    todo!("generate_literal")
+    Ok(match &lit.l {
+      Literal::UnicodeString(_) => todo!("generate_literal unicodestring"),
+      Literal::ByteString(_) => todo!("generate_literal bytestring"),
+      Literal::CString(_) => todo!("generate_literal cstring"),
+      Literal::Char(_) => todo!("generate_literal char"),
+      Literal::ByteChar(_) => todo!("generate_literal bytechar"),
+      Literal::FloatLiteral(_) => todo!("generate_literal floatliteral"),
+      Literal::IntLiteral(text) => {
+        let value = parse_int_literal(text);
+
+        // what is "sign_extend" here? (the magic `false` at the end of the next line)
+        self.generate_type(ty)?
+          .to_basic_metadata()
+          .into_int_type()
+          .const_int(value, false)
+          .as_basic_value_enum()
+      },
+    })
   }
 
   fn generate_atom(&mut self, ast: &AtomExpressionAST) -> CodeGenResult<Option<BasicValueEnum<'ctx>>> {

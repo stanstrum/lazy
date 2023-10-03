@@ -23,7 +23,7 @@ mod seek_read;
 use seek_read::seek;
 
 mod make;
-mod consts;
+pub mod consts;
 mod to_string;
 
 pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {

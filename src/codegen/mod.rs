@@ -10,7 +10,7 @@ mod errors;
 use errors::*;
 use inkwell::AddressSpace;
 use inkwell::types::{FunctionType, VoidType, PointerType, ArrayType};
-use inkwell::values::FunctionValue;
+use inkwell::values::{FunctionValue, BasicValueEnum, BasicValue};
 
 use crate::aster::ast::NamespaceAST;
 
@@ -189,19 +189,71 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
     Ok(self.module.add_function(name, func_ty, None))
   }
 
+  fn generate_binding(&mut self, ast: &BindingAST) -> CodeGenResult<()> {
+    todo!("generate_binding");
+  }
+
+  fn generate_literal(&mut self, lit: &LiteralAST, ty: &Type) -> CodeGenResult<BasicValueEnum<'ctx>> {
+    todo!("generate_literal")
+  }
+
+  fn generate_atom(&mut self, ast: &AtomExpressionAST) -> CodeGenResult<Option<BasicValueEnum<'ctx>>> {
+    Ok(match &ast.a {
+      AtomExpression::Literal(lit) => Some(self.generate_literal(lit, &ast.out)?),
+      AtomExpression::Variable(_, _) => todo!(),
+      AtomExpression::Return(_) => todo!(),
+      AtomExpression::Break(_) => todo!(),
+    })
+  }
+
+  fn generate_expr(&mut self, ast: &Expression) -> CodeGenResult<Option<BasicValueEnum<'ctx>>> {
+    match ast {
+      Expression::Atom(ast) => self.generate_atom(ast),
+      Expression::Block(_) => todo!("generate_expr block"),
+      Expression::SubExpression(_) => todo!("generate_expr subexpression"),
+      Expression::ControlFlow(_) => todo!("generate_expr controlflow"),
+      Expression::BinaryOperator(_) => todo!("generate_expr binaryoperator"),
+      Expression::UnaryOperator(_) => todo!("generate_expr unaryoperator"),
+    }
+  }
+
+  fn generate_block(&mut self, ast: &BlockExpressionAST) -> CodeGenResult<Option<BasicValueEnum<'ctx>>> {
+    let Some((last, all_but_last)) = ast.children.split_last() else {
+      return Ok(None);
+    };
+
+    let BlockExpressionChild::Expression(last) = last else {
+      unreachable!("last child of returns_last block expression was a binding");
+    };
+
+    for child in all_but_last.iter() {
+      match child {
+        BlockExpressionChild::Binding(binding) => {
+          self.generate_binding(binding)?;
+        },
+        BlockExpressionChild::Expression(expr) => {
+          self.generate_expr(expr)?;
+        },
+      }
+    };
+
+    self.generate_expr(last)
+  }
+
   fn generate_function(&mut self, ast: &FunctionAST, value: FunctionValue<'ctx>) -> CodeGenResult<()> {
     let block = self.context.append_basic_block(value, "entry");
     self.builder.position_at_end(block);
 
-    for expr in ast.body.children.iter() {
-      todo!("generate block expression");
-    };
+    let returned = self.generate_block(&ast.body)?;
 
-    if ast.body.returns_last {
-      todo!("returns last");
-    } else {
-      self.builder.build_return(None);
-    };
+    // this is very strange
+    let returned = returned
+      .as_ref()
+      .map(
+        |val| val as &dyn BasicValue<'ctx>
+      );
+
+    self.builder.build_return(returned);
 
     Ok(())
   }

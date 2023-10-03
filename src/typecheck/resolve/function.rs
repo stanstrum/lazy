@@ -20,7 +20,13 @@ impl Checker {
     let block = &mut func.body;
 
     self.stack.push(ScopePointer::Block(block));
-    self.resolve_block_expression(block)?;
+
+    if block.returns_last {
+      self.resolve_block_expression(block, Some(&func.decl.ret.e))?;
+    } else {
+      self.resolve_block_expression(block, None)?;
+    };
+
     self.stack.pop();
 
     if func.body.returns_last {

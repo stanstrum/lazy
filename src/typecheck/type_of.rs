@@ -28,7 +28,7 @@ impl TypeOf for BlockExpressionAST {
 impl TypeOf for Expression {
   fn type_of(&self) -> Option<Type> {
     match self {
-      Expression::Atom(atom) => atom.type_of(),
+      Expression::Atom(atom) => Some(atom.out.clone()),
       Expression::Block(block) => block.type_of(),
       Expression::SubExpression(subexpr) => subexpr.e.type_of(),
       Expression::ControlFlow(_) => todo!("typeof for ctrlflow"),
@@ -40,16 +40,16 @@ impl TypeOf for Expression {
   }
 }
 
-impl TypeOf for AtomExpressionAST {
-  fn type_of(&self) -> Option<Type> {
-    match &self.a {
-      AtomExpression::Literal(_) => todo!("type_of atomexpr literal"),
-      AtomExpression::Variable(_, var_ref) => var_ref.type_of(),
-      AtomExpression::Return(_) => todo!("type_of atomexpr return"),
-      AtomExpression::Break(_) => todo!("type_of atomexpr break"),
-    }
-  }
-}
+// impl TypeOf for AtomExpressionAST {
+//   fn type_of(&self) -> Option<Type> {
+//     match &self.a {
+//       AtomExpression::Literal(lit) => todo!("type_of atomexpr literal"),
+//       AtomExpression::Variable(_, var_ref) => var_ref.type_of(),
+//       AtomExpression::Return(_) => todo!("type_of atomexpr return"),
+//       AtomExpression::Break(_) => todo!("type_of atomexpr break"),
+//     }
+//   }
+// }
 
 impl TypeOf for VariableReference {
   fn type_of(&self) -> Option<Type> {

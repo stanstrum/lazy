@@ -18,7 +18,7 @@ impl Checker {
     let block = &mut func.body;
 
     self.stack.push(ScopePointer::Block(block));
-    self.resolve_block_expression(block)?;
+    self.resolve_block_expression(block, None)?;
     self.stack.pop();
 
     Ok(())

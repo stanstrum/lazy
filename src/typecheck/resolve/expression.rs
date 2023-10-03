@@ -10,9 +10,13 @@ use std::collections::HashMap;
 use super::*;
 use crate::aster::intrinsics;
 
+const BOOL_COERCION: Option<&Type> = Some(&Type::Intrinsic(intrinsics::BOOL));
+
 impl Checker {
-  pub fn resolve_block_expression(&mut self, block: &mut BlockExpressionAST) -> TypeCheckResult<()> {
-    for expr in block.children.iter_mut() {
+  pub fn resolve_block_expression(&mut self, block: &mut BlockExpressionAST, coerce_to: Option<&Type>) -> TypeCheckResult<()> {
+    let len = block.children.len();
+
+    for (i, expr) in block.children.iter_mut().enumerate() {
       match expr {
         BlockExpressionChild::Binding(binding) => {
           if binding.ty.is_some() {
@@ -23,7 +27,13 @@ impl Checker {
         },
         BlockExpressionChild::Expression(expr) => {
           self.stack.push(ScopePointer::Expression(expr));
-          self.resolve_expression(expr)?;
+
+          if i + 1 == len && block.returns_last {
+            self.resolve_expression(expr, coerce_to)?;
+          } else {
+            self.resolve_expression(expr, None)?;
+          };
+
           self.stack.pop();
         },
       };
@@ -77,7 +87,7 @@ impl Checker {
     Ok(map)
   }
 
-  fn resolve_expression(&mut self, expr: &mut Expression) -> TypeCheckResult<()> {
+  fn resolve_expression(&mut self, expr: &mut Expression, coerce_to: Option<&Type>) -> TypeCheckResult<()> {
     match expr {
       Expression::Atom(atom) => {
         match &mut atom.a {
@@ -99,7 +109,28 @@ impl Checker {
               Literal::Char(_) => todo!("resolve char"),
               Literal::ByteChar(_) => todo!("resolve bytechar"),
               Literal::FloatLiteral(_) => todo!("resolve float literal"),
-              Literal::IntLiteral(_) => todo!("resolve int literal"),
+              Literal::IntLiteral(text) => {
+                let Some(coerce_to) = coerce_to else {
+                  todo!("error: int literal has no type coercion");
+                };
+
+                // U8,
+                // U16,
+                // U32,
+                // U64,
+                // USIZE,
+                // I8,
+                // I16,
+                // I32,
+                // I64,
+                // ISIZE,
+
+                if extends(coerce_to, &Type::Intrinsic(intrinsics::I32)) {
+                  atom.out = coerce_to.clone();
+                } else {
+                  todo!("error: int literal coercion failed");
+                };
+              },
             };
           },
           AtomExpression::Variable(qual, resolved) => {
@@ -125,10 +156,10 @@ impl Checker {
             let mut out_ty = None;
 
             for (cond, body) in cond_body.iter_mut() {
-              self.resolve_expression(cond)?;
+              self.resolve_expression(cond, BOOL_COERCION)?;
 
               self.stack.push(ScopePointer::Block(body));
-              self.resolve_block_expression(body)?;
+              self.resolve_block_expression(body, None)?;
               self.stack.pop();
 
               if out_ty.is_none() {
@@ -142,7 +173,7 @@ impl Checker {
               let body = r#else.as_mut().unwrap();
 
               self.stack.push(ScopePointer::Block(body));
-              self.resolve_block_expression(body)?;
+              self.resolve_block_expression(body, None)?;
               self.stack.pop();
             };
 
@@ -150,11 +181,11 @@ impl Checker {
           },
           ControlFlow::While(cond, body) => {
             self.stack.push(ScopePointer::Expression(&mut **cond));
-            self.resolve_expression(cond)?;
+            self.resolve_expression(cond, BOOL_COERCION)?;
             self.stack.pop();
 
             self.stack.push(ScopePointer::Block(&mut **body));
-            self.resolve_block_expression(body)?;
+            self.resolve_block_expression(body, None)?;
             self.stack.pop();
           },
           ControlFlow::DoWhile(_, _) => todo!("dowhile"),
@@ -162,7 +193,7 @@ impl Checker {
             let block = &mut **block;
 
             self.stack.push(ScopePointer::Block(block));
-            self.resolve_block_expression(block)?;
+            self.resolve_block_expression(block, None)?;
             self.stack.pop();
           },
         };
@@ -175,7 +206,7 @@ impl Checker {
             let (a, b) = (&mut *binary.a, &mut *binary.b);
 
             self.stack.push(ScopePointer::Expression(a));
-            self.resolve_expression(a)?;
+            self.resolve_expression(a, None)?;
             self.stack.pop();
 
             match b {
@@ -222,11 +253,11 @@ impl Checker {
             let (a, b) = (&mut *binary.a, &mut *binary.b);
 
             self.stack.push(ScopePointer::Expression(a));
-            self.resolve_expression(a)?;
+            self.resolve_expression(a, None)?;
             self.stack.pop();
 
             self.stack.push(ScopePointer::Expression(b));
-            self.resolve_expression(b)?;
+            self.resolve_expression(b, None)?;
             self.stack.pop();
 
             todo!("set out for binop");
@@ -235,7 +266,7 @@ impl Checker {
       },
       Expression::UnaryOperator(UnaryOperatorExpressionAST { out, expr, op, .. }) => {
         self.stack.push(ScopePointer::Expression(&mut **expr));
-        self.resolve_expression(expr)?;
+        self.resolve_expression(expr, None)?;
         self.stack.pop();
 
         let expr_ty = expr.type_of();

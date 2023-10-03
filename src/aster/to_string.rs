@@ -376,7 +376,10 @@ impl std::string::ToString for FunctionDeclAST {
 
       let last = self.args.len() - 1;
 
-      for (i, (ident, ty)) in self.args.iter().enumerate() {
+      let mut arg_pairs = self.args.iter().collect::<Vec<_>>();
+      arg_pairs.sort_by_key(|(ident, _)| ident.span().start);
+
+      for (i, (ident, ty)) in arg_pairs.iter().enumerate() {
         write!(&mut w, "  {} {}", ty.to_string(), ident.to_string()).unwrap();
 
         if i != last {

@@ -98,8 +98,8 @@ impl Checker {
               Literal::CString(_) => todo!("resolve cstr"),
               Literal::Char(_) => todo!("resolve char"),
               Literal::ByteChar(_) => todo!("resolve bytechar"),
-              Literal::FloatLiteral(_) => todo!("resolve numeric literal"),
-              Literal::IntLiteral(_) => todo!("resolve numeric literal"),
+              Literal::FloatLiteral(_) => todo!("resolve float literal"),
+              Literal::IntLiteral(_) => todo!("resolve int literal"),
             };
           },
           AtomExpression::Variable(qual, resolved) => {

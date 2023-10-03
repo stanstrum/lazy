@@ -8,7 +8,8 @@
 mod errors;
 
 use errors::*;
-use inkwell::types::{FunctionType, VoidType};
+use inkwell::AddressSpace;
+use inkwell::types::{FunctionType, VoidType, PointerType, ArrayType};
 use inkwell::values::FunctionValue;
 
 use crate::aster::ast::NamespaceAST;
@@ -63,8 +64,24 @@ impl<'ctx> MetadataType<'ctx> {
   pub fn to_basic_metadata(&self) -> BasicMetadataTypeEnum<'ctx> {
     match self {
       MetadataType::Void(r#void) => unimplemented!("generate basic metadata type (for arg type): void") /* BasicMetadataTypeEnum::VoidType(*r#void) */,
-      MetadataType::Enum(BasicMetadataTypeEnum::IntType(r#int)) => BasicMetadataTypeEnum::IntType(*r#int),
-      _ => todo!("to_basic_metadata {self:#?}")
+      MetadataType::Enum(basic_metadata_enum) => *basic_metadata_enum,
+    }
+  }
+
+  pub fn ptr_ty(&self, address_space: AddressSpace) -> PointerType<'ctx> {
+    match self {
+      MetadataType::Void(void) => unimplemented!("ptr to void"),
+      MetadataType::Enum(BasicMetadataTypeEnum::IntType(ty)) => ty.ptr_type(address_space),
+      MetadataType::Enum(BasicMetadataTypeEnum::PointerType(ty)) => ty.ptr_type(address_space),
+      MetadataType::Enum(_) => todo!("ptr_ty {self:#?}"),
+    }
+  }
+
+  pub fn array_type(&self, size: u32) -> ArrayType<'ctx> {
+    match self {
+      MetadataType::Void(void) => unimplemented!("array of void"),
+      MetadataType::Enum(BasicMetadataTypeEnum::IntType(int)) => int.array_type(size),
+      _ => todo!("array_type {self:#?}")
     }
   }
 }
@@ -93,18 +110,52 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
     }
   }
 
-  fn generate_arg_type(&self, ty: &Type) -> CodeGenResult<MetadataType<'ctx>> {
+  fn generate_type(&self, ty: &Type) -> CodeGenResult<MetadataType<'ctx>> {
     match ty {
       Type::Intrinsic(intrinsic) => self.generate_intrinsic_type(intrinsic),
       Type::Function(_) => todo!("generate_arg_type function"),
       Type::MemberFunction(_) => todo!("generate_arg_type memberfunction"),
       Type::Struct(_) => todo!("generate_arg_type struct"),
-      Type::ConstReferenceTo(_) => todo!("generate_arg_type constreferenceto"),
+      Type::ConstReferenceTo(referenced) => {
+        let ir_ty = self.generate_type(&referenced.e)?;
+
+        Ok(MetadataType::Enum(
+          BasicMetadataTypeEnum::PointerType(
+            ir_ty.ptr_ty(AddressSpace::default())
+          )
+        ))
+      },
       Type::MutReferenceTo(_) => todo!("generate_arg_type mutreferenceto"),
       Type::ConstPtrTo(_) => todo!("generate_arg_type constptrto"),
       Type::MutPtrTo(_) => todo!("generate_arg_type mutptrto"),
-      Type::ArrayOf(_, _) => todo!("generate_arg_type arrayof"),
-      Type::Defined(_) => todo!("generate_arg_type defined"),
+      Type::ArrayOf(count, item) => {
+        let ir_ty = self.generate_type(&item.e)?;
+
+        // use crate::aster::
+
+        if count.is_some() {
+          // Ok(MetadataType::Enum(
+          //   ir_ty.array_type(0);
+          //   BasicMetadataTypeEnum::ArrayType(
+          //     ir_ty
+          //   )
+          // ))
+
+          todo!("sized array");
+        } else {
+          // c undefined-length arrays just exploit pointer math ...
+          // practically, there is no difference in type information
+          // between a pointer to an int and a pointer to an int
+          // followed by more ints
+
+          Ok(ir_ty)
+        }
+      },
+      Type::Defined(ast) => {
+        let ast = unsafe { &**ast };
+
+        self.generate_type(&ast.e)
+      },
       Type::Unknown(_) => todo!("generate_arg_type unknown"),
       Type::UnresolvedLiteral(_) => todo!("generate_arg_type unresolvednumeric"),
       Type::Unresolved => todo!("generate_arg_type unresolved"),
@@ -114,13 +165,16 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
   fn declare_function(&mut self, func: &FunctionAST) -> CodeGenResult<FunctionValue<'ctx>> {
     let decl = &func.decl;
 
-    let ret_ty = self.generate_arg_type(&decl.ret.e)?;
+    let MetadataType::Enum(ret_ty) = self.generate_type(&decl.ret.e)? else {
+      todo!("error: invalid arg type");
+    };
+
     let args = decl
       .args
       .values()
       .map(
         |ast|
-          self.generate_arg_type(&ast.e)
+          self.generate_type(&ast.e)
       )
       .collect::<Result<Vec<_>, _>>()?;
 
@@ -129,7 +183,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       .map(|ty| ty.to_basic_metadata())
       .collect::<Vec<_>>();
 
-    let func_ty = ret_ty.fn_type(args.as_slice(), false);
+    let func_ty = MetadataType::Enum(ret_ty).fn_type(args.as_slice(), false);
 
     let name = &func.decl.ident.text;
     Ok(self.module.add_function(name, func_ty, None))

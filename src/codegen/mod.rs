@@ -66,24 +66,27 @@ impl<'ctx> MetadataType<'ctx> {
   }
 }
 
-use crate::aster::{ast::*};
+use crate::aster::{
+  ast::*,
+  intrinsics::Intrinsic
+};
 
 impl<'a, 'ctx> Codegen<'a, 'ctx> {
-  fn generate_intrinsic_type(&self, intrinsic: &IntrinsicType) -> CodeGenResult<MetadataType<'ctx>> {
-    match intrinsic.name {
-      "void" => Ok(MetadataType::Void(self.context.void_type())),
-      "bool" => Ok(MetadataType::Int(self.context.bool_type())),
-      "char" => Ok(MetadataType::Int(self.context.i8_type())),
-      "u8" => Ok(MetadataType::Int(self.context.i8_type())),
-      "u16" => Ok(MetadataType::Int(self.context.i16_type())),
-      "u32" => Ok(MetadataType::Int(self.context.i32_type())),
-      "u64" => Ok(MetadataType::Int(self.context.i64_type())),
-      "usize" => Ok(MetadataType::Int(self.context.i64_type())),
-      "i8" => Ok(MetadataType::Int(self.context.i8_type())),
-      "i16" => Ok(MetadataType::Int(self.context.i16_type())),
-      "i32" => Ok(MetadataType::Int(self.context.i32_type())),
-      "i64" => Ok(MetadataType::Int(self.context.i64_type())),
-      "isize" => Ok(MetadataType::Int(self.context.i64_type())),
+  fn generate_intrinsic_type(&self, intrinsic: &Intrinsic) -> CodeGenResult<MetadataType<'ctx>> {
+    match intrinsic {
+      Intrinsic::VOID => Ok(MetadataType::Void(self.context.void_type())),
+      Intrinsic::BOOL => Ok(MetadataType::Int(self.context.bool_type())),
+      Intrinsic::CHAR => Ok(MetadataType::Int(self.context.i8_type())),
+      Intrinsic::U8 => Ok(MetadataType::Int(self.context.i8_type())),
+      Intrinsic::U16 => Ok(MetadataType::Int(self.context.i16_type())),
+      Intrinsic::U32 => Ok(MetadataType::Int(self.context.i32_type())),
+      Intrinsic::U64 => Ok(MetadataType::Int(self.context.i64_type())),
+      Intrinsic::USIZE => Ok(MetadataType::Int(self.context.i64_type())),
+      Intrinsic::I8 => Ok(MetadataType::Int(self.context.i8_type())),
+      Intrinsic::I16 => Ok(MetadataType::Int(self.context.i16_type())),
+      Intrinsic::I32 => Ok(MetadataType::Int(self.context.i32_type())),
+      Intrinsic::I64 => Ok(MetadataType::Int(self.context.i64_type())),
+      Intrinsic::ISIZE => Ok(MetadataType::Int(self.context.i64_type())),
       _ => {
         dbg!(intrinsic);
         unreachable!("unknown intrinsic...");
@@ -93,11 +96,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
 
   fn generate_arg_type(&self, ty: &Type) -> CodeGenResult<MetadataType<'ctx>> {
     match ty {
-      Type::Intrinsic(intrinsic) => {
-        let intrinsic = unsafe { &**intrinsic };
-
-        self.generate_intrinsic_type(intrinsic)
-      },
+      Type::Intrinsic(intrinsic) => self.generate_intrinsic_type(intrinsic),
       Type::Function(_) => todo!("generate_arg_type function"),
       Type::MemberFunction(_) => todo!("generate_arg_type memberfunction"),
       Type::Struct(_) => todo!("generate_arg_type struct"),

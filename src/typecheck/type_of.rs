@@ -20,7 +20,7 @@ impl TypeOf for BlockExpressionAST {
         BlockExpressionChild::Expression(expr) => expr.type_of(),
       }
     } else {
-      Some(Type::Intrinsic(&intrinsics::VOID))
+      Some(Type::Intrinsic(intrinsics::VOID))
     }
   }
 }

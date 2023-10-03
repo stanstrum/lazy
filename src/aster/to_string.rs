@@ -325,12 +325,10 @@ impl std::string::ToString for Expression {
 
 impl std::string::ToString for TypeAST {
   fn to_string(&self) -> String {
-    match self.e {
+    match &self.e {
       Type::Intrinsic(ptr) => {
-        let name = unsafe { (*ptr).name };
-
         format!(
-          "{LIGHT_RED}{}{CLEAR}", name
+          "{LIGHT_RED}{}{CLEAR}", ptr.get_name()
         )
       },
       Type::ConstReferenceTo(ref ty) => format!("&{}", ty.to_string()),
@@ -344,7 +342,8 @@ impl std::string::ToString for TypeAST {
         format!("{DARK_GRAY}/* unknown */{CLEAR} {LIGHT_RED}{UNDERLINE}{}{CLEAR}", ident.to_string())
       },
       Type::Defined(defined) => {
-        let defined = unsafe { &*defined };
+        let defined = unsafe { &**defined };
+
         format!("{DARK_GRAY}/* {}:{} */{CLEAR} {}",
           defined.span.start,
           defined.span.end,
@@ -363,7 +362,7 @@ impl std::string::ToString for FunctionDeclAST {
     write!(&mut w, "{CREME}{}{CLEAR}", self.ident.to_string()).unwrap();
 
     match self.ret.e {
-      Type::Intrinsic(ptr) if ptr == &intrinsics::VOID => {},
+      Type::Intrinsic(intrinsics::VOID) => {},
       _ => {
         write!(&mut w, " -> {}", self.ret.to_string()).unwrap();
       }

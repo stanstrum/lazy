@@ -38,7 +38,7 @@ impl FunctionDeclAST {
       // due to the fact that a void return type is implicitly inferred
       TypeAST {
         span: reader.span_since(start),
-        e: Type::Intrinsic(&intrinsics::VOID)
+        e: Type::Intrinsic(intrinsics::VOID)
       }
     };
 

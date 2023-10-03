@@ -32,10 +32,7 @@ pub fn extends(ty: &Type, base: &Type) -> bool {
         extends(&a.e, &b.e)
       },
       (Type::Intrinsic(a), Type::Intrinsic(b)) => {
-        let a = unsafe { &**a };
-        let b = unsafe { &**b };
-
-        a.name == b.name
+        a == b
       }
       _ => {
         false

@@ -7,7 +7,7 @@
 
 use std::collections::HashMap;
 
-use super::intrinsics;
+// use super::intrinsics;
 
 pub trait GetSpan {
   fn span(&self) -> Span;
@@ -421,16 +421,12 @@ pub struct FunctionAST {
   pub body: BlockExpressionAST,
 }
 
-#[derive(Debug)]
-pub struct IntrinsicType {
-  pub name: &'static str,
-  pub bytes: usize,
-}
+use crate::aster::intrinsics::Intrinsic;
 
 #[allow(unused)]
 #[derive(Debug, Clone)]
 pub enum Type {
-  Intrinsic(*const IntrinsicType),
+  Intrinsic(Intrinsic),
   Function(*const FunctionAST),
   MemberFunction(*const MemberFunctionAST),
   Struct(*const StructAST),
@@ -464,7 +460,7 @@ impl Type {
   pub fn to_hashable(&self) -> String {
     match self {
       Type::Intrinsic(s) => {
-        unsafe { (**s).name }.to_owned()
+        s.get_name()
       },
       Type::ConstReferenceTo(ty) => {
         format!("&{}", ty.e.to_hashable())

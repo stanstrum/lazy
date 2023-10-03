@@ -5,40 +5,70 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use super::ast::{IntrinsicType, Type, QualifiedAST};
+use crate::aster::ast::VariableReference;
 
-pub const VOID: IntrinsicType = IntrinsicType { name: "void", bytes: 0 };
-pub const BOOL: IntrinsicType = IntrinsicType { name: "bool", bytes: 1 };
-pub const CHAR: IntrinsicType = IntrinsicType { name: "char", bytes: 1 };
-pub const U8: IntrinsicType = IntrinsicType { name: "u8", bytes: 1 };
-pub const U16: IntrinsicType = IntrinsicType { name: "u16", bytes: 2 };
-pub const U32: IntrinsicType = IntrinsicType { name: "u32", bytes: 4 };
-pub const U64: IntrinsicType = IntrinsicType { name: "u64", bytes: 8 };
-pub const USIZE: IntrinsicType = IntrinsicType { name: "usize", bytes: 4 };
-pub const I8: IntrinsicType = IntrinsicType { name: "i8", bytes: 1 };
-pub const I16: IntrinsicType = IntrinsicType { name: "i16", bytes: 2 };
-pub const I32: IntrinsicType = IntrinsicType { name: "i32", bytes: 4 };
-pub const I64: IntrinsicType = IntrinsicType { name: "i64", bytes: 8 };
-pub const ISIZE: IntrinsicType = IntrinsicType { name: "isize", bytes: 4 };
+use super::ast::{Type, QualifiedAST};
+use phf::phf_ordered_map;
 
-static INTRINSICS: &[IntrinsicType] = &[
-  VOID, BOOL, CHAR,
-  U8, U16, U32, U64, USIZE,
-  I8, I16, I32, I64, ISIZE
-];
+#[derive(Debug, Clone, PartialEq)]
+pub enum Intrinsic {
+  VOID,
+  BOOL,
+  CHAR,
+  U8,
+  U16,
+  U32,
+  U64,
+  USIZE,
+  I8,
+  I16,
+  I32,
+  I64,
+  ISIZE,
+}
+
+pub use Intrinsic::*;
+
+pub static INTRINSICS_MAP: phf::OrderedMap<&'static str, Intrinsic> = phf_ordered_map! {
+  "void" => VOID,
+  "bool" => BOOL,
+  "char" => CHAR,
+  "u8" => U8,
+  "u16" => U16,
+  "u32" => U32,
+  "u64" => U64,
+  "usize" => USIZE,
+  "i8" => I8,
+  "i16" => I16,
+  "i32" => I32,
+  "i64" => I64,
+  "isize" => ISIZE,
+};
 
 pub fn get_intrinsic(qual: &QualifiedAST) -> Option<Type> {
   if qual.parts.len() != 1 {
     return None;
   };
 
-  let ident = &qual.parts[0];
+  let ident = qual.parts.first().unwrap();
 
-  for intrinsic in INTRINSICS.iter() {
-    if intrinsic.name == ident.text {
-      return Some(Type::Intrinsic(intrinsic));
+  for (name, variant) in INTRINSICS_MAP.into_iter() {
+    if &ident.text.as_str() == name {
+      return Some(Type::Intrinsic(variant.to_owned()));
     };
   };
 
   None
+}
+
+impl Intrinsic {
+  pub fn get_name(&self) -> String {
+    for (name, variant) in INTRINSICS_MAP.into_iter() {
+      if self == variant {
+        return name.to_string();
+      };
+    };
+
+    unreachable!("unknown intrinsic type {self:#?}")
+  }
 }

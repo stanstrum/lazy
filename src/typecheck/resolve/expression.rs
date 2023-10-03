@@ -91,7 +91,7 @@ impl Checker {
                 };
 
                 atom.out = Type::ArrayOf(Some(len), Box::new(TypeAST {
-                  span, e: Type::Intrinsic(&intrinsics::U32)
+                  span, e: Type::Intrinsic(intrinsics::U32)
                 }));
               },
               Literal::ByteString(_) => todo!("resolve bytestr"),

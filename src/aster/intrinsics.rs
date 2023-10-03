@@ -10,6 +10,7 @@ use crate::aster::ast::VariableReference;
 use super::ast::{Type, QualifiedAST};
 use phf::phf_ordered_map;
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum Intrinsic {
   VOID,

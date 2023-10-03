@@ -309,7 +309,8 @@ pub enum Literal {
   CString(String),
   Char(char),
   ByteChar(char),
-  NumericLiteral(String),
+  FloatLiteral(String),
+  IntLiteral(String),
 }
 
 #[derive(Debug, Clone)]
@@ -450,7 +451,8 @@ impl TypeAST {
 impl LiteralAST {
   pub fn to_hashable(&self) -> String {
     match &self.l {
-      Literal::NumericLiteral(text) => text.to_owned(),
+      Literal::FloatLiteral(text) => text.to_owned(),
+      Literal::IntLiteral(text) => text.to_owned(),
       _ => panic!("to_hashable run on non-numeric")
     }
   }

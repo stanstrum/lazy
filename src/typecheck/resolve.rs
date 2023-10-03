@@ -35,10 +35,7 @@ impl IsResolved for TypeAST {
 }
 
 fn is_valid_array_length(lit: &LiteralAST) -> bool {
-  match &lit.l {
-    Literal::NumericLiteral(text) => !text.contains('.'),
-    _ => false
-  }
+  matches!(&lit.l, Literal::IntLiteral(_))
 }
 
 impl IsResolved for Type {

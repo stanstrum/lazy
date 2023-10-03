@@ -79,8 +79,9 @@ impl std::string::ToString for LiteralAST {
         format!("{LIGHT_YELLOW}b\"{}\"{CLEAR}", stringify_string(&self.l)),
       Literal::ByteChar(_) =>
         format!("{LIGHT_YELLOW}b\'{}\'{CLEAR}", stringify_string(&self.l)),
-      Literal::NumericLiteral(s) => {
-        format!("{MINT}{s}{CLEAR}")
+      Literal::IntLiteral(text)
+      | Literal::FloatLiteral(text) => {
+        format!("{MINT}{text}{CLEAR}")
       },
       _ => todo!("exhaustive for literal ast {:#?}", &self.l)
     }

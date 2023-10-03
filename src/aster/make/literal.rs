@@ -105,10 +105,17 @@ impl LiteralAST {
 
     let text = &reader.src()[start..reader.offset()];
 
-    Ok(LiteralAST {
-      span: reader.span_since(start),
-      l: Literal::NumericLiteral(text.to_owned())
-    })
+    if text.contains('.') {
+      Ok(LiteralAST {
+        span: reader.span_since(start),
+        l: Literal::FloatLiteral(text.to_owned())
+      })
+    } else {
+      Ok(LiteralAST {
+        span: reader.span_since(start),
+        l: Literal::IntLiteral(text.to_owned())
+      })
+    }
   }
 
   pub fn make_string(reader: &mut SourceReader) -> AsterResult<Self> {

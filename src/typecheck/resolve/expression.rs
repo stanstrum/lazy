@@ -87,7 +87,7 @@ impl Checker {
                 let span = lit.span();
 
                 let len = LiteralAST {
-                  span, l: Literal::NumericLiteral(unicode.len().to_string()),
+                  span, l: Literal::IntLiteral(unicode.len().to_string()),
                 };
 
                 atom.out = Type::ArrayOf(Some(len), Box::new(TypeAST {
@@ -98,7 +98,8 @@ impl Checker {
               Literal::CString(_) => todo!("resolve cstr"),
               Literal::Char(_) => todo!("resolve char"),
               Literal::ByteChar(_) => todo!("resolve bytechar"),
-              Literal::NumericLiteral(_) => todo!("resolve numeric literal"),
+              Literal::FloatLiteral(_) => todo!("resolve numeric literal"),
+              Literal::IntLiteral(_) => todo!("resolve numeric literal"),
             };
           },
           AtomExpression::Variable(qual, resolved) => {

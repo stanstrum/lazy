@@ -56,7 +56,7 @@ impl IsResolved for Type {
         lit.as_ref().is_some_and(is_valid_array_length) && ty.is_resolved(),
       Type::Defined(ast) => unsafe { (**ast).is_resolved() },
       Type::Unknown(_) => false,
-      Type::UnresolvedNumeric(_)
+      Type::UnresolvedLiteral(_)
       | Type::Unresolved => false,
     }
   }

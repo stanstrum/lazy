@@ -106,7 +106,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       Type::ArrayOf(_, _) => todo!("generate_arg_type arrayof"),
       Type::Defined(_) => todo!("generate_arg_type defined"),
       Type::Unknown(_) => todo!("generate_arg_type unknown"),
-      Type::UnresolvedNumeric(_) => todo!("generate_arg_type unresolvednumeric"),
+      Type::UnresolvedLiteral(_) => todo!("generate_arg_type unresolvednumeric"),
       Type::Unresolved => todo!("generate_arg_type unresolved"),
     }
   }

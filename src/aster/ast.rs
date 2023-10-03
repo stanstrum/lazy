@@ -437,7 +437,7 @@ pub enum Type {
   ArrayOf(Option<LiteralAST>, Box<TypeAST>),
   Defined(*const TypeAST),
   Unknown(QualifiedAST),
-  UnresolvedNumeric(Literal),
+  UnresolvedLiteral(Literal),
   Unresolved
 }
 

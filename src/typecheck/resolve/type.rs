@@ -94,7 +94,7 @@ impl Checker {
 
           return Ok(());
         },
-        Type::UnresolvedNumeric(_)
+        Type::UnresolvedLiteral(_)
         | Type::Unresolved => todo!("type alias dest unresolved"),
       };
     };

@@ -45,23 +45,26 @@ impl Codegen<'_, '_> {
   // }
 }
 
+#[derive(Debug)]
 enum MetadataType<'ctx> {
   Void(VoidType<'ctx>),
-  Int(IntType<'ctx>)
+  Enum(BasicMetadataTypeEnum<'ctx>)
 }
 
 impl<'ctx> MetadataType<'ctx> {
   pub fn fn_type(&self, param_types: &[BasicMetadataTypeEnum<'ctx>], is_var_args: bool) -> FunctionType<'ctx> {
     match self {
       MetadataType::Void(r#void) => r#void.fn_type(param_types, is_var_args),
-      MetadataType::Int(r#int) => int.fn_type(param_types, is_var_args),
+      MetadataType::Enum(BasicMetadataTypeEnum::IntType(r#int)) => int.fn_type(param_types, is_var_args),
+      _ => todo!("fn_type {self:#?}")
     }
   }
 
   pub fn to_basic_metadata(&self) -> BasicMetadataTypeEnum<'ctx> {
     match self {
       MetadataType::Void(r#void) => unimplemented!("generate basic metadata type (for arg type): void") /* BasicMetadataTypeEnum::VoidType(*r#void) */,
-      MetadataType::Int(r#int) => BasicMetadataTypeEnum::IntType(*r#int),
+      MetadataType::Enum(BasicMetadataTypeEnum::IntType(r#int)) => BasicMetadataTypeEnum::IntType(*r#int),
+      _ => todo!("to_basic_metadata {self:#?}")
     }
   }
 }
@@ -75,22 +78,18 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
   fn generate_intrinsic_type(&self, intrinsic: &Intrinsic) -> CodeGenResult<MetadataType<'ctx>> {
     match intrinsic {
       Intrinsic::VOID => Ok(MetadataType::Void(self.context.void_type())),
-      Intrinsic::BOOL => Ok(MetadataType::Int(self.context.bool_type())),
-      Intrinsic::CHAR => Ok(MetadataType::Int(self.context.i8_type())),
-      Intrinsic::U8 => Ok(MetadataType::Int(self.context.i8_type())),
-      Intrinsic::U16 => Ok(MetadataType::Int(self.context.i16_type())),
-      Intrinsic::U32 => Ok(MetadataType::Int(self.context.i32_type())),
-      Intrinsic::U64 => Ok(MetadataType::Int(self.context.i64_type())),
-      Intrinsic::USIZE => Ok(MetadataType::Int(self.context.i64_type())),
-      Intrinsic::I8 => Ok(MetadataType::Int(self.context.i8_type())),
-      Intrinsic::I16 => Ok(MetadataType::Int(self.context.i16_type())),
-      Intrinsic::I32 => Ok(MetadataType::Int(self.context.i32_type())),
-      Intrinsic::I64 => Ok(MetadataType::Int(self.context.i64_type())),
-      Intrinsic::ISIZE => Ok(MetadataType::Int(self.context.i64_type())),
-      _ => {
-        dbg!(intrinsic);
-        unreachable!("unknown intrinsic...");
-      }
+      Intrinsic::BOOL => Ok(MetadataType::Enum(BasicMetadataTypeEnum::IntType(self.context.bool_type()))),
+      Intrinsic::CHAR => Ok(MetadataType::Enum(BasicMetadataTypeEnum::IntType(self.context.i8_type()))),
+      Intrinsic::U8 => Ok(MetadataType::Enum(BasicMetadataTypeEnum::IntType(self.context.i8_type()))),
+      Intrinsic::U16 => Ok(MetadataType::Enum(BasicMetadataTypeEnum::IntType(self.context.i16_type()))),
+      Intrinsic::U32 => Ok(MetadataType::Enum(BasicMetadataTypeEnum::IntType(self.context.i32_type()))),
+      Intrinsic::U64 => Ok(MetadataType::Enum(BasicMetadataTypeEnum::IntType(self.context.i64_type()))),
+      Intrinsic::USIZE => Ok(MetadataType::Enum(BasicMetadataTypeEnum::IntType(self.context.i64_type()))),
+      Intrinsic::I8 => Ok(MetadataType::Enum(BasicMetadataTypeEnum::IntType(self.context.i8_type()))),
+      Intrinsic::I16 => Ok(MetadataType::Enum(BasicMetadataTypeEnum::IntType(self.context.i16_type()))),
+      Intrinsic::I32 => Ok(MetadataType::Enum(BasicMetadataTypeEnum::IntType(self.context.i32_type()))),
+      Intrinsic::I64 => Ok(MetadataType::Enum(BasicMetadataTypeEnum::IntType(self.context.i64_type()))),
+      Intrinsic::ISIZE => Ok(MetadataType::Enum(BasicMetadataTypeEnum::IntType(self.context.i64_type()))),
     }
   }
 

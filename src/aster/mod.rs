@@ -37,17 +37,16 @@ pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {
 
   loop {
     seek::optional_whitespace(reader)?;
-
     if reader.remaining() == 0 {
       break;
     };
 
     let (name, structure) = Structure::make(reader)?;
     if !seek::begins_with(reader, consts::punctuation::SEMICOLON) {
-      return ExpectedSnafu {
+      return reader.set_intent_error(ExpectedSnafu {
         what: "Punctuation (\";\")",
         offset: reader.offset()
-      }.fail();
+      }.fail());
     };
 
     global.map.insert(name, structure);

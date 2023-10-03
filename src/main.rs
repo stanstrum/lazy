@@ -91,12 +91,22 @@ fn compile() -> Result<(), LazyError> {
   let asterized = match aster::asterize(reader) {
     Ok(asterized) => asterized,
     Err(err) => {
-      let message = Message {
-        level: Level::Error,
-        msg: err.to_string(),
-        sub: "here".to_owned(),
-        span: aster::Span {
-          start: reader.offset(), end: reader.offset()
+      let message = {
+        println!("err is Some({err:#?}), offset is {}", reader.get_intent_offset());
+
+        let offset = std::cmp::max(
+          std::cmp::max(reader.get_intent_offset(), err.get_offset()),
+          reader.offset()
+        );
+
+        Message {
+          level: Level::Error,
+          msg: err.to_string(),
+          sub: "here".to_string(),
+          span: aster::Span {
+            start: offset,
+            end: offset
+          }
         }
       };
 

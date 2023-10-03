@@ -79,8 +79,10 @@ impl FunctionAST {
     let start = reader.offset();
 
     let decl = FunctionDeclAST::make(reader)?;
+    reader.set_intent_offset();
 
     let body = BlockExpressionAST::make(reader)?;
+    reader.set_intent_offset();
 
     Ok(Self {
       span: reader.span_since(start),

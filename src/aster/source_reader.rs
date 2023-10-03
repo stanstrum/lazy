@@ -7,7 +7,10 @@
 
 use snafu::prelude::*;
 
-use super::ast::Span;
+use super::{
+  ast::Span,
+  errors::{AsterError, AsterResult}
+};
 pub mod formatting;
 
 #[derive(Debug, Snafu)]
@@ -19,13 +22,38 @@ pub enum SourceReaderError {
 pub struct SourceReader<'a> {
   src: &'a String,
   offset: usize,
+
+  intent_offset: usize,
+  intent_error: Option<AsterError>
 }
 
 impl<'a> SourceReader<'a> {
   pub fn new(src: &'a String) -> Self {
     Self {
       src, offset: 0,
+      intent_offset: 0,
+      intent_error: None
     }
+  }
+
+  pub fn set_intent_offset(&mut self) {
+    self.intent_offset = self.offset;
+  }
+
+  pub fn set_intent_error<T: Clone>(&mut self, result: AsterResult<T>) -> AsterResult<T> {
+    if result.is_err() {
+      self.intent_error = Some(unsafe { result.clone().unwrap_err_unchecked() });
+    };
+
+    result
+  }
+
+  pub fn get_intent_error(&self) -> Option<AsterError> {
+    self.intent_error.clone()
+  }
+
+  pub fn get_intent_offset(&self) -> usize {
+    self.intent_offset
   }
 
   pub fn src(&self) -> &'a String {

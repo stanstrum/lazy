@@ -7,7 +7,7 @@
 
 use snafu::prelude::*;
 
-#[derive(Debug, Snafu)]
+#[derive(Debug, Snafu, Clone)]
 #[snafu(visibility(pub))]
 pub enum AsterError {
   #[snafu(display("Expected {what}"))]
@@ -18,6 +18,16 @@ pub enum AsterError {
 
   #[snafu(display("NotImplemented {what}"))]
   NotImplemented { what: String, offset: usize },
+}
+
+impl AsterError {
+  pub fn get_offset(&self) -> usize {
+    match self {
+      AsterError::Expected { offset, .. } => *offset,
+      AsterError::Unknown { offset, .. } => *offset,
+      AsterError::NotImplemented { offset, .. } => *offset,
+    }
+  }
 }
 
 pub type AsterResult<T> = Result<T, AsterError>;

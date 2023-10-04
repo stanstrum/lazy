@@ -186,9 +186,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
   fn declare_function(&mut self, func: &FunctionAST) -> CodeGenResult<FunctionValue<'ctx>> {
     let decl = &func.decl;
 
-    let MetadataType::Enum(ret_ty) = self.generate_type(&decl.ret.e)? else {
-      todo!("error: invalid arg type");
-    };
+    let ret_ty = self.generate_type(&decl.ret.e)?;
 
     let args = decl
       .args
@@ -204,7 +202,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       .map(|ty| ty.to_basic_metadata())
       .collect::<Vec<_>>();
 
-    let func_ty = MetadataType::Enum(ret_ty).fn_type(args.as_slice(), false);
+    let func_ty = ret_ty.fn_type(args.as_slice(), false);
 
     let name = &func.decl.ident.text;
     Ok(self.module.add_function(name, func_ty, None))

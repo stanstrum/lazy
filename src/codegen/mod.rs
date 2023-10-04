@@ -181,9 +181,9 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
 
         self.generate_type(&ast.e)
       },
-      Type::Unknown(_) => todo!("generate_arg_type unknown"),
-      Type::UnresolvedLiteral(_) => todo!("generate_arg_type unresolvednumeric"),
-      Type::Unresolved => todo!("generate_arg_type unresolved"),
+      Type::Unknown(_) => todo!("error: generate type unknown"),
+      Type::UnresolvedLiteral(_) => todo!("error: generate type unresolved literal"),
+      Type::Unresolved => todo!("error: generate type unresolved"),
     }
   }
 

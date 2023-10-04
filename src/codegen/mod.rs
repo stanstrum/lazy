@@ -7,10 +7,12 @@
 
 mod errors;
 
+use std::collections::HashMap;
+
 use errors::*;
 use inkwell::AddressSpace;
-use inkwell::types::{FunctionType, VoidType, PointerType, ArrayType};
-use inkwell::values::{FunctionValue, BasicValueEnum, BasicValue};
+use inkwell::types::{FunctionType, VoidType, PointerType, ArrayType, BasicType};
+use inkwell::values::{FunctionValue, BasicValueEnum, BasicValue, PointerValue};
 
 use crate::aster::ast::NamespaceAST;
 
@@ -25,7 +27,7 @@ use inkwell::{
   builder::Builder,
   // values::BasicValueEnum,
   types::{
-    IntType,
+    // IntType,
     BasicMetadataTypeEnum,
   },
   module::Module,
@@ -38,6 +40,8 @@ pub struct Codegen<'a, 'ctx> {
   pub context: &'ctx Context,
   pub module: &'a Module<'ctx>,
   pub builder: &'a Builder<'ctx>,
+
+  pub var_map: HashMap<VariableReference, PointerValue<'ctx>>
 }
 
 fn parse_int_literal(text: &String) -> u64 {
@@ -209,7 +213,41 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
   }
 
   fn generate_binding(&mut self, ast: &BindingAST) -> CodeGenResult<()> {
-    todo!("generate_binding");
+    let name = ast.ident.text.as_str();
+    let ty = self.generate_type(
+      &ast.ty
+        .as_ref()
+        .expect("unresolved type in binding")
+        .e
+    )?;
+
+    // todo: find a way to fix this issue
+    // seems to be a widespread problem in rust
+    let ptr = {
+      match ty.to_basic_metadata() {
+        BasicMetadataTypeEnum::ArrayType(ty) => self.builder.build_alloca(ty, name),
+        BasicMetadataTypeEnum::FloatType(ty) => self.builder.build_alloca(ty, name),
+        BasicMetadataTypeEnum::IntType(ty) => self.builder.build_alloca(ty, name),
+        BasicMetadataTypeEnum::PointerType(ty) => self.builder.build_alloca(ty, name),
+        BasicMetadataTypeEnum::StructType(ty) => self.builder.build_alloca(ty, name),
+        BasicMetadataTypeEnum::VectorType(ty) => self.builder.build_alloca(ty, name),
+        BasicMetadataTypeEnum::MetadataType(_) => {
+          unreachable!("metadata type as binding type");
+        },
+      }
+    };
+
+    if ast.value.is_some() {
+      let value = self.generate_expr(
+        ast.value.as_ref().unwrap()
+      )?.expect("value expr did not return a value");
+
+      self.builder.build_store(ptr, value);
+    };
+
+    self.var_map.insert(VariableReference::ResolvedVariable(ast), ptr);
+
+    Ok(())
   }
 
   fn generate_literal(&mut self, lit: &LiteralAST, ty: &Type) -> CodeGenResult<BasicValueEnum<'ctx>> {

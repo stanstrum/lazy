@@ -348,7 +348,7 @@ pub struct ControlFlowAST {
   pub e: ControlFlow
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum VariableReference {
   Unresolved,
   ResolvedVariable(*const BindingAST),

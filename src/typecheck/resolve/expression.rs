@@ -27,6 +27,13 @@ impl Checker {
             self.resolve_type(binding.ty.as_mut().unwrap())?;
           };
 
+          if binding.value.is_some() {
+            self.resolve_expression(
+              binding.value.as_mut().unwrap(),
+              binding.ty.as_ref().map(|ast| &ast.e)
+            )?;
+          };
+
           block.vars.insert(binding.ident.clone(), binding);
         },
         BlockExpressionChild::Expression(expr) => {

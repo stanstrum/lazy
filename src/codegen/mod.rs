@@ -274,7 +274,19 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
   fn generate_atom(&mut self, ast: &AtomExpressionAST) -> CodeGenResult<Option<BasicValueEnum<'ctx>>> {
     Ok(match &ast.a {
       AtomExpression::Literal(lit) => Some(self.generate_literal(lit, &ast.out)?),
-      AtomExpression::Variable(_, _) => todo!(),
+      AtomExpression::Variable(qual, var_ref) => {
+        let name = qual.parts.last().unwrap().text.as_str();
+
+        let value = self.builder.build_load(
+          self.var_map
+            .get(var_ref)
+            .expect("we don't have this variablereference...")
+            .to_owned(),
+          name
+        );
+
+        Some(value)
+      },
       AtomExpression::Return(_) => todo!(),
       AtomExpression::Break(_) => todo!(),
     })

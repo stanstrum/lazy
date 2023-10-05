@@ -88,14 +88,14 @@ impl<'ctx> MetadataType<'ctx> {
 
   pub fn to_basic_metadata(&self) -> BasicMetadataTypeEnum<'ctx> {
     match self {
-      MetadataType::Void(r#void) => unimplemented!("generate basic metadata type (for arg type): void") /* BasicMetadataTypeEnum::VoidType(*r#void) */,
+      MetadataType::Void(_) => unimplemented!("generate basic metadata type (for arg type): void") /* BasicMetadataTypeEnum::VoidType(*r#void) */,
       MetadataType::Enum(basic_metadata_enum) => *basic_metadata_enum,
     }
   }
 
   pub fn ptr_ty(&self, address_space: AddressSpace) -> PointerType<'ctx> {
     match self {
-      MetadataType::Void(void) => unimplemented!("ptr to void"),
+      MetadataType::Void(_) => unimplemented!("ptr to void"),
       MetadataType::Enum(BasicMetadataTypeEnum::IntType(ty)) => ty.ptr_type(address_space),
       MetadataType::Enum(BasicMetadataTypeEnum::PointerType(ty)) => ty.ptr_type(address_space),
       MetadataType::Enum(_) => todo!("ptr_ty {self:#?}"),
@@ -104,7 +104,7 @@ impl<'ctx> MetadataType<'ctx> {
 
   pub fn array_type(&self, size: u32) -> ArrayType<'ctx> {
     match self {
-      MetadataType::Void(void) => unimplemented!("array of void"),
+      MetadataType::Void(_) => unimplemented!("array of void"),
       MetadataType::Enum(BasicMetadataTypeEnum::IntType(int)) => int.array_type(size),
       _ => todo!("array_type {self:#?}")
     }
@@ -290,7 +290,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
 
         Some(value)
       },
-      AtomExpression::Variable(qual, var_ref)
+      AtomExpression::Variable(_, var_ref)
         if matches!(var_ref, VariableReference::ResolvedArgument(_)) =>
       {
         let value = self.var_map.get(var_ref)
@@ -360,7 +360,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
   fn generate_namespace(&mut self, ns: &NamespaceAST) -> CodeGenResult<()> {
     let mut asts_values: Vec<(&FunctionAST, FunctionValue<'ctx>)> = vec![];
 
-    for (name, structure) in ns.map.iter() {
+    for (_, structure) in ns.map.iter() {
       match structure {
         Structure::Namespace(ns) => {
           self.generate_namespace(ns)?;

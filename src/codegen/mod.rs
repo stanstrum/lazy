@@ -41,7 +41,7 @@ pub struct Codegen<'a, 'ctx> {
   pub module: &'a Module<'ctx>,
   pub builder: &'a Builder<'ctx>,
 
-  pub var_map: HashMap<VariableReference, PointerValue<'ctx>>
+  pub var_map: HashMap<VariableReference, BasicValueEnum<'ctx>>
 }
 
 fn parse_int_literal(text: &String) -> u64 {
@@ -192,14 +192,16 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
 
     let ret_ty = self.generate_type(&decl.ret.e)?;
 
-    let args = decl
+    let mut args = decl
       .args
       .values()
-      .map(
-        |ast|
-          self.generate_type(&ast.e)
-      )
-      .collect::<Result<Vec<_>, _>>()?;
+      .collect::<Vec<_>>();
+
+    args.sort_by_key(|ty_ast| ty_ast.span().start);
+
+    let args = args.iter().map(
+        |ast| self.generate_type(&ast.e)
+      ).collect::<Result<Vec<_>, _>>()?;
 
     let args = args
       .iter()
@@ -245,7 +247,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       self.builder.build_store(ptr, value);
     };
 
-    self.var_map.insert(VariableReference::ResolvedVariable(ast), ptr);
+    self.var_map.insert(VariableReference::ResolvedVariable(ast), BasicValueEnum::PointerValue(ptr));
 
     Ok(())
   }
@@ -274,19 +276,30 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
   fn generate_atom(&mut self, ast: &AtomExpressionAST) -> CodeGenResult<Option<BasicValueEnum<'ctx>>> {
     Ok(match &ast.a {
       AtomExpression::Literal(lit) => Some(self.generate_literal(lit, &ast.out)?),
-      AtomExpression::Variable(qual, var_ref) => {
+      AtomExpression::Variable(qual, var_ref)
+        if matches!(var_ref, VariableReference::ResolvedVariable(_)) =>
+      {
         let name = qual.parts.last().unwrap().text.as_str();
 
-        let value = self.builder.build_load(
-          self.var_map
-            .get(var_ref)
-            .expect("we don't have this variablereference...")
-            .to_owned(),
-          name
-        );
+        let ptr = self.var_map
+          .get(var_ref)
+          .expect("we don't have this variablereference")
+          .into_pointer_value();
+
+        let value = self.builder.build_load(ptr, name);
 
         Some(value)
       },
+      AtomExpression::Variable(qual, var_ref)
+        if matches!(var_ref, VariableReference::ResolvedArgument(_)) =>
+      {
+        let value = self.var_map.get(var_ref)
+          .expect("we don't have this variablereference")
+          .to_owned();
+
+        Some(value)
+      },
+      AtomExpression::Variable(_, _) => todo!(),
       AtomExpression::Return(_) => todo!(),
       AtomExpression::Break(_) => todo!(),
     })
@@ -363,6 +376,23 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
     };
 
     for (ast, value) in asts_values {
+      let mut ast_params = ast.decl.args
+        .values()
+        .collect::<Vec<_>>();
+
+      ast_params.sort_by_key(|ty_ast| ty_ast.span().start);
+
+      for (param, ty) in value.get_param_iter().zip(ast_params.iter()) {
+        let var_ref = VariableReference::ResolvedArgument(*ty);
+
+        self.var_map.insert(
+          var_ref,
+          param
+            .try_into()
+            .expect("failed to convert param to ptr")
+        );
+      };
+
       self.generate_function(ast, value)?;
     };
 

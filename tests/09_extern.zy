@@ -1,0 +1,29 @@
+extern write -> isize:
+  i32 fd,
+  &[]u8 buf,
+  usize count;
+
+extern {
+  read -> i32:
+    i32 fd,
+    &[]u8 buf,
+    usize count;
+
+  getpid -> i32;
+
+  strlen -> usize: &[]u8;
+};
+
+extern printf -> i32:
+  &[]u8 format, ...;
+
+main -> i32 {
+  i32 STDOUT = 1;
+
+  hello_world := c"Hello, world!";
+  count := strlen(hello_world);
+
+  write(STDOUT, hello_world);
+
+  0
+};

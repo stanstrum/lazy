@@ -36,7 +36,9 @@ fn stringify_char(ch: char) -> String {
 
 fn stringify_string(lit: &Literal) -> String {
   match lit {
-    Literal::UnicodeString(text) | Literal::ByteString(text) => {
+    Literal::UnicodeString(text)
+    | Literal::ByteString(text)
+    | Literal::CString(text) => {
       text
         .chars()
         .map(stringify_char)
@@ -56,6 +58,9 @@ impl std::string::ToString for LiteralAST {
         format!("{LIGHT_YELLOW}\"{}\"{CLEAR}", stringify_string(&self.l)),
       Literal::ByteString(_) =>
         format!("{LIGHT_YELLOW}b\"{}\"{CLEAR}", stringify_string(&self.l)),
+      Literal::CString(_) => {
+        format!("{LIGHT_YELLOW}c\"{}\"{CLEAR}", stringify_string(&self.l))
+      },
       Literal::ByteChar(_) =>
         format!("{LIGHT_YELLOW}b\'{}\'{CLEAR}", stringify_string(&self.l)),
       Literal::IntLiteral(text)

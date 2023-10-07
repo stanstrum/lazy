@@ -278,6 +278,132 @@ impl Checker {
     todo!("resolve controlflow");
   }
 
+  fn resolve_binary_operator(&mut self, binary: &mut BinaryOperatorExpressionAST, _coerce_to: Option<&Type>) -> TypeCheckResult<()> {
+    match binary.op {
+      BinaryOperator::Dot => {
+        let (a, b) = (&mut *binary.a, &mut *binary.b);
+
+        self.stack.push(ScopePointer::Expression(a));
+        self.resolve_expression(a, None)?;
+        self.stack.pop();
+
+        match b {
+          Expression::Atom(
+            AtomExpressionAST {
+              a: AtomExpression::Variable(
+                qual, var_ref
+              ), ..
+            }
+          ) => {
+            let ident = {
+              if qual.parts.len() == 1 {
+                qual.parts.first().unwrap()
+              } else {
+                return InvalidDotSnafu {
+                  span: b.span()
+                }.fail();
+              }
+            };
+
+            let parent_ty = a.type_of().expect("need to know parent ty");
+
+            let impls = self.get_impls_for(&parent_ty)?;
+
+            dbg!(impls.keys());
+
+            if !impls.contains_key(ident) {
+              return UnknownIdentSnafu {
+                text: ident.text.to_owned(),
+                span: qual.span()
+              }.fail();
+            };
+
+            *var_ref = impls.get(ident).unwrap().to_owned();
+          },
+          _ => {
+            return InvalidDotSnafu {
+              span: b.span()
+            }.fail();
+          }
+        }
+      },
+      _ => {
+        let (a, b) = (&mut *binary.a, &mut *binary.b);
+
+        self.stack.push(ScopePointer::Expression(a));
+        self.resolve_expression(a, None)?;
+        self.stack.pop();
+
+        self.stack.push(ScopePointer::Expression(b));
+        self.resolve_expression(b, None)?;
+        self.stack.pop();
+
+        todo!("set out for binop");
+      }
+    };
+
+    Ok(())
+  }
+
+  fn resolve_unary_operator(&mut self, unary: &mut UnaryOperatorExpressionAST, _coerce_to: Option<&Type>) -> TypeCheckResult<()> {
+    let expr = &mut unary.expr;
+
+    self.stack.push(ScopePointer::Expression(expr.as_mut()));
+    self.resolve_expression(expr, None)?;
+    self.stack.pop();
+
+    match &mut unary.op {
+      UnaryOperator::UnaryPfx(_) => todo!("unarypfxop reso type"),
+      UnaryOperator::UnarySfx(UnarySfxOperator::Call { args }) => {
+        match expr.type_of() {
+          Some(Type::External(external)) => {
+            let external = unsafe { &*external };
+
+            let external_len = external.args.len();
+            let call_len = args.len();
+
+            if external_len == call_len {
+              let mut external_args = external.args.values().collect::<Vec<_>>();
+              external_args.sort_by_key(|ty| ty.span().start);
+
+              for (arg, ty) in args.iter_mut().zip(external_args.iter()) {
+                let ty = Type::Defined(*ty);
+                let coerce_to = Some(&ty);
+
+                self.resolve_expression(arg, coerce_to)?;
+              };
+
+              Ok(())
+            } else if external_len < call_len && external.varargs {
+              todo!("varargs resolve");
+            } else {
+              let or_more = if external.varargs {
+                " or more"
+              } else {
+                " "
+              };
+
+              IncompatibleTypeSnafu {
+                span: expr.span(),
+                what: "Function signature",
+                with: format!("the provided arguments (expected {}{}, got {})", external_len, or_more, call_len),
+              }.fail()
+            }
+          },
+          Some(_) => {
+            IncompatibleTypeSnafu {
+              span: expr.span(),
+              what: "Expression",
+              with: "function call",
+            }.fail()
+          },
+          None => panic!("couldn't resolve expr for sfx operator"),
+        }
+      },
+      UnaryOperator::UnarySfx(_) => todo!("unarysfxop reso type"),
+    }
+  }
+
   fn resolve_expression(&mut self, expr: &mut Expression, coerce_to: Option<&Type>) -> TypeCheckResult<()> {
     match expr {
       Expression::Atom(atom) => {
@@ -289,124 +415,10 @@ impl Checker {
         self.resolve_control_flow(flow, coerce_to)?;
       },
       Expression::BinaryOperator(binary) => {
-        match binary.op {
-          BinaryOperator::Dot => {
-            let (a, b) = (&mut *binary.a, &mut *binary.b);
-
-            self.stack.push(ScopePointer::Expression(a));
-            self.resolve_expression(a, None)?;
-            self.stack.pop();
-
-            match b {
-              Expression::Atom(
-                AtomExpressionAST {
-                  a: AtomExpression::Variable(
-                    qual, var_ref
-                  ), ..
-                }
-              ) => {
-                let ident = {
-                  if qual.parts.len() == 1 {
-                    qual.parts.first().unwrap()
-                  } else {
-                    return InvalidDotSnafu {
-                      span: b.span()
-                    }.fail();
-                  }
-                };
-
-                let parent_ty = a.type_of().expect("need to know parent ty");
-
-                let impls = self.get_impls_for(&parent_ty)?;
-
-                dbg!(impls.keys());
-
-                if !impls.contains_key(ident) {
-                  return UnknownIdentSnafu {
-                    text: ident.text.to_owned(),
-                    span: qual.span()
-                  }.fail();
-                };
-
-                *var_ref = impls.get(ident).unwrap().to_owned();
-              },
-              _ => {
-                return InvalidDotSnafu {
-                  span: b.span()
-                }.fail();
-              }
-            }
-          },
-          _ => {
-            let (a, b) = (&mut *binary.a, &mut *binary.b);
-
-            self.stack.push(ScopePointer::Expression(a));
-            self.resolve_expression(a, None)?;
-            self.stack.pop();
-
-            self.stack.push(ScopePointer::Expression(b));
-            self.resolve_expression(b, None)?;
-            self.stack.pop();
-
-            todo!("set out for binop");
-          }
-        };
+        self.resolve_binary_operator(binary, coerce_to)?;
       },
-      Expression::UnaryOperator(UnaryOperatorExpressionAST { expr, op, .. }) => {
-        self.stack.push(ScopePointer::Expression(&mut **expr));
-        self.resolve_expression(expr, None)?;
-        self.stack.pop();
-
-        match op {
-          UnaryOperator::UnaryPfx(_) => todo!("unarypfxop reso type"),
-          UnaryOperator::UnarySfx(UnarySfxOperator::Call { args }) => {
-            match expr.type_of() {
-              Some(Type::External(external)) => {
-                let external = unsafe { &*external };
-
-                let external_len = external.args.len();
-                let call_len = args.len();
-
-                if external_len == call_len {
-                  let mut external_args = external.args.values().collect::<Vec<_>>();
-                  external_args.sort_by_key(|ty| ty.span().start);
-
-                  for (arg, ty) in args.iter_mut().zip(external_args.iter()) {
-                    let ty = Type::Defined(*ty);
-                    let coerce_to = Some(&ty);
-
-                    self.resolve_expression(arg, coerce_to)?;
-                  };
-                } else if external_len < call_len && external.varargs {
-                  todo!("varargs resolve");
-                } else {
-                  let or_more = if external.varargs {
-                    " or more"
-                  } else {
-                    " "
-                  };
-
-                  return IncompatibleTypeSnafu {
-                    span: expr.span(),
-                    what: "Function signature",
-                    with: format!("the provided arguments (expected {}{}, got {})", external_len, or_more, call_len),
-                  }.fail()
-                };
-
-                todo!()
-              },
-              Some(_) => {
-                return IncompatibleTypeSnafu {
-                  span: expr.span(),
-                  what: "Expression",
-                  with: "function call",
-                }.fail()
-              },
-              None => panic!("couldn't resolve expr for sfx operator"),
-            }
-          },
-          UnaryOperator::UnarySfx(_) => todo!("unarysfxop reso type"),
-        };
+      Expression::UnaryOperator(unary) => {
+        self.resolve_unary_operator(unary, coerce_to)?;
       },
     };
 

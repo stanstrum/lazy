@@ -227,6 +227,57 @@ impl Checker {
     Ok(())
   }
 
+  fn resolve_control_flow(&mut self, flow: &mut ControlFlowAST, _coerce_to: Option<&Type>) -> TypeCheckResult<()> {
+    match &mut flow.e {
+      ControlFlow::If(cond_body, r#else) => {
+        let mut out_ty = None;
+
+        for (cond, body) in cond_body.iter_mut() {
+          self.resolve_expression(cond, BOOL_COERCION)?;
+
+          self.stack.push(ScopePointer::Block(body));
+          self.resolve_block_expression(body, None)?;
+          self.stack.pop();
+
+          if out_ty.is_none() {
+            out_ty = body.type_of();
+          } else if !extends(&body.type_of().unwrap(), out_ty.as_ref().unwrap()) {
+            panic!("doesn't match types in if block")
+          };
+        };
+
+        if r#else.is_some() {
+          let body = r#else.as_mut().unwrap();
+
+          self.stack.push(ScopePointer::Block(body));
+          self.resolve_block_expression(body, None)?;
+          self.stack.pop();
+        };
+
+        todo!("if")
+      },
+      ControlFlow::While(cond, body) => {
+        self.stack.push(ScopePointer::Expression(&mut **cond));
+        self.resolve_expression(cond, BOOL_COERCION)?;
+        self.stack.pop();
+
+        self.stack.push(ScopePointer::Block(&mut **body));
+        self.resolve_block_expression(body, None)?;
+        self.stack.pop();
+      },
+      ControlFlow::DoWhile(_, _) => todo!("dowhile"),
+      ControlFlow::Loop(block) => {
+        let block = &mut **block;
+
+        self.stack.push(ScopePointer::Block(block));
+        self.resolve_block_expression(block, None)?;
+        self.stack.pop();
+      },
+    };
+
+    todo!("resolve controlflow");
+  }
+
   fn resolve_expression(&mut self, expr: &mut Expression, coerce_to: Option<&Type>) -> TypeCheckResult<()> {
     match expr {
       Expression::Atom(atom) => {
@@ -235,54 +286,7 @@ impl Checker {
       Expression::Block(_) => todo!("resolve block"),
       Expression::SubExpression(_) => todo!("resolve subexpression"),
       Expression::ControlFlow(flow) => {
-        match &mut flow.e {
-          ControlFlow::If(cond_body, r#else) => {
-            let mut out_ty = None;
-
-            for (cond, body) in cond_body.iter_mut() {
-              self.resolve_expression(cond, BOOL_COERCION)?;
-
-              self.stack.push(ScopePointer::Block(body));
-              self.resolve_block_expression(body, None)?;
-              self.stack.pop();
-
-              if out_ty.is_none() {
-                out_ty = body.type_of();
-              } else if !extends(&body.type_of().unwrap(), out_ty.as_ref().unwrap()) {
-                panic!("doesn't match types in if block")
-              };
-            };
-
-            if r#else.is_some() {
-              let body = r#else.as_mut().unwrap();
-
-              self.stack.push(ScopePointer::Block(body));
-              self.resolve_block_expression(body, None)?;
-              self.stack.pop();
-            };
-
-            todo!("if")
-          },
-          ControlFlow::While(cond, body) => {
-            self.stack.push(ScopePointer::Expression(&mut **cond));
-            self.resolve_expression(cond, BOOL_COERCION)?;
-            self.stack.pop();
-
-            self.stack.push(ScopePointer::Block(&mut **body));
-            self.resolve_block_expression(body, None)?;
-            self.stack.pop();
-          },
-          ControlFlow::DoWhile(_, _) => todo!("dowhile"),
-          ControlFlow::Loop(block) => {
-            let block = &mut **block;
-
-            self.stack.push(ScopePointer::Block(block));
-            self.resolve_block_expression(block, None)?;
-            self.stack.pop();
-          },
-        };
-
-        todo!("resolve controlflow");
+        self.resolve_control_flow(flow, coerce_to)?;
       },
       Expression::BinaryOperator(binary) => {
         match binary.op {

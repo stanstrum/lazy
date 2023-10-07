@@ -620,7 +620,6 @@ impl std::string::ToString for Type {
 
         format!("({}: {}", func.decl.ret.to_string(), args.join(", "))
       },
-      Type::MemberFunction(_) => todo!(),
       Type::Struct(r#struct) => {
         let r#struct = unsafe { &**r#struct };
 

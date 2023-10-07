@@ -431,7 +431,6 @@ use crate::aster::intrinsics::Intrinsic;
 pub enum Type {
   Intrinsic(Intrinsic),
   Function(*const FunctionAST),
-  MemberFunction(*const MemberFunctionAST),
   Struct(*const StructAST),
   ConstReferenceTo(Box<TypeAST>),
   MutReferenceTo(Box<TypeAST>),

@@ -103,7 +103,7 @@ impl TypeOf for VariableReference {
 
         println!("type_of resolved_member_function: {}", member_func.decl.decl.ident.to_string());
 
-        Some(Type::MemberFunction(member_func))
+        None
       },
     }
   }

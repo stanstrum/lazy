@@ -25,9 +25,9 @@ pub enum VariableReference {
 pub enum AtomExpression {
   Literal(LiteralAST),
   Variable(QualifiedAST, VariableReference),
-  Return(Option<BoxExpr>),
+  Return(Option<Box<Expression>>),
   #[allow(unused)]
-  Break(Option<BoxExpr>),
+  Break(Option<Box<Expression>>),
 }
 
 #[derive(Debug, Clone)]
@@ -41,7 +41,7 @@ pub struct AtomExpressionAST {
 pub struct SubExpressionAST {
   pub span: Span,
   pub out: Type,
-  pub e: BoxExpr
+  pub e: Box<Expression>
 }
 
 #[derive(Debug, Clone)]
@@ -51,7 +51,7 @@ pub struct BindingAST {
   pub r#mut: Option<KeywordAST>,
   pub ty: Option<TypeAST>,
   pub ident: IdentAST,
-  pub value: Option<BoxExpr>
+  pub value: Option<Box<Expression>>
 }
 
 #[derive(Debug, Clone)]
@@ -78,13 +78,13 @@ pub enum ControlFlow {
     Option<BlockExpressionAST>
   ),
   While(
-    BoxExpr,
+    Box<Expression>,
     Box<BlockExpressionAST>
   ),
   #[allow(unused)]
   DoWhile(
     Box<BlockExpressionAST>,
-    BoxExpr
+    Box<Expression>
   ),
   Loop(Box<BlockExpressionAST>),
   // For(

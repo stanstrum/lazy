@@ -27,8 +27,6 @@ pub trait GetSpan {
   fn span(&self) -> Span;
 }
 
-type BoxExpr = Box<Expression>;
-
 #[macro_export]
 macro_rules! make_get_span [
   ($i:ident) => {

@@ -79,7 +79,7 @@ pub enum UnaryPfxOperator {
 pub enum UnarySfxOperator {
   PostIncrement,
   PostDecrement,
-  Subscript { arg: BoxExpr },
+  Subscript { arg: Box<Expression> },
   Call { args: Vec<Expression> }
 }
 
@@ -124,7 +124,7 @@ pub struct UnaryOperatorExpressionAST {
   pub span: Span,
   pub out: Type,
 
-  pub expr: BoxExpr,
+  pub expr: Box<Expression>,
   pub op: UnaryOperator
 }
 
@@ -132,8 +132,8 @@ pub struct UnaryOperatorExpressionAST {
 pub struct BinaryOperatorExpressionAST {
   pub out: Type,
 
-  pub a: BoxExpr,
-  pub b: BoxExpr,
+  pub a: Box<Expression>,
+  pub b: Box<Expression>,
 
   pub op: BinaryOperator
 }

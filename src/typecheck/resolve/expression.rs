@@ -349,6 +349,52 @@ impl Checker {
 
         match op {
           UnaryOperator::UnaryPfx(_) => todo!("unarypfxop reso type"),
+          UnaryOperator::UnarySfx(UnarySfxOperator::Call { args }) => {
+            match expr.type_of() {
+              Some(Type::External(external)) => {
+                let external = unsafe { &*external };
+
+                let external_len = external.args.len();
+                let call_len = args.len();
+
+                if external_len == call_len {
+                  let mut external_args = external.args.values().collect::<Vec<_>>();
+                  external_args.sort_by_key(|ty| ty.span().start);
+
+                  for (arg, ty) in args.iter_mut().zip(external_args.iter()) {
+                    let ty = Type::Defined(*ty);
+                    let coerce_to = Some(&ty);
+
+                    self.resolve_expression(arg, coerce_to)?;
+                  };
+                } else if external_len < call_len && external.varargs {
+                  todo!("varargs resolve");
+                } else {
+                  let or_more = if external.varargs {
+                    " or more"
+                  } else {
+                    " "
+                  };
+
+                  return IncompatibleTypeSnafu {
+                    span: expr.span(),
+                    what: "Function signature",
+                    with: format!("the provided arguments (expected {}{}, got {})", external_len, or_more, call_len),
+                  }.fail()
+                };
+
+                todo!()
+              },
+              Some(_) => {
+                return IncompatibleTypeSnafu {
+                  span: expr.span(),
+                  what: "Expression",
+                  with: "function call",
+                }.fail()
+              },
+              None => panic!("couldn't resolve expr for sfx operator"),
+            }
+          },
           UnaryOperator::UnarySfx(_) => todo!("unarysfxop reso type"),
         };
       },

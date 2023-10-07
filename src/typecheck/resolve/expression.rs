@@ -278,74 +278,11 @@ impl Checker {
     todo!("resolve controlflow");
   }
 
-  fn resolve_binary_operator(&mut self, binary: &mut BinaryOperatorExpressionAST, _coerce_to: Option<&Type>) -> TypeCheckResult<()> {
-    match binary.op {
-      BinaryOperator::Dot => {
-        let (a, b) = (&mut *binary.a, &mut *binary.b);
-
-        self.stack.push(ScopePointer::Expression(a));
-        self.resolve_expression(a, None)?;
-        self.stack.pop();
-
-        match b {
-          Expression::Atom(
-            AtomExpressionAST {
-              a: AtomExpression::Variable(
-                qual, var_ref
-              ), ..
-            }
-          ) => {
-            let ident = {
-              if qual.parts.len() == 1 {
-                qual.parts.first().unwrap()
-              } else {
-                return InvalidDotSnafu {
-                  span: b.span()
-                }.fail();
-              }
-            };
-
-            let parent_ty = a.type_of().expect("need to know parent ty");
-
-            let impls = self.get_impls_for(&parent_ty)?;
-
-            dbg!(impls.keys());
-
-            if !impls.contains_key(ident) {
-              return UnknownIdentSnafu {
-                text: ident.text.to_owned(),
-                span: qual.span()
-              }.fail();
-            };
-
-            *var_ref = impls.get(ident).unwrap().to_owned();
-          },
-          _ => {
-            return InvalidDotSnafu {
-              span: b.span()
-            }.fail();
-          }
-        }
-      },
-      _ => {
-        let (a, b) = (&mut *binary.a, &mut *binary.b);
-
-        self.stack.push(ScopePointer::Expression(a));
-        self.resolve_expression(a, None)?;
-        self.stack.pop();
-
-        self.stack.push(ScopePointer::Expression(b));
-        self.resolve_expression(b, None)?;
-        self.stack.pop();
-
-        todo!("set out for binop");
-      }
-    };
-
-    Ok(())
+  fn resolve_binary_operator(&mut self, binary: &mut BinaryOperatorExpressionAST, _coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
+    todo!("reso binop")
   }
 
-  fn resolve_unary_operator(&mut self, unary: &mut UnaryOperatorExpressionAST, _coerce_to: Option<&Type>) -> TypeCheckResult<()> {
+  fn resolve_unary_operator(&mut self, unary: &mut UnaryOperatorExpressionAST, _coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
     let expr = &mut unary.expr;
 
     self.stack.push(ScopePointer::Expression(expr.as_mut()));

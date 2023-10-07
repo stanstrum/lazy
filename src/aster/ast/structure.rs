@@ -96,20 +96,34 @@ pub enum Impl {
 }
 
 #[derive(Debug, Clone)]
+pub struct TypeAliasAST {
+  pub span: Span,
+  pub ident: IdentAST,
+  pub ty: TypeAST
+}
+
+#[derive(Debug, Clone)]
+pub struct ExternBlockAST {
+  pub span: Span,
+  pub children: HashMap<IdentAST, FunctionDeclAST>
+}
+
+#[derive(Debug, Clone)]
+pub struct ExternDeclAST {
+  pub span: Span,
+  pub decl: FunctionDeclAST
+}
+
+#[derive(Debug, Clone)]
 pub enum Structure {
   Namespace(NamespaceAST),
   Function(FunctionAST),
   Struct(StructAST),
   Trait(TraitAST),
   Impl(Impl),
-  TypeAlias(TypeAliasAST)
-}
-
-#[derive(Debug, Clone)]
-pub struct TypeAliasAST {
-  pub span: Span,
-  pub ident: IdentAST,
-  pub ty: TypeAST
+  TypeAlias(TypeAliasAST),
+  ExternBlock(ExternBlockAST),
+  ExternDecl(ExternDeclAST)
 }
 
 impl GetSpan for Impl {
@@ -129,16 +143,21 @@ impl GetSpan for &Structure {
       Structure::Trait(s) => s.span(),
       Structure::Impl(s) => s.span(),
       Structure::TypeAlias(s) => s.span(),
-      Structure::Struct(s) => s.span()
+      Structure::Struct(s) => s.span(),
+      Structure::ExternBlock(r#extern) => r#extern.span(),
+      Structure::ExternDecl(r#extern) => r#extern.span(),
     }
   }
 }
 
 make_get_span![
   NamespaceAST,
+  FunctionDeclAST,
   FunctionAST,
   StructAST,
   MemberFunctionAST,
   TraitAST,
-  TypeAliasAST
+  TypeAliasAST,
+  ExternBlockAST,
+  ExternDeclAST
 ];

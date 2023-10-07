@@ -7,8 +7,6 @@
 
 use std::collections::HashMap;
 
-// use super::intrinsics;
-
 pub trait GetSpan {
   fn span(&self) -> Span;
 }

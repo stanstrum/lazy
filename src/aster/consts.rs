@@ -42,6 +42,8 @@ pub mod keyword {
 
   pub const RETURN: &str = "return";
   pub const BREAK: &str = "break";
+
+  pub const EXTERN: &str = "extern";
 }
 
 pub mod punctuation {

@@ -12,6 +12,7 @@ mod member_function;
 mod namespace;
 mod typealias;
 mod r#struct;
+mod r#extern;
 
 use crate::aster::{
   ast::*,
@@ -30,6 +31,13 @@ impl Structure {
       Ok((
         func.decl.ident.text.to_owned(),
         Structure::Function(func)
+      ))
+    } else if let Some(extern_decl) = try_make!(ExternDeclAST::make, reader) {
+      let ident = &extern_decl.decl.ident;
+
+      Ok((
+        ident.text.to_owned(),
+        Structure::ExternDecl(extern_decl)
       ))
     } else if read::begins_with(reader, consts::keyword::TRAIT) {
       let r#trait = TraitAST::make(reader)?;

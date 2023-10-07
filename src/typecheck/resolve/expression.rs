@@ -156,14 +156,41 @@ impl Checker {
                   })
                 );
 
-                let array_reference = Type::ConstReferenceTo(Box::new(TypeAST {
-                  span,
-                  e: array,
-                }));
+                let array_reference = Type::ConstReferenceTo(
+                  Box::new(TypeAST {
+                    span,
+                    e: array,
+                  })
+                );
 
                 atom.out = array_reference;
               },
-              Literal::CString(_) => todo!("resolve cstr"),
+              Literal::CString(text) => {
+                let span = lit.span();
+
+                // include extra byte for null-terminator
+                let size = text.len() + 1;
+
+                let len = LiteralAST {
+                  span, l: Literal::IntLiteral(size.to_string())
+                };
+
+                let array = Type::ArrayOf(
+                  Some(len),
+                  Box::new(TypeAST {
+                    span, e: Type::Intrinsic(intrinsics::U8)
+                  })
+                );
+
+                let array_reference = Type::ConstReferenceTo(
+                  Box::new(TypeAST {
+                    span,
+                    e: array,
+                  })
+                );
+
+                atom.out = array_reference;
+              },
               Literal::Char(_) => todo!("resolve char"),
               Literal::ByteChar(_) => todo!("resolve bytechar"),
               Literal::FloatLiteral(_) => todo!("resolve float literal"),

@@ -5,18 +5,41 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use inkwell::{types::BasicMetadataTypeEnum, values::BasicValueEnum};
+use inkwell::{
+  types::{
+    BasicMetadataTypeEnum,
+    AnyTypeEnum,
+    BasicTypeEnum
+  },
+  values::BasicValueEnum
+};
 
-use crate::aster::ast::{BindingAST, VariableReference};
+use crate::aster::ast::{
+  BindingAST,
+  VariableReference
+};
 
 use super::{
   Codegen,
   CodeGenResult
 };
 
+fn to_basic_type<'ctx>(any: AnyTypeEnum<'ctx>) -> BasicTypeEnum<'ctx> {
+  match any {
+    AnyTypeEnum::ArrayType(ty) => BasicTypeEnum::ArrayType(ty),
+    AnyTypeEnum::FloatType(ty) => BasicTypeEnum::FloatType(ty),
+    AnyTypeEnum::IntType(ty) => BasicTypeEnum::IntType(ty),
+    AnyTypeEnum::PointerType(ty) => BasicTypeEnum::PointerType(ty),
+    AnyTypeEnum::StructType(ty) => BasicTypeEnum::StructType(ty),
+    AnyTypeEnum::VectorType(ty) => BasicTypeEnum::VectorType(ty),
+    _ => panic!("invalid type coerced to basic type")
+  }
+}
+
 impl<'a, 'ctx> Codegen<'a, 'ctx> {
   pub fn generate_binding(&mut self, ast: &BindingAST) -> CodeGenResult<()> {
     let name = ast.ident.text.as_str();
+
     let ty = self.generate_type(
       &ast.ty
         .as_ref()
@@ -45,7 +68,15 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
         ast.value.as_ref().unwrap()
       )?.expect("value expr did not return a value");
 
-      self.builder.build_store(ptr, value);
+      let casted_value = self.builder.build_bitcast(
+          value,
+          to_basic_type(
+            ptr.get_type().get_element_type()
+          ),
+          "cast"
+        );
+
+      self.builder.build_store(ptr, casted_value);
     };
 
     self.var_map.insert(VariableReference::ResolvedVariable(ast), BasicValueEnum::PointerValue(ptr));

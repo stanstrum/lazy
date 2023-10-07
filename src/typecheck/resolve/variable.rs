@@ -72,6 +72,9 @@ impl Checker {
       Some(Structure::Function(func)) => {
         Ok(VariableReference::ResolvedFunction(func))
       },
+      Some(Structure::ExternDecl(decl)) => {
+        Ok(VariableReference::ResolvedExternal(decl))
+      }
       _ => InvalidTypeSnafu {
         text: qual.to_string(),
         span: qual.span()

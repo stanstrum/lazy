@@ -105,6 +105,11 @@ impl TypeOf for VariableReference {
 
         None
       },
+      VariableReference::ResolvedExternal(decl) => {
+        let decl = unsafe { &**decl };
+
+        Some(Type::External(decl))
+      },
     }
   }
 }

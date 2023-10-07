@@ -43,7 +43,8 @@ impl IsResolved for Type {
     match self {
       Type::Intrinsic(_)
       | Type::Struct(_)
-      | Type::Function(_) => true,
+      | Type::Function(_)
+      | Type::External(_) => true,
       Type::ConstReferenceTo(ast)
       | Type::MutReferenceTo(ast)
       | Type::ConstPtrTo(ast)

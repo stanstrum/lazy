@@ -32,6 +32,7 @@ pub struct LiteralAST {
 pub enum Type {
   Intrinsic(Intrinsic),
   Function(*const FunctionAST),
+  External(*const ExternDeclAST),
   Struct(*const StructAST),
   ConstReferenceTo(Box<TypeAST>),
   MutReferenceTo(Box<TypeAST>),

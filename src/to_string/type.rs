@@ -92,6 +92,17 @@ impl std::string::ToString for Type {
 
         r#struct.ident.to_string()
       },
+      Type::External(external) => {
+        let external = unsafe { &**external };
+
+        let mut args = external.args.values().collect::<Vec<_>>();
+        args.sort_by_key(|arg| arg.span().start);
+
+        let args = args.iter().map(|arg| arg.to_string())
+          .collect::<Vec<_>>();
+
+        format!("({DARK_GRAY}/* external */{CLEAR} {}: {}", external.ret.to_string(), args.join(", "))
+      }
       Type::ConstReferenceTo(ty) => format!("&{}", ty.to_string()),
       Type::MutReferenceTo(ty) => format!("&mut {}", ty.to_string()),
       Type::ConstPtrTo(ty) => format!("*{}", ty.to_string()),

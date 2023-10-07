@@ -18,7 +18,8 @@ pub enum VariableReference {
   ResolvedFunction(*const FunctionAST),
   ResolvedMemberFunction(*const MemberFunctionAST),
   #[allow(unused)]
-  ResolvedMemberOf(*const VariableReference, *const IdentAST)
+  ResolvedMemberOf(*const VariableReference, *const IdentAST),
+  ResolvedExternal(*const ExternDeclAST)
 }
 
 #[derive(Debug, Clone)]

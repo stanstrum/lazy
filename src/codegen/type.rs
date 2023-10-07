@@ -41,6 +41,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
     match ty {
       Type::Intrinsic(intrinsic) => self.generate_intrinsic_type(intrinsic),
       Type::Function(_) => todo!("generate_arg_type function"),
+      Type::External(_) => todo!("generate_arg_type external"),
       Type::Struct(_) => todo!("generate_arg_type struct"),
       Type::ConstReferenceTo(referenced) => {
         let ir_ty = self.generate_type(&referenced.e)?;

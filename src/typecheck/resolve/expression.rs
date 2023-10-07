@@ -138,18 +138,7 @@ impl Checker {
                   todo!("error: int literal has no type coercion");
                 };
 
-                // U8,
-                // U16,
-                // U32,
-                // U64,
-                // USIZE,
-                // I8,
-                // I16,
-                // I32,
-                // I64,
-                // ISIZE,
-
-                if extends(coerce_to, &Type::Intrinsic(intrinsics::I32)) {
+                if extends(coerce_to, &Type::Intrinsic(intrinsics::U8)) {
                   atom.out = coerce_to.clone();
                 } else {
                   return IncompatibleTypeSnafu {

@@ -37,9 +37,15 @@ impl<'ctx> MetadataType<'ctx> {
   pub fn ptr_ty(&self, address_space: AddressSpace) -> PointerType<'ctx> {
     match self {
       MetadataType::Void(_) => unimplemented!("ptr to void"),
+      MetadataType::Enum(BasicMetadataTypeEnum::ArrayType(ty)) => ty.ptr_type(address_space),
+      MetadataType::Enum(BasicMetadataTypeEnum::FloatType(ty)) => ty.ptr_type(address_space),
       MetadataType::Enum(BasicMetadataTypeEnum::IntType(ty)) => ty.ptr_type(address_space),
       MetadataType::Enum(BasicMetadataTypeEnum::PointerType(ty)) => ty.ptr_type(address_space),
-      MetadataType::Enum(_) => todo!("ptr_ty {self:#?}"),
+      MetadataType::Enum(BasicMetadataTypeEnum::StructType(ty)) => ty.ptr_type(address_space),
+      MetadataType::Enum(BasicMetadataTypeEnum::VectorType(ty)) => ty.ptr_type(address_space),
+      MetadataType::Enum(BasicMetadataTypeEnum::MetadataType(_)) => {
+        panic!("metadata type ptr_to?");
+      },
     }
   }
 

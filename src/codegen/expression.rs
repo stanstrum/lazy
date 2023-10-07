@@ -57,7 +57,20 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
     }
   }
 
-  pub fn generate_block(&mut self, ast: &BlockExpressionAST) -> CodeGenResult<Option<BasicValueEnum<'ctx>>> {
+  fn generate_block_child(&mut self, ast: &BlockExpressionChild) -> CodeGenResult<Option<BasicValueEnum<'ctx>>> {
+    match ast {
+      BlockExpressionChild::Binding(binding) => {
+        self.generate_binding(binding)?;
+
+        Ok(None)
+      },
+      BlockExpressionChild::Expression(expr) => {
+        self.generate_expr(expr)
+      },
+    }
+  }
+
+  fn generate_block_returns_last(&mut self, ast: &BlockExpressionAST) -> CodeGenResult<Option<BasicValueEnum<'ctx>>> {
     let Some((last, all_but_last)) = ast.children.split_last() else {
       return Ok(None);
     };
@@ -67,16 +80,21 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
     };
 
     for child in all_but_last.iter() {
-      match child {
-        BlockExpressionChild::Binding(binding) => {
-          self.generate_binding(binding)?;
-        },
-        BlockExpressionChild::Expression(expr) => {
-          self.generate_expr(expr)?;
-        },
-      }
+      self.generate_block_child(child)?;
     };
 
     self.generate_expr(last)
+  }
+
+  pub fn generate_block(&mut self, ast: &BlockExpressionAST) -> CodeGenResult<Option<BasicValueEnum<'ctx>>> {
+    if ast.returns_last {
+      return self.generate_block_returns_last(ast);
+    };
+
+    for child in ast.children.iter() {
+      self.generate_block_child(&child)?;
+    };
+
+    Ok(None)
   }
 }

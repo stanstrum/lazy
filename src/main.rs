@@ -140,7 +140,7 @@ fn compile() -> Result<(), LazyError> {
 
             println!("{}", format_message(reader.src(), message));
           },
-          TypeCheckError::DuplicateIdent { text, a, b } => {
+          TypeCheckError::DuplicateIdent { a, b, .. } => {
             let message_a = Message {
               level: Level::Error,
               msg: err.to_string(),

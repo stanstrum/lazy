@@ -46,8 +46,6 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
         self.var_map.insert(
           var_ref,
           param
-            .try_into()
-            .expect("failed to convert param to ptr")
         );
       };
 

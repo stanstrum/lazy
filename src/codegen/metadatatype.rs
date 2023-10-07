@@ -5,7 +5,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use inkwell::{types::{VoidType, BasicMetadataTypeEnum, FunctionType, PointerType, ArrayType}, AddressSpace};
+use inkwell::{
+  types::{
+    VoidType, BasicMetadataTypeEnum, FunctionType, PointerType
+  },
+  AddressSpace
+};
 
 #[derive(Debug)]
 pub enum MetadataType<'ctx> {
@@ -38,11 +43,11 @@ impl<'ctx> MetadataType<'ctx> {
     }
   }
 
-  pub fn array_type(&self, size: u32) -> ArrayType<'ctx> {
-    match self {
-      MetadataType::Void(_) => unimplemented!("array of void"),
-      MetadataType::Enum(BasicMetadataTypeEnum::IntType(int)) => int.array_type(size),
-      _ => todo!("array_type {self:#?}")
-    }
-  }
+  // pub fn array_type(&self, size: u32) -> ArrayType<'ctx> {
+  //   match self {
+  //     MetadataType::Void(_) => unimplemented!("array of void"),
+  //     MetadataType::Enum(BasicMetadataTypeEnum::IntType(int)) => int.array_type(size),
+  //     _ => todo!("array_type {self:#?}")
+  //   }
+  // }
 }

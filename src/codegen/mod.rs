@@ -39,7 +39,7 @@ pub struct Codegen<'a, 'ctx> {
   pub var_map: HashMap<VariableReference, BasicValueEnum<'ctx>>
 }
 
-fn parse_int_literal(text: &String) -> u64 {
+fn parse_int_literal(text: &str) -> u64 {
   if text.starts_with(consts::punctuation::BIN_PFX) {
     todo!("parse_int_literal bin");
   };

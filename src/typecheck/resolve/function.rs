@@ -40,10 +40,8 @@ impl Checker {
           };
         },
       };
-    } else {
-      if !extends(&func.decl.ret.e, &Type::Intrinsic(intrinsics::VOID)) {
-        todo!("throw error for no return last/void mismatch");
-      };
+    } else if !extends(&func.decl.ret.e, &Type::Intrinsic(intrinsics::VOID)) {
+      todo!("throw error for no return last/void mismatch");
     };
 
     Ok(())

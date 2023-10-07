@@ -56,18 +56,18 @@ impl Checker {
     Ok(())
   }
 
-  fn get_impls_for(&self, ty: Type) -> TypeCheckResult<HashMap<IdentAST, VariableReference>> {
+  fn get_impls_for(&self, ty: &Type) -> TypeCheckResult<HashMap<IdentAST, VariableReference>> {
     let mut map = HashMap::<IdentAST, *const MemberFunctionAST>::new();
 
-    for (ty, r#impl) in self.impls.iter() {
+    for (implemented_ty, r#impl) in self.impls.iter() {
       let r#impl = unsafe { &**r#impl };
 
-      let (implemented_ty, methods) = match r#impl {
-        Impl::Impl(ImplAST { ty, methods, .. }) => {
-          (&ty.e, methods)
+      let methods = match r#impl {
+        Impl::Impl(r#impl) => {
+          &r#impl.methods
         },
-        Impl::ImplFor(ImplForAST { ty, methods, .. }) => {
-          (&ty.e, methods)
+        Impl::ImplFor(impl_for) => {
+          &impl_for.methods
         }
       };
 
@@ -123,7 +123,7 @@ impl Checker {
               Literal::Char(_) => todo!("resolve char"),
               Literal::ByteChar(_) => todo!("resolve bytechar"),
               Literal::FloatLiteral(_) => todo!("resolve float literal"),
-              Literal::IntLiteral(text) => {
+              Literal::IntLiteral(_) => {
                 let Some(coerce_to) = coerce_to else {
                   todo!("error: int literal has no type coercion");
                 };
@@ -243,7 +243,7 @@ impl Checker {
 
                 let parent_ty = a.type_of().expect("need to know parent ty");
 
-                let impls = self.get_impls_for(parent_ty)?;
+                let impls = self.get_impls_for(&parent_ty)?;
 
                 dbg!(impls.keys());
 
@@ -278,19 +278,15 @@ impl Checker {
           }
         };
       },
-      Expression::UnaryOperator(UnaryOperatorExpressionAST { out, expr, op, .. }) => {
+      Expression::UnaryOperator(UnaryOperatorExpressionAST { expr, op, .. }) => {
         self.stack.push(ScopePointer::Expression(&mut **expr));
         self.resolve_expression(expr, None)?;
         self.stack.pop();
-
-        let expr_ty = expr.type_of();
 
         match op {
           UnaryOperator::UnaryPfx(_) => todo!("unarypfxop reso type"),
           UnaryOperator::UnarySfx(_) => todo!("unarysfxop reso type"),
         };
-
-        *out = todo!("set out for unaryop");
       },
     };
 

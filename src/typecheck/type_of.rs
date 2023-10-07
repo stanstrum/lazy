@@ -88,13 +88,13 @@ impl TypeOf for VariableReference {
 
         Some(Type::Function(func))
       },
-      VariableReference::ResolvedMemberOf(parent, ident) => {
-        let parent = unsafe { &**parent };
+      VariableReference::ResolvedMemberOf(_parent, ident) => {
+        // let parent = unsafe { &**parent };
         let ident = unsafe { &**ident };
 
         println!("type_of resolved_member_of: ... {}", ident.to_string());
 
-        let parent_ty = parent.type_of().expect("typeof of member needs to know parent type...");
+        // let parent_ty = parent.type_of().expect("typeof of member needs to know parent type...");
 
         todo!("resolved member of")
       },

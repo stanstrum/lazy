@@ -5,8 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use crate::aster::ast::VariableReference;
-
 use super::ast::{Type, QualifiedAST};
 use phf::phf_ordered_map;
 

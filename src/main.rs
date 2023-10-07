@@ -23,7 +23,7 @@ pub(crate) mod colors;
 use inkwell::context::Context;
 use codegen::Codegen;
 
-use std::{process::Command, collections::HashMap};
+use std::process::Command;
 
 #[derive(Debug, Snafu)]
 enum LazyError {
@@ -180,12 +180,7 @@ fn compile() -> Result<(), LazyError> {
   let module = context.create_module("program");
   let builder = context.create_builder();
 
-  let mut codegen = Codegen {
-    context: &context,
-    module: &module,
-    builder: &builder,
-    var_map: HashMap::new()
-  };
+  let mut codegen = Codegen::new(&context, &module, &builder);
 
   // codegen.init(todo!());
 

@@ -7,7 +7,9 @@
 
 use inkwell::values::{BasicValueEnum, BasicValue};
 
-use crate::aster::ast::{LiteralAST, Type, Literal};
+use crate::aster::ast::{
+  LiteralAST, Type, Literal
+};
 
 use super::{
   Codegen,
@@ -17,7 +19,22 @@ use super::{
 impl<'a, 'ctx> Codegen<'a, 'ctx> {
   pub fn generate_literal(&mut self, lit: &LiteralAST, ty: &Type) -> CodeGenResult<BasicValueEnum<'ctx>> {
     Ok(match &lit.l {
-      Literal::UnicodeString(_) => todo!("generate_literal unicodestring"),
+      Literal::UnicodeString(text) => {
+        let ascii_str = text
+          .chars()
+          .map(
+            |ch| u32::to_le_bytes(ch as u32)
+              .map(|byte| byte as char)
+          )
+          .map(Vec::from)
+          .map(|vec| vec.iter().collect::<String>())
+          .collect::<String>();
+
+        let name = self.unique_name("unicode_text");
+
+        self.builder.build_global_string_ptr(&ascii_str, &name)
+          .as_basic_value_enum()
+      },
       Literal::ByteString(_) => todo!("generate_literal bytestring"),
       Literal::CString(_) => todo!("generate_literal cstring"),
       Literal::Char(_) => todo!("generate_literal char"),

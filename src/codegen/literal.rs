@@ -32,10 +32,19 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
 
         let name = self.unique_name("unicode_text");
 
-        self.builder.build_global_string_ptr(&ascii_str, &name)
-          .as_basic_value_enum()
+        unsafe {
+          self.builder.build_global_string(&ascii_str, &name)
+            .as_basic_value_enum()
+        }
       },
-      Literal::ByteString(_) => todo!("generate_literal bytestring"),
+      Literal::ByteString(text) => {
+        let name = self.unique_name("ascii_text");
+
+        unsafe {
+          self.builder.build_global_string(text, &name)
+            .as_basic_value_enum()
+        }
+      },
       Literal::CString(_) => todo!("generate_literal cstring"),
       Literal::Char(_) => todo!("generate_literal char"),
       Literal::ByteChar(_) => todo!("generate_literal bytechar"),

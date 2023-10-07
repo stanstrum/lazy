@@ -157,6 +157,8 @@ make_get_span![
   StructAST,
   MemberFunctionAST,
   TraitAST,
+  ImplAST,
+  ImplForAST,
   TypeAliasAST,
   ExternBlockAST,
   ExternDeclAST

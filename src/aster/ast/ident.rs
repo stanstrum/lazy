@@ -50,6 +50,7 @@ impl std::cmp::PartialEq for IdentAST {
 impl std::cmp::Eq for IdentAST {}
 
 make_get_span![
+  KeywordAST,
   IdentAST,
   QualifiedAST
 ];

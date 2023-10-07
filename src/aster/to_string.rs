@@ -648,7 +648,7 @@ impl std::string::ToString for Type {
       Type::UnresolvedLiteral(_) => {
         format!("{DARK_GRAY}/* unresolved literal */")
       },
-      Type::Unresolved => format!("/* unresolved */")
+      Type::Unresolved => "/* unresolved */".to_owned()
     }
   }
 }

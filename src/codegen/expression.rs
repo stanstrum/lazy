@@ -92,7 +92,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
     };
 
     for child in ast.children.iter() {
-      self.generate_block_child(&child)?;
+      self.generate_block_child(child)?;
     };
 
     Ok(None)

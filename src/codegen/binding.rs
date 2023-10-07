@@ -24,7 +24,7 @@ use super::{
   CodeGenResult
 };
 
-fn to_basic_type<'ctx>(any: AnyTypeEnum<'ctx>) -> BasicTypeEnum<'ctx> {
+fn to_basic_type(any: AnyTypeEnum) -> BasicTypeEnum {
   match any {
     AnyTypeEnum::ArrayType(ty) => BasicTypeEnum::ArrayType(ty),
     AnyTypeEnum::FloatType(ty) => BasicTypeEnum::FloatType(ty),

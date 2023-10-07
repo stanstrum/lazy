@@ -33,7 +33,7 @@ impl Structure {
         Structure::Function(func)
       ))
     } else if let Some(extern_decl) = try_make!(ExternDeclAST::make, reader) {
-      let ident = &extern_decl.decl.ident;
+      let ident = &extern_decl.ident;
 
       Ok((
         ident.text.to_owned(),

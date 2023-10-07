@@ -65,6 +65,8 @@ pub mod punctuation {
 
   pub const AMPERSAND: &str = "&";
 
+  pub const ELLIPSIS: &str = "...";
+
   pub const HEX_PFX: &str = "0x";
   pub const BIN_PFX: &str = "0b";
   pub const OCT_PFX: &str = "0o";

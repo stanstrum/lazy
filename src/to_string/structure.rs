@@ -87,9 +87,39 @@ impl std::string::ToString for Structure {
         text
       },
       Structure::ExternDecl(r#extern) => {
-        let decl = &r#extern.decl;
+        let mut text = "extern ".to_string();
 
-        format!("extern {}", decl.to_string())
+        text += &r#extern.ident.to_string();
+
+        match &r#extern.ret.e {
+          Type::Intrinsic(intrinsics::VOID) => {},
+          _ => {
+            text += &format!(" -> {}", r#extern.ret.to_string());
+          }
+        };
+
+        let mut args = r#extern.args.iter().collect::<Vec<_>>();
+        args.sort_by_key(|(ident, _)| ident.span().start);
+
+        if !args.is_empty() {
+          text += ":\n";
+        };
+
+        for (i, (ident, ty)) in args.iter().enumerate() {
+          let arg_text = format!("{} {}",
+            ty.to_string(), ident.to_string()
+          );
+
+          text += &str_line_pfx(arg_text, INDENTATION);
+
+          if i + 1 != args.len() {
+            text += ",";
+          };
+
+          text += "\n";
+        };
+
+        text
       },
     }
   }

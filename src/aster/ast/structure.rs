@@ -105,7 +105,12 @@ pub struct TypeAliasAST {
 #[derive(Debug, Clone)]
 pub struct ExternDeclAST {
   pub span: Span,
-  pub decl: FunctionDeclAST
+
+  pub ident: IdentAST,
+  pub ret: TypeAST,
+  pub args: HashMap<IdentAST, TypeAST>,
+
+  pub varargs: bool
 }
 
 #[derive(Debug, Clone)]

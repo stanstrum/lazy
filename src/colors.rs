@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
- macro_rules! def_colors {
+macro_rules! def_colors {
   ($n:ident: $c:expr, $($ns:ident: $cs:expr),+) => {
     def_colors! { $n: $c }
     def_colors! { $($ns: $cs),+ }

@@ -115,7 +115,7 @@ impl Checker {
     Ok(map)
   }
 
-  fn resolve_atom(&mut self, atom: &mut AtomExpressionAST, coerce_to: Option<&Type>) -> TypeCheckResult<()> {
+  fn resolve_atom(&mut self, atom: &mut AtomExpressionAST, coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
     match &mut atom.a {
       AtomExpression::Literal(lit) => {
         match &lit.l {
@@ -224,10 +224,10 @@ impl Checker {
       AtomExpression::Break(_) => todo!("atom break"),
     };
 
-    Ok(())
+    Ok(atom.out.clone())
   }
 
-  fn resolve_control_flow(&mut self, flow: &mut ControlFlowAST, _coerce_to: Option<&Type>) -> TypeCheckResult<()> {
+  fn resolve_control_flow(&mut self, flow: &mut ControlFlowAST, _coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
     match &mut flow.e {
       ControlFlow::If(cond_body, r#else) => {
         let mut out_ty = None;
@@ -310,7 +310,9 @@ impl Checker {
                 self.resolve_expression(arg, coerce_to)?;
               };
 
-              Ok(())
+              unary.out = Type::Defined(&external.ret);
+
+              Ok(unary.out.clone())
             } else if external_len < call_len && external.varargs {
               todo!("varargs resolve");
             } else {
@@ -341,24 +343,14 @@ impl Checker {
     }
   }
 
-  fn resolve_expression(&mut self, expr: &mut Expression, coerce_to: Option<&Type>) -> TypeCheckResult<()> {
+  fn resolve_expression(&mut self, expr: &mut Expression, coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
     match expr {
-      Expression::Atom(atom) => {
-        self.resolve_atom(atom, coerce_to)?;
-      },
+      Expression::Atom(atom) => self.resolve_atom(atom, coerce_to),
       Expression::Block(_) => todo!("resolve block"),
       Expression::SubExpression(_) => todo!("resolve subexpression"),
-      Expression::ControlFlow(flow) => {
-        self.resolve_control_flow(flow, coerce_to)?;
-      },
-      Expression::BinaryOperator(binary) => {
-        self.resolve_binary_operator(binary, coerce_to)?;
-      },
-      Expression::UnaryOperator(unary) => {
-        self.resolve_unary_operator(unary, coerce_to)?;
-      },
-    };
-
-    Ok(())
+      Expression::ControlFlow(flow) => self.resolve_control_flow(flow, coerce_to),
+      Expression::BinaryOperator(binary) => self.resolve_binary_operator(binary, coerce_to),
+      Expression::UnaryOperator(unary) => self.resolve_unary_operator(unary, coerce_to),
+    }
   }
 }

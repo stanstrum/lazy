@@ -355,6 +355,7 @@ pub enum VariableReference {
   ResolvedArgument(*const TypeAST),
   ResolvedFunction(*const FunctionAST),
   ResolvedMemberFunction(*const MemberFunctionAST),
+  #[allow(unused)]
   ResolvedMemberOf(*const VariableReference, *const IdentAST)
 }
 
@@ -363,6 +364,7 @@ pub enum AtomExpression {
   Literal(LiteralAST),
   Variable(QualifiedAST, VariableReference),
   Return(Option<BoxExpr>),
+  #[allow(unused)]
   Break(Option<BoxExpr>),
 }
 

@@ -14,6 +14,7 @@ fn num_length<T: std::convert::Into<f64>>(n: T) -> usize {
   (n.into().log10() + 1.0).floor().max(1.0) as usize
 }
 
+#[allow(unused)]
 pub enum Level {
   Debug,
   Note,

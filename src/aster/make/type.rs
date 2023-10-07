@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
- use crate::aster::{
+use crate::aster::{
   AsterResult,
 
   SourceReader,

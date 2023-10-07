@@ -5,7 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use inkwell::values::{BasicValueEnum, BasicValue};
+use inkwell::{
+  values::{
+    BasicValueEnum, BasicValue
+  },
+  types::BasicType,
+  AddressSpace
+};
 
 use crate::aster::ast::{
   LiteralAST, Type, Literal
@@ -20,30 +26,50 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
   pub fn generate_literal(&mut self, lit: &LiteralAST, ty: &Type) -> CodeGenResult<BasicValueEnum<'ctx>> {
     Ok(match &lit.l {
       Literal::UnicodeString(text) => {
-        let ascii_str = text
+        let i32_type = self.context.i32_type();
+
+        let values = text
           .chars()
-          .map(
-            |ch| u32::to_le_bytes(ch as u32)
-              .map(|byte| byte as char)
-          )
-          .map(Vec::from)
-          .map(|vec| vec.iter().collect::<String>())
-          .collect::<String>();
+          .map(|ch| i32_type.const_int(ch as u64, false))
+          .collect::<Vec<_>>();
 
         let name = self.unique_name("unicode_text");
+        let size = text.len() as u32;
 
-        unsafe {
-          self.builder.build_global_string(&ascii_str, &name)
-            .as_basic_value_enum()
-        }
+        let global = self.module.add_global(
+          i32_type.array_type(size)
+            .as_basic_type_enum(),
+          Some(AddressSpace::default()),
+          &name
+        );
+
+        let value = i32_type.const_array(values.as_slice());
+        global.set_initializer(&value);
+
+        global.as_basic_value_enum()
       },
       Literal::ByteString(text) => {
-        let name = self.unique_name("ascii_text");
+        let i8_type = self.context.i8_type();
 
-        unsafe {
-          self.builder.build_global_string(text, &name)
-            .as_basic_value_enum()
-        }
+        let values = text
+          .chars()
+          .map(|ch| i8_type.const_int(ch as u64, false))
+          .collect::<Vec<_>>();
+
+        let name = self.unique_name("unicode_text");
+        let size = text.len() as u32;
+
+        let global = self.module.add_global(
+          i8_type.array_type(size)
+            .as_basic_type_enum(),
+          Some(AddressSpace::default()),
+          &name
+        );
+
+        let value = i8_type.const_array(values.as_slice());
+        global.set_initializer(&value);
+
+        global.as_basic_value_enum()
       },
       Literal::CString(_) => todo!("generate_literal cstring"),
       Literal::Char(_) => todo!("generate_literal char"),

@@ -131,7 +131,8 @@ fn compile() -> Result<(), LazyError> {
           | TypeCheckError::UnknownIdent { span, .. }
           | TypeCheckError::InvalidDot { span }
           | TypeCheckError::InvalidType { span, .. }
-          | TypeCheckError::IncompatibleType { span, .. } => {
+          | TypeCheckError::IncompatibleType { span, .. }
+          | TypeCheckError::CantInferType { span } => {
             let message = Message {
               level: Level::Error,
               msg: err.to_string(),

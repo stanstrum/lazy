@@ -27,6 +27,9 @@ pub enum TypeCheckError {
   #[snafu(display("{what} is not compatible with {with}"))]
   IncompatibleType { span: Span, what: String, with: String },
 
+  #[snafu(display("Failed to infer type"))]
+  CantInferType { span: Span },
+
   #[snafu(display("Invalid Dot/DerefDot Operator"))]
   InvalidDot { span: Span }
 }

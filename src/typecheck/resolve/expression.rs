@@ -8,7 +8,10 @@
 use std::collections::HashMap;
 
 use super::*;
-use crate::aster::intrinsics;
+use crate::{
+  aster::intrinsics,
+  typecheck::expect_type_of
+};
 
 const BOOL_COERCION: Option<&Type> = Some(&Type::Intrinsic(intrinsics::BOOL));
 
@@ -32,6 +35,17 @@ impl Checker {
               binding.value.as_mut().unwrap(),
               binding.ty.as_ref().map(|ast| &ast.e)
             )?;
+          };
+
+          if binding.ty.is_none() {
+            let value = binding.value.as_ref().unwrap();
+
+            let value_ty = expect_type_of(value.as_ref())?;
+
+            binding.ty = Some(TypeAST {
+              span: value.span(),
+              e: value_ty
+            });
           };
 
           block.vars.insert(binding.ident.clone(), binding);

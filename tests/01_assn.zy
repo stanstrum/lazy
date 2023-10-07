@@ -34,3 +34,5 @@ implicit {
   // should fail
   // n256 := 256u8;
 };
+
+main {};

@@ -39,3 +39,12 @@ pub fn check(mut global: NamespaceAST) -> TypeCheckResult<NamespaceAST> {
 
   Ok(global)
 }
+
+pub(self) fn expect_type_of<T: GetSpan + TypeOf>(subject: &T) -> TypeCheckResult<Type> {
+  match subject.type_of() {
+    Some(ty) => Ok(ty),
+    None => CantInferTypeSnafu {
+      span: subject.span()
+    }.fail()
+  }
+}

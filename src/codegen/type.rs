@@ -5,9 +5,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use inkwell::{types::BasicMetadataTypeEnum, AddressSpace};
+use inkwell::{
+  types::BasicMetadataTypeEnum,
+  AddressSpace
+};
 
-use crate::aster::{intrinsics::Intrinsic, ast::Type};
+use crate::{aster::{intrinsics::Intrinsic, ast::{Type, Literal}}, codegen::parse_int_literal};
 
 use super::{
   Codegen,
@@ -64,7 +67,16 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
           //   )
           // ))
 
-          todo!("sized array");
+          let item_ty = self.generate_type(&item.e)?;
+
+          let lit = &count.as_ref().unwrap().l;
+          let Literal::IntLiteral(text) = lit else { unreachable!(); };
+
+          Ok(MetadataType::Enum(
+            BasicMetadataTypeEnum::ArrayType(
+              item_ty.array_type(parse_int_literal(text) as u32)
+            )
+          ))
         } else {
           // c undefined-length arrays just exploit pointer math ...
           // practically, there is no difference in type information

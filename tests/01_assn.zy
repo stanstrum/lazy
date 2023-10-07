@@ -9,7 +9,7 @@ type str := []u32;
 
 hello_explicit {
   &str hello := "hello";
-  [5]u8 hello_bytes := b"hello";
+  &[5]u8 hello_bytes := b"hello";
 
   usize n1234 := 1234;
   u64 n5678 := 5678;

@@ -53,7 +53,6 @@ impl Checker {
           self.resolve_impl(r#impl)?;
           self.stack.pop();
         },
-        Structure::ExternBlock(_) => todo!("resolve_ns externblock"),
         Structure::ExternDecl(_) => todo!("resolve_ns externdecl"),
       };
     };

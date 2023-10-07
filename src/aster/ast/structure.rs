@@ -103,12 +103,6 @@ pub struct TypeAliasAST {
 }
 
 #[derive(Debug, Clone)]
-pub struct ExternBlockAST {
-  pub span: Span,
-  pub children: HashMap<IdentAST, FunctionDeclAST>
-}
-
-#[derive(Debug, Clone)]
 pub struct ExternDeclAST {
   pub span: Span,
   pub decl: FunctionDeclAST
@@ -122,7 +116,6 @@ pub enum Structure {
   Trait(TraitAST),
   Impl(Impl),
   TypeAlias(TypeAliasAST),
-  ExternBlock(ExternBlockAST),
   ExternDecl(ExternDeclAST)
 }
 
@@ -144,7 +137,6 @@ impl GetSpan for &Structure {
       Structure::Impl(s) => s.span(),
       Structure::TypeAlias(s) => s.span(),
       Structure::Struct(s) => s.span(),
-      Structure::ExternBlock(r#extern) => r#extern.span(),
       Structure::ExternDecl(r#extern) => r#extern.span(),
     }
   }
@@ -160,6 +152,5 @@ make_get_span![
   ImplAST,
   ImplForAST,
   TypeAliasAST,
-  ExternBlockAST,
   ExternDeclAST
 ];

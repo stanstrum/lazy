@@ -86,29 +86,6 @@ impl std::string::ToString for Structure {
 
         text
       },
-      Structure::ExternBlock(r#extern) => {
-        let mut text = "extern {".to_owned();
-
-        let mut children = r#extern.children
-          .values()
-          .collect::<Vec<_>>();
-        children.sort_by_key(|decl| decl.span().start);
-
-        if !r#extern.children.is_empty() {
-          text += "\n";
-        };
-
-        for child in children {
-          text += &str_line_pfx(
-            child.to_string(),
-            INDENTATION
-          );
-
-          text += ";\n";
-        };
-
-        text
-      },
       Structure::ExternDecl(r#extern) => {
         let decl = &r#extern.decl;
 

@@ -10,19 +10,19 @@ extern write -> isize:
   &[]u8 buf,
   usize count;
 
-extern {
-  read -> i32:
-    i32 fd,
-    &[]u8 buf,
-    usize count;
+extern read -> i32:
+  i32 fd,
+  &[]u8 buf,
+  usize count;
 
-  getpid -> i32;
+extern getpid -> i32;
 
-  strlen -> usize: &[]u8;
-};
+extern strlen -> usize:
+  &[]u8 string;
 
 extern printf -> i32:
-  &[]u8 format, ...;
+  &[]u8 format,
+  ...;
 
 main -> i32 {
   i32 STDOUT = 1;

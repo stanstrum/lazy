@@ -128,9 +128,19 @@ impl Checker {
                   span, l: Literal::IntLiteral(unicode.len().to_string()),
                 };
 
-                atom.out = Type::ArrayOf(Some(len), Box::new(TypeAST {
-                  span, e: Type::Intrinsic(intrinsics::U32)
+                let array = Type::ArrayOf(
+                  Some(len),
+                  Box::new(TypeAST {
+                    span, e: Type::Intrinsic(intrinsics::U32)
+                  })
+                );
+
+                let array_reference = Type::ConstReferenceTo(Box::new(TypeAST {
+                  span,
+                  e: array,
                 }));
+
+                atom.out = array_reference;
               },
               Literal::ByteString(text) => {
                 let span = lit.span();
@@ -139,9 +149,19 @@ impl Checker {
                   span, l: Literal::IntLiteral(text.len().to_string())
                 };
 
-                atom.out = Type::ArrayOf(Some(len), Box::new(TypeAST {
-                  span, e: Type::Intrinsic(intrinsics::U8)
+                let array = Type::ArrayOf(
+                  Some(len),
+                  Box::new(TypeAST {
+                    span, e: Type::Intrinsic(intrinsics::U8)
+                  })
+                );
+
+                let array_reference = Type::ConstReferenceTo(Box::new(TypeAST {
+                  span,
+                  e: array,
                 }));
+
+                atom.out = array_reference;
               },
               Literal::CString(_) => todo!("resolve cstr"),
               Literal::Char(_) => todo!("resolve char"),

@@ -6,6 +6,7 @@
  */
 
 mod aster;
+mod to_string;
 mod typecheck;
 mod codegen;
 

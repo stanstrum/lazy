@@ -71,7 +71,15 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
 
         global.as_basic_value_enum()
       },
-      Literal::CString(_) => todo!("generate_literal cstring"),
+      Literal::CString(text) => {
+        let name = self.unique_name("c_text");
+
+        let global = unsafe {
+          self.builder.build_global_string(text, &name)
+        };
+
+        global.as_basic_value_enum()
+      },
       Literal::Char(_) => todo!("generate_literal char"),
       Literal::ByteChar(_) => todo!("generate_literal bytechar"),
       Literal::FloatLiteral(_) => todo!("generate_literal floatliteral"),

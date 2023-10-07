@@ -115,116 +115,122 @@ impl Checker {
     Ok(map)
   }
 
+  fn resolve_atom(&mut self, atom: &mut AtomExpressionAST, coerce_to: Option<&Type>) -> TypeCheckResult<()> {
+    match &mut atom.a {
+      AtomExpression::Literal(lit) => {
+        match &lit.l {
+          Literal::UnicodeString(unicode) => {
+            let span = lit.span();
+
+            let len = LiteralAST {
+              span, l: Literal::IntLiteral(unicode.len().to_string()),
+            };
+
+            let array = Type::ArrayOf(
+              Some(len),
+              Box::new(TypeAST {
+                span, e: Type::Intrinsic(intrinsics::U32)
+              })
+            );
+
+            let array_reference = Type::ConstReferenceTo(Box::new(TypeAST {
+              span,
+              e: array,
+            }));
+
+            atom.out = array_reference;
+          },
+          Literal::ByteString(text) => {
+            let span = lit.span();
+
+            let len = LiteralAST {
+              span, l: Literal::IntLiteral(text.len().to_string())
+            };
+
+            let array = Type::ArrayOf(
+              Some(len),
+              Box::new(TypeAST {
+                span, e: Type::Intrinsic(intrinsics::U8)
+              })
+            );
+
+            let array_reference = Type::ConstReferenceTo(
+              Box::new(TypeAST {
+                span,
+                e: array,
+              })
+            );
+
+            atom.out = array_reference;
+          },
+          Literal::CString(text) => {
+            let span = lit.span();
+
+            // include extra byte for null-terminator
+            let size = text.len() + 1;
+
+            let len = LiteralAST {
+              span, l: Literal::IntLiteral(size.to_string())
+            };
+
+            let array = Type::ArrayOf(
+              Some(len),
+              Box::new(TypeAST {
+                span, e: Type::Intrinsic(intrinsics::U8)
+              })
+            );
+
+            let array_reference = Type::ConstReferenceTo(
+              Box::new(TypeAST {
+                span,
+                e: array,
+              })
+            );
+
+            atom.out = array_reference;
+          },
+          Literal::Char(_) => todo!("resolve char"),
+          Literal::ByteChar(_) => todo!("resolve bytechar"),
+          Literal::FloatLiteral(_) => todo!("resolve float literal"),
+          Literal::IntLiteral(_) => {
+            let Some(coerce_to) = coerce_to else {
+              todo!("error: int literal has no type coercion");
+            };
+
+            if extends(coerce_to, &Type::Intrinsic(intrinsics::U8)) {
+              atom.out = coerce_to.clone();
+            } else {
+              return IncompatibleTypeSnafu {
+                span: atom.span(),
+                what: "Integer literal",
+                with: coerce_to.to_string()
+              }.fail();
+            };
+          },
+        };
+      },
+      AtomExpression::Variable(qual, resolved) => {
+        *resolved = self.resolve_variable(qual)?;
+
+        let out = resolved.type_of();
+
+        if let Some(out) = out {
+          atom.out = out;
+        } else {
+          panic!("failed to resolve atom type `{}`", atom.to_string());
+        };
+      },
+      AtomExpression::Return(_) => todo!("atom return"),
+      AtomExpression::Break(_) => todo!("atom break"),
+    };
+
+    Ok(())
+  }
+
   fn resolve_expression(&mut self, expr: &mut Expression, coerce_to: Option<&Type>) -> TypeCheckResult<()> {
     match expr {
       Expression::Atom(atom) => {
-        match &mut atom.a {
-          AtomExpression::Literal(lit) => {
-            match &lit.l {
-              Literal::UnicodeString(unicode) => {
-                let span = lit.span();
-
-                let len = LiteralAST {
-                  span, l: Literal::IntLiteral(unicode.len().to_string()),
-                };
-
-                let array = Type::ArrayOf(
-                  Some(len),
-                  Box::new(TypeAST {
-                    span, e: Type::Intrinsic(intrinsics::U32)
-                  })
-                );
-
-                let array_reference = Type::ConstReferenceTo(Box::new(TypeAST {
-                  span,
-                  e: array,
-                }));
-
-                atom.out = array_reference;
-              },
-              Literal::ByteString(text) => {
-                let span = lit.span();
-
-                let len = LiteralAST {
-                  span, l: Literal::IntLiteral(text.len().to_string())
-                };
-
-                let array = Type::ArrayOf(
-                  Some(len),
-                  Box::new(TypeAST {
-                    span, e: Type::Intrinsic(intrinsics::U8)
-                  })
-                );
-
-                let array_reference = Type::ConstReferenceTo(
-                  Box::new(TypeAST {
-                    span,
-                    e: array,
-                  })
-                );
-
-                atom.out = array_reference;
-              },
-              Literal::CString(text) => {
-                let span = lit.span();
-
-                // include extra byte for null-terminator
-                let size = text.len() + 1;
-
-                let len = LiteralAST {
-                  span, l: Literal::IntLiteral(size.to_string())
-                };
-
-                let array = Type::ArrayOf(
-                  Some(len),
-                  Box::new(TypeAST {
-                    span, e: Type::Intrinsic(intrinsics::U8)
-                  })
-                );
-
-                let array_reference = Type::ConstReferenceTo(
-                  Box::new(TypeAST {
-                    span,
-                    e: array,
-                  })
-                );
-
-                atom.out = array_reference;
-              },
-              Literal::Char(_) => todo!("resolve char"),
-              Literal::ByteChar(_) => todo!("resolve bytechar"),
-              Literal::FloatLiteral(_) => todo!("resolve float literal"),
-              Literal::IntLiteral(_) => {
-                let Some(coerce_to) = coerce_to else {
-                  todo!("error: int literal has no type coercion");
-                };
-
-                if extends(coerce_to, &Type::Intrinsic(intrinsics::U8)) {
-                  atom.out = coerce_to.clone();
-                } else {
-                  return IncompatibleTypeSnafu {
-                    span: expr.span(),
-                    what: "Integer literal",
-                    with: coerce_to.to_string()
-                  }.fail();
-                };
-              },
-            };
-          },
-          AtomExpression::Variable(qual, resolved) => {
-            *resolved = self.resolve_variable(qual)?;
-
-            let out = resolved.type_of();
-
-            if let Some(out) = out {
-              atom.out = out;
-            } else {
-              panic!("failed to resolve atom type `{}`", atom.to_string());
-            };
-          },
-          AtomExpression::Return(_) => todo!("atom return"),
-          AtomExpression::Break(_) => todo!("atom break"),
-        };
+        self.resolve_atom(atom, coerce_to)?;
       },
       Expression::Block(_) => todo!("resolve block"),
       Expression::SubExpression(_) => todo!("resolve subexpression"),

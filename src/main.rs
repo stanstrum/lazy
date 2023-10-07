@@ -130,7 +130,8 @@ fn compile() -> Result<(), LazyError> {
           TypeCheckError::NotImplemented { span, .. }
           | TypeCheckError::UnknownIdent { span, .. }
           | TypeCheckError::InvalidDot { span }
-          | TypeCheckError::InvalidType { span, .. } => {
+          | TypeCheckError::InvalidType { span, .. }
+          | TypeCheckError::IncompatibleType { span, .. } => {
             let message = Message {
               level: Level::Error,
               msg: err.to_string(),

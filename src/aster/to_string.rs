@@ -604,3 +604,52 @@ impl std::string::ToString for NamespaceAST {
     )
   }
 }
+
+impl std::string::ToString for Type {
+  fn to_string(&self) -> String {
+    match self {
+      Type::Intrinsic(intrinsic) => intrinsic.get_name(),
+      Type::Function(func) => {
+        let func = unsafe { &**func };
+
+        let mut args = func.decl.args.values().collect::<Vec<_>>();
+        args.sort_by_key(|arg| arg.span().start);
+
+        let args = args.iter().map(|arg| arg.to_string())
+          .collect::<Vec<_>>();
+
+        format!("({}: {}", func.decl.ret.to_string(), args.join(", "))
+      },
+      Type::MemberFunction(_) => todo!(),
+      Type::Struct(r#struct) => {
+        let r#struct = unsafe { &**r#struct };
+
+        r#struct.ident.to_string()
+      },
+      Type::ConstReferenceTo(ty) => format!("&{}", ty.to_string()),
+      Type::MutReferenceTo(ty) => format!("&mut {}", ty.to_string()),
+      Type::ConstPtrTo(ty) => format!("*{}", ty.to_string()),
+      Type::MutPtrTo(ty) => format!("*mut {}", ty.to_string()),
+      Type::ArrayOf(count, ty) => {
+        let count = match count {
+          Some(count) => count.to_string(),
+          None => "".to_owned(),
+        };
+
+        format!("[{}]{}", count, ty.to_string())
+      },
+      Type::Defined(ty) => {
+        let ty = unsafe { &**ty };
+
+        ty.to_string()
+      },
+      Type::Unknown(qual) => {
+        format!("{DARK_GRAY}/* unknown */ {}", qual.to_string())
+      },
+      Type::UnresolvedLiteral(_) => {
+        format!("{DARK_GRAY}/* unresolved literal */")
+      },
+      Type::Unresolved => format!("/* unresolved */")
+    }
+  }
+}

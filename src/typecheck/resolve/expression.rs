@@ -152,7 +152,11 @@ impl Checker {
                 if extends(coerce_to, &Type::Intrinsic(intrinsics::I32)) {
                   atom.out = coerce_to.clone();
                 } else {
-                  todo!("error: int literal coercion failed");
+                  return IncompatibleTypeSnafu {
+                    span: expr.span(),
+                    what: "Integer literal",
+                    with: coerce_to.to_string()
+                  }.fail();
                 };
               },
             };

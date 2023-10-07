@@ -118,7 +118,17 @@ impl Checker {
                   span, e: Type::Intrinsic(intrinsics::U32)
                 }));
               },
-              Literal::ByteString(_) => todo!("resolve bytestr"),
+              Literal::ByteString(text) => {
+                let span = lit.span();
+
+                let len = LiteralAST {
+                  span, l: Literal::IntLiteral(text.len().to_string())
+                };
+
+                atom.out = Type::ArrayOf(Some(len), Box::new(TypeAST {
+                  span, e: Type::Intrinsic(intrinsics::U8)
+                }));
+              },
               Literal::CString(_) => todo!("resolve cstr"),
               Literal::Char(_) => todo!("resolve char"),
               Literal::ByteChar(_) => todo!("resolve bytechar"),

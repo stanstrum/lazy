@@ -21,9 +21,10 @@ impl AtomExpressionAST {
   fn make_return(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
-    let ident = IdentAST::make(reader)?;
+    let is_ident = IdentAST::make(reader).is_ok();
+    reader.to(start).unwrap();
 
-    if ident.text != consts::keyword::RETURN {
+    if is_ident || !seek::begins_with(reader, consts::keyword::RETURN) {
       return ExpectedSnafu {
         what: "Keyword (return)",
         offset: reader.offset()

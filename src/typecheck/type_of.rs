@@ -10,6 +10,35 @@ use crate::aster::intrinsics;
 
 pub trait TypeOf {
   fn type_of(&self) -> Option<Type>;
+
+  fn type_of_expect(&self, span: Span) -> TypeCheckResult<Type>
+  where Self: std::string::ToString {
+    if let Some(ty) = self.type_of() {
+      Ok(ty)
+    } else {
+      InvalidTypeSnafu {
+        text: self.to_string(),
+        span
+      }.fail()
+    }
+  }
+}
+
+pub fn dereference_type(ty: &Type, span: Span) -> TypeCheckResult<Type> {
+  match ty {
+    Type::Defined(ast) => {
+      let ast = unsafe { &**ast };
+
+      dereference_type(&ast.e, span)
+    },
+    Type::ConstReferenceTo(ast) => {
+      Ok(ast.e.to_owned())
+    },
+    _ => InvalidTypeSnafu {
+      text: ty.to_string(),
+      span
+    }.fail()
+  }
 }
 
 impl TypeOf for BlockExpressionAST {

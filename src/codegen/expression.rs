@@ -68,7 +68,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       Expression::Block(_) => todo!("generate_expr block"),
       Expression::SubExpression(_) => todo!("generate_expr subexpression"),
       Expression::ControlFlow(_) => todo!("generate_expr controlflow"),
-      Expression::BinaryOperator(_) => todo!("generate_expr binaryoperator"),
+      Expression::BinaryOperator(binary) => self.generate_binary_operator(binary),
       Expression::UnaryOperator(unary) => {
         self.generate_unary_operator(unary)
       },

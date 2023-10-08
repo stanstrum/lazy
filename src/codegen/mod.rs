@@ -15,6 +15,7 @@ mod r#type;
 mod binding;
 mod literal;
 mod unary;
+mod binary;
 
 use std::collections::HashMap;
 

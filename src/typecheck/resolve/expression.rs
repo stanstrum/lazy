@@ -10,7 +10,7 @@
 use super::*;
 use crate::{
   aster::intrinsics,
-  typecheck::expect_type_of
+  typecheck::{expect_type_of, type_of::dereference_type}
 };
 
 const BOOL_COERCION: Option<&Type> = Some(&Type::Intrinsic(intrinsics::BOOL));
@@ -278,11 +278,29 @@ impl Checker {
     todo!("resolve controlflow");
   }
 
-  fn resolve_binary_operator(&mut self, _binary: &mut BinaryOperatorExpressionAST, _coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
-    todo!("reso binop")
+  fn resolve_binary_operator(&mut self, binary: &mut BinaryOperatorExpressionAST, coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
+    match binary.op {
+      BinaryOperator::Assign => {
+        let a = self.resolve_expression(&mut binary.a, None)?;
+        let b = self.resolve_expression(&mut binary.b, None)?;
+
+        if !extends(&a, &b) {
+          return IncompatibleTypeSnafu {
+            span: binary.span(),
+            what: "Assignment value",
+            with: "variable type",
+          }.fail();
+        };
+
+        binary.out = Type::Intrinsic(intrinsics::VOID);
+
+        Ok(binary.out.clone())
+      },
+      _ => todo!("resolve_binary_operator {:?}", binary.op)
+    }
   }
 
-  fn resolve_unary_operator(&mut self, unary: &mut UnaryOperatorExpressionAST, _coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
+  fn resolve_unary_operator(&mut self, unary: &mut UnaryOperatorExpressionAST, coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
     let expr = &mut unary.expr;
 
     self.stack.push(ScopePointer::Expression(expr.as_mut()));
@@ -290,7 +308,6 @@ impl Checker {
     self.stack.pop();
 
     match &mut unary.op {
-      UnaryOperator::UnaryPfx(_) => todo!("unarypfxop reso type"),
       UnaryOperator::UnarySfx(UnarySfxOperator::Call { args }) => {
         match expr.type_of() {
           Some(Type::External(external)) => {
@@ -339,7 +356,21 @@ impl Checker {
           None => panic!("couldn't resolve expr for sfx operator"),
         }
       },
-      UnaryOperator::UnarySfx(_) => todo!("unarysfxop reso type"),
+      UnaryOperator::UnaryPfx(UnaryPfxOperator::Ref) => {
+        let coerce_to = if let Some(coerce_to) = coerce_to {
+          Some(dereference_type(coerce_to, expr.span())?)
+        } else {
+          None
+        };
+
+        self.resolve_expression(expr, coerce_to.as_ref())?;
+
+        unary.out = expr.type_of_expect(expr.span())?;
+
+        Ok(unary.out.clone())
+      },
+      UnaryOperator::UnaryPfx(op) => todo!("unarypfxop reso type {op:#?}"),
+      UnaryOperator::UnarySfx(op) => todo!("unarysfxop reso type {op:#?}"),
     }
   }
 

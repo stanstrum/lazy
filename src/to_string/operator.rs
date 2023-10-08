@@ -87,13 +87,13 @@ impl std::string::ToString for Expression {
         match op {
           BinaryOperator::Dot | BinaryOperator::DerefDot =>
             format!(
-              "{DARK_GRAY}({CLEAR}{}{TEAL}{}{CLEAR}{}{DARK_GRAY}){CLEAR}",
+              "{}{TEAL}{}{CLEAR}{}",
               a.to_string(),
               op.to_string(),
               b.to_string()
             ),
           _ => format!(
-            "{DARK_GRAY}({CLEAR}{} {TEAL}{}{CLEAR} {}{DARK_GRAY}){CLEAR}",
+            "{} {TEAL}{}{CLEAR} {}",
             a.to_string(),
             op.to_string(),
             b.to_string()
@@ -107,19 +107,19 @@ impl std::string::ToString for Expression {
           },
           UnaryOperator::UnarySfx(UnarySfxOperator::Call { args }) => {
             format!(
-              "{DARK_GRAY}({CLEAR}{}({}){DARK_GRAY}){CLEAR}",
+              "{}({})",
               expr.to_string(),
               args.iter().map(|arg| arg.to_string()).collect::<Vec<String>>().join(", ")
             )
           },
           UnaryOperator::UnarySfx(_) => {
-            format!("{DARK_GRAY}({CLEAR}{}{TEAL}{}{DARK_GRAY}){CLEAR}", expr.to_string(), op.to_string())
+            format!("{}{TEAL}{}", expr.to_string(), op.to_string())
           },
           UnaryOperator::UnaryPfx(UnaryPfxOperator::MutRef) => {
-            format!("{DARK_GRAY}({CLEAR}{TEAL}{}{CLEAR} {}{DARK_GRAY}){CLEAR}", op.to_string(), expr.to_string())
+            format!("{TEAL}{}{CLEAR} {}", op.to_string(), expr.to_string())
           },
           UnaryOperator::UnaryPfx(_) => {
-            format!("{DARK_GRAY}({CLEAR}{TEAL}{}{CLEAR}{}{DARK_GRAY}){CLEAR}", op.to_string(), expr.to_string())
+            format!("{TEAL}{}{CLEAR}{}", op.to_string(), expr.to_string())
           },
         }
       },

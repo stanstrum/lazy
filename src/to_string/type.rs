@@ -101,7 +101,7 @@ impl std::string::ToString for Type {
         let args = args.iter().map(|arg| arg.to_string())
           .collect::<Vec<_>>();
 
-        format!("({DARK_GRAY}/* external */{CLEAR} {}: {}", external.ret.to_string(), args.join(", "))
+        format!("({}: {}", external.ret.to_string(), args.join(", "))
       }
       Type::ConstReferenceTo(ty) => format!("&{}", ty.to_string()),
       Type::MutReferenceTo(ty) => format!("&mut {}", ty.to_string()),
@@ -147,16 +147,12 @@ impl std::string::ToString for TypeAST {
         }
       },
       Type::Unknown(ref ident) => {
-        format!("{DARK_GRAY}/* unknown */{CLEAR} {LIGHT_RED}{UNDERLINE}{}{CLEAR}", ident.to_string())
+        format!("{LIGHT_RED}{UNDERLINE}{}{CLEAR}", ident.to_string())
       },
       Type::Defined(defined) => {
         let defined = unsafe { &**defined };
 
-        format!("{DARK_GRAY}/* {}:{} */{CLEAR} {}",
-          defined.span.start,
-          defined.span.end,
-          defined.to_string()
-        )
+        defined.to_string()
       },
       _ => todo!("exhaustive typeast: {:#?}", self.e)
     }

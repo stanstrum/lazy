@@ -25,10 +25,10 @@ impl std::string::ToString for NamespaceAST {
       |(_, a), (_, b)| a.span().start.cmp(&b.span().start)
     );
 
-    for (name, structure) in collected {
-      let span = structure.span();
+    for (_name, structure) in collected {
+      // let span = structure.span();
 
-      writeln!(&mut w, "{DARK_GRAY}// {} ({}:{}){CLEAR}", name, span.start, span.end).unwrap();
+      // writeln!(&mut w, "{DARK_GRAY}// {} ({}:{}){CLEAR}", name, span.start, span.end).unwrap();
       writeln!(&mut w, "{};", structure.to_string()).unwrap();
       writeln!(&mut w).unwrap();
     }

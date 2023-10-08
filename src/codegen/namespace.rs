@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use inkwell::values::FunctionValue;
+use inkwell::{values::{FunctionValue, AnyValue}, module::Linkage};
 
 use crate::aster::ast::*;
 
@@ -29,6 +29,28 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
             self.declare_function(func)?
           ));
         },
+        Structure::ExternDecl(decl) => {
+          let name = &decl.ident.text;
+
+          let ret_ty = self.generate_type(&decl.ret.e)?;
+
+          let mut tys = decl.args
+            .values()
+            .collect::<Vec<_>>();
+          tys.sort_by_key(|arg| arg.span().start);
+
+          let arg_tys = tys.iter()
+            .map(|ty| self.generate_type(&ty.e))
+            .collect::<Result<Vec<_>, _>>()?
+            .iter()
+            .map(|meta_ty| meta_ty.to_basic_metadata())
+            .collect::<Vec<_>>();
+
+          let fn_ty = ret_ty.fn_type(arg_tys.as_slice(), decl.varargs);
+          let value = self.module.add_function(name, fn_ty, Some(Linkage::External));
+
+          self.var_map.insert(VariableReference::ResolvedExternal(decl), value.as_any_value_enum());
+        },
         _ => {}
       };
     };
@@ -45,7 +67,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
 
         self.var_map.insert(
           var_ref,
-          param
+          param.as_any_value_enum()
         );
       };
 

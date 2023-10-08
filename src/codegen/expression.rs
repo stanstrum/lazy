@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use inkwell::values::BasicValueEnum;
+use inkwell::values::{BasicValueEnum, AnyValueEnum, AnyValue};
 use crate::aster::ast::{BlockExpressionAST, BlockExpressionChild, AtomExpressionAST, AtomExpression, VariableReference, Expression};
 
 use super::{
@@ -14,16 +14,19 @@ use super::{
 };
 
 impl<'a, 'ctx> Codegen<'a, 'ctx> {
-  fn generate_variable_reference(&mut self, var_ref: &VariableReference) -> CodeGenResult<BasicValueEnum<'ctx>> {
+  fn generate_variable_reference(&mut self, var_ref: &VariableReference) -> CodeGenResult<AnyValueEnum<'ctx>> {
     match self.var_map.get(var_ref) {
       Some(value) => Ok(value.to_owned()),
       None => panic!("unresolved var ref {var_ref:#?}"),
     }
   }
 
-  fn generate_atom(&mut self, ast: &AtomExpressionAST) -> CodeGenResult<Option<BasicValueEnum<'ctx>>> {
+  fn generate_atom(&mut self, ast: &AtomExpressionAST) -> CodeGenResult<Option<AnyValueEnum<'ctx>>> {
     Ok(match &ast.a {
-      AtomExpression::Literal(lit) => Some(self.generate_literal(lit, &ast.out)?),
+      AtomExpression::Literal(lit) => Some(
+        self.generate_literal(lit, &ast.out)?
+        .as_any_value_enum()
+      ),
       AtomExpression::Variable(qual, var_ref)
         if matches!(var_ref, VariableReference::ResolvedVariable(_)) =>
       {
@@ -36,7 +39,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
 
         let value = self.builder.build_load(ptr, name);
 
-        Some(value)
+        Some(value.as_any_value_enum())
       },
       AtomExpression::Variable(_, var_ref)
         if matches!(var_ref, VariableReference::ResolvedArgument(_)) =>
@@ -45,22 +48,26 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
           .expect("we don't have this variablereference")
           .to_owned();
 
-        Some(value)
+        Some(value.try_into().unwrap())
       },
-      AtomExpression::Variable(_, var_ref) => Some(self.generate_variable_reference(var_ref)?),
+      AtomExpression::Variable(_, var_ref) => Some(
+        self.generate_variable_reference(var_ref)?
+      ),
       AtomExpression::Return(_) => todo!(),
       AtomExpression::Break(_) => todo!(),
     })
   }
 
-  pub fn generate_expr(&mut self, ast: &Expression) -> CodeGenResult<Option<BasicValueEnum<'ctx>>> {
+  pub fn generate_expr(&mut self, ast: &Expression) -> CodeGenResult<Option<AnyValueEnum<'ctx>>> {
     match ast {
       Expression::Atom(ast) => self.generate_atom(ast),
       Expression::Block(_) => todo!("generate_expr block"),
       Expression::SubExpression(_) => todo!("generate_expr subexpression"),
       Expression::ControlFlow(_) => todo!("generate_expr controlflow"),
       Expression::BinaryOperator(_) => todo!("generate_expr binaryoperator"),
-      Expression::UnaryOperator(unary) => self.generate_unary_operator(unary),
+      Expression::UnaryOperator(unary) => {
+        self.generate_unary_operator(unary)
+      },
     }
   }
 
@@ -72,7 +79,10 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
         Ok(None)
       },
       BlockExpressionChild::Expression(expr) => {
-        self.generate_expr(expr)
+        Ok(
+          self.generate_expr(expr)?
+            .map(|value| BasicValueEnum::try_from(value).unwrap())
+        )
       },
     }
   }
@@ -90,7 +100,10 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       self.generate_block_child(child)?;
     };
 
-    self.generate_expr(last)
+    Ok(
+      self.generate_expr(last)?
+        .map(|value| BasicValueEnum::try_from(value).unwrap())
+    )
   }
 
   pub fn generate_block(&mut self, ast: &BlockExpressionAST) -> CodeGenResult<Option<BasicValueEnum<'ctx>>> {

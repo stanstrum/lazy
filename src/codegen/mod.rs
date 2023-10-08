@@ -29,7 +29,7 @@ use inkwell::{
   module::Module,
   context::Context,
   builder::Builder,
-  values::BasicValueEnum
+  values::AnyValueEnum
 };
 
 pub struct Codegen<'a, 'ctx> {
@@ -37,7 +37,7 @@ pub struct Codegen<'a, 'ctx> {
   pub module: &'a Module<'ctx>,
   pub builder: &'a Builder<'ctx>,
 
-  pub var_map: HashMap<VariableReference, BasicValueEnum<'ctx>>,
+  pub var_map: HashMap<VariableReference, AnyValueEnum<'ctx>>,
   unique_ctr: usize
 }
 

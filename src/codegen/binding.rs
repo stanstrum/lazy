@@ -11,7 +11,7 @@ use inkwell::{
     AnyTypeEnum,
     BasicTypeEnum
   },
-  values::BasicValueEnum
+  values::{BasicValueEnum, AnyValueEnum}
 };
 
 use crate::aster::ast::{
@@ -69,7 +69,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       )?.expect("value expr did not return a value");
 
       let casted_value = self.builder.build_bitcast(
-          value,
+          BasicValueEnum::try_from(value).unwrap(),
           to_basic_type(
             ptr.get_type().get_element_type()
           ),
@@ -79,7 +79,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       self.builder.build_store(ptr, casted_value);
     };
 
-    self.var_map.insert(VariableReference::ResolvedVariable(ast), BasicValueEnum::PointerValue(ptr));
+    self.var_map.insert(VariableReference::ResolvedVariable(ast), AnyValueEnum::PointerValue(ptr));
 
     Ok(())
   }

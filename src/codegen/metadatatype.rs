@@ -22,7 +22,14 @@ impl<'ctx> MetadataType<'ctx> {
   pub fn fn_type(&self, param_types: &[BasicMetadataTypeEnum<'ctx>], is_var_args: bool) -> FunctionType<'ctx> {
     match self {
       MetadataType::Void(r#void) => r#void.fn_type(param_types, is_var_args),
-      MetadataType::Enum(BasicMetadataTypeEnum::IntType(r#int)) => int.fn_type(param_types, is_var_args),
+      // MetadataType::Enum(BasicMetadataTypeEnum::IntType(r#int)) => int.fn_type(param_types, is_var_args),
+      MetadataType::Enum(BasicMetadataTypeEnum::ArrayType(ty)) => ty.fn_type(param_types, is_var_args),
+      MetadataType::Enum(BasicMetadataTypeEnum::FloatType(ty)) => ty.fn_type(param_types, is_var_args),
+      MetadataType::Enum(BasicMetadataTypeEnum::IntType(ty)) => ty.fn_type(param_types, is_var_args),
+      MetadataType::Enum(BasicMetadataTypeEnum::PointerType(ty)) => ty.fn_type(param_types, is_var_args),
+      MetadataType::Enum(BasicMetadataTypeEnum::StructType(ty)) => ty.fn_type(param_types, is_var_args),
+      MetadataType::Enum(BasicMetadataTypeEnum::VectorType(ty)) => ty.fn_type(param_types, is_var_args),
+      MetadataType::Enum(BasicMetadataTypeEnum::MetadataType(ty)) => ty.fn_type(param_types, is_var_args),
       _ => todo!("fn_type {self:#?}")
     }
   }

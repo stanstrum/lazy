@@ -10,7 +10,10 @@
 use super::*;
 use crate::{
   aster::intrinsics,
-  typecheck::{expect_type_of, type_of::dereference_type}
+  typecheck::{
+    expect_type_of,
+    type_of::dereference_type
+  }
 };
 
 const BOOL_COERCION: Option<&Type> = Some(&Type::Intrinsic(intrinsics::BOOL));

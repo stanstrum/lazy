@@ -5,7 +5,16 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use inkwell::values::{BasicMetadataValueEnum, AnyValue, AnyValueEnum, FunctionValue};
+use inkwell::{
+  values::{
+    BasicMetadataValueEnum,
+    AnyValue,
+    AnyValueEnum,
+    FunctionValue,
+    BasicValueEnum
+  },
+  types::BasicTypeEnum
+};
 
 use super::{
   Codegen,
@@ -22,7 +31,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
           .expect("could not generate callee value")
           .into_function_value();
 
-        let args = args.iter()
+        let mut args = args.iter()
           .map(|arg| self.generate_expr(arg))
           .collect::<Result<Vec<_>, _>>()?
           .iter()
@@ -34,6 +43,16 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
             |arg| BasicMetadataValueEnum::try_from(arg).unwrap()
           )
           .collect::<Vec<_>>();
+
+        for (arg, dest_ty) in args.iter_mut().zip(callee.get_param_iter().map(|ty| ty.get_type())) {
+          let casted_arg = self.builder.build_bitcast::<BasicTypeEnum, BasicValueEnum>(
+              (*arg).try_into().unwrap(),
+              dest_ty,
+              "cast"
+            );
+
+          *arg = BasicMetadataValueEnum::from(casted_arg);
+        };
 
         let name = self.unique_name("fncall");
 

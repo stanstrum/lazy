@@ -33,14 +33,13 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
           .map(|ch| i32_type.const_int(ch as u64, false))
           .collect::<Vec<_>>();
 
-        let name = self.unique_name("unicode_text");
         let size = text.len() as u32;
 
         let global = self.module.add_global(
           i32_type.array_type(size)
             .as_basic_type_enum(),
           Some(AddressSpace::default()),
-          &name
+          "unicode_text"
         );
 
         let value = i32_type.const_array(values.as_slice());
@@ -56,14 +55,13 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
           .map(|ch| i8_type.const_int(ch as u64, false))
           .collect::<Vec<_>>();
 
-        let name = self.unique_name("unicode_text");
         let size = text.len() as u32;
 
         let global = self.module.add_global(
           i8_type.array_type(size)
             .as_basic_type_enum(),
           Some(AddressSpace::default()),
-          &name
+          "byte_text"
         );
 
         let value = i8_type.const_array(values.as_slice());
@@ -72,10 +70,8 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
         global.as_basic_value_enum()
       },
       Literal::CString(text) => {
-        let name = self.unique_name("c_text");
-
         let global = unsafe {
-          self.builder.build_global_string(text, &name)
+          self.builder.build_global_string(text, "c_text")
         };
 
         global.as_basic_value_enum()

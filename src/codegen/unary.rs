@@ -54,12 +54,10 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
           *arg = BasicMetadataValueEnum::from(casted_arg);
         };
 
-        let name = self.unique_name("fncall");
-
         let callsite = self.builder.build_call::<FunctionValue<'ctx>>(
           callee,
           args.as_slice(),
-          &name
+          "fncall"
         );
 
         Some(

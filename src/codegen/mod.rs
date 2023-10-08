@@ -38,7 +38,6 @@ pub struct Codegen<'a, 'ctx> {
   pub builder: &'a Builder<'ctx>,
 
   pub var_map: HashMap<VariableReference, AnyValueEnum<'ctx>>,
-  unique_ctr: usize
 }
 
 fn parse_int_literal(text: &str) -> u64 {
@@ -65,7 +64,6 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
     Self {
       context, module, builder,
       var_map: HashMap::new(),
-      unique_ctr: 1
     }
   }
 
@@ -79,13 +77,5 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
     };
 
     Ok(())
-  }
-
-  pub fn unique_name(&mut self, name: &str) -> String {
-    let new_name = format!("{}.{}", name, self.unique_ctr);
-
-    self.unique_ctr += 1;
-
-    new_name
   }
 }

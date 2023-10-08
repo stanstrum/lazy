@@ -14,6 +14,13 @@ use super::{
 };
 
 impl<'a, 'ctx> Codegen<'a, 'ctx> {
+  fn generate_variable_reference(&mut self, var_ref: &VariableReference) -> CodeGenResult<BasicValueEnum<'ctx>> {
+    match self.var_map.get(var_ref) {
+      Some(value) => Ok(value.to_owned()),
+      None => panic!("unresolved var ref {var_ref:#?}"),
+    }
+  }
+
   fn generate_atom(&mut self, ast: &AtomExpressionAST) -> CodeGenResult<Option<BasicValueEnum<'ctx>>> {
     Ok(match &ast.a {
       AtomExpression::Literal(lit) => Some(self.generate_literal(lit, &ast.out)?),
@@ -40,7 +47,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
 
         Some(value)
       },
-      AtomExpression::Variable(_, _) => todo!(),
+      AtomExpression::Variable(_, var_ref) => Some(self.generate_variable_reference(var_ref)?),
       AtomExpression::Return(_) => todo!(),
       AtomExpression::Break(_) => todo!(),
     })
@@ -53,7 +60,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       Expression::SubExpression(_) => todo!("generate_expr subexpression"),
       Expression::ControlFlow(_) => todo!("generate_expr controlflow"),
       Expression::BinaryOperator(_) => todo!("generate_expr binaryoperator"),
-      Expression::UnaryOperator(_) => todo!("generate_expr unaryoperator"),
+      Expression::UnaryOperator(unary) => self.generate_unary_operator(unary),
     }
   }
 

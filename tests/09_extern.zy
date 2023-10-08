@@ -27,7 +27,7 @@ extern printf -> i32:
 main -> i32 {
   i32 STDOUT := 1;
 
-  hello_world := c"Hello, world!";
+  hello_world := c"Hello, world!\n";
   count := strlen(hello_world);
 
   write(STDOUT, hello_world, count);

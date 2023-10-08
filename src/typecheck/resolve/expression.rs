@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::collections::HashMap;
+// use std::collections::HashMap;
 
 use super::*;
 use crate::{
@@ -70,50 +70,50 @@ impl Checker {
     Ok(())
   }
 
-  fn get_impls_for(&self, ty: &Type) -> TypeCheckResult<HashMap<IdentAST, VariableReference>> {
-    let mut map = HashMap::<IdentAST, *const MemberFunctionAST>::new();
+  // fn get_impls_for(&self, ty: &Type) -> TypeCheckResult<HashMap<IdentAST, VariableReference>> {
+  //   let mut map = HashMap::<IdentAST, *const MemberFunctionAST>::new();
 
-    for (implemented_ty, r#impl) in self.impls.iter() {
-      let r#impl = unsafe { &**r#impl };
+  //   for (implemented_ty, r#impl) in self.impls.iter() {
+  //     let r#impl = unsafe { &**r#impl };
 
-      let methods = match r#impl {
-        Impl::Impl(r#impl) => {
-          &r#impl.methods
-        },
-        Impl::ImplFor(impl_for) => {
-          &impl_for.methods
-        }
-      };
+  //     let methods = match r#impl {
+  //       Impl::Impl(r#impl) => {
+  //         &r#impl.methods
+  //       },
+  //       Impl::ImplFor(impl_for) => {
+  //         &impl_for.methods
+  //       }
+  //     };
 
-      if extends(ty, implemented_ty) {
-        for method in methods.iter() {
-          let ident = &method.decl.decl.ident;
+  //     if extends(ty, implemented_ty) {
+  //       for method in methods.iter() {
+  //         let ident = &method.decl.decl.ident;
 
-          if map.contains_key(ident) {
-            let original = unsafe { &**map.get(ident).unwrap() };
+  //         if map.contains_key(ident) {
+  //           let original = unsafe { &**map.get(ident).unwrap() };
 
-            let span_a = original.span();
-            let span_b = method.span();
+  //           let span_a = original.span();
+  //           let span_b = method.span();
 
-            return DuplicateIdentSnafu {
-              text: ident.text.to_owned(),
-              a: span_a,
-              b: span_b,
-            }.fail()
-          };
+  //           return DuplicateIdentSnafu {
+  //             text: ident.text.to_owned(),
+  //             a: span_a,
+  //             b: span_b,
+  //           }.fail()
+  //         };
 
-          map.insert(ident.clone(), method);
-        };
-      };
-    };
+  //         map.insert(ident.clone(), method);
+  //       };
+  //     };
+  //   };
 
-    let map = map.iter().map(
-      |(k, v)|
-        (k.to_owned(), VariableReference::ResolvedMemberFunction(unsafe { &**v }))
-      ).collect::<HashMap<_, _>>();
+  //   let map = map.iter().map(
+  //     |(k, v)|
+  //       (k.to_owned(), VariableReference::ResolvedMemberFunction(unsafe { &**v }))
+  //     ).collect::<HashMap<_, _>>();
 
-    Ok(map)
-  }
+  //   Ok(map)
+  // }
 
   fn resolve_atom(&mut self, atom: &mut AtomExpressionAST, coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
     match &mut atom.a {
@@ -278,7 +278,7 @@ impl Checker {
     todo!("resolve controlflow");
   }
 
-  fn resolve_binary_operator(&mut self, binary: &mut BinaryOperatorExpressionAST, _coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
+  fn resolve_binary_operator(&mut self, _binary: &mut BinaryOperatorExpressionAST, _coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
     todo!("reso binop")
   }
 

@@ -25,15 +25,17 @@ use super::{
 };
 
 fn to_basic_type(any: AnyTypeEnum) -> BasicTypeEnum {
-  match any {
-    AnyTypeEnum::ArrayType(ty) => BasicTypeEnum::ArrayType(ty),
-    AnyTypeEnum::FloatType(ty) => BasicTypeEnum::FloatType(ty),
-    AnyTypeEnum::IntType(ty) => BasicTypeEnum::IntType(ty),
-    AnyTypeEnum::PointerType(ty) => BasicTypeEnum::PointerType(ty),
-    AnyTypeEnum::StructType(ty) => BasicTypeEnum::StructType(ty),
-    AnyTypeEnum::VectorType(ty) => BasicTypeEnum::VectorType(ty),
-    _ => panic!("invalid type coerced to basic type")
-  }
+  // match any {
+  //   AnyTypeEnum::ArrayType(ty) => BasicTypeEnum::ArrayType(ty),
+  //   AnyTypeEnum::FloatType(ty) => BasicTypeEnum::FloatType(ty),
+  //   AnyTypeEnum::IntType(ty) => BasicTypeEnum::IntType(ty),
+  //   AnyTypeEnum::PointerType(ty) => BasicTypeEnum::PointerType(ty),
+  //   AnyTypeEnum::StructType(ty) => BasicTypeEnum::StructType(ty),
+  //   AnyTypeEnum::VectorType(ty) => BasicTypeEnum::VectorType(ty),
+  //   _ => panic!("invalid type coerced to basic type")
+  // }
+
+  any.try_into().unwrap()
 }
 
 impl<'a, 'ctx> Codegen<'a, 'ctx> {

@@ -16,6 +16,7 @@ pub enum VariableReference {
   ResolvedVariable(*const BindingAST),
   ResolvedArgument(*const TypeAST),
   ResolvedFunction(*const FunctionAST),
+  #[allow(unused)]
   ResolvedMemberFunction(*const MemberFunctionAST),
   #[allow(unused)]
   ResolvedMemberOf(*const VariableReference, *const IdentAST),

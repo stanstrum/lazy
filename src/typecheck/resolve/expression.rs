@@ -306,12 +306,12 @@ impl Checker {
   fn resolve_unary_operator(&mut self, unary: &mut UnaryOperatorExpressionAST, coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
     let expr = &mut unary.expr;
 
-    self.stack.push(ScopePointer::Expression(expr.as_mut()));
-    self.resolve_expression(expr, None)?;
-    self.stack.pop();
-
     match &mut unary.op {
       UnaryOperator::UnarySfx(UnarySfxOperator::Call { args }) => {
+        self.stack.push(ScopePointer::Expression(expr.as_mut()));
+        self.resolve_dest_expression(expr)?;
+        self.stack.pop();
+
         match expr.type_of() {
           Some(Type::External(external)) => {
             let external = unsafe { &*external };
@@ -374,6 +374,38 @@ impl Checker {
       },
       UnaryOperator::UnaryPfx(op) => todo!("unarypfxop reso type {op:#?}"),
       UnaryOperator::UnarySfx(op) => todo!("unarysfxop reso type {op:#?}"),
+    }
+  }
+
+  fn resolve_dest_expression(&mut self, expr: &mut Expression) -> TypeCheckResult<Type> {
+    match expr {
+      Expression::Atom(atom) => self.resolve_dest_atom(atom),
+      Expression::Block(_) => todo!("resolve_dest_expression block"),
+      Expression::SubExpression(_) => todo!("resolve_dest_expression subexpression"),
+      Expression::ControlFlow(_) => todo!("resolve_dest_expression controlflow"),
+      Expression::UnaryOperator(_) => todo!("resolve_dest_expression unaryoperator"),
+      Expression::BinaryOperator(_) => todo!("resolve_dest_expression binaryoperator"),
+    }
+  }
+
+  fn resolve_dest_atom(&mut self, atom: &mut AtomExpressionAST) -> TypeCheckResult<Type> {
+    let span = atom.span();
+
+    match &mut atom.a {
+      AtomExpression::Literal(_) => todo!("resolve_dest_atom literal"),
+      AtomExpression::UnresolvedVariable(qual) => {
+        let var_ref = self.resolve_variable(qual)?;
+        let ty = var_ref.type_of_expect(span)?;
+
+        atom.a = AtomExpression::DestinationVariable(var_ref);
+        atom.out = ty.clone();
+
+        Ok(ty)
+      },
+      AtomExpression::ValueVariable(_) => todo!("resolve_dest_atom valuevariable"),
+      AtomExpression::DestinationVariable(_) => todo!("resolve_dest_atom destinationvariable"),
+      AtomExpression::Return(_) => todo!("resolve_dest_atom return"),
+      AtomExpression::Break(_) => todo!("resolve_dest_atom break"),
     }
   }
 

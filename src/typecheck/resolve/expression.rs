@@ -284,7 +284,7 @@ impl Checker {
   fn resolve_binary_operator(&mut self, binary: &mut BinaryOperatorExpressionAST, coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
     match binary.op {
       BinaryOperator::Assign => {
-        let a = self.resolve_expression(&mut binary.a, None)?;
+        let a = self.resolve_dest_expression(&mut binary.a)?;
         let b = self.resolve_expression(&mut binary.b, None)?;
 
         if !extends(&a, &b) {

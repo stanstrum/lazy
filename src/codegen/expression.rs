@@ -34,7 +34,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
 
         Ok(load.as_any_value_enum())
       },
-      _ => todo!("{var_ref:#?}")
+      _ => todo!("generate_value_variable {var_ref:#?}")
     }
   }
 
@@ -43,10 +43,12 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       .unwrap_or_else(|| panic!("unresolved dest var ref {var_ref:#?}"));
 
     match var_ref {
-      VariableReference::ResolvedExternal(_) => {
+      VariableReference::ResolvedExternal(_)
+      | VariableReference::ResolvedVariable(_) => {
+        // just return the pointer for the dest
         Ok(value.as_any_value_enum())
       },
-      _ => todo!("{var_ref:#?}")
+      _ => todo!("generate_dest_variable {var_ref:#?}")
     }
   }
 

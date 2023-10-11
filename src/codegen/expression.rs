@@ -23,6 +23,17 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       .unwrap_or_else(|| panic!("unresolved value var ref {var_ref:#?}"));
 
     match var_ref {
+      VariableReference::ResolvedArgument(_) => {
+        Ok(value.as_any_value_enum())
+      },
+      VariableReference::ResolvedVariable(_) => {
+        let load = self.builder.build_load(
+          value.into_pointer_value(),
+          "load_variable"
+        );
+
+        Ok(load.as_any_value_enum())
+      },
       _ => todo!("{var_ref:#?}")
     }
   }
@@ -32,6 +43,9 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       .unwrap_or_else(|| panic!("unresolved dest var ref {var_ref:#?}"));
 
     match var_ref {
+      VariableReference::ResolvedExternal(_) => {
+        Ok(value.as_any_value_enum())
+      },
       _ => todo!("{var_ref:#?}")
     }
   }

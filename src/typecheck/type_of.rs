@@ -83,11 +83,6 @@ impl TypeOf for Expression {
 impl TypeOf for VariableReference {
   fn type_of(&self) -> Option<Type> {
     match self {
-      VariableReference::Unresolved => {
-        println!("type_of unresolved");
-
-        None
-      },
       VariableReference::ResolvedVariable(var) => {
         let var = unsafe { &**var };
         let binding_ty = var.ty.as_ref().map(|ast| Type::Defined(ast));

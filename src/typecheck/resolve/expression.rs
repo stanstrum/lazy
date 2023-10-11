@@ -118,7 +118,7 @@ impl Checker {
   //   Ok(map)
   // }
 
-  fn resolve_atom(&mut self, atom: &mut AtomExpressionAST, coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
+  fn resolve_atom(&mut self, atom: &mut AtomExpressionAST, coerce_to: Option<&Type>, ) -> TypeCheckResult<Type> {
     match &mut atom.a {
       AtomExpression::Literal(lit) => {
         match &lit.l {
@@ -212,10 +212,11 @@ impl Checker {
           },
         };
       },
-      AtomExpression::Variable(qual, resolved) => {
-        *resolved = self.resolve_variable(qual)?;
-
+      AtomExpression::UnresolvedVariable(qual) => {
+        let resolved = self.resolve_value_variable(qual)?;
         let out = resolved.type_of();
+
+        atom.a = AtomExpression::ValueVariable(resolved);
 
         if let Some(out) = out {
           atom.out = out;
@@ -223,8 +224,7 @@ impl Checker {
           panic!("failed to resolve atom type `{}`", atom.to_string());
         };
       },
-      AtomExpression::Return(_) => todo!("atom return"),
-      AtomExpression::Break(_) => todo!("atom break"),
+      _ => todo!("{:#?}", &atom.a),
     };
 
     Ok(atom.out.clone())

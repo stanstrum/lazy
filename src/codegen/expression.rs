@@ -18,10 +18,21 @@ use super::{
 };
 
 impl<'a, 'ctx> Codegen<'a, 'ctx> {
-  fn generate_variable_reference(&mut self, var_ref: &VariableReference) -> CodeGenResult<AnyValueEnum<'ctx>> {
-    match self.var_map.get(var_ref) {
-      Some(value) => Ok(value.to_owned()),
-      None => panic!("unresolved var ref {var_ref:#?}"),
+  fn generate_value_variable(&mut self, var_ref: &VariableReference) -> CodeGenResult<AnyValueEnum<'ctx>> {
+    let value = self.var_map.get(var_ref)
+      .unwrap_or_else(|| panic!("unresolved value var ref {var_ref:#?}"));
+
+    match var_ref {
+      _ => todo!("{var_ref:#?}")
+    }
+  }
+
+  fn generate_dest_variable(&mut self, var_ref: &VariableReference) -> CodeGenResult<AnyValueEnum<'ctx>> {
+    let value = self.var_map.get(var_ref)
+      .unwrap_or_else(|| panic!("unresolved dest var ref {var_ref:#?}"));
+
+    match var_ref {
+      _ => todo!("{var_ref:#?}")
     }
   }
 
@@ -31,34 +42,20 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
         self.generate_literal(lit, &ast.out)?
         .as_any_value_enum()
       ),
-      AtomExpression::Variable(qual, var_ref)
-        if matches!(var_ref, VariableReference::ResolvedVariable(_)) =>
-      {
-        let name = qual.parts.last().unwrap().text.as_str();
-
-        let ptr = self.var_map
-          .get(var_ref)
-          .expect("we don't have this variablereference")
-          .into_pointer_value();
-
-        let value = self.builder.build_load(ptr, name);
-
-        Some(value.as_any_value_enum())
-      },
-      AtomExpression::Variable(_, var_ref)
-        if matches!(var_ref, VariableReference::ResolvedArgument(_)) =>
-      {
-        let value = self.var_map.get(var_ref)
-          .expect("we don't have this variablereference")
-          .to_owned();
-
-        Some(value.try_into().unwrap())
-      },
-      AtomExpression::Variable(_, var_ref) => Some(
-        self.generate_variable_reference(var_ref)?
+      AtomExpression::ValueVariable(var_ref) => Some(
+        self.generate_value_variable(var_ref)?
+      ),
+      AtomExpression::DestinationVariable(var_ref) => Some(
+        self.generate_dest_variable(var_ref)?
       ),
       AtomExpression::Return(_) => todo!(),
       AtomExpression::Break(_) => todo!(),
+      AtomExpression::UnresolvedVariable(qual) =>
+        panic!("unresolved var ref {} ({}:{})",
+          qual.to_string(),
+          qual.span.start,
+          qual.span.end
+        )
     })
   }
 

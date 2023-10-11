@@ -139,7 +139,7 @@ impl Checker {
     None
   }
 
-  pub fn resolve_variable(&self, qual: &mut QualifiedAST) -> TypeCheckResult<VariableReference> {
+  pub fn resolve_value_variable(&self, qual: &mut QualifiedAST) -> TypeCheckResult<VariableReference> {
     if let Some(local_var) = self.resolve_local_variable(qual) {
       Ok(local_var)
     } else if let Some(arg_var) = self.resolve_arg_var(qual) {

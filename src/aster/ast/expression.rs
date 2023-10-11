@@ -12,7 +12,6 @@ use std::collections::HashMap;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum VariableReference {
-  Unresolved,
   ResolvedVariable(*const BindingAST),
   ResolvedArgument(*const TypeAST),
   ResolvedFunction(*const FunctionAST),
@@ -26,7 +25,9 @@ pub enum VariableReference {
 #[derive(Debug, Clone)]
 pub enum AtomExpression {
   Literal(LiteralAST),
-  Variable(QualifiedAST, VariableReference),
+  UnresolvedVariable(QualifiedAST),
+  ValueVariable(VariableReference),
+  DestinationVariable(VariableReference),
   Return(Option<Box<Expression>>),
   #[allow(unused)]
   Break(Option<Box<Expression>>),

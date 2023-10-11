@@ -213,7 +213,7 @@ impl Checker {
         };
       },
       AtomExpression::UnresolvedVariable(qual) => {
-        let resolved = self.resolve_value_variable(qual)?;
+        let resolved = self.resolve_variable(qual)?;
         let out = resolved.type_of();
 
         atom.a = AtomExpression::ValueVariable(resolved);

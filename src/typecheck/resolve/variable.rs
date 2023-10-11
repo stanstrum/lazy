@@ -21,7 +21,7 @@ impl Checker {
     ).collect()
   }
 
-  fn resolve_qualified(&self, qual: &mut QualifiedAST) -> TypeCheckResult<VariableReference> {
+  fn resolve_qualified(&self, qual: &QualifiedAST) -> TypeCheckResult<VariableReference> {
     println!("{}", qual.to_string());
 
     let mut dup_qual = qual.clone();
@@ -117,7 +117,7 @@ impl Checker {
     }
   }
 
-  fn resolve_local_variable(&self, qual: &mut QualifiedAST) -> Option<VariableReference> {
+  fn resolve_local_variable(&self, qual: &QualifiedAST) -> Option<VariableReference> {
     if qual.parts.len() != 1 {
       return None;
     };
@@ -139,7 +139,7 @@ impl Checker {
     None
   }
 
-  pub fn resolve_value_variable(&self, qual: &mut QualifiedAST) -> TypeCheckResult<VariableReference> {
+  pub fn resolve_variable(&self, qual: &QualifiedAST) -> TypeCheckResult<VariableReference> {
     if let Some(local_var) = self.resolve_local_variable(qual) {
       Ok(local_var)
     } else if let Some(arg_var) = self.resolve_arg_var(qual) {

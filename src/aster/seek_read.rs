@@ -56,16 +56,16 @@ pub mod seek {
         line_comment(reader)?;
       } else if read::begins_with(reader, consts::grouping::OPEN_MULTILINE_COMMENT) {
         multiline_comment(reader)?;
-      };
+      } else {
+        match reader.read_ch() {
+          Ok(' ' | '\r' | '\n' | '\t' | '\x0b') => {},
+          Err(_) => break,
+          _ => {
+            reader.rewind(1).unwrap();
 
-      match reader.read_ch() {
-        Ok(' ' | '\r' | '\n' | '\t' | '\x0b') => (),
-        Err(_) => { break; },
-        _ => {
-          reader.rewind(1).unwrap();
-
-          break;
-        }
+            break;
+          }
+        };
       };
 
       ctr += 1;

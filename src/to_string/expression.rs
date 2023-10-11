@@ -26,18 +26,18 @@ impl std::string::ToString for VariableReference {
       VariableReference::ResolvedVariable(var) => {
         let var = unsafe { &**var };
 
-        format!("{DARK_GRAY}/* variable */{CLEAR} {}", var.ident.to_string())
+        format!("variable */{CLEAR} {}", var.ident.to_string())
       },
       VariableReference::ResolvedArgument(ty) => {
         let ty = unsafe { &**ty };
 
-        format!("{DARK_GRAY}/* argument: {} */{CLEAR}", ty.to_string())
+        format!("argument: {}{DARK_GRAY} */{CLEAR}", ty.to_string())
       },
       VariableReference::ResolvedFunction(func) => {
         let ty = Type::Function(*func);
         let func = unsafe { &**func };
 
-        format!("{DARK_GRAY}/* function: {} */{CLEAR} {}",
+        format!("function: {} */{CLEAR} {}",
           ty.to_string(),
           func.decl.ident.to_string()
         )
@@ -45,19 +45,19 @@ impl std::string::ToString for VariableReference {
       VariableReference::ResolvedMemberFunction(memb) => {
         let memb = unsafe { &**memb };
 
-        format!("{DARK_GRAY}/* member function */{CLEAR} {}",
+        format!("member function */{CLEAR} {}",
           memb.decl.decl.ident.to_string()
         )
       },
       VariableReference::ResolvedMemberOf(_, ident) => {
         let ident = unsafe { &**ident };
 
-        format!("{DARK_GRAY}/* member of */{CLEAR} {}", ident.to_string())
+        format!("member of */{CLEAR} {}", ident.to_string())
       },
       VariableReference::ResolvedExternal(decl) => {
         let decl = unsafe { &**decl };
 
-        format!("{DARK_GRAY}/* external */{CLEAR} {}", decl.ident.to_string())
+        format!("external */{CLEAR} {}", decl.ident.to_string())
       }
     }
   }
@@ -67,9 +67,9 @@ impl std::string::ToString for AtomExpressionAST {
   fn to_string(&self) -> String {
     match &self.a {
       AtomExpression::Literal(lit) => lit.to_string(),
-      AtomExpression::UnresolvedVariable(qual) => format!("{DARK_GRAY}/* unresolved */{CLEAR} {}", qual.to_string()),
-      AtomExpression::ValueVariable(var_ref) => format!("{DARK_GRAY}/* value */{CLEAR} {}", var_ref.to_string()),
-      AtomExpression::DestinationVariable(var_ref) => format!("{DARK_GRAY}/* destination */{CLEAR} {}", var_ref.to_string()),
+      AtomExpression::UnresolvedVariable(qual) => format!("{DARK_GRAY}/* unresolved {}", qual.to_string()),
+      AtomExpression::ValueVariable(var_ref) => format!("{DARK_GRAY}/* value {}", var_ref.to_string()),
+      AtomExpression::DestinationVariable(var_ref) => format!("{DARK_GRAY}/* destination {}", var_ref.to_string()),
       AtomExpression::Return(expr) => {
         if expr.is_some() {
           format!("{LIGHT_RED}return{CLEAR} {}", expr.as_ref().unwrap().to_string())

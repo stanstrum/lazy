@@ -1,0 +1,36 @@
+/* Copyright (c) 2023 Stan Strum
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+// this is not correct but since we're just using it for
+// the pointer, it should be okay -- effectively `void*`
+type FILE := []u8;
+
+type c_str := []u8;
+
+extern fopen -> &FILE:
+  &c_str filename,
+  &c_str mode;
+
+extern fgets -> &c_str:
+  &c_str out,
+  i32 n,
+  &FILE stream;
+
+extern puts -> i32:
+  &c_str s;
+
+main -> i32 {
+  &FILE fp;
+  &c_str str;
+
+  fp = fopen(c"tests/10_read_source.zy", c"r");
+  fgets(str, 512, fp);
+
+  puts(str);
+
+  0
+};

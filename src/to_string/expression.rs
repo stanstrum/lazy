@@ -67,7 +67,7 @@ impl std::string::ToString for AtomExpressionAST {
   fn to_string(&self) -> String {
     match &self.a {
       AtomExpression::Literal(lit) => lit.to_string(),
-      AtomExpression::UnresolvedVariable(qual) => format!("{DARK_GRAY}/* unresolved {}", qual.to_string()),
+      AtomExpression::UnresolvedVariable(qual) => format!("{DARK_GRAY}/* unresolved */{CLEAR} {}", qual.to_string()),
       AtomExpression::ValueVariable(var_ref) => format!("{DARK_GRAY}/* value {}", var_ref.to_string()),
       AtomExpression::DestinationVariable(var_ref) => format!("{DARK_GRAY}/* destination {}", var_ref.to_string()),
       AtomExpression::Return(expr) => {

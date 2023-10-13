@@ -22,6 +22,15 @@ use super::{
   CodeGenResult, parse_int_literal
 };
 
+fn is_pointer(ty: &Type) -> bool {
+  matches!(ty,
+    | Type::ConstReferenceTo(_)
+    | Type::MutReferenceTo(_)
+    | Type::ConstPtrTo(_)
+    | Type::MutPtrTo(_)
+  )
+}
+
 impl<'a, 'ctx> Codegen<'a, 'ctx> {
   pub fn generate_literal(&mut self, lit: &LiteralAST, ty: &Type) -> CodeGenResult<BasicValueEnum<'ctx>> {
     Ok(match &lit.l {

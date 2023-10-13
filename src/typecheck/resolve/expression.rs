@@ -319,10 +319,10 @@ impl Checker {
             let external_len = external.args.len();
             let call_len = args.len();
 
-            if external_len == call_len {
-              let mut external_args = external.args.values().collect::<Vec<_>>();
-              external_args.sort_by_key(|ty| ty.span().start);
+            let mut external_args = external.args.values().collect::<Vec<_>>();
+            external_args.sort_by_key(|ty| ty.span().start);
 
+            if external_len == call_len {
               for (arg, ty) in args.iter_mut().zip(external_args.iter()) {
                 let ty = Type::Defined(*ty);
                 let coerce_to = Some(&ty);
@@ -334,7 +334,17 @@ impl Checker {
 
               Ok(unary.out.clone())
             } else if external_len < call_len && external.varargs {
-              todo!("varargs resolve");
+              for i in 0..call_len {
+                let arg = &mut args[i];
+                let coerce_to = external_args.get(i)
+                  .map(|ty| &ty.e);
+
+                self.resolve_expression(arg, coerce_to)?;
+              };
+
+              unary.out = Type::Defined(&external.ret);
+
+              Ok(unary.out.clone())
             } else {
               let or_more = if external.varargs {
                 " or more"

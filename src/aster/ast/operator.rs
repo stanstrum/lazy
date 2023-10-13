@@ -76,11 +76,19 @@ pub enum UnaryPfxOperator {
 }
 
 #[derive(Debug, Clone)]
+pub enum CastMethod {
+  SignExtend,
+  ZeroExtend,
+  Truncate
+}
+
+#[derive(Debug, Clone)]
 pub enum UnarySfxOperator {
   PostIncrement,
   PostDecrement,
   Subscript { arg: Box<Expression> },
-  Call { args: Vec<Expression> }
+  Call { args: Vec<Expression> },
+  Cast { to: TypeAST, method: Option<CastMethod> }
 }
 
 #[derive(Debug, Clone)]

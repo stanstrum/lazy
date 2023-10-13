@@ -112,6 +112,9 @@ impl std::string::ToString for Expression {
               args.iter().map(|arg| arg.to_string()).collect::<Vec<String>>().join(", ")
             )
           },
+          UnaryOperator::UnarySfx(UnarySfxOperator::Cast { to, .. }) => {
+            format!("{} {TEAL}as{CLEAR} {}", expr.to_string(), to.to_string())
+          },
           UnaryOperator::UnarySfx(_) => {
             format!("{}{TEAL}{}", expr.to_string(), op.to_string())
           },

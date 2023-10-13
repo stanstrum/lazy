@@ -82,12 +82,25 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       Literal::IntLiteral(text) => {
         let value = parse_int_literal(text);
 
-        // what is "sign_extend" here? (the magic `false` at the end of the next line)
-        self.generate_type(ty)?
-          .to_basic_metadata()
-          .into_int_type()
-          .const_int(value, false)
-          .as_basic_value_enum()
+        let generated_ty = self.generate_type(ty)?
+          .to_basic_metadata();
+
+        if is_pointer(ty) {
+          if value != 0 {
+            panic!("nonzero pointer initialization from literal");
+          };
+
+          generated_ty
+            .into_pointer_type()
+            .const_null()
+            .as_basic_value_enum()
+        } else {
+          // what is "sign_extend" here? (the magic `false` at the end of the next line)
+          generated_ty
+            .into_int_type()
+            .const_int(value, false)
+            .as_basic_value_enum()
+        }
       },
     })
   }

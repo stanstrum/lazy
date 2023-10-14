@@ -8,6 +8,8 @@
 extern malloc -> &[]u8:
   usize size;
 
+extern free: &[]u8 ptr;
+
 // this is not correct but since we're just using it for
 // the pointer, it should be okay -- effectively `void*`
 type FILE := []u8;
@@ -33,6 +35,7 @@ extern ftell -> i32:
 extern fread -> usize:
   &[]u8 ptr,
   usize size,
+  usize nmemb,
   &FILE stream;
 
 extern puts -> i32:
@@ -41,21 +44,36 @@ extern puts -> i32:
 extern printf -> i32:
   &c_str format, ...;
 
-main -> i32 {
+read_file -> &[]u8:
+  &[]u8 path
+{
   i32 SEEK_SET := 0;
   i32 SEEK_CUR := 1;
   i32 SEEK_END := 2;
 
-  &FILE f := fopen(c"tests/10_read_source.zy", c"r");
+  &FILE f := fopen(path, c"r");
+
   fseek(f, 0, SEEK_END);
   fsize := ftell(f) as usize;
+
   fseek(f, 0, SEEK_SET);
 
   &c_str string := malloc(fsize + 1);
-  fread(string, fsize + 1, f);
+
+  fread(string, 1, fsize + 1, f);
+  string[fsize] = 0;
+
   fclose(f);
 
-  string[fsize] = 0;
+  string
+};
+
+main -> i32 {
+  string := read_file(c"tests/10_read_source.zy");
+
+  puts(string);
+
+  free(string);
 
   0
 };

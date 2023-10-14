@@ -159,7 +159,7 @@ pub fn format_message(src: &String, message: Message) -> String {
 
   let mut w: Vec<u8> = vec![];
 
-  writeln!(&mut w, "{}: {BOLD}{}{CLEAR}", message.level.to_string(), message.msg).unwrap();
+  writeln!(&mut w, "{}: {}", message.level.to_string(), message.msg).unwrap();
   if start_line != end_line {
     let pfx_len = num_length(end_line as u32 + 1);
 

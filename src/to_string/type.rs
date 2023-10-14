@@ -154,6 +154,7 @@ impl std::string::ToString for TypeAST {
 
         defined.to_string()
       },
+      Type::Unresolved => format!("{LIGHT_RED}/* unresolved */{CLEAR}"),
       _ => todo!("exhaustive typeast: {:#?}", self.e)
     }
   }

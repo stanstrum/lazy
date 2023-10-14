@@ -24,6 +24,11 @@ pub fn assignable(a: &Type, b: &Type) -> bool {
 
         assignable(a, b)
       },
+      (Type::ConstReferenceTo(_), Type::ConstReferenceTo(_)) => {
+        // todo: this may not work with LLVM & may cause segfaults
+        // later on... revisit this.
+        true
+      },
       (Type::Intrinsic(a), Type::Intrinsic(b)) => {
         a == b
       }

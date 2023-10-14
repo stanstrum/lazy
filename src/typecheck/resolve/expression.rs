@@ -438,11 +438,20 @@ impl Checker {
 
               break Ok(Type::Defined(to));
             },
-            _ => break IncompatibleTypeSnafu {
-              span,
-              what: "Casted value",
-              with: to.to_string(),
-            }.fail()
+            (Type::Intrinsic(intrinsics::I32), Type::Intrinsic(intrinsics::USIZE)) => {
+              *method = Some(CastMethod::ZeroExtend);
+
+              break Ok(Type::Defined(to));
+            },
+            _ => {
+              println!("can't find cast method for {from_ptr:?} to {to_ptr:?}");
+
+              break IncompatibleTypeSnafu {
+                span,
+                what: "Casted value",
+                with: to.to_string(),
+              }.fail()
+            }
           }
         }
       },

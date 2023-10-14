@@ -418,6 +418,7 @@ impl Checker {
         self.stack.pop();
 
         self.resolve_type(to)?;
+        unary.out = to.e.to_owned();
 
         let expr_ty = expr.type_of_expect(expr.span())?;
 

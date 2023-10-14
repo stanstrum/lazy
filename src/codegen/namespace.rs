@@ -18,7 +18,10 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
   pub fn generate_namespace(&mut self, ns: &NamespaceAST) -> CodeGenResult<()> {
     let mut asts_values: Vec<(&FunctionAST, FunctionValue<'ctx>)> = vec![];
 
-    for structure in ns.map.values() {
+    let mut structures = ns.map.values().collect::<Vec<_>>();
+    structures.sort_by_key(|structure| structure.span().start);
+
+    for structure in structures {
       match structure {
         Structure::Namespace(ns) => {
           self.generate_namespace(ns)?;

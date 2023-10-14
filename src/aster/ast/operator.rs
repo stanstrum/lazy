@@ -86,7 +86,7 @@ pub enum CastMethod {
 pub enum UnarySfxOperator {
   PostIncrement,
   PostDecrement,
-  Subscript { arg: Box<Expression> },
+  Subscript { arg: Box<Expression>, dest: bool },
   Call { args: Vec<Expression> },
   Cast { to: TypeAST, method: Option<CastMethod> }
 }

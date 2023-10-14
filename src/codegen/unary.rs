@@ -88,6 +88,24 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
           _ => todo!("cast method {method:?}")
         }
       },
+      UnaryOperator::UnarySfx(UnarySfxOperator::Subscript { arg, dest }) => {
+        let ptr = self.generate_expr(&unary.expr)?
+          .expect("generate_expr didn't return for subscript dest")
+          .into_pointer_value();
+
+        let offset = self.generate_expr(arg)?
+          .expect("generate_expr didn't return for subscript value")
+          .into_int_value();
+
+        let offset = self.builder.build_int_to_ptr(offset, ptr.get_type(), "ptr_offset_cast");
+        let nth_ptr = self.builder.build_int_add(ptr, offset, "ptr_nth_index");
+
+        if *dest {
+          Some(nth_ptr.as_any_value_enum())
+        } else {
+          todo!()
+        }
+      },
       UnaryOperator::UnaryPfx(_) => todo!("generate_unary_operator {:#?}", &unary.op),
       UnaryOperator::UnarySfx(_) => todo!("generate_unary_operator {:#?}", &unary.op),
     })

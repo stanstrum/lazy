@@ -372,7 +372,7 @@ impl Expression {
       };
 
       Some(UnarySfxOperator::Subscript {
-        arg: Box::new(arg)
+        arg: Box::new(arg), dest: false
       })
     };
 

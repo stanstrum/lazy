@@ -98,6 +98,7 @@ impl TypeOf for BinaryOperatorExpressionAST {
           None
         }
       },
+      BinaryOperator::Assign => Some(Type::Intrinsic(intrinsics::VOID)),
       op => todo!("typeof for binop {op:#?}")
     }
   }

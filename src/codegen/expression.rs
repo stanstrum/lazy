@@ -10,7 +10,16 @@ use inkwell::values::{
   AnyValueEnum,
   AnyValue
 };
-use crate::aster::ast::*;
+use crate::{
+  aster::{
+    ast::*,
+    intrinsics
+  },
+  typecheck::{
+    extends,
+    TypeOf
+  }
+};
 
 use super::{
   Codegen,
@@ -96,10 +105,15 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
         Ok(None)
       },
       BlockExpressionChild::Expression(expr) => {
-        Ok(
-          self.generate_expr(expr)?
-            .map(|value| BasicValueEnum::try_from(value).unwrap())
-        )
+        let value = self.generate_expr(expr)?;
+
+        if !extends(&expr.type_of().unwrap(), &Type::Intrinsic(intrinsics::VOID)) {
+          Ok(
+            value.map(|value| BasicValueEnum::try_from(dbg!(value)).unwrap())
+          )
+        } else {
+          Ok(None)
+        }
       },
     }
   }

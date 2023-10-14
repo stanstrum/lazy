@@ -17,7 +17,7 @@ pub trait TypeOf {
       Ok(ty)
     } else {
       InvalidTypeSnafu {
-        text: self.to_string(),
+        text: format!("Unable to resolve type of: {}", self.to_string()),
         span
       }.fail()
     }
@@ -35,7 +35,7 @@ pub fn dereference_type(ty: &Type, span: Span) -> TypeCheckResult<Type> {
       Ok(ast.e.to_owned())
     },
     _ => InvalidTypeSnafu {
-      text: ty.to_string(),
+      text: format!("Unable to dereference type: {}", ty.to_string()),
       span
     }.fail()
   }

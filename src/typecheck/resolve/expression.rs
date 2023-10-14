@@ -12,7 +12,7 @@ use crate::{
   aster::intrinsics,
   typecheck::{
     expect_type_of,
-    type_of::dereference_type
+    type_of::*
   }
 };
 
@@ -304,6 +304,7 @@ impl Checker {
   }
 
   fn resolve_unary_operator(&mut self, unary: &mut UnaryOperatorExpressionAST, coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
+    let span = unary.span();
     let expr = &mut unary.expr;
 
     match &mut unary.op {
@@ -393,7 +394,7 @@ impl Checker {
       Expression::Block(_) => todo!("resolve_dest_expression block"),
       Expression::SubExpression(_) => todo!("resolve_dest_expression subexpression"),
       Expression::ControlFlow(_) => todo!("resolve_dest_expression controlflow"),
-      Expression::UnaryOperator(_) => todo!("resolve_dest_expression unaryoperator"),
+      Expression::UnaryOperator(unary) => self.resolve_dest_unary_operator(unary),
       Expression::BinaryOperator(_) => todo!("resolve_dest_expression binaryoperator"),
     }
   }

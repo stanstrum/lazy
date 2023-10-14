@@ -75,9 +75,13 @@ impl Checker {
       Some(Structure::ExternDecl(decl)) => {
         Ok(VariableReference::ResolvedExternal(decl))
       }
-      _ => InvalidTypeSnafu {
-        text: qual.to_string(),
+      Some(other) => InvalidTypeSnafu {
+        text: format!("Cannot use (is {:#?}) as a variable: {}", other, qual.to_string()),
         span: qual.span()
+      }.fail(),
+      None => UnknownIdentSnafu {
+        text: qual.to_string(),
+        span: qual.span(),
       }.fail()
     }
   }

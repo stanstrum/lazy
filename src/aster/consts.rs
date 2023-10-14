@@ -198,5 +198,6 @@ pub mod operator {
     // these work differently ...
     // "[...]" => UnarySfxOperator::Subscript,
     // "(...)" => UnarySfxOperator::Call
+    // "as" => UnarySfxOperator::Cast
   };
 }

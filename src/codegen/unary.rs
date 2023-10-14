@@ -106,11 +106,17 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
           .expect("generate_expr didn't return for subscript value")
           .into_int_value();
 
-        let offset = self.builder.build_int_to_ptr(offset, ptr.get_type(), "ptr_offset_cast");
-        let nth_ptr = self.builder.build_int_add(ptr, offset, "ptr_nth_index");
+        let ptr_int = self.builder.build_ptr_to_int(ptr, self.context.i64_type(), "ptr_dest_to_int");
+        let nth_int = self.builder.build_int_add(ptr_int, offset, "ptr_nth_index");
+
+        let nth_ptr = self.builder.build_int_to_ptr(
+          nth_int,
+          ptr.get_type(),
+          "ptr_nth_cast"
+        );
 
         if *dest {
-          Some(nth_ptr.as_any_value_enum())
+          Some(dbg!(nth_ptr.as_any_value_enum()))
         } else {
           todo!()
         }

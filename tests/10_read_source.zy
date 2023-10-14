@@ -49,7 +49,7 @@ main -> i32 {
 
   &FILE f := fopen(c"tests/10_read_source.zy", c"r");
   fseek(f, 0, SEEK_END);
-  fsize := ftell(f);
+  fsize := ftell(f) as usize;
   fseek(f, 0, SEEK_SET);
 
   &c_str string := malloc(fsize + 1);

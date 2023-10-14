@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use inkwell::values::AnyValueEnum;
+use inkwell::values::{AnyValueEnum, BasicValueEnum};
 
 use super::{
   Codegen,
@@ -22,16 +22,28 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
           .into_pointer_value();
 
         let value = self.generate_expr(&binary.b)?
-          .expect("generate_expr value doesn't return for assign")
-          .into_pointer_value();
+          .expect("generate_expr value doesn't return for assign");
 
         dbg!(&dest);
         dbg!(&value);
 
-        self.builder.build_store(dest, value);
+        self.builder.build_store::<BasicValueEnum>(dest, value.try_into().unwrap());
 
         Ok(None)
       },
+      BinaryOperator::Add => {
+        let a = self.generate_expr(&binary.a)?
+          .expect("generate_expr didn't return for add")
+          .into_int_value();
+
+        let b = self.generate_expr(&binary.b)?
+          .expect("generate_expr didn't return for add")
+          .into_int_value();
+
+        let value = self.builder.build_int_add(a, b, "add").into();
+
+        Ok(Some(value))
+      }
       _ => todo!("generate_binary_operator {:?}", &binary.op)
     }
   }

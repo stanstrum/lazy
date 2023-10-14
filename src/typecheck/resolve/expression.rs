@@ -344,9 +344,18 @@ impl Checker {
 
             if external_len == call_len {
               for (arg, ty) in args.iter_mut().zip(external_args.iter()) {
-                let coerce_to = Some(&ty.e);
+                let ty = &ty.e;
+                let coerce_to = Some(ty);
 
-                self.resolve_expression(arg, coerce_to)?;
+                let arg_ty = self.resolve_expression(arg, coerce_to)?;
+
+                if !assignable(&arg_ty, ty) {
+                  return IncompatibleTypeSnafu {
+                    span: arg.span(),
+                    what: "Argument",
+                    with: format!("function signature (expected {}, got {})", ty.to_string(), arg_ty.to_string()),
+                  }.fail();
+                };
               };
 
               unary.out = Type::Defined(&external.ret);

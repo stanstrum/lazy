@@ -71,6 +71,23 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
           callsite.as_any_value_enum()
         )
       },
+      UnaryOperator::UnarySfx(UnarySfxOperator::Cast { to, method }) => {
+        let to_ty = self.generate_type(&to.e)?
+          .to_basic_metadata();
+
+        match method {
+          Some(CastMethod::Truncate) => {
+            let value = self.generate_expr(unary.expr.as_ref())?
+              .expect("generate_expr returned None for cast")
+              .into_int_value();
+
+            let casted = self.builder.build_int_cast(value, to_ty.into_int_type(), "cast_truncate_int");
+
+            Some(casted.as_any_value_enum())
+          },
+          _ => todo!("cast method {method:?}")
+        }
+      },
       UnaryOperator::UnaryPfx(_) => todo!("generate_unary_operator {:#?}", &unary.op),
       UnaryOperator::UnarySfx(_) => todo!("generate_unary_operator {:#?}", &unary.op),
     })

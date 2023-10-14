@@ -5,7 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use inkwell::values::{BasicValue, FunctionValue};
+use inkwell::values::{
+  BasicValue,
+  FunctionValue,
+  AnyValue
+};
 
 use crate::aster::ast::*;
 use super::{
@@ -38,7 +42,11 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
     let func_ty = ret_ty.fn_type(args.as_slice(), false);
 
     let name = &func.decl.ident.text;
-    Ok(self.module.add_function(name, func_ty, None))
+    let func_value = self.module.add_function(name, func_ty, None);
+
+    self.var_map.insert(VariableReference::ResolvedFunction(func), func_value.to_owned().as_any_value_enum());
+
+    Ok(func_value)
   }
 
   pub fn generate_function(&mut self, ast: &FunctionAST, value: FunctionValue<'ctx>) -> CodeGenResult<()> {

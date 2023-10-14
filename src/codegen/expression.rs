@@ -49,10 +49,11 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
 
   fn generate_dest_variable(&mut self, var_ref: &VariableReference) -> CodeGenResult<AnyValueEnum<'ctx>> {
     let value = self.var_map.get(var_ref)
-      .unwrap_or_else(|| panic!("unresolved dest var ref {var_ref:#?}"));
+      .unwrap_or_else(|| panic!("unresolved dest var ref {var_ref:?}"));
 
     match var_ref {
       VariableReference::ResolvedExternal(_)
+      | VariableReference::ResolvedFunction(_)
       | VariableReference::ResolvedVariable(_) => {
         // just return the pointer for the dest
         Ok(value.as_any_value_enum())

@@ -387,6 +387,42 @@ impl Checker {
               }.fail()
             }
           },
+          Some(Type::Function(func)) => {
+            let func = unsafe { &*func };
+
+            let func_len = func.decl.args.len();
+            let call_len = args.len();
+
+            let mut func_args = func.decl.args.values().collect::<Vec<_>>();
+            func_args.sort_by_key(|ty| ty.span().start);
+
+            if func_len == call_len {
+              for (arg, ty) in args.iter_mut().zip(func_args.iter()) {
+                let ty = &ty.e;
+                let coerce_to = Some(ty);
+
+                let arg_ty = self.resolve_expression(arg, coerce_to)?;
+
+                if !assignable(&arg_ty, ty) {
+                  return IncompatibleTypeSnafu {
+                    span: arg.span(),
+                    what: "Argument",
+                    with: format!("function signature (expected {}, got {})", ty.to_string(), arg_ty.to_string()),
+                  }.fail();
+                };
+              };
+
+              unary.out = Type::Defined(&func.decl.ret);
+
+              Ok(unary.out.clone())
+            } else {
+              IncompatibleTypeSnafu {
+                span,
+                what: "Function signature",
+                with: format!("the provided arguments (expected {}, got {})", func_len, call_len),
+              }.fail()
+            }
+          },
           Some(_) => {
             IncompatibleTypeSnafu {
               span: expr.span(),

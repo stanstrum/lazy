@@ -377,7 +377,7 @@ impl Checker {
               let or_more = if external.varargs {
                 " or more"
               } else {
-                " "
+                ""
               };
 
               IncompatibleTypeSnafu {

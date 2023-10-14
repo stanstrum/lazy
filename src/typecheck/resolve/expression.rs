@@ -285,7 +285,7 @@ impl Checker {
     match binary.op {
       BinaryOperator::Assign => {
         let a = self.resolve_dest_expression(&mut binary.a)?;
-        let b = self.resolve_expression(&mut binary.b, None)?;
+        let b = self.resolve_expression(&mut binary.b, Some(&a))?;
 
         if !extends(&a, &b) {
           return IncompatibleTypeSnafu {
@@ -296,6 +296,24 @@ impl Checker {
         };
 
         binary.out = Type::Intrinsic(intrinsics::VOID);
+
+        Ok(binary.out.clone())
+      },
+      BinaryOperator::Add => {
+        let out = {
+          if let Ok(ty) = self.resolve_expression(&mut binary.a, coerce_to) {
+            self.resolve_expression(&mut binary.b, Some(&ty))?
+          } else if let Ok(ty) = self.resolve_expression(&mut binary.b, coerce_to) {
+            self.resolve_expression(&mut binary.a, Some(&ty))?
+          } else {
+            return CantInferTypeSnafu {
+              span: binary.span(),
+            }.fail();
+          }
+        };
+
+        // todo: search std lib traits & impls...
+        binary.out = out;
 
         Ok(binary.out.clone())
       },
@@ -325,8 +343,7 @@ impl Checker {
 
             if external_len == call_len {
               for (arg, ty) in args.iter_mut().zip(external_args.iter()) {
-                let ty = Type::Defined(*ty);
-                let coerce_to = Some(&ty);
+                let coerce_to = Some(&ty.e);
 
                 self.resolve_expression(arg, coerce_to)?;
               };
@@ -354,7 +371,7 @@ impl Checker {
               };
 
               IncompatibleTypeSnafu {
-                span: expr.span(),
+                span,
                 what: "Function signature",
                 with: format!("the provided arguments (expected {}{}, got {})", external_len, or_more, call_len),
               }.fail()
@@ -377,14 +394,78 @@ impl Checker {
           None
         };
 
+        self.stack.push(ScopePointer::Expression(expr.as_mut()));
         self.resolve_expression(expr, coerce_to.as_ref())?;
+        self.stack.pop();
 
         unary.out = expr.type_of_expect(expr.span())?;
 
         Ok(unary.out.clone())
       },
+      UnaryOperator::UnarySfx(UnarySfxOperator::Cast { to, method }) => {
+        self.stack.push(ScopePointer::Expression(expr.as_mut()));
+        self.resolve_expression(expr, None)?;
+        self.stack.pop();
+
+        self.resolve_type(to)?;
+
+        let expr_ty = expr.type_of_expect(expr.span())?;
+
+        let mut from_ptr = &expr_ty;
+        let mut to_ptr = &to.e;
+
+        loop {
+          match (from_ptr, to_ptr) {
+            (Type::Defined(defined), _) => {
+              from_ptr = unsafe { &(**defined).e };
+            },
+            (_, Type::Defined(defined)) => {
+              to_ptr = unsafe { &(**defined).e };
+            },
+            (Type::Intrinsic(intrinsics::USIZE), Type::Intrinsic(intrinsics::I32)) => {
+              *method = Some(CastMethod::Truncate);
+
+              break Ok(Type::Defined(to));
+            },
+            _ => break IncompatibleTypeSnafu {
+              span,
+              what: "Casted value",
+              with: to.to_string(),
+            }.fail()
+          }
+        }
+      },
       UnaryOperator::UnaryPfx(op) => todo!("unarypfxop reso type {op:#?}"),
       UnaryOperator::UnarySfx(op) => todo!("unarysfxop reso type {op:#?}"),
+    }
+  }
+
+  fn resolve_dest_unary_operator(&mut self, unary: &mut UnaryOperatorExpressionAST) -> TypeCheckResult<Type> {
+    match &mut unary.op {
+      UnaryOperator::UnarySfx(UnarySfxOperator::Subscript { arg }) => {
+        let span = unary.expr.span();
+
+        let ptr_arr_ty = self.resolve_expression(&mut unary.expr, None)?;
+
+        self.resolve_expression(arg, Some(&Type::Intrinsic(intrinsics::USIZE)))?;
+
+        let arr_ty = dereference_type(&ptr_arr_ty, span)?;
+
+        if !is_array(&arr_ty) {
+          return IncompatibleTypeSnafu {
+            span,
+            what: "Expression",
+            with: "array index",
+          }.fail();
+        };
+
+        let out = get_element_of(&arr_ty, span)?;
+
+        unary.out = out;
+
+        Ok(unary.out.clone())
+      },
+        _ => todo!("resolve_dest_unary_operator {:#?}", &unary.op)
     }
   }
 

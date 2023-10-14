@@ -41,6 +41,33 @@ pub fn dereference_type(ty: &Type, span: Span) -> TypeCheckResult<Type> {
   }
 }
 
+pub fn is_array(ty: &Type) -> bool {
+  match ty {
+    Type::Defined(ast) => {
+      let ast = unsafe { &**ast };
+
+      is_array(&ast.e)
+    },
+    Type::ArrayOf(_, _) => true,
+    _ => false
+  }
+}
+
+pub fn get_element_of(ty: &Type, span: Span) -> TypeCheckResult<Type> {
+  match ty {
+    Type::Defined(ast) => {
+      let ast = unsafe { &**ast };
+
+      get_element_of(&ast.e, span)
+    },
+    Type::ArrayOf(_, ast) => Ok(ast.e.clone()),
+    _ => InvalidTypeSnafu {
+      text: "Non-array type passed to get_element_of",
+      span,
+    }.fail()
+  }
+}
+
 impl TypeOf for BlockExpressionAST {
   fn type_of(&self) -> Option<Type> {
     if self.returns_last {

@@ -524,7 +524,11 @@ impl Checker {
     match expr {
       Expression::Atom(atom) => self.resolve_atom(atom, coerce_to),
       Expression::Block(_) => todo!("resolve block"),
-      Expression::SubExpression(_) => todo!("resolve subexpression"),
+      Expression::SubExpression(subexpr) => {
+        subexpr.out = self.resolve_expression(&mut subexpr.e, coerce_to)?;
+
+        Ok(subexpr.out.clone())
+      },
       Expression::ControlFlow(flow) => self.resolve_control_flow(flow, coerce_to),
       Expression::BinaryOperator(binary) => self.resolve_binary_operator(binary, coerce_to),
       Expression::UnaryOperator(unary) => self.resolve_unary_operator(unary, coerce_to),

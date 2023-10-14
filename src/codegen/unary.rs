@@ -75,16 +75,25 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
         let to_ty = self.generate_type(&to.e)?
           .to_basic_metadata();
 
+        let value = self.generate_expr(unary.expr.as_ref())?
+            .expect("generate_expr returned None for cast")
+            .into_int_value();
+
         match method {
           Some(CastMethod::Truncate) => {
-            let value = self.generate_expr(unary.expr.as_ref())?
-              .expect("generate_expr returned None for cast")
-              .into_int_value();
-
-            let casted = self.builder.build_int_cast(value, to_ty.into_int_type(), "cast_truncate_int");
+            let casted = self.builder.build_int_cast(value, to_ty.into_int_type(), "cast_int_truncate");
 
             Some(casted.as_any_value_enum())
           },
+          Some(CastMethod::ZeroExtend) => {
+            let casted = self.builder.build_int_z_extend_or_bit_cast(
+              value,
+              to_ty.into_int_type(),
+              "cast_int_zero_extend"
+            );
+
+            Some(casted.as_any_value_enum())
+          }
           _ => todo!("cast method {method:?}")
         }
       },

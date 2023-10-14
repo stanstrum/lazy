@@ -81,6 +81,28 @@ impl TypeOf for BlockExpressionAST {
   }
 }
 
+impl TypeOf for BinaryOperatorExpressionAST {
+  fn type_of(&self) -> Option<Type> {
+    match &self.op {
+      BinaryOperator::Add => {
+        let a = self.a.type_of();
+        let b = self.b.type_of();
+
+        if a.as_ref().is_some_and(
+          |a| b.is_some_and(
+            |b| assignable(a, &b)
+          )
+        ) {
+          Some(a.unwrap().to_owned())
+        } else {
+          None
+        }
+      },
+      op => todo!("typeof for binop {op:#?}")
+    }
+  }
+}
+
 impl TypeOf for Expression {
   fn type_of(&self) -> Option<Type> {
     match self {
@@ -88,7 +110,7 @@ impl TypeOf for Expression {
       Expression::Block(block) => block.type_of(),
       Expression::SubExpression(subexpr) => subexpr.e.type_of(),
       Expression::ControlFlow(_) => todo!("typeof for ctrlflow"),
-      Expression::BinaryOperator(_) => todo!("typeof for binop"),
+      Expression::BinaryOperator(binop) => binop.type_of(),
       Expression::UnaryOperator(UnaryOperatorExpressionAST { out, .. }) => {
         Some(out.to_owned())
       },

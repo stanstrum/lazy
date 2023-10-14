@@ -78,7 +78,7 @@ pub enum UnaryPfxOperator {
 #[derive(Debug, Clone)]
 pub enum CastMethod {
   // SignExtend,
-  // ZeroExtend,
+  ZeroExtend,
   Truncate
 }
 

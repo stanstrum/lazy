@@ -16,7 +16,7 @@ use errors::*;
 use crate::aster::ast::*;
 
 mod extends;
-pub use extends::extends;
+pub use extends::*;
 
 #[derive(Clone, Copy)]
 enum ScopePointer {

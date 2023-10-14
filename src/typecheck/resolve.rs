@@ -22,7 +22,10 @@ use super::{
 
 use crate::aster::ast::*;
 
-pub use super::extends;
+pub use super::{
+  extends,
+  assignable
+};
 
 trait IsResolved {
   fn is_resolved(&self) -> bool;

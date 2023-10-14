@@ -36,7 +36,11 @@ impl Checker {
         BlockExpressionChild::Binding(_) => todo!("throw error for returning value of binding"),
         BlockExpressionChild::Expression(expr) => {
           if !extends(&expr.type_of().unwrap(), &func.decl.ret.e) {
-            todo!("throw error for return last/return type mismatch");
+            return IncompatibleTypeSnafu {
+              span: last_child.span(),
+              what: "Return last expression",
+              with: "return type",
+            }.fail();
           };
         },
       };

@@ -12,7 +12,8 @@ use crate::{
   aster::intrinsics,
   typecheck::{
     expect_type_of,
-    type_of::*
+    type_of::*,
+    extends::assignable
   }
 };
 

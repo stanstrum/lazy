@@ -44,18 +44,18 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
           )
           .collect::<Vec<_>>();
 
-        for (arg, dest_ty) in
+        for (i, (arg, dest_ty)) in
           args.iter_mut().zip(
             callee
               .get_param_iter()
               .map(|ty| ty.get_type()
             )
-          )
+          ).enumerate()
         {
           let casted_arg = self.builder.build_bitcast::<BasicTypeEnum, BasicValueEnum>(
             (*arg).try_into().unwrap(),
             dest_ty,
-            "cast"
+            format!("bitcast arg({i})").as_str()
           );
 
           *arg = BasicMetadataValueEnum::from(casted_arg);

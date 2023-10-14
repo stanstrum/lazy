@@ -245,7 +245,7 @@ impl Checker {
 
           if out_ty.is_none() {
             out_ty = body.type_of();
-          } else if !extends(&body.type_of().unwrap(), out_ty.as_ref().unwrap()) {
+          } else if !assignable(&body.type_of().unwrap(), out_ty.as_ref().unwrap()) {
             panic!("doesn't match types in if block")
           };
         };

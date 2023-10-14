@@ -9,6 +9,37 @@ use crate::aster::intrinsics;
 
 use super::*;
 
+pub fn assignable(a: &Type, b: &Type) -> bool {
+  println!("test: {:?} assignable to {:?}", a, b);
+
+  let result = {
+    match (a, b) {
+      (Type::Defined(a), _) => {
+        let a = unsafe { &(**a).e };
+
+        assignable(a, b)
+      },
+      (_, Type::Defined(b)) => {
+        let b = unsafe { &(**b).e };
+
+        assignable(a, b)
+      },
+      (Type::Intrinsic(a), Type::Intrinsic(b)) => {
+        a == b
+      }
+      _ => false
+    }
+  };
+
+  if result {
+    println!("does assign");
+  } else {
+    println!("doesn't assign");
+  };
+
+  result
+}
+
 pub fn extends(ty: &Type, base: &Type) -> bool {
   println!("test: {:?} extends {:?}", ty, base);
 

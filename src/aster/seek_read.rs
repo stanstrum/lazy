@@ -43,11 +43,13 @@ pub mod seek {
 
     loop {
       if reader.remaining() == 0 {
-        return ExpectedSnafu {
-          what: "End Multiline Comment (*/)",
-          offset: reader.offset(),
-          path: reader.path.clone()
-        }.fail();
+        return reader.set_intent(
+          ExpectedSnafu {
+            what: "End Multiline Comment (*/)",
+            offset: reader.offset(),
+            path: reader.path.clone()
+          }.fail()
+        );
       };
 
       if begins_with(reader, consts::grouping::CLOSE_MULTILINE_COMMENT) {

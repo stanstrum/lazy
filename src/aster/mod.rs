@@ -42,11 +42,13 @@ pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {
 
     let structure = Structure::make(reader)?;
     if !seek::begins_with(reader, consts::punctuation::SEMICOLON) {
-      return reader.set_intent_error(ExpectedSnafu {
-        what: "Punctuation (\";\")",
-        offset: reader.offset(),
-        path: reader.path.clone()
-      }.fail());
+      return reader.set_intent(
+        ExpectedSnafu {
+          what: "Punctuation (\";\")",
+          offset: reader.offset(),
+          path: reader.path.clone()
+        }.fail()
+      );
     };
 
     structure.assign_to_hashmap(&mut global.map);

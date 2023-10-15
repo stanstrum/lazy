@@ -73,6 +73,21 @@ macro_rules! try_make {
   }};
 }
 
+#[macro_export]
+macro_rules! intent {
+  ($func:expr, $reader:ident $(, $args:expr)*) => {{
+    $reader.set_intent_error(None);
+
+    let res = $func($reader $(, $args)*);
+
+    if !$reader.has_intent_error() {
+      $reader.set_intent(res)
+    } else {
+      res
+    }
+  }};
+}
+
 pub use try_make;
 
 #[allow(unused_imports)]

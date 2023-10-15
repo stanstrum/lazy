@@ -16,7 +16,7 @@ use crate::{
     seek,
     asterize
   },
-  try_make
+  try_make, intent
 };
 
 enum ImportPattern {
@@ -78,11 +78,13 @@ impl ImportPattern {
     } else if let Some(ident) = try_make!(ImportPattern::make_ident, reader) {
       Ok(ident)
     } else {
-      ExpectedSnafu {
-        what: "Import pattern",
-        offset: reader.offset(),
-        path: reader.path.clone(),
-      }.fail()
+      reader.set_intent(
+        ExpectedSnafu {
+          what: "an import pattern",
+          offset: reader.offset(),
+          path: reader.path.clone(),
+        }.fail()
+      )
     }
   }
 
@@ -104,46 +106,52 @@ impl ImportAST {
       }.fail();
     };
 
-    if reader.peek_ch().unwrap() != '{' {
+    if reader.peek_ch().is_some_and(|ch| ch != '{') {
       seek::required_whitespace(reader)?;
     };
 
-    let pattern = ImportPattern::make(reader)?;
+    let pattern = intent!(ImportPattern::make, reader)?;
 
     reader.rewind(1).unwrap();
 
     if reader.read_ch().unwrap() != '{' {
-      seek::required_whitespace(reader)?;
+      intent!(seek::required_whitespace, reader)?;
     };
 
     if !seek::begins_with(reader, consts::keyword::FROM) {
-      return ExpectedSnafu {
-        what: "Keyword (\"from\")",
-        offset: reader.offset(),
-        path: reader.path.clone()
-      }.fail();
+      return reader.set_intent(
+        ExpectedSnafu {
+          what: "Keyword (\"from\")",
+          offset: reader.offset(),
+          path: reader.path.clone()
+        }.fail()
+      );
     };
 
     seek::optional_whitespace(reader)?;
 
-    let from = LiteralAST::make(reader)?;
+    let from = intent!(LiteralAST::make, reader)?;
     let Literal::UnicodeString(from) = from.l else {
-      return BadLiteralSnafu {
-        expected: "a String",
-        offset: from.span.start,
-        path: reader.path.clone()
-      }.fail();
+      return reader.set_intent(
+        BadLiteralSnafu {
+          expected: "a String",
+          offset: from.span.start,
+          path: reader.path.clone()
+        }.fail()
+      );
     };
 
     let path = reader.path.join(from);
     let src = match std::fs::read_to_string(&path) {
       Ok(src) => src,
       Err(err) => {
-        return ImportIOSnafu {
-          path,
-          error: err.to_string(),
-          offset: reader.offset(),
-        }.fail();
+        return reader.set_intent(
+          ImportIOSnafu {
+            path,
+            error: err.to_string(),
+            offset: reader.offset(),
+          }.fail()
+        );
       },
     };
 
@@ -160,7 +168,7 @@ impl ImportAST {
     // swap the new reader into place
     unsafe { std::ptr::swap(new_reader, reader); };
 
-    let global = asterize(reader)?;
+    let global = intent!(asterize, reader)?;
     // swap the old reader back
     unsafe { std::ptr::swap(new_reader, reader); };
 

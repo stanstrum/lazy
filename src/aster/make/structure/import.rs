@@ -130,6 +130,7 @@ impl ImportAST {
 
     seek::optional_whitespace(reader)?;
 
+    let from_start = reader.offset() + 1;
     let from = intent!(LiteralAST::make, reader)?;
     let Literal::UnicodeString(from) = from.l else {
       return reader.set_intent(
@@ -141,15 +142,20 @@ impl ImportAST {
       );
     };
 
-    let path = reader.path.join(from);
+    let parent = reader.path.parent()
+      .expect("file does not have a parent directory?");
+
+    let path = parent.join(from);
+    println!("{:?}", path);
+
     let src = match std::fs::read_to_string(&path) {
       Ok(src) => src,
       Err(err) => {
         return reader.set_intent(
           ImportIOSnafu {
-            path,
             error: err.to_string(),
-            offset: reader.offset(),
+            offset: from_start,
+            path: reader.path.clone(),
           }.fail()
         );
       },

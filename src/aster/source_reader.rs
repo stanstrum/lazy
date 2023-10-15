@@ -50,6 +50,7 @@ impl<'a> SourceReader<'a> {
     self.intent_error = error;
   }
 
+  pub fn set_intent<T>(&mut self, result: AsterResult<T>) -> AsterResult<T> {
     if result.is_err() {
       let err = unsafe { result.as_ref().unwrap_err_unchecked() };
 

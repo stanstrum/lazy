@@ -114,6 +114,11 @@ pub struct ExternDeclAST {
 }
 
 #[derive(Debug, Clone)]
+pub struct ImportAST {
+  pub span: Span,
+}
+
+#[derive(Debug, Clone)]
 pub enum Structure {
   Namespace(NamespaceAST),
   Function(FunctionAST),
@@ -121,7 +126,8 @@ pub enum Structure {
   Trait(TraitAST),
   Impl(Impl),
   TypeAlias(TypeAliasAST),
-  ExternDecl(ExternDeclAST)
+  ExternDecl(ExternDeclAST),
+  Import(ImportAST)
 }
 
 impl GetSpan for Impl {
@@ -143,6 +149,7 @@ impl GetSpan for &Structure {
       Structure::TypeAlias(s) => s.span(),
       Structure::Struct(s) => s.span(),
       Structure::ExternDecl(r#extern) => r#extern.span(),
+      Structure::Import(import) => import.span()
     }
   }
 }
@@ -157,5 +164,6 @@ make_get_span![
   ImplAST,
   ImplForAST,
   TypeAliasAST,
-  ExternDeclAST
+  ExternDeclAST,
+  ImportAST
 ];

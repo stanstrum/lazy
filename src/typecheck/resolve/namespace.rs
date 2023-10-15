@@ -60,6 +60,7 @@ impl Checker {
             self.resolve_type(ty)?;
           };
         },
+        Structure::Import(_) => todo!("resolve_ns import"),
       };
     };
 

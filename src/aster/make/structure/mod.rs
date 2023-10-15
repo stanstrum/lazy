@@ -41,7 +41,6 @@ impl Structure {
       ))
     } else if read::begins_with(reader, consts::keyword::TRAIT) {
       let r#trait = TraitAST::make(reader)?;
-
       Ok((
         r#trait.ident.text.to_owned(),
         Structure::Trait(r#trait)

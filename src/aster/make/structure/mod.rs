@@ -20,8 +20,6 @@ use std::collections::HashMap;
 use crate::aster::{
   ast::*,
   SourceReader,
-  seek_read::read,
-  consts,
   errors::*,
   AsterResult
 };
@@ -36,9 +34,7 @@ impl Structure {
       Ok(Structure::Function(func))
     } else if let Some(extern_decl) = try_make!(ExternDeclAST::make, reader) {
       Ok(Structure::ExternDecl(extern_decl))
-    } else if read::begins_with(reader, consts::keyword::TRAIT) {
-      let r#trait = TraitAST::make(reader)?;
-
+    } else if let Some(r#trait) = try_make!(TraitAST::make, reader) {
       Ok(Structure::Trait(r#trait))
     } else if let Some(r#impl) = try_make!(ImplAST::make, reader) {
       Ok(Structure::Impl(Impl::Impl(r#impl)))

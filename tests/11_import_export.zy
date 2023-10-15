@@ -1,0 +1,14 @@
+/* Copyright (c) 2023 Stan Strum
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+import std from "std";
+
+main -> i32 {
+  std::libc::printf(c"Hello, world!\n");
+
+  0
+};

@@ -7,30 +7,92 @@
 
 use std::collections::HashMap;
 
-use crate::aster::{
-  ast::*,
-  SourceReader,
-  errors::*,
-  consts,
-  seek,
-  asterize
+use crate::{
+  aster::{
+    ast::*,
+    SourceReader,
+    errors::*,
+    consts,
+    seek,
+    asterize
+  },
+  try_make
 };
 
 enum ImportPattern {
-  Qualify(IdentAST, Box<ImportPattern>),
-  Brace(Vec<ImportPattern>),
-  Ident(IdentAST, Option<String>)
+  Qualify {
+    span: Span,
+    ident: IdentAST,
+    child: Box<ImportPattern>
+  },
+  Brace {
+    span: Span,
+    children: Vec<ImportPattern>
+  },
+  Ident {
+    span: Span,
+    ident: IdentAST, alias: Option<IdentAST>
+  }
 }
 
-fn import_pattern_to_map(pattern: ImportPattern, ns: NamespaceAST) -> HashMap<String, Structure> {
-  todo!("import_pattern_to_map")
+impl GetSpan for ImportPattern {
+  fn span(&self) -> Span {
+    match self {
+      ImportPattern::Qualify { span, .. } => span.clone(),
+      ImportPattern::Brace { span, .. } => span.clone(),
+      ImportPattern::Ident { span, .. } => span.clone(),
+    }
+  }
 }
 
-impl ImportAST {
-  fn make_pattern(reader: &mut SourceReader) -> AsterResult<ImportPattern> {
-    todo!("make_pattern")
+impl ImportPattern {
+  fn make_qualify(reader: &mut SourceReader) -> AsterResult<Self> {
+    NotImplementedSnafu {
+      what: "make_qualify",
+      offset: reader.offset(),
+      path: reader.path.clone()
+    }.fail()
   }
 
+  fn make_brace(reader: &mut SourceReader) -> AsterResult<Self> {
+    NotImplementedSnafu {
+      what: "make_pattern",
+      offset: reader.offset(),
+      path: reader.path.clone()
+    }.fail()
+  }
+
+  fn make_ident(reader: &mut SourceReader) -> AsterResult<Self> {
+    NotImplementedSnafu {
+      what: "make_ident",
+      offset: reader.offset(),
+      path: reader.path.clone()
+    }.fail()
+  }
+
+  fn make(reader: &mut SourceReader) -> AsterResult<Self> {
+    if let Some(qualify) = try_make!(ImportPattern::make_qualify, reader) {
+      Ok(qualify)
+    } else if let Some(brace) = try_make!(ImportPattern::make_brace, reader) {
+      Ok(brace)
+    } else if let Some(ident) = try_make!(ImportPattern::make_ident, reader) {
+      Ok(ident)
+    } else {
+      ExpectedSnafu {
+        what: "Import pattern",
+        offset: reader.offset(),
+        path: reader.path.clone(),
+      }.fail()
+    }
+  }
+
+  fn to_map(&self, ns: NamespaceAST) -> HashMap<String, Structure> {
+    todo!("import_pattern_to_map")
+  }
+}
+
+
+impl ImportAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
@@ -46,7 +108,7 @@ impl ImportAST {
       seek::required_whitespace(reader)?;
     };
 
-    let pattern = Self::make_pattern(reader)?;
+    let pattern = ImportPattern::make(reader)?;
 
     reader.rewind(1).unwrap();
 
@@ -102,7 +164,7 @@ impl ImportAST {
     // swap the old reader back
     unsafe { std::ptr::swap(new_reader, reader); };
 
-    let map = import_pattern_to_map(pattern, global);
+    let map = pattern.to_map(global);
 
     Ok(Self {
       span: reader.span_since(start),

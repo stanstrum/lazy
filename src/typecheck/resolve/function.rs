@@ -35,15 +35,17 @@ impl Checker {
       match last_child {
         BlockExpressionChild::Binding(_) => todo!("throw error for returning value of binding"),
         BlockExpressionChild::Expression(expr) => {
-          if !extends(&expr.type_of().unwrap(), &func.decl.ret.e) {
-            todo!("throw error for return last/return type mismatch");
+          if !assignable(&expr.type_of().unwrap(), &func.decl.ret.e) {
+            return IncompatibleTypeSnafu {
+              span: last_child.span(),
+              what: "Return last expression",
+              with: "return type",
+            }.fail();
           };
         },
       };
-    } else {
-      if !extends(&func.decl.ret.e, &Type::Intrinsic(intrinsics::VOID)) {
-        todo!("throw error for no return last/void mismatch");
-      };
+    } else if !assignable(&func.decl.ret.e, &Type::Intrinsic(intrinsics::VOID)) {
+      todo!("throw error for no return last/void mismatch");
     };
 
     Ok(())

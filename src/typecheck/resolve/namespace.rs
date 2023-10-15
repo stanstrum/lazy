@@ -53,6 +53,13 @@ impl Checker {
           self.resolve_impl(r#impl)?;
           self.stack.pop();
         },
+        Structure::ExternDecl(decl) => {
+          self.resolve_type(&mut decl.ret)?;
+
+          for ty in decl.args.values_mut() {
+            self.resolve_type(ty)?;
+          };
+        },
       };
     };
 

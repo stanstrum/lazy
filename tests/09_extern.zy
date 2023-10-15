@@ -5,4 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-type c_str := &[]u8;
+extern printf -> i32:
+  &[]u8 format, ...;
+
+main -> i32 {
+  printf(c"Hello, world!\n");
+
+  0
+};

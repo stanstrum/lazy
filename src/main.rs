@@ -6,6 +6,7 @@
  */
 
 mod aster;
+mod to_string;
 mod typecheck;
 mod codegen;
 
@@ -130,7 +131,9 @@ fn compile() -> Result<(), LazyError> {
           TypeCheckError::NotImplemented { span, .. }
           | TypeCheckError::UnknownIdent { span, .. }
           | TypeCheckError::InvalidDot { span }
-          | TypeCheckError::InvalidType { span, .. } => {
+          | TypeCheckError::InvalidType { span, .. }
+          | TypeCheckError::IncompatibleType { span, .. }
+          | TypeCheckError::CantInferType { span } => {
             let message = Message {
               level: Level::Error,
               msg: err.to_string(),
@@ -140,7 +143,7 @@ fn compile() -> Result<(), LazyError> {
 
             println!("{}", format_message(reader.src(), message));
           },
-          TypeCheckError::DuplicateIdent { text, a, b } => {
+          TypeCheckError::DuplicateIdent { a, b, .. } => {
             let message_a = Message {
               level: Level::Error,
               msg: err.to_string(),
@@ -179,11 +182,7 @@ fn compile() -> Result<(), LazyError> {
   let module = context.create_module("program");
   let builder = context.create_builder();
 
-  let mut codegen = Codegen {
-    context: &context,
-    module: &module,
-    builder: &builder
-  };
+  let mut codegen = Codegen::new(&context, &module, &builder);
 
   // codegen.init(todo!());
 

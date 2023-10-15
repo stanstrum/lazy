@@ -15,7 +15,7 @@ impl Checker {
         | Type::Defined(_)
         | Type::Struct(_)
         | Type::Function(_)
-        | Type::MemberFunction(_) => {
+        | Type::External(_) => {
           return Ok(());
         },
         Type::ConstReferenceTo(ast)

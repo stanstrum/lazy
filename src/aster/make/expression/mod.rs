@@ -55,6 +55,7 @@ impl PEMDAS {
         matches!(op,
           | Operator::UnarySfx(UnarySfxOperator::PostIncrement)
           | Operator::UnarySfx(UnarySfxOperator::PostDecrement)
+          | Operator::UnarySfx(UnarySfxOperator::Cast { .. })
           | Operator::UnaryPfx(UnaryPfxOperator::MutRef)
           | Operator::UnaryPfx(UnaryPfxOperator::Ref)
           | Operator::UnaryPfx(UnaryPfxOperator::Deref)
@@ -234,6 +235,37 @@ impl Expression {
     }
   }
 
+  fn make_cast(reader: &mut SourceReader) -> AsterResult<UnarySfxOperator> {
+    let start = reader.offset();
+
+    let result = 'result: {
+      if !seek::begins_with(reader, "as") {
+        break 'result None;
+      };
+
+      if seek::required_whitespace(reader).is_err() {
+        break 'result None;
+      };
+
+      let Ok(ty) = TypeAST::make(reader) else {
+        break 'result None;
+      };
+
+      Some(UnarySfxOperator::Cast { to: ty, method: None })
+    };
+
+    if let Some(result) = result {
+      Ok(result)
+    } else {
+      reader.to(start).unwrap();
+
+      ExpectedSnafu {
+        what: "Unary Prefix Operator",
+        offset: reader.offset()
+      }.fail()
+    }
+  }
+
   pub fn make_unary_sfx(reader: &mut SourceReader) -> AsterResult<UnarySfxOperator> {
     let start = reader.offset();
 
@@ -256,6 +288,8 @@ impl Expression {
         Ok(fn_call)
       } else if let Ok(subscript) = Expression::make_subscript(reader) {
         Ok(subscript)
+      } else if let Ok(cast) = Expression::make_cast(reader) {
+        Ok(cast)
       } else {
         ExpectedSnafu {
           what: "Unary Prefix Operator",
@@ -338,7 +372,7 @@ impl Expression {
       };
 
       Some(UnarySfxOperator::Subscript {
-        arg: Box::new(arg)
+        arg: Box::new(arg), dest: false
       })
     };
 

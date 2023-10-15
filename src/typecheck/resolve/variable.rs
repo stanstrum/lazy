@@ -21,7 +21,7 @@ impl Checker {
     ).collect()
   }
 
-  fn resolve_qualified(&self, qual: &mut QualifiedAST) -> TypeCheckResult<VariableReference> {
+  fn resolve_qualified(&self, qual: &QualifiedAST) -> TypeCheckResult<VariableReference> {
     println!("{}", qual.to_string());
 
     let mut dup_qual = qual.clone();
@@ -72,14 +72,27 @@ impl Checker {
       Some(Structure::Function(func)) => {
         Ok(VariableReference::ResolvedFunction(func))
       },
-      _ => InvalidTypeSnafu {
-        text: qual.to_string(),
+      Some(Structure::ExternDecl(decl)) => {
+        Ok(VariableReference::ResolvedExternal(decl))
+      }
+      Some(other) => InvalidTypeSnafu {
+        text: format!("Cannot use (is {:#?}) as a variable: {}", other, qual.to_string()),
         span: qual.span()
+      }.fail(),
+      None => UnknownIdentSnafu {
+        text: qual.to_string(),
+        span: qual.span(),
       }.fail()
     }
   }
 
-  fn resolve_arg_var(&self, ident: &IdentAST) -> Option<VariableReference> {
+  fn resolve_arg_var(&self, qual: &QualifiedAST) -> Option<VariableReference> {
+    if qual.parts.len() != 1 {
+      return None;
+    };
+
+    let ident = qual.parts.last().unwrap();
+
     let decl = self.stack.iter().find(
       |ptr|
         matches!(ptr, ScopePointer::Function(_) | ScopePointer::MemberFunction(_))
@@ -108,12 +121,12 @@ impl Checker {
     }
   }
 
-  pub fn resolve_variable(&self, qual: &mut QualifiedAST) -> TypeCheckResult<VariableReference> {
-    let blocks = self.get_block_expr_scopes();
-
+  fn resolve_local_variable(&self, qual: &QualifiedAST) -> Option<VariableReference> {
     if qual.parts.len() != 1 {
-      return self.resolve_qualified(qual);
+      return None;
     };
+
+    let blocks = self.get_block_expr_scopes();
 
     let name = unsafe { qual.parts.get_unchecked(0) };
 
@@ -123,17 +136,20 @@ impl Checker {
       if block.vars.contains_key(name) {
         let binding = *block.vars.get(name).unwrap();
 
-        return Ok(VariableReference::ResolvedVariable(binding));
+        return Some(VariableReference::ResolvedVariable(binding));
       };
     };
 
-    if let Some(arg_var) = self.resolve_arg_var(name) {
-      return Ok(arg_var);
-    };
+    None
+  }
 
-    UnknownIdentSnafu {
-      text: name.text.to_owned(),
-      span: qual.span()
-    }.fail()
+  pub fn resolve_variable(&self, qual: &QualifiedAST) -> TypeCheckResult<VariableReference> {
+    if let Some(local_var) = self.resolve_local_variable(qual) {
+      Ok(local_var)
+    } else if let Some(arg_var) = self.resolve_arg_var(qual) {
+      Ok(arg_var)
+    } else {
+      self.resolve_qualified(qual)
+    }
   }
 }

@@ -5,13 +5,16 @@
  * LICENSE file in the root directory of this source tree.
  */
 
- use crate::{aster::{
-  ast::*,
-  SourceReader,
-  errors::*,
-  seek,
-  consts
-}, try_make};
+use crate::{
+  aster::{
+    ast::*,
+    SourceReader,
+    errors::*,
+    seek,
+    consts
+  },
+  try_make
+};
 
 impl ControlFlowAST {
   fn make_while(reader: &mut SourceReader) -> AsterResult<Self> {

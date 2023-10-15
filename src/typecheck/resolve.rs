@@ -22,7 +22,10 @@ use super::{
 
 use crate::aster::ast::*;
 
-pub use super::extends;
+pub use super::{
+  extends,
+  assignable
+};
 
 trait IsResolved {
   fn is_resolved(&self) -> bool;
@@ -44,7 +47,7 @@ impl IsResolved for Type {
       Type::Intrinsic(_)
       | Type::Struct(_)
       | Type::Function(_)
-      | Type::MemberFunction(_) => true,
+      | Type::External(_) => true,
       Type::ConstReferenceTo(ast)
       | Type::MutReferenceTo(ast)
       | Type::ConstPtrTo(ast)

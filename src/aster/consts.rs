@@ -42,6 +42,8 @@ pub mod keyword {
 
   pub const RETURN: &str = "return";
   pub const BREAK: &str = "break";
+
+  pub const EXTERN: &str = "extern";
 }
 
 pub mod punctuation {
@@ -62,6 +64,8 @@ pub mod punctuation {
   pub const BACKSLASH: &str = "\\";
 
   pub const AMPERSAND: &str = "&";
+
+  pub const ELLIPSIS: &str = "...";
 
   pub const HEX_PFX: &str = "0x";
   pub const BIN_PFX: &str = "0b";
@@ -194,5 +198,6 @@ pub mod operator {
     // these work differently ...
     // "[...]" => UnarySfxOperator::Subscript,
     // "(...)" => UnarySfxOperator::Call
+    // "as" => UnarySfxOperator::Cast
   };
 }

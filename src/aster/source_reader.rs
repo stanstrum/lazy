@@ -48,9 +48,9 @@ impl<'a> SourceReader<'a> {
     result
   }
 
-  pub fn get_intent_error(&self) -> Option<AsterError> {
-    self.intent_error.clone()
-  }
+  // pub fn get_intent_error(&self) -> Option<AsterError> {
+  //   self.intent_error.clone()
+  // }
 
   pub fn get_intent_offset(&self) -> usize {
     self.intent_offset

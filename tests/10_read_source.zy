@@ -1,0 +1,79 @@
+/* Copyright (c) 2023 Stan Strum
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+extern malloc -> &[]u8:
+  usize size;
+
+extern free: &[]u8 ptr;
+
+// this is not correct but since we're just using it for
+// the pointer, it should be okay -- effectively `void*`
+type FILE := []u8;
+
+type c_str := []u8;
+
+// fs
+extern fopen -> &FILE:
+  &c_str filename,
+  &c_str mode;
+
+extern fclose -> i32:
+  &FILE stream;
+
+extern fseek -> i32:
+  &FILE stream,
+  i32 offset,
+  i32 whence;
+
+extern ftell -> i32:
+  &FILE steam;
+
+extern fread -> usize:
+  &[]u8 ptr,
+  usize size,
+  usize nmemb,
+  &FILE stream;
+
+extern puts -> i32:
+  &c_str s;
+
+extern printf -> i32:
+  &c_str format, ...;
+
+read_file -> &[]u8:
+  &[]u8 path
+{
+  i32 SEEK_SET := 0;
+  i32 SEEK_CUR := 1;
+  i32 SEEK_END := 2;
+
+  &FILE f := fopen(path, c"r");
+
+  fseek(f, 0, SEEK_END);
+  fsize := ftell(f) as usize;
+
+  fseek(f, 0, SEEK_SET);
+
+  &c_str string := malloc(fsize + 1);
+
+  fread(string, 1, fsize + 1, f);
+  string[fsize] = 0;
+
+  fclose(f);
+
+  string
+};
+
+main -> i32 {
+  string := read_file(c"tests/10_read_source.zy");
+
+  puts(string);
+
+  free(string);
+
+  0
+};

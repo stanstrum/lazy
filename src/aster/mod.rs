@@ -24,7 +24,6 @@ use seek_read::seek;
 
 mod make;
 pub mod consts;
-mod to_string;
 
 pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {
   let span = Span { start: 0, end: 0 };

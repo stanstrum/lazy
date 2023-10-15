@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
- use super::super::{
+use super::super::{
   super::{
     ast::*,
     SourceReader,
@@ -21,7 +21,10 @@ impl AtomExpressionAST {
   fn make_return(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
-    if !seek::begins_with(reader, consts::keyword::RETURN) {
+    let is_ident = IdentAST::make(reader).is_ok();
+    reader.to(start).unwrap();
+
+    if is_ident || !seek::begins_with(reader, consts::keyword::RETURN) {
       return ExpectedSnafu {
         what: "Keyword (return)",
         offset: reader.offset()
@@ -64,7 +67,7 @@ impl AtomExpressionAST {
       Ok(Self {
         span: reader.span_since(start),
         out: Type::Unresolved,
-        a: AtomExpression::Variable(qual, VariableReference::Unresolved)
+        a: AtomExpression::UnresolvedVariable(qual)
       })
     } else {
       UnknownSnafu {

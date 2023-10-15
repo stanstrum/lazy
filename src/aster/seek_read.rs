@@ -15,13 +15,16 @@ pub mod seek {
 
   fn line_comment(reader: &mut SourceReader) -> AsterResult<()> {
     if !begins_with(reader, consts::punctuation::LINE_COMMENT) {
-      return ExpectedSnafu { what: "Line Comment (//)", offset: reader.offset() }.fail();
+      return ExpectedSnafu {
+        what: "Line Comment (//)",
+        offset: reader.offset()
+      }.fail();
     };
 
     loop {
       match reader.read_ch() {
-        Ok('\n') | Err(_) => { break; },
-        _ => ()
+        Ok('\n') | Err(_) => break,
+        _ => {}
       };
     };
 
@@ -30,20 +33,26 @@ pub mod seek {
 
   fn multiline_comment(reader: &mut SourceReader) -> AsterResult<()> {
     if !begins_with(reader, consts::grouping::OPEN_MULTILINE_COMMENT) {
-      return ExpectedSnafu { what: "Open Multiline Comment (/*)", offset: reader.offset() }.fail();
+      return ExpectedSnafu {
+        what: "Open Multiline Comment (/*)",
+        offset: reader.offset()
+      }.fail();
     };
 
     loop {
       if reader.remaining() == 0 {
-        return ExpectedSnafu { what: "End Multiline Comment (*/)", offset: reader.offset() }.fail();
+        return ExpectedSnafu {
+          what: "End Multiline Comment (*/)",
+          offset: reader.offset()
+        }.fail();
       };
 
       if begins_with(reader, consts::grouping::CLOSE_MULTILINE_COMMENT) {
         break;
-      }
+      };
 
       reader.seek(1).unwrap();
-    }
+    };
 
     Ok(())
   }
@@ -56,16 +65,16 @@ pub mod seek {
         line_comment(reader)?;
       } else if read::begins_with(reader, consts::grouping::OPEN_MULTILINE_COMMENT) {
         multiline_comment(reader)?;
-      };
+      } else {
+        match reader.read_ch() {
+          Ok(' ' | '\r' | '\n' | '\t' | '\x0b') => {},
+          Err(_) => break,
+          _ => {
+            reader.rewind(1).unwrap();
 
-      match reader.read_ch() {
-        Ok(' ' | '\r' | '\n' | '\t' | '\x0b') => (),
-        Err(_) => { break; },
-        _ => {
-          reader.rewind(1).unwrap();
-
-          break;
-        }
+            break;
+          }
+        };
       };
 
       ctr += 1;
@@ -80,7 +89,10 @@ pub mod seek {
     if len != 0 {
       Ok(len)
     } else {
-      ExpectedSnafu { what: "Whitespace", offset: reader.offset() }.fail()
+      ExpectedSnafu {
+        what: "Whitespace",
+        offset: reader.offset()
+      }.fail()
     }
   }
 
@@ -99,10 +111,7 @@ pub mod read {
   use super::SourceReader;
 
   pub fn begins_with(reader: &mut SourceReader, a: &str) -> bool {
-    let Some(b) = reader.peek(a.len()) else {
-      return false;
-    };
-
-    a == b
+    reader.peek(a.len())
+      .is_some_and(|b| a == b)
   }
 }

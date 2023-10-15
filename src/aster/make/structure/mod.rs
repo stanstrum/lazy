@@ -103,16 +103,17 @@ impl Structure {
 
         ident.to_hashable()
       },
-      Structure::Import(_) => unreachable!(),
+      Structure::Import(_)
+      | Structure::Imported(_) => unreachable!(),
     }
   }
 
   pub fn assign_to_hashmap(self, map: &mut HashMap<String, Self>) {
     match &self {
       Self::Import(import) => {
-        for (key, value) in import.imported.to_owned() {
-          map.insert(key, value);
-        };
+        // for (key, value) in import.imported.to_owned() {
+        //   map.insert(key, value);
+        // };
       },
       _ => {
         let key = self.to_hashable();

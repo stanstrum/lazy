@@ -61,6 +61,7 @@ impl Checker {
           };
         },
         Structure::Import(_) => todo!("resolve_ns import"),
+        Structure::Imported(_) => {},
       };
     };
 

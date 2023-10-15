@@ -115,9 +115,27 @@ pub struct ExternDeclAST {
 }
 
 #[derive(Debug, Clone)]
+pub enum ImportPatternAST {
+  Qualify {
+    span: Span,
+    ident: IdentAST,
+    child: Box<ImportPatternAST>
+  },
+  Brace {
+    span: Span,
+    children: Vec<ImportPatternAST>
+  },
+  Ident {
+    span: Span,
+    ident: IdentAST, alias: Option<IdentAST>
+  }
+}
+
+#[derive(Debug, Clone)]
 pub struct ImportAST {
   pub span: Span,
-  pub imported: HashMap<String, Structure>
+  pub ns: NamespaceAST,
+  pub pattern: ImportPatternAST
 }
 
 #[derive(Debug, Clone)]
@@ -129,7 +147,8 @@ pub enum Structure {
   Impl(Impl),
   TypeAlias(TypeAliasAST),
   ExternDecl(ExternDeclAST),
-  Import(ImportAST)
+  Import(ImportAST),
+  Imported(*mut Self)
 }
 
 impl GetSpan for Impl {
@@ -137,6 +156,16 @@ impl GetSpan for Impl {
     match self {
       Impl::Impl(s) => s.span.clone(),
       Impl::ImplFor(s) => s.span.clone(),
+    }
+  }
+}
+
+impl GetSpan for ImportPatternAST {
+  fn span(&self) -> Span {
+    match self {
+      ImportPatternAST::Qualify { span, .. } => span.clone(),
+      ImportPatternAST::Brace { span, .. } => span.clone(),
+      ImportPatternAST::Ident { span, .. } => span.clone(),
     }
   }
 }
@@ -151,7 +180,8 @@ impl GetSpan for &Structure {
       Structure::TypeAlias(s) => s.span(),
       Structure::Struct(s) => s.span(),
       Structure::ExternDecl(r#extern) => r#extern.span(),
-      Structure::Import(import) => import.span()
+      Structure::Import(import) => import.span(),
+      Structure::Imported(_) => unreachable!()
     }
   }
 }

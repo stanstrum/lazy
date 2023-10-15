@@ -125,6 +125,7 @@ impl std::string::ToString for Structure {
         text
       },
       Structure::Import(_) => todo!("to_string import"),
+      Structure::Imported(_) => "".to_string()
     }
   }
 }

@@ -19,33 +19,7 @@ use crate::{
   try_make, intent
 };
 
-enum ImportPattern {
-  Qualify {
-    span: Span,
-    ident: IdentAST,
-    child: Box<ImportPattern>
-  },
-  Brace {
-    span: Span,
-    children: Vec<ImportPattern>
-  },
-  Ident {
-    span: Span,
-    ident: IdentAST, alias: Option<IdentAST>
-  }
-}
-
-impl GetSpan for ImportPattern {
-  fn span(&self) -> Span {
-    match self {
-      ImportPattern::Qualify { span, .. } => span.clone(),
-      ImportPattern::Brace { span, .. } => span.clone(),
-      ImportPattern::Ident { span, .. } => span.clone(),
-    }
-  }
-}
-
-impl ImportPattern {
+impl ImportPatternAST {
   fn make_qualify(reader: &mut SourceReader) -> AsterResult<Self> {
     NotImplementedSnafu {
       what: "make_qualify",
@@ -89,11 +63,11 @@ impl ImportPattern {
   }
 
   fn make(reader: &mut SourceReader) -> AsterResult<Self> {
-    if let Some(qualify) = try_make!(ImportPattern::make_qualify, reader) {
+    if let Some(qualify) = try_make!(ImportPatternAST::make_qualify, reader) {
       Ok(qualify)
-    } else if let Some(brace) = try_make!(ImportPattern::make_brace, reader) {
+    } else if let Some(brace) = try_make!(ImportPatternAST::make_brace, reader) {
       Ok(brace)
-    } else if let Some(ident) = try_make!(ImportPattern::make_ident, reader) {
+    } else if let Some(ident) = try_make!(ImportPatternAST::make_ident, reader) {
       Ok(ident)
     } else {
       reader.set_intent(
@@ -111,7 +85,6 @@ impl ImportPattern {
   }
 }
 
-
 impl ImportAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
@@ -128,7 +101,7 @@ impl ImportAST {
       seek::required_whitespace(reader)?;
     };
 
-    let pattern = intent!(ImportPattern::make, reader)?;
+    let pattern = intent!(ImportPatternAST::make, reader)?;
 
     reader.rewind(1).unwrap();
 
@@ -192,15 +165,13 @@ impl ImportAST {
     // swap the new reader into place
     unsafe { std::ptr::swap(new_reader, reader); };
 
-    let global = intent!(asterize, reader)?;
+    let ns = intent!(asterize, reader)?;
     // swap the old reader back
     unsafe { std::ptr::swap(new_reader, reader); };
 
-    let map = pattern.to_map(global);
-
     Ok(Self {
       span: reader.span_since(start),
-      imported: map
+      ns, pattern
     })
   }
 }

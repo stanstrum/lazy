@@ -72,4 +72,8 @@ impl IdentAST {
       }.fail()
     }
   }
+
+  pub fn to_hashable(&self) -> String {
+    self.text.to_owned()
+  }
 }

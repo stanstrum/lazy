@@ -34,13 +34,13 @@ pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {
     ident, map: HashMap::new()
   };
 
-  loop {
+  for unique_ctr in 0.. {
     seek::optional_whitespace(reader)?;
     if reader.remaining() == 0 {
       break;
     };
 
-    let (name, structure) = Structure::make(reader)?;
+    let structure = Structure::make(reader)?;
     if !seek::begins_with(reader, consts::punctuation::SEMICOLON) {
       return reader.set_intent_error(ExpectedSnafu {
         what: "Punctuation (\";\")",
@@ -48,7 +48,9 @@ pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {
       }.fail());
     };
 
-    global.map.insert(name, structure);
+    let key = structure.to_hashable(unique_ctr);
+    // todo: https://stackoverflow.com/a/28512504/6496600
+    global.map.insert(key, structure);
   };
 
   Ok(global)

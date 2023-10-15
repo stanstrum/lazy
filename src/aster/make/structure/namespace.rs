@@ -41,14 +41,17 @@ impl NamespaceAST {
       }.fail();
     };
 
-    loop {
+    for unique_ctr in 0.. {
       seek::optional_whitespace(reader)?;
 
       if seek::begins_with(reader, consts::grouping::CLOSE_BRACE) {
         break;
       };
 
-      let (key, structure) = Structure::make(reader)?;
+      let structure = Structure::make(reader)?;
+
+      let key = structure.to_hashable(unique_ctr);
+      // todo: https://stackoverflow.com/a/28512504/6496600
       map.insert(key, structure);
 
       seek::optional_whitespace(reader)?;

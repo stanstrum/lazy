@@ -42,7 +42,8 @@ impl TypeAST {
       if !seek::begins_with(reader, consts::grouping::CLOSE_BRACKET) {
         return ExpectedSnafu {
           what: "Closing Bracket",
-          offset: reader.offset()
+          offset: reader.offset(),
+          path: reader.path.clone()
         }.fail();
       };
 
@@ -56,7 +57,11 @@ impl TypeAST {
       })
     } else {
       let Some(qual) = try_make!(QualifiedAST::make, reader) else {
-        return ExpectedSnafu { what: "Qualified Ident", offset: reader.offset() }.fail();
+        return ExpectedSnafu {
+          what: "Qualified Ident",
+          offset: reader.offset(),
+          path: reader.path.clone()
+        }.fail();
       };
 
       Ok(Self {

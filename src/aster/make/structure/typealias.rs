@@ -21,7 +21,8 @@ impl TypeAliasAST {
     if !seek::begins_with(reader, consts::keyword::TYPE) {
       return ExpectedSnafu {
         what: "Keyword (type)",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -34,7 +35,8 @@ impl TypeAliasAST {
     if !seek::begins_with(reader, consts::punctuation::BOLLOCKS) {
       return ExpectedSnafu {
         what: "Punctuation (\":=\")",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 

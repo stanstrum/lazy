@@ -23,7 +23,8 @@ impl NamespaceAST {
     if !seek::begins_with(reader, consts::keyword::NAMESPACE) {
       return ExpectedSnafu {
         what: "Namespace",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -37,7 +38,8 @@ impl NamespaceAST {
     if !seek::begins_with(reader, consts::grouping::OPEN_BRACE) {
       return ExpectedSnafu {
         what: "Open Brace",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -56,7 +58,8 @@ impl NamespaceAST {
       if !seek::begins_with(reader, consts::punctuation::SEMICOLON) {
         return ExpectedSnafu {
           what: "Punctuation (\";\")",
-          offset: reader.offset()
+          offset: reader.offset(),
+          path: reader.path.clone()
         }.fail();
       };
     };

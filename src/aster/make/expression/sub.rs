@@ -21,7 +21,8 @@ impl SubExpressionAST {
     if !seek::begins_with(reader, consts::grouping::OPEN_PARENTHESIS) {
       return ExpectedSnafu {
         what: "Open Parenthesis",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -34,7 +35,8 @@ impl SubExpressionAST {
     if !seek::begins_with(reader, consts::grouping::CLOSE_PARENTHESIS) {
       return ExpectedSnafu {
         what: "Close Parenthesis",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 

@@ -16,7 +16,8 @@ fn parse_methods(reader: &mut SourceReader) -> AsterResult<Vec<MemberFunctionAST
   if !seek::begins_with(reader, consts::grouping::OPEN_BRACE) {
     return ExpectedSnafu {
       what: "Punctuation (\"{\")",
-      offset: reader.offset()
+      offset: reader.offset(),
+        path: reader.path.clone()
     }.fail();
   };
 
@@ -34,7 +35,8 @@ fn parse_methods(reader: &mut SourceReader) -> AsterResult<Vec<MemberFunctionAST
     if !seek::begins_with(reader, consts::punctuation::SEMICOLON) {
       return ExpectedSnafu {
         what: "Punctuation (\";\")",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
   };
@@ -49,7 +51,8 @@ impl ImplAST {
     if !seek::begins_with(reader, consts::keyword::IMPL) {
       return ExpectedSnafu {
         what: "Keyword (impl)",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -75,7 +78,8 @@ impl ImplForAST {
     if !seek::begins_with(reader, consts::keyword::IMPL) {
       return ExpectedSnafu {
         what: "Keyword (impl)",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -88,7 +92,8 @@ impl ImplForAST {
     if !seek::begins_with(reader, consts::punctuation::COLON) {
       return ExpectedSnafu {
         what: "Punctuation (\":\")",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 

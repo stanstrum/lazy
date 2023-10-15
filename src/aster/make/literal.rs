@@ -52,7 +52,8 @@ fn make_escape_sequence(reader: &mut SourceReader) -> AsterResult<char> {
     _ => {
       ExpectedSnafu {
         what: "Escape Sequence",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone().clone()
       }.fail()
     }
   }
@@ -99,7 +100,8 @@ impl LiteralAST {
     if reader.offset() == numeric_body_start {
       return ExpectedSnafu {
         what: "Numeric Literal",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone().clone()
       }.fail();
     };
 
@@ -136,7 +138,8 @@ impl LiteralAST {
       Some(_) | None => {
         return ExpectedSnafu {
           what: "String Literal",
-          offset: reader.offset()
+          offset: reader.offset(),
+          path: reader.path.clone()
         }.fail()
       }
     };
@@ -144,7 +147,8 @@ impl LiteralAST {
     if !seek::begins_with(reader, consts::punctuation::QUOTE) {
       return ExpectedSnafu {
         what: "Quotation Mark",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -158,7 +162,8 @@ impl LiteralAST {
         Err(_) => {
           return ExpectedSnafu {
             what: "String Literal",
-            offset: reader.offset()
+            offset: reader.offset(),
+            path: reader.path.clone()
           }.fail();
         },
       };
@@ -191,7 +196,8 @@ impl LiteralAST {
       None => {
         return ExpectedSnafu {
           what: "Char Literal",
-          offset: reader.offset()
+          offset: reader.offset(),
+          path: reader.path.clone()
         }.fail();
       }
     };
@@ -199,7 +205,8 @@ impl LiteralAST {
     if !seek::begins_with(reader, consts::punctuation::APOSTROPHE) {
       return ExpectedSnafu {
         what: "Single Quote",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -209,7 +216,8 @@ impl LiteralAST {
       Err(_) => {
         return ExpectedSnafu {
           what: "Character",
-          offset: reader.offset()
+          offset: reader.offset(),
+          path: reader.path.clone()
         }.fail();
       }
     };
@@ -217,7 +225,8 @@ impl LiteralAST {
     if !seek::begins_with(reader, consts::punctuation::APOSTROPHE) {
       return ExpectedSnafu {
         what: "Single Quote",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -242,7 +251,8 @@ impl LiteralAST {
     } else {
       ExpectedSnafu {
         what: "Literal",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail()
     }
   }

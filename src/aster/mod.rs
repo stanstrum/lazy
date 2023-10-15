@@ -44,7 +44,8 @@ pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {
     if !seek::begins_with(reader, consts::punctuation::SEMICOLON) {
       return reader.set_intent_error(ExpectedSnafu {
         what: "Punctuation (\";\")",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail());
     };
 

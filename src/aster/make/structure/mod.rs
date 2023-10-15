@@ -48,7 +48,11 @@ impl Structure {
     } else if let Some(r#struct) = try_make!(StructAST::make, reader) {
       Ok(Structure::Struct(r#struct))
     } else {
-      UnknownSnafu { what: "Structure", offset: reader.offset() }.fail()
+      UnknownSnafu {
+        what: "Structure",
+        offset: reader.offset(),
+        path: reader.path.clone()
+      }.fail()
     }
   }
 

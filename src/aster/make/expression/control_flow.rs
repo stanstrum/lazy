@@ -23,7 +23,8 @@ impl ControlFlowAST {
     if !seek::begins_with(reader, consts::keyword::WHILE) {
       return ExpectedSnafu {
         what: "Keyword (while)",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -49,7 +50,8 @@ impl ControlFlowAST {
     if !seek::begins_with(reader, consts::keyword::LOOP) {
       return ExpectedSnafu {
         what: "Keyword (loop)",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -69,7 +71,8 @@ impl ControlFlowAST {
     if !seek::begins_with(reader, consts::keyword::IF) {
       return ExpectedSnafu {
         what: "Keyword (if)",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -123,7 +126,8 @@ impl ControlFlowAST {
     } else {
       ExpectedSnafu {
         what: "Control Flow",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail()
     }
   }

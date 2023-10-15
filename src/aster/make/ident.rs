@@ -23,7 +23,8 @@ impl IdentAST {
       let Ok(first) = reader.read(1) else {
         return ExpectedSnafu {
           what: "More characters (for Ident)",
-          offset: reader.offset()
+          offset: reader.offset(),
+          path: reader.path.clone()
         }.fail();
       };
 
@@ -38,7 +39,8 @@ impl IdentAST {
 
           return ExpectedSnafu {
             what: "Ident",
-            offset: reader.offset()
+            offset: reader.offset(),
+            path: reader.path.clone()
           }.fail();
         },
         _ => {
@@ -68,7 +70,8 @@ impl IdentAST {
     } else {
       ExpectedSnafu {
         what: "Ident",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail()
     }
   }

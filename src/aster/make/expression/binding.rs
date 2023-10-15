@@ -47,7 +47,8 @@ impl BindingAST {
     if !seek::begins_with(reader, consts::punctuation::BOLLOCKS) {
       return ExpectedSnafu {
         what: "Punctuation (\":=\")",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -83,7 +84,8 @@ impl BindingAST {
     if ty.is_none() && value.is_none() {
       return ExpectedSnafu {
         what: "Value expression",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 

@@ -21,7 +21,8 @@ impl StructAST {
     if !seek::begins_with(reader, consts::keyword::STRUCT) {
       return ExpectedSnafu {
         what: "Struct",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -34,7 +35,8 @@ impl StructAST {
     if !seek::begins_with(reader, consts::grouping::OPEN_BRACE) {
       return ExpectedSnafu {
         what: "Open Brace",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -60,7 +62,8 @@ impl StructAST {
         if !seek::begins_with(reader, consts::grouping::CLOSE_BRACE) {
           return ExpectedSnafu {
             what: "Close Brace",
-            offset: reader.offset()
+            offset: reader.offset(),
+        path: reader.path.clone()
           }.fail();
         };
 

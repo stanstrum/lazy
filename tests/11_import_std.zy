@@ -1,0 +1,7 @@
+import std from "std/index.zy";
+
+main -> i32 {
+  std::libc::printf(c"Hello, world!\n");
+
+  0
+};

@@ -158,7 +158,8 @@ impl Expression {
     } else {
       ExpectedSnafu {
         what: "Expression (BlockExpression, AtomExpression)",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail()
     }
   }
@@ -199,7 +200,8 @@ impl Expression {
 
       ExpectedSnafu {
         what: "Binary Operator Latter Half",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail()
     }
   }
@@ -230,7 +232,8 @@ impl Expression {
 
       ExpectedSnafu {
         what: "Unary Prefix Operator",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail()
     }
   }
@@ -261,7 +264,8 @@ impl Expression {
 
       ExpectedSnafu {
         what: "Unary Prefix Operator",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail()
     }
   }
@@ -293,7 +297,8 @@ impl Expression {
       } else {
         ExpectedSnafu {
           what: "Unary Prefix Operator",
-          offset: reader.offset()
+          offset: reader.offset(),
+        path: reader.path.clone()
         }.fail()
       }
     }
@@ -328,7 +333,8 @@ impl Expression {
           if !seek::begins_with(reader, consts::grouping::CLOSE_PARENTHESIS) {
             return ExpectedSnafu {
               what: "Close Parenthesis",
-              offset: reader.offset()
+              offset: reader.offset(),
+        path: reader.path.clone()
             }.fail();
           } else {
             break;
@@ -346,7 +352,8 @@ impl Expression {
 
       ExpectedSnafu {
         what: "Unary Prefix Operator",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail()
     }
   }
@@ -383,7 +390,8 @@ impl Expression {
 
       ExpectedSnafu {
         what: "Unary Prefix Operator",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail()
     }
   }
@@ -408,7 +416,8 @@ impl Expression {
           } else {
             return ExpectedSnafu {
               what: "Expression",
-              offset: reader.offset()
+              offset: reader.offset(),
+        path: reader.path.clone()
             }.fail();
           };
         },
@@ -426,7 +435,8 @@ impl Expression {
           } else {
             return ExpectedSnafu {
               what: "Expression",
-              offset: reader.offset()
+              offset: reader.offset(),
+        path: reader.path.clone()
             }.fail();
           };
         },

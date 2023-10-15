@@ -24,7 +24,8 @@ impl KeywordAST {
     } else {
       ExpectedSnafu {
         what: format!("Keyword ({})", text),
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail()
     }
   }

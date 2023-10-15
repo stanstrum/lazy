@@ -27,7 +27,8 @@ impl AtomExpressionAST {
     if is_ident || !seek::begins_with(reader, consts::keyword::RETURN) {
       return ExpectedSnafu {
         what: "Keyword (return)",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -72,7 +73,8 @@ impl AtomExpressionAST {
     } else {
       UnknownSnafu {
         what: "Expression",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail()
     }
   }

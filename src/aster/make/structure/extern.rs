@@ -24,6 +24,7 @@ impl ExternDeclAST {
       return ExpectedSnafu {
         what: "Keyword (\"extern\")",
         offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 

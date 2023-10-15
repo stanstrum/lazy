@@ -83,10 +83,17 @@ fn compile() -> Result<(), LazyError> {
 
   let src = match std::fs::read_to_string(&path) {
     Ok(src) => src,
-    Err(err) => { return IOSnafu { msg: format!("{}: {}", path.to_string_lossy(), err) }.fail() }
+    Err(err) => {
+      return IOSnafu {
+        msg: format!("{}: {}",
+          path.to_string_lossy(),
+          err.to_string()
+        )
+      }.fail()
+    }
   };
 
-  let reader = &mut aster::SourceReader::new(&src);
+  let ref mut reader = aster::SourceReader::new(path, &src);
 
   println!("Parsing AST ...");
   let asterized = match aster::asterize(reader) {
@@ -96,7 +103,7 @@ fn compile() -> Result<(), LazyError> {
         println!("err is Some({err:#?}), offset is {}", reader.get_intent_offset());
 
         let offset = std::cmp::max(
-          std::cmp::max(reader.get_intent_offset(), err.get_offset()),
+          std::cmp::max(reader.get_intent_offset(), err.offset()),
           reader.offset()
         );
 
@@ -112,7 +119,7 @@ fn compile() -> Result<(), LazyError> {
       };
 
       return CompilationSnafu {
-        msg: format_message(reader.src(), message)
+        msg: format_message(&err.src(), message)
       }.fail();
     }
   };

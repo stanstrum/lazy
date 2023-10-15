@@ -25,7 +25,8 @@ impl BlockExpressionAST {
     if !seek::begins_with(reader, consts::grouping::OPEN_BRACE) {
       return ExpectedSnafu {
         what: "Open Curly Brace",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -48,7 +49,8 @@ impl BlockExpressionAST {
         } else {
           return ExpectedSnafu {
             what: "Expression or Binding",
-            offset: reader.offset()
+            offset: reader.offset(),
+            path: reader.path.clone()
           }.fail();
         }
       };
@@ -63,7 +65,8 @@ impl BlockExpressionAST {
         } else {
           return ExpectedSnafu {
             what: "Close Curly Brace or Semicolon",
-            offset: reader.offset()
+            offset: reader.offset(),
+            path: reader.path.clone()
           }.fail();
         };
       };

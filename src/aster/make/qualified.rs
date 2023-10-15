@@ -43,7 +43,8 @@ impl QualifiedAST {
     if parts.is_empty() {
       return ExpectedSnafu {
         what: "Qualified Ident",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 

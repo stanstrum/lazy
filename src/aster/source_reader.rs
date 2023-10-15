@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use std::path::PathBuf;
+
 use snafu::prelude::*;
 
 use super::{
@@ -19,7 +21,10 @@ pub enum SourceReaderError {
   InvalidSeekRewind,
 }
 
+#[derive(Clone)]
 pub struct SourceReader<'a> {
+  pub path: PathBuf,
+
   src: &'a String,
   offset: usize,
 
@@ -28,9 +33,10 @@ pub struct SourceReader<'a> {
 }
 
 impl<'a> SourceReader<'a> {
-  pub fn new(src: &'a String) -> Self {
+  pub fn new(path: PathBuf, src: &'a String) -> Self {
     Self {
-      src, offset: 0,
+      path, src,
+      offset: 0,
       intent_offset: 0,
       intent_error: None
     }

@@ -87,10 +87,13 @@ mod tests {
     ($name:ident, $reader:ident => $body:tt) => {
       #[test]
       fn $name() {
+        let filename = concat!("../../../tests/", stringify!($name), ".zy");
         let src_as_str = include_str!(concat!("../../../tests/", stringify!($name), ".zy"));
-        let src = src_as_str.to_string();
 
-        let ref mut $reader = SourceReader::new(&src);
+        let path = std::path::Path::new(filename);
+
+        let src = src_as_str.to_string();
+        let ref mut $reader = SourceReader::new(path.to_path_buf(), &src);
 
         $body
       }

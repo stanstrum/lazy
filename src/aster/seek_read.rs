@@ -17,7 +17,8 @@ pub mod seek {
     if !begins_with(reader, consts::punctuation::LINE_COMMENT) {
       return ExpectedSnafu {
         what: "Line Comment (//)",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -35,7 +36,8 @@ pub mod seek {
     if !begins_with(reader, consts::grouping::OPEN_MULTILINE_COMMENT) {
       return ExpectedSnafu {
         what: "Open Multiline Comment (/*)",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail();
     };
 
@@ -43,7 +45,8 @@ pub mod seek {
       if reader.remaining() == 0 {
         return ExpectedSnafu {
           what: "End Multiline Comment (*/)",
-          offset: reader.offset()
+          offset: reader.offset(),
+          path: reader.path.clone()
         }.fail();
       };
 
@@ -91,7 +94,8 @@ pub mod seek {
     } else {
       ExpectedSnafu {
         what: "Whitespace",
-        offset: reader.offset()
+        offset: reader.offset(),
+        path: reader.path.clone()
       }.fail()
     }
   }

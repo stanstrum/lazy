@@ -85,10 +85,21 @@ impl ImportAST {
       },
     };
 
-    let ref mut new_reader = reader.clone();
+    let ref mut new_reader = unsafe {
+      let reader = SourceReader::new(path, &src);
+
+      // this will be okay since nowhere do we save a string slice
+      // to the source. we do this because we want the AST to be
+      // valid even if the reader is destroyed to save memory.
+      // additionally, none of the parsing of the imported file
+      // will require the source of the file that imported it.
+      std::mem::transmute(reader)
+    };
+    // swap the new reader into place
     unsafe { std::ptr::swap(new_reader, reader); };
 
     let global = asterize(reader)?;
+    // swap the old reader back
     unsafe { std::ptr::swap(new_reader, reader); };
 
     let map = import_pattern_to_map(pattern, global);

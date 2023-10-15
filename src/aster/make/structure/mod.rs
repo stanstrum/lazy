@@ -14,6 +14,8 @@ mod typealias;
 mod r#struct;
 mod r#extern;
 
+use std::collections::HashMap;
+
 use crate::aster::{
   ast::*,
   SourceReader,
@@ -50,7 +52,7 @@ impl Structure {
     }
   }
 
-  pub fn to_hashable(&self, unique_ctr: usize) -> String {
+  pub fn to_hashable(&self) -> String {
     match self {
       Structure::Function(func) => {
         let ident = &func.decl.ident;
@@ -98,7 +100,22 @@ impl Structure {
 
         ident.to_hashable()
       },
-      Structure::Import(_) => format!("!import!{unique_ctr}"),
+      Structure::Import(_) => unreachable!(),
     }
+  }
+
+  pub fn assign_to_hashmap(self, map: &mut HashMap<String, Self>) {
+    match &self {
+      Self::Import(import) => {
+        for (key, value) in import.imported.to_owned() {
+          map.insert(key, value);
+        };
+      },
+      _ => {
+        let key = self.to_hashable();
+
+        map.insert(key, self);
+      }
+    };
   }
 }

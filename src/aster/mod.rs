@@ -34,7 +34,7 @@ pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {
     ident, map: HashMap::new()
   };
 
-  for unique_ctr in 0.. {
+  loop {
     seek::optional_whitespace(reader)?;
     if reader.remaining() == 0 {
       break;
@@ -48,9 +48,7 @@ pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {
       }.fail());
     };
 
-    let key = structure.to_hashable(unique_ctr);
-    // todo: https://stackoverflow.com/a/28512504/6496600
-    global.map.insert(key, structure);
+    structure.assign_to_hashmap(&mut global.map);
   };
 
   Ok(global)

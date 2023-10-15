@@ -14,6 +14,7 @@ use std::collections::HashMap;
 pub struct NamespaceAST {
   pub span: Span,
   pub ident: IdentAST,
+  // todo: turn this to Hashmap<IdentAST, Structure> for consistency
   pub map: HashMap<String, Structure>,
 }
 
@@ -116,6 +117,7 @@ pub struct ExternDeclAST {
 #[derive(Debug, Clone)]
 pub struct ImportAST {
   pub span: Span,
+  pub imported: HashMap<String, Structure>
 }
 
 #[derive(Debug, Clone)]

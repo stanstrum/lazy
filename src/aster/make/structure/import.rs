@@ -63,11 +63,29 @@ impl ImportPattern {
   }
 
   fn make_ident(reader: &mut SourceReader) -> AsterResult<Self> {
-    NotImplementedSnafu {
-      what: "make_ident",
-      offset: reader.offset(),
-      path: reader.path.clone()
-    }.fail()
+    let start = reader.offset();
+
+    let ident = IdentAST::make(reader)?;
+
+    let alias = {
+      let whitespace = seek::optional_whitespace(reader)?;
+
+      if !seek::begins_with(reader, "as") {
+        reader.rewind(whitespace).unwrap();
+
+        None
+      } else {
+        intent!(seek::required_whitespace, reader)?;
+
+        let alias = intent!(IdentAST::make, reader)?;
+        Some(alias)
+      }
+    };
+
+    Ok(Self::Ident {
+      span: reader.span_since(start),
+      ident, alias
+    })
   }
 
   fn make(reader: &mut SourceReader) -> AsterResult<Self> {

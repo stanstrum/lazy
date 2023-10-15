@@ -99,6 +99,9 @@ fn compile() -> Result<(), LazyError> {
   let asterized = match aster::asterize(reader) {
     Ok(asterized) => asterized,
     Err(err) => {
+      let err = reader.get_intent_error()
+        .unwrap_or(err);
+
       let message = {
         println!("err is Some({err:#?}), offset is {}", reader.get_intent_offset());
 

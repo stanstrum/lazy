@@ -48,7 +48,10 @@ impl<'a> SourceReader<'a> {
 
   pub fn set_intent_error<T: Clone>(&mut self, result: AsterResult<T>) -> AsterResult<T> {
     if result.is_err() {
-      self.intent_error = Some(unsafe { result.clone().unwrap_err_unchecked() });
+      let err = unsafe { result.as_ref().unwrap_err_unchecked() };
+
+      self.intent_offset = err.offset();
+      self.intent_error = Some(err.to_owned());
     };
 
     result

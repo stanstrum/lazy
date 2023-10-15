@@ -13,6 +13,7 @@ mod namespace;
 mod typealias;
 mod r#struct;
 mod r#extern;
+mod import;
 
 use std::collections::HashMap;
 
@@ -29,7 +30,9 @@ use super::try_make;
 
 impl Structure {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
-    if let Some(func) = try_make!(FunctionAST::make, reader) {
+    if let Some(import) = try_make!(ImportAST::make, reader) {
+      Ok(Structure::Import(import))
+    } else if let Some(func) = try_make!(FunctionAST::make, reader) {
       Ok(Structure::Function(func))
     } else if let Some(extern_decl) = try_make!(ExternDeclAST::make, reader) {
       Ok(Structure::ExternDecl(extern_decl))

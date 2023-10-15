@@ -25,18 +25,21 @@ pub enum Level {
 impl std::string::ToString for Level {
   fn to_string(&self) -> String {
     match self {
-      Level::Debug => {
-        format!("{BOLD}{MAGENTA}debug{CLEAR}")
-      },
-      Level::Note => {
-        format!("{BOLD}{CYAN}note{CLEAR}")
-      },
-      Level::Warning => {
-        format!("{BOLD}{YELLOW}warning{CLEAR}")
-      },
-      Level::Error => {
-        format!("{BOLD}{RED}error{CLEAR}")
-      },
+      Level::Debug => "debug".to_string(),
+      Level::Note => "note".to_string(),
+      Level::Warning => "warning".to_string(),
+      Level::Error => "error".to_string(),
+    }
+  }
+}
+
+impl Level {
+  pub fn colorize(&self, text: &String) -> String {
+    match self {
+      Level::Debug => format!("{BOLD}{MAGENTA}{text}{CLEAR}"),
+      Level::Note => format!("{BOLD}{CYAN}{text}{CLEAR}"),
+      Level::Warning => format!("{BOLD}{YELLOW}{text}{CLEAR}"),
+      Level::Error => format!("{BOLD}{RED}{text}{CLEAR}"),
     }
   }
 }
@@ -123,7 +126,7 @@ fn space_pad_line_to_len<T: Into<u32>>(pfx_len: usize, line_no: T) -> String {
 
   format!(
     "{}{}",
-    " ".repeat(pfx_len - line_no_len),
+    " ".repeat(pfx_len - line_no_len + 1),
     line_no
   )
 }
@@ -157,14 +160,41 @@ pub fn format_message(src: &String, message: Message) -> String {
 
   // dbg!(start_line, start_col, end_line, end_col);
 
+  let level_name = message.level.to_string();
+
   let mut w: Vec<u8> = vec![];
 
-  writeln!(&mut w, "{}: {}", message.level.to_string(), message.msg).unwrap();
+  writeln!(&mut w, "{}: {BOLD}{}{CLEAR}",
+    message.level.colorize(&level_name),
+    message.msg
+  ).unwrap();
+
+  let cwd = std::env::current_dir()
+    .expect("cwd failed");
+
+  let mut path = message.span.path.clone();
+  if path.starts_with(&cwd) {
+    path = path.strip_prefix(cwd)
+      .expect("failed to strip path prefix for error reporting")
+      .to_path_buf();
+  };
+
+  writeln!(&mut w, "{}{}: {}:{}:{}",
+    // make "in: " align with message type, e.g.
+    // error: ...
+    //    at: ...
+    " ".repeat(level_name.len().max(2) - 2),
+    message.level.colorize(&"at".to_string()),
+    path.to_string_lossy().to_string(),
+    start_line + 1,
+    start_col + 1
+  ).unwrap();
+
   if start_line != end_line {
     let pfx_len = num_length(end_line as u32 + 1);
 
     writeln!(&mut w, "{} |",
-      " ".repeat(pfx_len)
+      " ".repeat(pfx_len + 1)
     ).unwrap();
 
     writeln!(&mut w, "{} | {}",
@@ -175,8 +205,8 @@ pub fn format_message(src: &String, message: Message) -> String {
     // let (_, end_of_first_line) = line_col(src, start_end(src, start).1);
     let (start_of_first_line, end_of_first_line) = start_end(src, start);
 
-    writeln!(&mut w, "{} | {}{}",
-      " ".repeat(pfx_len),
+    writeln!(&mut w, "{BOLD}{}{CLEAR} | {}{}",
+      " ".repeat(pfx_len + 1),
       " ".repeat(start_col),
       "─".repeat(end_of_first_line - start_of_first_line - start_col)
     ).unwrap();
@@ -185,14 +215,14 @@ pub fn format_message(src: &String, message: Message) -> String {
       let code = get_code_of_line(src, between_line);
 
       writeln!(&mut w,
-        "{} | {}",
+        "{BOLD}{}{CLEAR} | {}",
         space_pad_line_to_len(pfx_len, between_line as u32),
         code
       ).unwrap();
 
       write!(&mut w,
-        "{} | {}",
-        " ".repeat(pfx_len),
+        "{BOLD}{}{CLEAR} | {}",
+        " ".repeat(pfx_len + 1),
         "─".repeat(code.len())
       ).unwrap();
 
@@ -234,6 +264,6 @@ pub fn format_message(src: &String, message: Message) -> String {
 
 impl SourceReader<'_> {
   pub fn span_since(&self, start: usize) -> Span {
-    Span { start, end: self.offset }
+    Span { start, end: self.offset, path: self.path.clone() }
   }
 }

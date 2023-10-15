@@ -114,7 +114,8 @@ fn compile() -> Result<(), LazyError> {
           sub: "here".to_string(),
           span: aster::Span {
             start: offset,
-            end: offset
+            end: offset,
+            path: reader.path.clone()
           }
         }
       };

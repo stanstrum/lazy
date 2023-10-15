@@ -33,7 +33,8 @@ macro_rules! try_make {
     //   sub: "here".to_owned(),
     //   span: Span {
     //     start: $reader.offset(),
-    //     end: $reader.offset()
+    //     end: $reader.offset(),
+    //     path: $reader.path.clone()
     //   }
     // }));
 
@@ -59,7 +60,8 @@ macro_rules! try_make {
         //   sub: e.to_string(),
         //   span: Span {
         //     start: $reader.offset(),
-        //     end: $reader.offset()
+        //     end: $reader.offset(),
+        //     path: $reader.path.clone(),
         //   }
         // };
 

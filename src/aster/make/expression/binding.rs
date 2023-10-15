@@ -26,6 +26,7 @@ impl GetSpan for TypeIdentPair {
     Span {
       start: ty.span.start,
       end: ident.span.end,
+      path: ident.span.path.clone()
     }
   }
 }

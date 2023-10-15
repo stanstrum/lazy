@@ -11,16 +11,19 @@ mod expression;
 mod operator;
 mod r#type;
 
+use std::path::PathBuf;
+
 pub use structure::*;
 pub use ident::*;
 pub use expression::*;
 pub use operator::*;
 pub use r#type::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Span {
   pub start: usize,
   pub end: usize,
+  pub path: PathBuf
 }
 
 pub trait GetSpan {

@@ -26,11 +26,17 @@ mod make;
 pub mod consts;
 
 pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {
-  let span = Span { start: 0, end: 0 };
+  let path = &reader.path;
+
+  let span = Span { start: 0, end: 0, path: path.clone() };
   let ident = IdentAST { span, text: "global".to_string() };
 
   let mut global = NamespaceAST {
-    span: Span { start: 0, end: reader.len() },
+    span: Span {
+      start: 0,
+      end: reader.len(),
+      path: path.clone()
+    },
     ident, map: HashMap::new()
   };
 

@@ -122,45 +122,47 @@ impl Checker {
   fn resolve_atom(&mut self, atom: &mut AtomExpressionAST, coerce_to: Option<&Type>, ) -> TypeCheckResult<Type> {
     match &mut atom.a {
       AtomExpression::Literal(lit) => {
+        let span = &lit.span;
+
         match &lit.l {
           Literal::UnicodeString(unicode) => {
-            let span = lit.span();
-
             let len = LiteralAST {
-              span, l: Literal::IntLiteral(unicode.len().to_string()),
+              span: span.clone(),
+              l: Literal::IntLiteral(unicode.len().to_string()),
             };
 
             let array = Type::ArrayOf(
               Some(len),
               Box::new(TypeAST {
-                span, e: Type::Intrinsic(intrinsics::U32)
+                span: span.clone(),
+                e: Type::Intrinsic(intrinsics::U32)
               })
             );
 
             let array_reference = Type::ConstReferenceTo(Box::new(TypeAST {
-              span,
+              span: span.clone(),
               e: array,
             }));
 
             atom.out = array_reference;
           },
           Literal::ByteString(text) => {
-            let span = lit.span();
-
             let len = LiteralAST {
-              span, l: Literal::IntLiteral(text.len().to_string())
+              span: span.clone(),
+              l: Literal::IntLiteral(text.len().to_string())
             };
 
             let array = Type::ArrayOf(
               Some(len),
               Box::new(TypeAST {
-                span, e: Type::Intrinsic(intrinsics::U8)
+                span: span.clone(),
+                e: Type::Intrinsic(intrinsics::U8)
               })
             );
 
             let array_reference = Type::ConstReferenceTo(
               Box::new(TypeAST {
-                span,
+                span: span.clone(),
                 e: array,
               })
             );
@@ -168,25 +170,25 @@ impl Checker {
             atom.out = array_reference;
           },
           Literal::CString(text) => {
-            let span = lit.span();
-
             // include extra byte for null-terminator
             let size = text.len() + 1;
 
             let len = LiteralAST {
-              span, l: Literal::IntLiteral(size.to_string())
+              span: span.clone(),
+              l: Literal::IntLiteral(size.to_string())
             };
 
             let array = Type::ArrayOf(
               Some(len),
               Box::new(TypeAST {
-                span, e: Type::Intrinsic(intrinsics::U8)
+                span: span.clone(),
+                e: Type::Intrinsic(intrinsics::U8)
               })
             );
 
             let array_reference = Type::ConstReferenceTo(
               Box::new(TypeAST {
-                span,
+                span: span.clone(),
                 e: array,
               })
             );
@@ -504,7 +506,7 @@ impl Checker {
         let ptr_arr_ty = self.resolve_expression(&mut unary.expr, None)?;
         self.resolve_expression(arg, Some(&Type::Intrinsic(intrinsics::USIZE)))?;
 
-        let arr_ty = dereference_type(&ptr_arr_ty, span)?;
+        let arr_ty = dereference_type(&ptr_arr_ty, span.clone())?;
         if !is_array(&arr_ty) {
           return IncompatibleTypeSnafu {
             span,

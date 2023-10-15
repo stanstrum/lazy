@@ -115,6 +115,7 @@ impl GetSpan for BinaryOperatorExpressionAST {
         self.a.span().end,
         self.b.span().end,
       ),
+      path: self.a.span().path
     }
   }
 }

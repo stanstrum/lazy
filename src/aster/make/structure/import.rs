@@ -29,19 +29,68 @@ impl ImportPatternAST {
   }
 
   fn make_brace(reader: &mut SourceReader) -> AsterResult<Self> {
-    // if let Some(qualify) = try_make!(ImportPatternAST::make_qualify, reader) {
-    //   Ok(qualify)
-    // } else if let Some(brace) = try_make!(ImportPatternAST::make_brace, reader) {
-    //   Ok(brace)
-    // } else if let Some(ident) = try_make!(ImportPatternAST::make_ident, reader) {
-    //   Ok(ident)
-    // }
+    let start = reader.offset();
 
-    NotImplementedSnafu {
-      what: "make_pattern",
-      offset: reader.offset(),
-      path: reader.path.clone()
-    }.fail()
+    if !seek::begins_with(reader, consts::grouping::OPEN_BRACE) {
+      return ExpectedSnafu {
+        what: "Open Brace",
+        offset: reader.offset(),
+        path: reader.path.clone(),
+      }.fail();
+    };
+
+    seek::optional_whitespace(reader)?;
+
+    let mut children = Vec::<ImportPatternAST>::new();
+
+    loop {
+      let pattern = {
+        if let Some(qualify) = try_make!(ImportPatternAST::make_qualify, reader) {
+          qualify
+        } else if let Some(brace) = try_make!(ImportPatternAST::make_brace, reader) {
+          brace
+        } else if let Some(ident) = try_make!(ImportPatternAST::make_ident, reader) {
+          ident
+        } else {
+          return reader.set_intent(
+            ExpectedSnafu {
+              what: "Import pattern",
+              offset: reader.offset(),
+              path: reader.path.clone(),
+            }.fail()
+          );
+        }
+      };
+
+      children.push(pattern);
+
+      seek::optional_whitespace(reader)?;
+
+      if !seek::begins_with(reader, consts::punctuation::COMMA) {
+        seek::optional_whitespace(reader)?;
+
+        if !seek::begins_with(reader, consts::grouping::CLOSE_BRACE) {
+          return reader.set_intent(
+            ExpectedSnafu {
+              what: "Close Brace",
+              offset: reader.offset(),
+              path: reader.path.clone(),
+            }.fail()
+          );
+        };
+
+        break;
+      };
+
+      if seek::begins_with(reader, consts::grouping::CLOSE_BRACE) {
+        break;
+      };
+    };
+
+    Ok(Self::Brace {
+      span: reader.span_since(start),
+      children
+    })
   }
 
   fn make_ident(reader: &mut SourceReader) -> AsterResult<Self> {

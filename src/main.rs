@@ -33,7 +33,7 @@ enum LazyError {
   #[snafu(display("IO Error: {}", msg))]
   IOError { msg: String },
 
-  #[snafu(display("Compilation Error: {}", msg))]
+  #[snafu(display("{msg}"))]
   Compilation { msg: String },
 }
 
@@ -66,14 +66,14 @@ fn compile() -> Result<(), LazyError> {
   let input = if !matches.free.is_empty() {
     matches.free[0].clone()
   } else {
-    println!("No input file specified.\n");
+    eprintln!("No input file specified.\n");
 
     print_usage(&program, opts);
 
     return BadArgumentsSnafu.fail();
   };
 
-  println!("Input: {}", input);
+  // println!("Input: {}", input);
   // println!("Output: {}", output);
 
   let mut path = std::env::current_dir()
@@ -95,7 +95,6 @@ fn compile() -> Result<(), LazyError> {
 
   let reader = &mut aster::SourceReader::new(path, &src);
 
-  println!("Parsing AST ...");
   let asterized = match aster::asterize(reader) {
     Ok(asterized) => asterized,
     Err(err) => {
@@ -276,7 +275,7 @@ fn compile() -> Result<(), LazyError> {
 
 fn print_usage(program: &str, opts: Options) {
   let brief = format!("Usage: {} [options] FILE", program);
-  print!("{}", opts.usage(&brief));
+  eprint!("{}", opts.usage(&brief));
 }
 
 fn main() {

@@ -70,7 +70,7 @@ impl Checker {
         &mut (**res_stack.last().unwrap()).map
       };
 
-      match map.get_mut(&part) {
+      match map.get_mut(&part).map(Self::follow_structure_mut) {
         Some(Structure::Namespace(ns)) => {
           res_stack.push(ns);
         },

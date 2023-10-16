@@ -65,9 +65,14 @@ impl Checker {
           for (is_last, part) in part_iter {
             let map = unsafe { &mut (**res_stack.last().unwrap()).map };
 
-            match (is_last, map.get_mut(&part)) {
+            match (is_last, map.get_mut(&part).map(Self::follow_structure_mut)) {
               (false, Some(Structure::Namespace(ns))) => {
-                res_stack.push(&mut *ns);
+                res_stack.push(ns);
+              },
+              (false, Some(Structure::ImportedNamespace { ns, .. })) => {
+                let ns = unsafe { &mut **ns };
+
+                res_stack.push(ns);
               },
               (false, _) if part == "super" => {
                 res_stack.pop();

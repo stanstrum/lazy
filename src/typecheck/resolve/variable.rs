@@ -7,18 +7,29 @@
 
 use super::*;
 
-fn follow_structure<'a>(structure: &'a Structure) -> &'a Structure {
-  match structure {
-    Structure::ImportedStructure { structure, .. } => {
-      let structure = unsafe { &**structure };
-
-      follow_structure(structure)
-    },
-    _ => structure
-  }
-}
-
 impl Checker {
+  pub fn follow_structure<'a>(structure: &'a Structure) -> &'a Structure {
+    match structure {
+      Structure::ImportedStructure { structure, .. } => {
+        let structure = unsafe { &**structure };
+
+        Self::follow_structure(structure)
+      },
+      _ => structure
+    }
+  }
+
+  pub fn follow_structure_mut<'a>(structure: &'a mut Structure) -> &'a mut Structure {
+    match structure {
+      Structure::ImportedStructure { structure, .. } => {
+        let structure = unsafe { &mut **structure };
+
+        Self::follow_structure_mut(structure)
+      },
+      _ => structure
+    }
+  }
+
   fn get_block_expr_scopes(&self) -> Vec<*mut BlockExpressionAST> {
     self.stack.iter().filter_map(|ptr|
       match ptr {
@@ -84,7 +95,7 @@ impl Checker {
       &mut (**res_stack.last().unwrap()).map
     };
 
-    match map.get(&last).map(follow_structure) {
+    match map.get(&last).map(Self::follow_structure) {
       Some(Structure::Function(func)) => {
         Ok(VariableReference::ResolvedFunction(func))
       },

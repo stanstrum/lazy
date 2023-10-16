@@ -168,8 +168,8 @@ fn compile() -> Result<(), LazyError> {
             };
 
             println!("{}\n...{}",
-              format_message(reader.src(), message_a),
-              format_message(reader.src(), message_b)
+              format_message(&err.src(), message_a),
+              format_message(&err.src(), message_b)
             );
           }
         };

@@ -5,10 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import std from "std/index.zy";
+import { libc as c } from "std/index.zy";
 
 main -> i32 {
-  std::libc::printf(c"Hello, world!\n");
+  c::printf(c"Hello, world!\n");
 
   0
 };

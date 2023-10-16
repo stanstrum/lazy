@@ -47,4 +47,7 @@ namespace libc {
   extern printf -> i32:
     &CString fmt,
     ...;
+
+  extern puts -> i32:
+    &CString s;
 };

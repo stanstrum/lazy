@@ -16,6 +16,10 @@ use super::{
 
 impl<'a, 'ctx> Codegen<'a, 'ctx> {
   pub fn generate_namespace(&mut self, ns: &NamespaceAST) -> CodeGenResult<()> {
+    for import in ns.imports.iter() {
+      self.generate_namespace(&import.ns)?;
+    };
+
     let mut asts_values: Vec<(&FunctionAST, FunctionValue<'ctx>)> = vec![];
 
     let mut structures = ns.map.values().collect::<Vec<_>>();

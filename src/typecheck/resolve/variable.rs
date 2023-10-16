@@ -7,6 +7,17 @@
 
 use super::*;
 
+fn follow_structure<'a>(structure: &'a Structure) -> &'a Structure {
+  match structure {
+    Structure::ImportedStructure { structure, .. } => {
+      let structure = unsafe { &**structure };
+
+      follow_structure(structure)
+    },
+    _ => structure
+  }
+}
+
 impl Checker {
   fn get_block_expr_scopes(&self) -> Vec<*mut BlockExpressionAST> {
     self.stack.iter().filter_map(|ptr|
@@ -73,21 +84,25 @@ impl Checker {
       &mut (**res_stack.last().unwrap()).map
     };
 
-    match map.get(&last) {
+    match map.get(&last).map(follow_structure) {
       Some(Structure::Function(func)) => {
         Ok(VariableReference::ResolvedFunction(func))
       },
       Some(Structure::ExternDecl(decl)) => {
         Ok(VariableReference::ResolvedExternal(decl))
+      },
+      Some(other) => {
+        InvalidTypeSnafu {
+          text: format!("Cannot use (is {:#?}) as a variable: {}", other, qual.to_string()),
+          span: qual.span()
+        }.fail()
+      },
+      None => {
+        UnknownIdentSnafu {
+          text: qual.to_string(),
+          span: qual.span(),
+        }.fail()
       }
-      Some(other) => InvalidTypeSnafu {
-        text: format!("Cannot use (is {:#?}) as a variable: {}", other, qual.to_string()),
-        span: qual.span()
-      }.fail(),
-      None => UnknownIdentSnafu {
-        text: qual.to_string(),
-        span: qual.span(),
-      }.fail()
     }
   }
 
@@ -98,24 +113,22 @@ impl Checker {
 
     let ident = qual.parts.last().unwrap();
 
-    let decl = self.stack.iter().find(
-      |ptr|
-        matches!(ptr, ScopePointer::Function(_) | ScopePointer::MemberFunction(_))
-    ).map(
+    let decl = self.stack.iter().find_map(
       |ptr|
         match ptr {
-          ScopePointer::Namespace(_)
-          | ScopePointer::Block(_)
-          | ScopePointer::Expression(_)
-          | ScopePointer::Impl(_) => unreachable!(),
-          ScopePointer::Function(func) => unsafe {
-            &(**func).decl
+          ScopePointer::Function(func) => {
+            Some(unsafe {
+              &(**func).decl
+            })
           },
-          ScopePointer::MemberFunction(func) => unsafe {
-            &(**func).decl.decl
-          }
+          ScopePointer::MemberFunction(member_func) => {
+            Some(unsafe {
+              &(**member_func).decl.decl
+            })
+          },
+          _ => None
         }
-    ).unwrap();
+      ).unwrap();
 
     if decl.args.contains_key(ident) {
       let arg = decl.args.get(ident).unwrap();

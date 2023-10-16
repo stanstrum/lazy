@@ -43,4 +43,8 @@ namespace libc {
       usize nmemb,
       &FILE stream;
   };
+
+  extern printf -> i32:
+    &CString fmt,
+    ...;
 };

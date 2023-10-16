@@ -92,9 +92,12 @@ impl std::string::ToString for NamespaceAST {
     );
 
     for structure in collected {
-      let structure_text = structure.to_string();
-
-      if structure_text.is_empty() {
+      if matches!(structure,
+        NamespaceChild::Structure(
+          | Structure::ImportedNamespace { .. }
+          | Structure::ImportedStructure { .. }
+        )
+      ) {
         continue;
       };
 

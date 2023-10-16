@@ -29,6 +29,14 @@ impl ImportPatternAST {
   }
 
   fn make_brace(reader: &mut SourceReader) -> AsterResult<Self> {
+    // if let Some(qualify) = try_make!(ImportPatternAST::make_qualify, reader) {
+    //   Ok(qualify)
+    // } else if let Some(brace) = try_make!(ImportPatternAST::make_brace, reader) {
+    //   Ok(brace)
+    // } else if let Some(ident) = try_make!(ImportPatternAST::make_ident, reader) {
+    //   Ok(ident)
+    // }
+
     NotImplementedSnafu {
       what: "make_pattern",
       offset: reader.offset(),
@@ -63,9 +71,7 @@ impl ImportPatternAST {
   }
 
   fn make(reader: &mut SourceReader) -> AsterResult<Self> {
-    if let Some(qualify) = try_make!(ImportPatternAST::make_qualify, reader) {
-      Ok(qualify)
-    } else if let Some(brace) = try_make!(ImportPatternAST::make_brace, reader) {
+    if let Some(brace) = try_make!(ImportPatternAST::make_brace, reader) {
       Ok(brace)
     } else if let Some(ident) = try_make!(ImportPatternAST::make_ident, reader) {
       Ok(ident)
@@ -78,10 +84,6 @@ impl ImportPatternAST {
         }.fail()
       )
     }
-  }
-
-  fn to_map(&self, ns: NamespaceAST) -> HashMap<String, Structure> {
-    todo!("import_pattern_to_map")
   }
 }
 
@@ -152,26 +154,16 @@ impl ImportAST {
       },
     };
 
-    let ref mut new_reader = unsafe {
-      let reader = SourceReader::new(path, &src);
-
-      // this will be okay since nowhere do we save a string slice
-      // to the source. we do this because we want the AST to be
-      // valid even if the reader is destroyed to save memory.
-      // additionally, none of the parsing of the imported file
-      // will require the source of the file that imported it.
-      std::mem::transmute(reader)
-    };
-    // swap the new reader into place
-    unsafe { std::ptr::swap(new_reader, reader); };
-
-    let ns = intent!(asterize, reader)?;
-    // swap the old reader back
-    unsafe { std::ptr::swap(new_reader, reader); };
+    let new_reader = &mut SourceReader::new(path, &src);
+    let ns = intent!(asterize, new_reader)?;
 
     Ok(Self {
       span: reader.span_since(start),
       ns, pattern
     })
+  }
+
+  pub fn populate_map(&mut self, map: &mut HashMap<String, Structure>) -> AsterResult<()> {
+    todo!("populate map")
   }
 }

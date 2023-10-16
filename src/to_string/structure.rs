@@ -124,8 +124,8 @@ impl std::string::ToString for Structure {
 
         text
       },
-      Structure::Import(_) => todo!("to_string import"),
-      Structure::Imported(_) => "".to_string()
+      Structure::ImportedNamespace { .. }
+      | Structure::ImportedStructure { .. } => "".to_string()
     }
   }
 }

@@ -9,6 +9,8 @@ use std::path::PathBuf;
 
 use snafu::prelude::*;
 
+use super::Span;
+
 #[derive(Debug, Snafu, Clone)]
 #[snafu(visibility(pub))]
 pub enum AsterError {
@@ -17,6 +19,9 @@ pub enum AsterError {
 
   #[snafu(display("Unknown {what}"))]
   Unknown { what: String, offset: usize, path: PathBuf },
+
+  #[snafu(display("Duplicate identifier: {text}"))]
+  DuplicateIdent { text: String, a: Span, b: Span },
 
   #[snafu(display("Bad literal: Expected {expected}"))]
   BadLiteral { expected: String, offset: usize, path: PathBuf },
@@ -36,6 +41,7 @@ impl AsterError {
       AsterError::BadLiteral { offset, .. } => *offset,
       AsterError::ImportIO { offset, .. } => *offset,
       AsterError::NotImplemented { offset, .. } => *offset,
+      AsterError::DuplicateIdent { b, .. } => b.start,
     }
   }
 
@@ -46,6 +52,7 @@ impl AsterError {
       AsterError::BadLiteral { path, .. } => path,
       AsterError::ImportIO { path, .. } => path,
       AsterError::NotImplemented { path, .. } => path,
+      AsterError::DuplicateIdent { b, .. } => &b.path
     };
 
     std::fs::read_to_string(path)

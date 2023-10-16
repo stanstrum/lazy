@@ -28,9 +28,7 @@ use super::try_make;
 
 impl Structure {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
-    if let Some(import) = try_make!(ImportAST::make, reader) {
-      Ok(Structure::Import(import))
-    } else if let Some(func) = try_make!(FunctionAST::make, reader) {
+    if let Some(func) = try_make!(FunctionAST::make, reader) {
       Ok(Structure::Function(func))
     } else if let Some(extern_decl) = try_make!(ExternDeclAST::make, reader) {
       Ok(Structure::ExternDecl(extern_decl))
@@ -103,23 +101,10 @@ impl Structure {
 
         ident.to_hashable()
       },
-      Structure::Import(_)
-      | Structure::Imported(_) => unreachable!(),
-    }
-  }
-
-  pub fn assign_to_hashmap(self, map: &mut HashMap<String, Self>) {
-    match &self {
-      Self::Import(import) => {
-        // for (key, value) in import.imported.to_owned() {
-        //   map.insert(key, value);
-        // };
+      Structure::ImportedNamespace { ident, .. }
+      | Structure::ImportedStructure { ident, .. } => {
+        ident.to_hashable()
       },
-      _ => {
-        let key = self.to_hashable();
-
-        map.insert(key, self);
-      }
-    };
+    }
   }
 }

@@ -16,6 +16,7 @@ pub struct NamespaceAST {
   pub ident: IdentAST,
   // todo: turn this to Hashmap<IdentAST, Structure> for consistency
   pub map: HashMap<String, Structure>,
+  pub imports: Vec<ImportAST>,
 }
 
 #[derive(Debug, Clone)]
@@ -147,8 +148,8 @@ pub enum Structure {
   Impl(Impl),
   TypeAlias(TypeAliasAST),
   ExternDecl(ExternDeclAST),
-  Import(ImportAST),
-  Imported(*mut Self)
+  ImportedNamespace { ident: IdentAST, span: Span, ns: *mut NamespaceAST },
+  ImportedStructure { ident: IdentAST, span: Span, structure: *mut Self },
 }
 
 impl GetSpan for Impl {
@@ -170,7 +171,7 @@ impl GetSpan for ImportPatternAST {
   }
 }
 
-impl GetSpan for &Structure {
+impl GetSpan for Structure {
   fn span(&self) -> Span {
     match self {
       Structure::Namespace(s) => s.span(),
@@ -180,8 +181,8 @@ impl GetSpan for &Structure {
       Structure::TypeAlias(s) => s.span(),
       Structure::Struct(s) => s.span(),
       Structure::ExternDecl(r#extern) => r#extern.span(),
-      Structure::Import(import) => import.span(),
-      Structure::Imported(_) => unreachable!()
+      Structure::ImportedNamespace { span, .. } => span.clone(),
+      Structure::ImportedStructure { span, .. } => span.clone(),
     }
   }
 }

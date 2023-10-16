@@ -5,18 +5,29 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use crate::aster::{
-  SourceReader,
-  AsterResult,
-  ast::*,
-  consts,
-  seek,
-  errors::*,
+use crate::{
+  aster::{
+    SourceReader,
+    AsterResult,
+    ast::*,
+    consts,
+    seek,
+    errors::*,
+  },
+  try_make
 };
 
 use std::collections::HashMap;
 
 impl NamespaceAST {
+  pub fn new(ident: IdentAST, span: Span) -> Self {
+    Self {
+      span, ident,
+      map: HashMap::new(),
+      imports: Vec::new(),
+    }
+  }
+
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
@@ -50,8 +61,13 @@ impl NamespaceAST {
         break;
       };
 
-      let structure = Structure::make(reader)?;
-      structure.assign_to_hashmap(&mut map);
+      if let Some(_) = try_make!(ImportAST::make, reader) {
+        todo!("error for importing in nested namespace");
+      } else if let Some(structure) = try_make!(Structure::make, reader) {
+        let key = structure.to_hashable();
+
+        Self::insert_unique(&mut map, key, structure)?;
+      };
 
       seek::optional_whitespace(reader)?;
 
@@ -67,6 +83,26 @@ impl NamespaceAST {
     Ok(Self {
       span: reader.span_since(start),
       ident, map,
+      imports: vec![],
     })
+  }
+
+  pub fn insert_unique(map: &mut HashMap<String, Structure>, key: String, value: Structure) -> AsterResult<()> {
+    match map.get(&key) {
+      Some(existing) => {
+        let a = existing.span();
+        let b = value.span();
+
+        DuplicateIdentSnafu {
+          text: key,
+          a, b
+        }.fail()
+      },
+      None => {
+        map.insert(key, value);
+
+        Ok(())
+      },
+    }
   }
 }

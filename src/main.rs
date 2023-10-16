@@ -93,7 +93,7 @@ fn compile() -> Result<(), LazyError> {
     }
   };
 
-  let ref mut reader = aster::SourceReader::new(path, &src);
+  let  reader = &mut aster::SourceReader::new(path, &src);
 
   println!("Parsing AST ...");
   let asterized = match aster::asterize(reader) {

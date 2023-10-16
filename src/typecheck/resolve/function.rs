@@ -17,6 +17,8 @@ impl Checker {
       self.resolve_type(ty)?;
     };
 
+    self.resolve_type(&mut func.decl.ret)?;
+
     let block = &mut func.body;
 
     self.stack.push(ScopePointer::Block(block));

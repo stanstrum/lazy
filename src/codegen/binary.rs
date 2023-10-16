@@ -24,8 +24,8 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
         let value = self.generate_expr(&binary.b)?
           .expect("generate_expr value doesn't return for assign");
 
-        dbg!(&dest);
-        dbg!(&value);
+        // dbg!(&dest);
+        // dbg!(&value);
 
         self.builder.build_store::<BasicValueEnum>(dest, value.try_into().unwrap());
 

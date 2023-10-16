@@ -116,7 +116,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
         );
 
         if *dest {
-          Some(dbg!(nth_ptr.as_any_value_enum()))
+          Some(nth_ptr.as_any_value_enum())
         } else {
           todo!()
         }

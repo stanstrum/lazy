@@ -126,7 +126,7 @@ fn compile() -> Result<(), LazyError> {
     }
   };
 
-  dbg!(&asterized);
+  // dbg!(&asterized);
   println!("{};", asterized.to_string());
 
   // sponge: insert here an algorithm to rearrange operators by precedence
@@ -181,7 +181,7 @@ fn compile() -> Result<(), LazyError> {
     }
   };
 
-  dbg!(&checked);
+  // dbg!(&checked);
   println!("{};", checked.to_string());
 
   // generate llvm

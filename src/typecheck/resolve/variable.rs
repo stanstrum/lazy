@@ -33,7 +33,7 @@ impl Checker {
   }
 
   fn resolve_qualified(&self, qual: &QualifiedAST) -> TypeCheckResult<VariableReference> {
-    println!("{}", qual.to_string());
+    // println!("{}", qual.to_string());
 
     let mut dup_qual = qual.clone();
 

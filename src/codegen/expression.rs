@@ -110,7 +110,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
 
         if !extends(&expr.type_of().unwrap(), &Type::Intrinsic(intrinsics::VOID)) {
           Ok(
-            value.map(|value| BasicValueEnum::try_from(dbg!(value)).unwrap())
+            value.map(|value| BasicValueEnum::try_from(value).unwrap())
           )
         } else {
           Ok(None)

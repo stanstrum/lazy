@@ -137,7 +137,7 @@ impl TypeOf for VariableReference {
         let var = unsafe { &**var };
         let binding_ty = var.ty.as_ref().map(|ast| Type::Defined(ast));
 
-        println!("type_of resolved variable: {}", BlockExpressionChild::Binding(var.to_owned()).to_string());
+        // println!("type_of resolved variable: {}", BlockExpressionChild::Binding(var.to_owned()).to_string());
 
         if binding_ty.is_some() {
           binding_ty
@@ -151,14 +151,14 @@ impl TypeOf for VariableReference {
       VariableReference::ResolvedArgument(arg) => {
         let arg = unsafe { &**arg };
 
-        println!("type_of resolved_argument: {}", arg.to_string());
+        // println!("type_of resolved_argument: {}", arg.to_string());
 
         Some(Type::Defined(arg))
       },
       VariableReference::ResolvedFunction(func) => {
         let func = unsafe { &**func };
 
-        println!("type_of resolved_function: {}", func.decl.ident.to_string());
+        // println!("type_of resolved_function: {}", func.decl.ident.to_string());
 
         Some(Type::Function(func))
       },
@@ -175,9 +175,7 @@ impl TypeOf for VariableReference {
       VariableReference::ResolvedMemberFunction(member_func) => {
         let member_func = unsafe { &**member_func };
 
-        println!("type_of resolved_member_function: {}", member_func.decl.decl.ident.to_string());
-
-        None
+        todo!("type_of resolved_member_function: {}", member_func.decl.decl.ident.to_string());
       },
       VariableReference::ResolvedExternal(decl) => {
         let decl = unsafe { &**decl };

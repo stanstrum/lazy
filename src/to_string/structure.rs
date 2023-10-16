@@ -55,10 +55,35 @@ impl std::string::ToString for ImportPatternAST {
   fn to_string(&self) -> String {
     match self {
       ImportPatternAST::Qualify { .. } => todo!("to string importpatternast qualify"),
-      ImportPatternAST::Brace { .. } => todo!("to string importpatternast brace"),
+      ImportPatternAST::Brace { children, .. } => {
+        let mut text = String::new();
+
+        let children_text: Vec<String> = children.iter()
+          .map(|child| child.to_string())
+          .collect();
+
+        // let should_do_newlines = children_text.iter().fold(0, |acc, text| text.len()) >= 20
+        text += "{\n";
+
+        let len = children_text.len();
+        for (i, child_text) in children_text.into_iter().enumerate() {
+
+          text += str_line_pfx(child_text, "  ").as_str();
+
+          if i + 1 != len {
+            text += ",";
+          };
+
+          text += "\n";
+        };
+
+        text += "}";
+
+        text
+      },
       ImportPatternAST::Ident { ident, alias, ..  } => {
         if alias.is_some() {
-          format!("{} as {}",
+          format!("{} {LIGHT_RED}as{CLEAR} {}",
             ident.to_string(),
             alias.as_ref().unwrap().to_string()
           )

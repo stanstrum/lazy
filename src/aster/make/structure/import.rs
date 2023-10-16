@@ -215,18 +215,23 @@ impl ImportAST {
 
   pub fn populate_map(&mut self, map: &mut HashMap<String, Structure>) -> AsterResult<()> {
     match &self.pattern {
-      ImportPatternAST::Brace { .. } => todo!(),
+      ImportPatternAST::Brace { children, .. } => {
+        for child in children.iter() {
+          Self::populate_map_recursive(map, child, &mut self.ns)?;
+        };
+      },
       ImportPatternAST::Ident { span, ident, alias } => {
         if alias.is_some() {
           todo!("error for alias for namespace import");
         };
 
-        let key = ident.to_string();
         let value = Structure::ImportedNamespace {
           ident: ident.clone(),
           span: span.clone(),
           ns: &mut self.ns
         };
+
+        let key = ident.to_hashable();
 
         NamespaceAST::insert_unique(map, key, value)?;
       },
@@ -234,5 +239,50 @@ impl ImportAST {
     };
 
     Ok(())
+  }
+
+  fn populate_map_recursive(
+    map: &mut HashMap<String, Structure>,
+    pattern: &ImportPatternAST,
+    ns: &mut NamespaceAST
+  ) -> AsterResult<()> {
+    let span = pattern.span();
+
+    match pattern {
+      ImportPatternAST::Qualify { ident, child, .. } => todo!(),
+      ImportPatternAST::Brace { children, .. } => {
+        for child in children.iter() {
+          Self::populate_map_recursive(map, child, ns)?;
+        };
+
+        Ok(())
+      },
+      ImportPatternAST::Ident { ident, alias, .. } => {
+        let key = ident.to_hashable();
+
+        match ns.map.get_mut(&key) {
+          Some(structure) => {
+            let value = Structure::ImportedStructure {
+              ident: alias.as_ref().unwrap_or(ident).clone(),
+              span: pattern.span(),
+              structure,
+            };
+
+            let key = alias.as_ref()
+              .map(|x| x.to_hashable())
+              .unwrap_or(key);
+
+            NamespaceAST::insert_unique(map, key, value)?;
+
+            Ok(())
+          },
+          None => UnknownSnafu {
+            what: "Identifier",
+            offset: span.start,
+            path: span.path,
+          }.fail(),
+        }
+      }
+    }
   }
 }

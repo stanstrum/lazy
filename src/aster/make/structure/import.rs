@@ -125,7 +125,8 @@ impl ImportAST {
 
     let from_start = reader.offset() + 1;
     let from = intent!(LiteralAST::make, reader)?;
-    let Literal::UnicodeString(from) = from.l else {
+
+    let Literal::UnicodeString(from_text) = &from.l else {
       return reader.set_intent(
         BadLiteralSnafu {
           expected: "a String",
@@ -138,7 +139,7 @@ impl ImportAST {
     let parent = reader.path.parent()
       .expect("file does not have a parent directory?");
 
-    let path = parent.join(from);
+    let path = parent.join(from_text);
     println!("{:?}", path);
 
     let src = match std::fs::read_to_string(&path) {
@@ -159,11 +160,30 @@ impl ImportAST {
 
     Ok(Self {
       span: reader.span_since(start),
-      ns, pattern
+      pattern, from, ns
     })
   }
 
   pub fn populate_map(&mut self, map: &mut HashMap<String, Structure>) -> AsterResult<()> {
-    todo!("populate map")
+    match &self.pattern {
+      ImportPatternAST::Brace { .. } => todo!(),
+      ImportPatternAST::Ident { span, ident, alias } => {
+        if alias.is_some() {
+          todo!("error for alias for namespace import");
+        };
+
+        let key = ident.to_string();
+        let value = Structure::ImportedNamespace {
+          ident: ident.clone(),
+          span: span.clone(),
+          ns: &mut self.ns
+        };
+
+        NamespaceAST::insert_unique(map, key, value)?;
+      },
+      ImportPatternAST::Qualify { .. } => unreachable!(),
+    };
+
+    Ok(())
   }
 }

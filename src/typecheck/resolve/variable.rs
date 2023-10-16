@@ -52,6 +52,11 @@ impl Checker {
         Some(Structure::Namespace(ns)) => {
           res_stack.push(ns);
         },
+        Some(Structure::ImportedNamespace { ns, .. }) => {
+          let ns = unsafe { &mut **ns };
+
+          res_stack.push(ns);
+        },
         _ if part == "super" => {
           res_stack.pop();
         },

@@ -9,6 +9,14 @@ use super::*;
 
 impl Checker {
   pub fn resolve_ns(&mut self, ns: &mut NamespaceAST) -> TypeCheckResult<()> {
+    for import in ns.imports.iter_mut() {
+      let ns = &mut import.ns;
+
+      self.stack.push(ScopePointer::Namespace(ns));
+      self.resolve_ns(ns)?;
+      self.stack.pop();
+    };
+
     let map = &mut ns.map;
 
     // resolve names

@@ -23,8 +23,8 @@ namespace libc {
     type FILE := []u8;
 
     extern fopen -> &FILE:
-      &c_str filename,
-      &c_str mode;
+      &super::CString filename,
+      &super::CString mode;
 
     extern fclose -> i32:
       &FILE stream;

@@ -135,8 +135,9 @@ pub enum ImportPatternAST {
 #[derive(Debug, Clone)]
 pub struct ImportAST {
   pub span: Span,
+  pub pattern: ImportPatternAST,
+  pub from: LiteralAST,
   pub ns: NamespaceAST,
-  pub pattern: ImportPatternAST
 }
 
 #[derive(Debug, Clone)]

@@ -16,22 +16,91 @@ use super::{
 
 use std::io::Write;
 
+enum NamespaceChild<'a> {
+  Import(&'a ImportAST),
+  Structure(&'a Structure)
+}
+
+impl std::string::ToString for NamespaceChild<'_> {
+  fn to_string(&self) -> String {
+    match self {
+      NamespaceChild::Import(import) => import.to_string(),
+      NamespaceChild::Structure(structure) => structure.to_string(),
+    }
+  }
+}
+
+impl<'a> From<&'a ImportAST> for NamespaceChild<'a> {
+  fn from(value: &'a ImportAST) -> Self {
+    Self::Import(value)
+  }
+}
+
+impl<'a> From<&'a Structure> for NamespaceChild<'a> {
+  fn from(value: &'a Structure) -> Self {
+    Self::Structure(value)
+  }
+}
+
+impl GetSpan for NamespaceChild<'_> {
+  fn span(&self) -> Span {
+    match self {
+      NamespaceChild::Import(import) => import.span(),
+      NamespaceChild::Structure(structure) => structure.span(),
+    }
+  }
+}
+
+impl std::string::ToString for ImportPatternAST {
+  fn to_string(&self) -> String {
+    match self {
+      ImportPatternAST::Qualify { .. } => todo!("to string importpatternast qualify"),
+      ImportPatternAST::Brace { .. } => todo!("to string importpatternast brace"),
+      ImportPatternAST::Ident { ident, alias, ..  } => {
+        if alias.is_some() {
+          format!("{} as {}",
+            ident.to_string(),
+            alias.as_ref().unwrap().to_string()
+          )
+        } else {
+          ident.to_string()
+        }
+      },
+    }
+  }
+}
+
+impl std::string::ToString for ImportAST {
+  fn to_string(&self) -> String {
+    format!("{LIGHT_RED}import{CLEAR} {} {LIGHT_RED}from{CLEAR} {}",
+      self.pattern.to_string().as_str(),
+      self.from.to_string().as_str()
+    )
+  }
+}
+
 impl std::string::ToString for NamespaceAST {
   fn to_string(&self) -> String {
     let mut w: Vec<u8> = vec![];
 
-    let mut collected: Vec<(&String, &Structure)> = self.map.iter().collect();
+    let imports_iter = self.imports.iter().map(NamespaceChild::from);
+    let map_iter = self.map.values().map(NamespaceChild::from);
+    let mut collected: Vec<NamespaceChild> = imports_iter.chain(map_iter).collect();
+
     collected.sort_by(
-      |(_, a), (_, b)| a.span().start.cmp(&b.span().start)
+      |a, b| a.span().start.cmp(&b.span().start)
     );
 
-    for (_name, structure) in collected {
-      // let span = structure.span();
+    for structure in collected {
+      let structure_text = structure.to_string();
 
-      // writeln!(&mut w, "{DARK_GRAY}// {} ({}:{}){CLEAR}", name, span.start, span.end).unwrap();
+      if structure_text.is_empty() {
+        continue;
+      };
+
       writeln!(&mut w, "{};", structure.to_string()).unwrap();
       writeln!(&mut w).unwrap();
-    }
+    };
 
     let src = String::from_utf8(w)
       .expect("Failed to write buffer to String");

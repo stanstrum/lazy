@@ -15,8 +15,6 @@ mod r#struct;
 mod r#extern;
 mod import;
 
-use std::collections::HashMap;
-
 use crate::aster::{
   ast::*,
   SourceReader,

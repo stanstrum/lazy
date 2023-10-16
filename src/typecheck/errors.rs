@@ -34,4 +34,21 @@ pub enum TypeCheckError {
   InvalidDot { span: Span }
 }
 
+impl TypeCheckError {
+  pub fn src(&self) -> String {
+    let path = match self {
+        TypeCheckError::NotImplemented { span, .. } => &span.path,
+        TypeCheckError::UnknownIdent { span, .. } => &span.path,
+        TypeCheckError::DuplicateIdent { b, .. } => &b.path,
+        TypeCheckError::InvalidType { span, .. } => &span.path,
+        TypeCheckError::IncompatibleType { span, ..} => &span.path,
+        TypeCheckError::CantInferType { span } => &span.path,
+        TypeCheckError::InvalidDot { span } => &span.path,
+    };
+
+    std::fs::read_to_string(path)
+      .expect("couldn't open file that was already opened")
+  }
+}
+
 pub type TypeCheckResult<T> = Result<T, TypeCheckError>;

@@ -93,7 +93,7 @@ fn compile() -> Result<(), LazyError> {
     }
   };
 
-  let  reader = &mut aster::SourceReader::new(path, &src);
+  let reader = &mut aster::SourceReader::new(path, &src);
 
   println!("Parsing AST ...");
   let asterized = match aster::asterize(reader) {
@@ -150,7 +150,7 @@ fn compile() -> Result<(), LazyError> {
               span: span.to_owned(),
             };
 
-            println!("{}", format_message(reader.src(), message));
+            println!("{}", format_message(&err.src(), message));
           },
           TypeCheckError::DuplicateIdent { a, b, .. } => {
             let message_a = Message {

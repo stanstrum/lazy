@@ -48,9 +48,10 @@ pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {
       break;
     };
 
-    if let Some(mut import) = try_make!(ImportAST::make, reader) {
-      import.populate_map(map)?;
+    if let Some(import) = try_make!(ImportAST::make, reader) {
       global.imports.push(import);
+
+      global.imports.last_mut().unwrap().populate_map(map)?;
     } else if let Some(structure) = try_make!(Structure::make, reader) {
       let key = structure.to_hashable();
 

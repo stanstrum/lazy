@@ -111,7 +111,7 @@ impl std::string::ToString for Expression {
               text += "value";
             };
 
-            text += format!(" */{CLEAR}").as_str();
+            text += format!(" */{CLEAR} ").as_str();
             text += format!("{}[{}]", expr.to_string(), arg.to_string()).as_str();
 
             text

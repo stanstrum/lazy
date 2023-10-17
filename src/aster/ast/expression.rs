@@ -26,8 +26,8 @@ pub enum VariableReference {
 pub enum AtomExpression {
   Literal(LiteralAST),
   UnresolvedVariable(QualifiedAST),
-  ValueVariable(VariableReference),
-  DestinationVariable(VariableReference),
+  ValueVariable(QualifiedAST, VariableReference),
+  DestinationVariable(QualifiedAST, VariableReference),
   Return(Option<Box<Expression>>),
   #[allow(unused)]
   Break(Option<Box<Expression>>),

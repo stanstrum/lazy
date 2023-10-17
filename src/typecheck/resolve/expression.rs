@@ -219,7 +219,7 @@ impl Checker {
         let resolved = self.resolve_variable(qual)?;
         let out = resolved.type_of();
 
-        atom.a = AtomExpression::ValueVariable(resolved);
+        atom.a = AtomExpression::ValueVariable(qual.to_owned(), resolved);
 
         if let Some(out) = out {
           atom.out = out;
@@ -546,13 +546,13 @@ impl Checker {
         let var_ref = self.resolve_variable(qual)?;
         let ty = var_ref.type_of_expect(span)?;
 
-        atom.a = AtomExpression::DestinationVariable(var_ref);
+        atom.a = AtomExpression::DestinationVariable(qual.to_owned(), var_ref);
         atom.out = ty.clone();
 
         Ok(ty)
       },
-      AtomExpression::ValueVariable(_) => todo!("resolve_dest_atom valuevariable"),
-      AtomExpression::DestinationVariable(_) => todo!("resolve_dest_atom destinationvariable"),
+      AtomExpression::ValueVariable(..) => todo!("resolve_dest_atom valuevariable"),
+      AtomExpression::DestinationVariable(..) => todo!("resolve_dest_atom destinationvariable"),
       AtomExpression::Return(_) => todo!("resolve_dest_atom return"),
       AtomExpression::Break(_) => todo!("resolve_dest_atom break"),
     }

@@ -68,10 +68,10 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
         self.generate_literal(lit, &ast.out)?
         .as_any_value_enum()
       ),
-      AtomExpression::ValueVariable(var_ref) => Some(
+      AtomExpression::ValueVariable(_, var_ref) => Some(
         self.generate_value_variable(var_ref)?
       ),
-      AtomExpression::DestinationVariable(var_ref) => Some(
+      AtomExpression::DestinationVariable(_, var_ref) => Some(
         self.generate_dest_variable(var_ref)?
       ),
       AtomExpression::Return(_) => todo!(),

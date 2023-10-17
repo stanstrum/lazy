@@ -103,8 +103,8 @@ fn compile() -> Result<(), LazyError> {
 
       let message = {
         let offset = std::cmp::max(
-          std::cmp::max(reader.get_intent_offset(), err.offset()),
-          reader.offset()
+          reader.get_intent_offset(),
+          err.offset()
         );
 
         Message {

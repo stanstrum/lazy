@@ -28,7 +28,6 @@ pub struct SourceReader<'a> {
   src: &'a String,
   offset: usize,
 
-  intent_offset: usize,
   intent_error: Option<AsterError>
 }
 
@@ -37,13 +36,8 @@ impl<'a> SourceReader<'a> {
     Self {
       path, src,
       offset: 0,
-      intent_offset: 0,
       intent_error: None
     }
-  }
-
-  pub fn set_intent_offset(&mut self) {
-    self.intent_offset = self.offset;
   }
 
   pub fn set_intent_error(&mut self, error: Option<AsterError>) {
@@ -54,8 +48,7 @@ impl<'a> SourceReader<'a> {
     if result.is_err() {
       let err = unsafe { result.as_ref().unwrap_err_unchecked() };
 
-      self.intent_offset = err.offset();
-      self.intent_error = Some(err.to_owned());
+      self.set_intent_error(Some(err.to_owned()));
     };
 
     result
@@ -70,7 +63,9 @@ impl<'a> SourceReader<'a> {
   }
 
   pub fn get_intent_offset(&self) -> usize {
-    self.intent_offset
+    self.intent_error.as_ref()
+      .map(|error| error.offset())
+      .unwrap_or_default()
   }
 
   pub fn src(&self) -> &'a String {

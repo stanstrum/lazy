@@ -80,16 +80,7 @@ impl FunctionAST {
 
     let decl = FunctionDeclAST::make(reader)?;
 
-    // without args or a non-void return type, a
-    // function decl can be reprented with just an ident.
-    // this means that unconditionally setting the intent
-    // offset here can mess up the error reporting.
-    if !decl.args.is_empty() || !matches!(&decl.ret.e, Type::Intrinsic(intrinsics::VOID)) {
-      reader.set_intent_offset();
-    };
-
     let body = BlockExpressionAST::make(reader)?;
-    reader.set_intent_offset();
 
     Ok(Self {
       span: reader.span_since(start),

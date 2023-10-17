@@ -51,11 +51,15 @@ pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {
     if let Some(import) = try_make!(ImportAST::make, reader) {
       global.imports.push(import);
 
-      global.imports.last_mut().unwrap().populate_map(map)?;
+      reader.set_intent(
+        global.imports.last_mut().unwrap().populate_map(map)
+      )?;
     } else if let Some(structure) = try_make!(Structure::make, reader) {
       let key = structure.to_hashable();
 
-      NamespaceAST::insert_unique(map, key, structure)?;
+      reader.set_intent(
+        NamespaceAST::insert_unique(map, key, structure)
+      )?;
     } else {
       return ExpectedSnafu {
         what: "Structure",

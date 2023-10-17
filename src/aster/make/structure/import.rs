@@ -276,7 +276,30 @@ impl ImportAST {
     let span = pattern.span();
 
     match pattern {
-      ImportPatternAST::Qualify { ident, child, .. } => todo!(),
+      ImportPatternAST::Qualify { ident, child, .. } => {
+        match ns.map.get_mut(&ident.to_hashable()) {
+          Some(Structure::Namespace(ns)) => {
+            Self::populate_map_recursive(map, child.as_ref(), ns)
+          },
+          Some(Structure::ImportedNamespace { ns, .. }) => {
+            let ns = unsafe { &mut **ns };
+
+            Self::populate_map_recursive(map, child.as_ref(), ns)
+          },
+          Some(_) => {
+            ExpectedSnafu {
+              what: "Identifier of namespace",
+              offset: span.start,
+              path: span.path,
+            }.fail()
+          },
+          None => UnknownSnafu {
+            what: "Identifier",
+            offset: span.start,
+            path: span.path,
+          }.fail()
+        }
+      },
       ImportPatternAST::Brace { children, .. } => {
         for child in children.iter() {
           Self::populate_map_recursive(map, child, ns)?;

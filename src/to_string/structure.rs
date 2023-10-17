@@ -54,7 +54,12 @@ impl GetSpan for NamespaceChild<'_> {
 impl std::string::ToString for ImportPatternAST {
   fn to_string(&self) -> String {
     match self {
-      ImportPatternAST::Qualify { .. } => todo!("to string importpatternast qualify"),
+      ImportPatternAST::Qualify { ident, child, .. } => {
+        format!("{}::{}",
+          ident.to_string(),
+          child.to_string()
+        )
+      },
       ImportPatternAST::Brace { children, .. } => {
         let mut text = String::new();
 

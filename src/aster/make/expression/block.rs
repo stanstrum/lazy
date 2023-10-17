@@ -35,8 +35,6 @@ impl BlockExpressionAST {
     let returns_last = loop {
       seek::optional_whitespace(reader)?;
 
-      reader.set_intent_offset();
-
       if seek::begins_with(reader, consts::grouping::CLOSE_BRACE) {
         break false;
       };

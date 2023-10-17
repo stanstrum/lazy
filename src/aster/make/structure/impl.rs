@@ -7,10 +7,13 @@
 
 use crate::aster::{
   ast::*,
-  SourceReader, errors::*,
+  SourceReader,
+  errors::*,
   consts,
-  seek_read::seek
+  seek
 };
+
+use crate::intent;
 
 fn parse_methods(reader: &mut SourceReader) -> AsterResult<Vec<MemberFunctionAST>> {
   if !seek::begins_with(reader, consts::grouping::OPEN_BRACE) {
@@ -30,14 +33,17 @@ fn parse_methods(reader: &mut SourceReader) -> AsterResult<Vec<MemberFunctionAST
       break;
     };
 
-    methods.push(MemberFunctionAST::make(reader)?);
+    let method = intent!(MemberFunctionAST::make, reader)?;
+    methods.push(method);
 
     if !seek::begins_with(reader, consts::punctuation::SEMICOLON) {
-      return ExpectedSnafu {
-        what: "Punctuation (\";\")",
-        offset: reader.offset(),
-        path: reader.path.clone()
-      }.fail();
+      return reader.set_intent(
+        ExpectedSnafu {
+          what: "Semicolon",
+          offset: reader.offset(),
+          path: reader.path.clone()
+        }.fail()
+      );
     };
   };
 
@@ -58,7 +64,7 @@ impl ImplAST {
 
     seek::required_whitespace(reader)?;
 
-    let ty = TypeAST::make(reader)?;
+    let ty = intent!(TypeAST::make, reader)?;
 
     seek::optional_whitespace(reader)?;
 

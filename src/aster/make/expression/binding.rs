@@ -14,7 +14,10 @@ use crate::aster::{
   AsterResult,
 };
 
-use super::try_make;
+use super::{
+  try_make,
+  intent
+};
 
 #[derive(Debug)]
 struct TypeIdentPair(TypeAST, IdentAST);
@@ -55,7 +58,7 @@ impl BindingAST {
 
     seek::optional_whitespace(reader)?;
 
-    Expression::make(reader)
+    intent!(Expression::make, reader)
   }
 
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {

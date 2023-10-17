@@ -12,7 +12,9 @@ use crate::aster::{
   consts,
   errors::*,
   seek
-};
+}
+
+use crate::intent;
 
 impl TypeAliasAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
@@ -33,16 +35,18 @@ impl TypeAliasAST {
     seek::optional_whitespace(reader)?;
 
     if !seek::begins_with(reader, consts::punctuation::BOLLOCKS) {
-      return ExpectedSnafu {
-        what: "Punctuation (\":=\")",
-        offset: reader.offset(),
-        path: reader.path.clone()
-      }.fail();
+      return reader.set_intent(
+        ExpectedSnafu {
+          what: "Punctuation (\":=\")",
+          offset: reader.offset(),
+          path: reader.path.clone()
+        }.fail()
+      );
     };
 
     seek::optional_whitespace(reader)?;
 
-    let ty = TypeAST::make(reader)?;
+    let ty = intent!(TypeAST::make, reader)?;
 
     Ok(Self {
       span: reader.span_since(start),

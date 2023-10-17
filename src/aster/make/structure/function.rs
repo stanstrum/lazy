@@ -16,6 +16,8 @@ use crate::aster::{
   intrinsics
 };
 
+use crate::intent;
+
 impl FunctionDeclAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
@@ -28,7 +30,7 @@ impl FunctionDeclAST {
     let ret = if seek::begins_with(reader, consts::punctuation::RIGHT_ARROW) {
       seek::optional_whitespace(reader)?;
 
-      let ret = TypeAST::make(reader)?;
+      let ret = intent!(TypeAST::make, reader)?;
 
       seek::optional_whitespace(reader)?;
 
@@ -49,11 +51,11 @@ impl FunctionDeclAST {
       loop {
         seek::optional_whitespace(reader)?;
 
-        let arg_ty = TypeAST::make(reader)?;
+        let arg_ty = intent!(TypeAST::make, reader)?;
 
         seek::required_whitespace(reader)?;
 
-        let arg_ident = IdentAST::make(reader)?;
+        let arg_ident = intent!(IdentAST::make, reader)?;
 
         seek::optional_whitespace(reader)?;
 
@@ -61,7 +63,7 @@ impl FunctionDeclAST {
 
         if !seek::begins_with(reader, consts::punctuation::COMMA) {
           break;
-        }
+        };
       };
 
       seek::optional_whitespace(reader)?;
@@ -79,8 +81,7 @@ impl FunctionAST {
     let start = reader.offset();
 
     let decl = FunctionDeclAST::make(reader)?;
-
-    let body = BlockExpressionAST::make(reader)?;
+    let body = intent!(BlockExpressionAST::make, reader)?;
 
     Ok(Self {
       span: reader.span_since(start),

@@ -45,11 +45,13 @@ impl BlockExpressionAST {
         } else if let Some(expr) = try_make!(Expression::make, reader) {
           BlockExpressionChild::Expression(expr)
         } else {
-          return ExpectedSnafu {
-            what: "Expression or Binding",
-            offset: reader.offset(),
-            path: reader.path.clone()
-          }.fail();
+          return reader.set_intent(
+            ExpectedSnafu {
+              what: "Expression or Binding",
+              offset: reader.offset(),
+              path: reader.path.clone()
+            }.fail()
+          );
         }
       };
 
@@ -61,11 +63,13 @@ impl BlockExpressionAST {
         if seek::begins_with(reader, consts::grouping::CLOSE_BRACE) {
           break true;
         } else {
-          return ExpectedSnafu {
-            what: "Close Curly Brace or Semicolon",
-            offset: reader.offset(),
-            path: reader.path.clone()
-          }.fail();
+          return reader.set_intent(
+            ExpectedSnafu {
+              what: "Close Curly Brace or Semicolon",
+              offset: reader.offset(),
+              path: reader.path.clone()
+            }.fail()
+          );
         };
       };
     };

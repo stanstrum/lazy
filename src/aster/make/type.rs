@@ -7,10 +7,8 @@
 
 use crate::aster::{
   AsterResult,
-
   SourceReader,
-  seek_read::seek,
-
+  seek,
   consts,
   errors::*,
   ast::*,
@@ -18,6 +16,7 @@ use crate::aster::{
 };
 
 use super::*;
+use crate::intent;
 
 impl TypeAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
@@ -40,36 +39,42 @@ impl TypeAST {
       seek::optional_whitespace(reader)?;
 
       if !seek::begins_with(reader, consts::grouping::CLOSE_BRACKET) {
-        return ExpectedSnafu {
-          what: "Closing Bracket",
-          offset: reader.offset(),
-          path: reader.path.clone()
-        }.fail();
+        // I'm not sure that any expression can start with a closing bracket
+        // We shall find out
+        return reader.set_intent(
+          ExpectedSnafu {
+            what: "Closing Bracket",
+            offset: reader.offset(),
+            path: reader.path.clone()
+          }.fail()
+        );
       };
 
       seek::optional_whitespace(reader)?;
 
-      let ty = Box::new(TypeAST::make(reader)?);
+      let ty = intent!(TypeAST::make, reader)?;
+      let ty = Box::new(ty);
 
       Ok(Self {
         span: reader.span_since(start),
         e: Type::ArrayOf(len, ty)
       })
-    } else {
-      let Some(qual) = try_make!(QualifiedAST::make, reader) else {
-        return ExpectedSnafu {
-          what: "Qualified Ident",
-          offset: reader.offset(),
-          path: reader.path.clone()
-        }.fail();
+    } else if let Some(qual) = try_make!(QualifiedAST::make, reader) {
+      let ty = match intrinsics::get_intrinsic(&qual) {
+        Some(ty) => ty,
+        None => Type::Unknown(qual),
       };
 
       Ok(Self {
-        span: reader.span_since(start), e: match intrinsics::get_intrinsic(&qual) {
-          Some(ty) => ty,
-          None => Type::Unknown(qual),
-        }
+        span: reader.span_since(start),
+        e: ty
       })
+    } else {
+      return ExpectedSnafu {
+        what: "Type",
+        offset: reader.offset(),
+        path: reader.path.clone()
+      }.fail();
     }
   }
 }

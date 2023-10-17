@@ -14,13 +14,15 @@ use crate::aster::{
   consts
 };
 
+use crate::intent;
+
 impl StructAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
     if !seek::begins_with(reader, consts::keyword::STRUCT) {
       return ExpectedSnafu {
-        what: "Struct",
+        what: "Keyword (struct)",
         offset: reader.offset(),
         path: reader.path.clone()
       }.fail();
@@ -33,11 +35,13 @@ impl StructAST {
     seek::optional_whitespace(reader)?;
 
     if !seek::begins_with(reader, consts::grouping::OPEN_BRACE) {
-      return ExpectedSnafu {
-        what: "Open Brace",
-        offset: reader.offset(),
-        path: reader.path.clone()
-      }.fail();
+      return reader.set_intent(
+        ExpectedSnafu {
+          what: "Open Brace",
+          offset: reader.offset(),
+          path: reader.path.clone()
+        }.fail()
+      );
     };
 
     let mut members: Vec<(TypeAST, IdentAST)> = vec![];
@@ -48,10 +52,10 @@ impl StructAST {
         break;
       };
 
-      let ty = TypeAST::make(reader)?;
+      let ty = intent!(TypeAST::make, reader)?;
       seek::required_whitespace(reader)?;
 
-      let ident = IdentAST::make(reader)?;
+      let ident = intent!(IdentAST::make, reader)?;
       seek::optional_whitespace(reader)?;
 
       members.push((ty, ident));
@@ -60,11 +64,13 @@ impl StructAST {
 
       if !seek::begins_with(reader, consts::punctuation::COMMA) {
         if !seek::begins_with(reader, consts::grouping::CLOSE_BRACE) {
-          return ExpectedSnafu {
-            what: "Close Brace",
-            offset: reader.offset(),
-        path: reader.path.clone()
-          }.fail();
+          return reader.set_intent(
+            ExpectedSnafu {
+              what: "Close Brace",
+              offset: reader.offset(),
+              path: reader.path.clone()
+            }.fail()
+          );
         };
 
         break;

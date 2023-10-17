@@ -5,16 +5,18 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use super::{
-  super::{
-    SourceReader,
-    AsterResult,
-    ast::*,
-    errors::*,
-    seek,
-    consts
-  },
-  try_make
+use crate::aster::{
+  SourceReader,
+  AsterResult,
+  ast::*,
+  errors::*,
+  seek,
+  consts
+};
+
+use crate::{
+  try_make,
+  intent
 };
 
 mod atom;
@@ -186,7 +188,7 @@ impl Expression {
 
       seek::optional_whitespace(reader)?;
 
-      let Ok(expr) = Expression::make_expr_body(reader) else {
+      let Ok(expr) = intent!(Expression::make_expr_body, reader) else {
         break 'result None;
       };
 
@@ -250,7 +252,7 @@ impl Expression {
         break 'result None;
       };
 
-      let Ok(ty) = TypeAST::make(reader) else {
+      let Ok(ty) = intent!(TypeAST::make, reader) else {
         break 'result None;
       };
 
@@ -298,7 +300,7 @@ impl Expression {
         ExpectedSnafu {
           what: "Unary Prefix Operator",
           offset: reader.offset(),
-        path: reader.path.clone()
+          path: reader.path.clone()
         }.fail()
       }
     }
@@ -331,11 +333,13 @@ impl Expression {
 
         if !seek::begins_with(reader, consts::punctuation::COMMA) {
           if !seek::begins_with(reader, consts::grouping::CLOSE_PARENTHESIS) {
-            return ExpectedSnafu {
-              what: "Close Parenthesis",
-              offset: reader.offset(),
-        path: reader.path.clone()
-            }.fail();
+            return reader.set_intent(
+              ExpectedSnafu {
+                what: "Close Parenthesis",
+                offset: reader.offset(),
+                path: reader.path.clone()
+              }.fail()
+            );
           } else {
             break;
           };
@@ -368,13 +372,21 @@ impl Expression {
 
       seek::optional_whitespace(reader)?;
 
-      let Ok(arg) = Expression::make(reader) else {
+      let Ok(arg) = intent!(Expression::make, reader) else {
         break 'result None;
       };
 
       seek::optional_whitespace(reader)?;
 
       if !seek::begins_with(reader, consts::grouping::CLOSE_BRACKET) {
+        reader.set_intent(
+          ExpectedSnafu {
+            what: "Close Bracket",
+            offset: reader.offset(),
+            path: reader.path.clone(),
+          }.fail::<()>()
+        ).unwrap_err();
+
         break 'result None;
       };
 
@@ -417,7 +429,7 @@ impl Expression {
             return ExpectedSnafu {
               what: "Expression",
               offset: reader.offset(),
-        path: reader.path.clone()
+              path: reader.path.clone()
             }.fail();
           };
         },
@@ -433,11 +445,13 @@ impl Expression {
 
             last = LastExprComponent::PfxOperator;
           } else {
-            return ExpectedSnafu {
-              what: "Expression",
-              offset: reader.offset(),
-        path: reader.path.clone()
-            }.fail();
+            return reader.set_intent(
+              ExpectedSnafu {
+                what: "Expression",
+                offset: reader.offset(),
+                path: reader.path.clone()
+              }.fail()
+            );
           };
         },
         LastExprComponent::Body | LastExprComponent::SfxOperator => {

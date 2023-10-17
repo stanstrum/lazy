@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use super::super::super::{
+use crate::aster::{
   ast::*,
   SourceReader,
   AsterResult,
@@ -13,6 +13,8 @@ use super::super::super::{
   seek_read::seek,
   errors::*
 };
+
+use crate::intent;
 
 impl SubExpressionAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
@@ -28,16 +30,18 @@ impl SubExpressionAST {
 
     seek::optional_whitespace(reader)?;
 
-    let expr = Expression::make(reader)?;
+    let expr = intent!(Expression::make, reader)?;
 
     seek::optional_whitespace(reader)?;
 
     if !seek::begins_with(reader, consts::grouping::CLOSE_PARENTHESIS) {
-      return ExpectedSnafu {
-        what: "Close Parenthesis",
-        offset: reader.offset(),
-        path: reader.path.clone()
-      }.fail();
+      return reader.set_intent(
+        ExpectedSnafu {
+          what: "Close Parenthesis",
+          offset: reader.offset(),
+          path: reader.path.clone()
+        }.fail()
+      );
     };
 
     Ok(Self {

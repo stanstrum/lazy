@@ -47,11 +47,13 @@ impl NamespaceAST {
 
     let mut map: HashMap<String, Structure> = HashMap::new();
     if !seek::begins_with(reader, consts::grouping::OPEN_BRACE) {
-      return ExpectedSnafu {
-        what: "Open Brace",
-        offset: reader.offset(),
-        path: reader.path.clone()
-      }.fail();
+      return reader.set_intent(
+        ExpectedSnafu {
+          what: "Open Brace",
+          offset: reader.offset(),
+          path: reader.path.clone()
+        }.fail()
+      );
     };
 
     loop {
@@ -66,17 +68,21 @@ impl NamespaceAST {
       } else if let Some(structure) = try_make!(Structure::make, reader) {
         let key = structure.to_hashable();
 
-        Self::insert_unique(&mut map, key, structure)?;
+        reader.set_intent(
+          Self::insert_unique(&mut map, key, structure)
+        )?;
       };
 
       seek::optional_whitespace(reader)?;
 
       if !seek::begins_with(reader, consts::punctuation::SEMICOLON) {
-        return ExpectedSnafu {
-          what: "Punctuation (\";\")",
-          offset: reader.offset(),
-          path: reader.path.clone()
-        }.fail();
+        return reader.set_intent(
+          ExpectedSnafu {
+            what: "Semicolon",
+            offset: reader.offset(),
+            path: reader.path.clone()
+          }.fail()
+        );
       };
     };
 

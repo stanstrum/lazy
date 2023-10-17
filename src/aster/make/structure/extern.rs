@@ -16,6 +16,8 @@ use crate::aster::{
   intrinsics,
 };
 
+use crate::intent;
+
 impl ExternDeclAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
@@ -30,7 +32,7 @@ impl ExternDeclAST {
 
     seek::required_whitespace(reader)?;
 
-    let ident = IdentAST::make(reader)?;
+    let ident = intent!(IdentAST::make, reader)?;
 
     seek::optional_whitespace(reader)?;
 
@@ -38,7 +40,7 @@ impl ExternDeclAST {
       if seek::begins_with(reader, consts::punctuation::RIGHT_ARROW) {
         seek::optional_whitespace(reader)?;
 
-        TypeAST::make(reader)?
+        intent!(TypeAST::make, reader)?
       } else {
         TypeAST {
           span: ident.span(),
@@ -62,11 +64,11 @@ impl ExternDeclAST {
           break;
         };
 
-        let arg_ty = TypeAST::make(reader)?;
+        let arg_ty = intent!(TypeAST::make, reader)?;
 
         seek::required_whitespace(reader)?;
 
-        let arg_ident = IdentAST::make(reader)?;
+        let arg_ident = intent!(IdentAST::make, reader)?;
 
         seek::optional_whitespace(reader)?;
 
@@ -81,8 +83,7 @@ impl ExternDeclAST {
     Ok(Self {
       span: reader.span_since(start),
       ident, ret,
-      args,
-      varargs
+      args, varargs
     })
   }
 }

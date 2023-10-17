@@ -13,7 +13,8 @@ use crate::{
     seek,
     consts
   },
-  try_make
+  try_make,
+  intent
 };
 
 impl ControlFlowAST {
@@ -30,11 +31,11 @@ impl ControlFlowAST {
 
     seek::required_whitespace(reader)?;
 
-    let cond = Expression::make(reader)?;
+    let cond = intent!(Expression::make, reader)?;
 
     seek::required_whitespace(reader)?;
 
-    let body = BlockExpressionAST::make(reader)?;
+    let body = intent!(BlockExpressionAST::make, reader)?;
 
     Ok(Self {
       span: reader.span_since(start),
@@ -57,7 +58,8 @@ impl ControlFlowAST {
 
     seek::optional_whitespace(reader)?;
 
-    let expr = Box::new(BlockExpressionAST::make(reader)?);
+    let expr = intent!(BlockExpressionAST::make, reader)?;
+    let expr = Box::new(expr);
 
     Ok(Self {
       span: reader.span_since(start),
@@ -70,7 +72,7 @@ impl ControlFlowAST {
 
     if !seek::begins_with(reader, consts::keyword::IF) {
       return ExpectedSnafu {
-        what: "Keyword (if)",
+        what: "Keyword (\"if\")",
         offset: reader.offset(),
         path: reader.path.clone()
       }.fail();
@@ -78,10 +80,10 @@ impl ControlFlowAST {
 
     seek::required_whitespace(reader)?;
 
-    let cond = Expression::make(reader)?;
+    let cond = intent!(Expression::make, reader)?;
     seek::required_whitespace(reader)?;
 
-    let body = BlockExpressionAST::make(reader)?;
+    let body = intent!(BlockExpressionAST::make, reader)?;
 
     let mut branches = vec![(cond, body)];
 
@@ -97,15 +99,16 @@ impl ControlFlowAST {
       seek::required_whitespace(reader)?;
 
       if !seek::begins_with(reader, consts::keyword::IF) {
-        break 'r_else Some(BlockExpressionAST::make(reader)?);
+        let block = intent!(BlockExpressionAST::make, reader)?;
+        break 'r_else Some(block);
       };
 
       seek::required_whitespace(reader)?;
 
-      let cond = Expression::make(reader)?;
+      let cond = intent!(Expression::make, reader)?;
       seek::required_whitespace(reader)?;
 
-      let body = BlockExpressionAST::make(reader)?;
+      let body = intent!(BlockExpressionAST::make ,reader)?;
 
       branches.push((cond, body));
     };

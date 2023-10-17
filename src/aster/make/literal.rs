@@ -5,16 +5,19 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use super::super::{
+use crate::aster::{
   SourceReader,
   AsterResult,
   ast::*,
   errors::*,
   consts,
-  seek_read::seek
+  seek
 };
 
-use super::try_make;
+use crate::{
+  try_make,
+  intent
+};
 
 enum Base {
   Binary,
@@ -53,7 +56,7 @@ fn make_escape_sequence(reader: &mut SourceReader) -> AsterResult<char> {
       ExpectedSnafu {
         what: "Escape Sequence",
         offset: reader.offset(),
-        path: reader.path.clone().clone()
+        path: reader.path.clone()
       }.fail()
     }
   }
@@ -157,14 +160,16 @@ impl LiteralAST {
     loop {
       let ch = match reader.read_ch() {
         Ok('"') => break,
-        Ok('\\') => make_escape_sequence(reader)?,
+        Ok('\\') => intent!(make_escape_sequence, reader)?,
         Ok(ch) => ch,
         Err(_) => {
-          return ExpectedSnafu {
-            what: "String Literal",
-            offset: reader.offset(),
-            path: reader.path.clone()
-          }.fail();
+          return reader.set_intent(
+            ExpectedSnafu {
+              what: "String Literal",
+              offset: reader.offset(),
+              path: reader.path.clone()
+            }.fail()
+          );
         },
       };
 
@@ -211,23 +216,27 @@ impl LiteralAST {
     };
 
     let ch = match reader.read_ch() {
-      Ok('\\') => make_escape_sequence(reader)?,
+      Ok('\\') => intent!(make_escape_sequence, reader)?,
       Ok(ch) => ch,
       Err(_) => {
-        return ExpectedSnafu {
-          what: "Character",
-          offset: reader.offset(),
-          path: reader.path.clone()
-        }.fail();
+        return reader.set_intent(
+          ExpectedSnafu {
+            what: "Character",
+            offset: reader.offset(),
+            path: reader.path.clone()
+          }.fail()
+        );
       }
     };
 
     if !seek::begins_with(reader, consts::punctuation::APOSTROPHE) {
-      return ExpectedSnafu {
-        what: "Single Quote",
-        offset: reader.offset(),
-        path: reader.path.clone()
-      }.fail();
+      return reader.set_intent(
+        ExpectedSnafu {
+          what: "Single Quote",
+          offset: reader.offset(),
+          path: reader.path.clone()
+        }.fail()
+      );
     };
 
     let lit = match byte {

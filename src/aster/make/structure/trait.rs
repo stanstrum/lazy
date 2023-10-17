@@ -11,8 +11,10 @@ use crate::aster::{
   SourceReader,
   errors::*,
   consts,
-  seek_read::seek
+  seek
 };
+
+use crate::intent;
 
 impl TraitAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
@@ -28,16 +30,18 @@ impl TraitAST {
 
     seek::required_whitespace(reader)?;
 
-    let ident = IdentAST::make(reader)?;
+    let ident = intent!(IdentAST::make, reader)?;
 
     seek::optional_whitespace(reader)?;
 
     if !seek::begins_with(reader, consts::grouping::OPEN_BRACE) {
-      return ExpectedSnafu {
-        what: "Open Brace",
-        offset: reader.offset(),
-        path: reader.path.clone()
-      }.fail();
+      return reader.set_intent(
+        ExpectedSnafu {
+          what: "Open Brace",
+          offset: reader.offset(),
+          path: reader.path.clone()
+        }.fail()
+      );
     };
 
     let mut decls: Vec<MemberFunctionDeclAST> = vec![];
@@ -49,16 +53,19 @@ impl TraitAST {
         break;
       };
 
-      decls.push(MemberFunctionDeclAST::make(reader)?);
+      let decl = intent!(MemberFunctionDeclAST::make, reader)?;
+      decls.push(decl);
 
       seek::optional_whitespace(reader)?;
 
       if !seek::begins_with(reader, consts::punctuation::SEMICOLON) {
-        return ExpectedSnafu {
-          what: "Punctuation (\";\")",
-          offset: reader.offset(),
-        path: reader.path.clone()
-        }.fail();
+        return reader.set_intent(
+          ExpectedSnafu {
+            what: "Semicolon",
+            offset: reader.offset(),
+            path: reader.path.clone()
+          }.fail()
+        );
       };
     };
 

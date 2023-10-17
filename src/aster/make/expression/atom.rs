@@ -32,18 +32,20 @@ impl AtomExpressionAST {
       }.fail();
     };
 
-    let after_ret = reader.offset();
+    let whitespace = seek::optional_whitespace(reader)?;
 
-    let expr = if seek::optional_whitespace(reader)? != 0 {
+    let expr = 'expr: {
+      if whitespace == 0 {
+        break 'expr None;
+      };
+
       if let Ok(expr) = Expression::make(reader) {
         Some(Box::new(expr))
       } else {
-        reader.to(after_ret).unwrap();
+        reader.rewind(whitespace).unwrap();
 
         None
       }
-    } else {
-      None
     };
 
     Ok(Self {

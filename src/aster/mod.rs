@@ -61,11 +61,13 @@ pub fn asterize(reader: &mut SourceReader) -> AsterResult<NamespaceAST> {
         NamespaceAST::insert_unique(map, key, structure)
       )?;
     } else {
-      return ExpectedSnafu {
-        what: "Structure",
-        offset: reader.offset(),
-        path: path.clone(),
-      }.fail();
+      return reader.set_intent(
+        ExpectedSnafu {
+          what: "Structure",
+          offset: reader.offset(),
+          path: path.clone(),
+        }.fail()
+      );
     };
 
     if !seek::begins_with(reader, consts::punctuation::SEMICOLON) {

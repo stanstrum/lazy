@@ -12,7 +12,7 @@ use crate::aster::{
   consts,
   errors::*,
   seek
-}
+};
 
 use crate::intent;
 

@@ -5,10 +5,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import libc::printf from "std/index.zy";
+struct Struct {
+  i32 value
+};
 
 main -> i32 {
-  printf(c"Hello, world!\n");
+  Struct a;
+  a.value = 1000;
 
-  0
+  b := Struct { value: 337 };
+
+  a.value + b.value
 };

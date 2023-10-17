@@ -37,23 +37,7 @@ impl ImportPatternAST {
 
     seek::optional_whitespace(reader)?;
 
-    let child = {
-      if let Some(qualify) = try_make!(ImportPatternAST::make_qualify, reader) {
-        qualify
-      } else if let Some(brace) = try_make!(ImportPatternAST::make_brace, reader) {
-        brace
-      } else if let Some(ident) = try_make!(ImportPatternAST::make_ident, reader) {
-        ident
-      } else {
-        return reader.set_intent(
-          ExpectedSnafu {
-            what: "an import pattern",
-            offset: reader.offset(),
-            path: reader.path.clone()
-          }.fail()
-        );
-      }
-    };
+    let child = intent!(ImportPatternAST::make, reader)?;
 
     Ok(Self::Qualify {
       span: reader.span_since(start),
@@ -149,7 +133,9 @@ impl ImportPatternAST {
   }
 
   fn make(reader: &mut SourceReader) -> AsterResult<Self> {
-    if let Some(brace) = try_make!(ImportPatternAST::make_brace, reader) {
+    if let Some(qualify) = try_make!(ImportPatternAST::make_qualify, reader) {
+      Ok(qualify)
+    } else if let Some(brace) = try_make!(ImportPatternAST::make_brace, reader) {
       Ok(brace)
     } else if let Some(ident) = try_make!(ImportPatternAST::make_ident, reader) {
       Ok(ident)
@@ -242,11 +228,6 @@ impl ImportAST {
 
   pub fn populate_map(&mut self, map: &mut HashMap<String, Structure>) -> AsterResult<()> {
     match &self.pattern {
-      ImportPatternAST::Brace { children, .. } => {
-        for child in children.iter() {
-          Self::populate_map_recursive(map, child, &mut self.ns)?;
-        };
-      },
       ImportPatternAST::Ident { span, ident, alias } => {
         if alias.is_some() {
           todo!("error for alias for namespace import");
@@ -261,11 +242,11 @@ impl ImportAST {
         let key = ident.to_hashable();
 
         NamespaceAST::insert_unique(map, key, value)?;
-      },
-      ImportPatternAST::Qualify { .. } => unreachable!(),
-    };
 
-    Ok(())
+        Ok(())
+      },
+      pattern => Self::populate_map_recursive(map, pattern, &mut self.ns)
+    }
   }
 
   fn populate_map_recursive(

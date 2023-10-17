@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use super::{
-  super::{
+use crate::{
+  aster::{
     ast::*,
     SourceReader,
     AsterResult,
@@ -14,7 +14,8 @@ use super::{
     consts,
     errors::*
   },
-  try_make
+  try_make,
+  intent
 };
 
 impl QualifiedAST {
@@ -22,30 +23,29 @@ impl QualifiedAST {
     let start = reader.offset();
     let mut parts: Vec<IdentAST> = vec![];
 
+    let first = IdentAST::make(reader)?;
+    parts.push(first);
+
     loop {
-      let Some(ident) = try_make!(IdentAST::make, reader) else {
-        break;
-      };
+      let before_double_colon = reader.offset();
 
-      parts.push(ident);
-
-      let whitespace_len = seek::optional_whitespace(reader)?;
+      seek::optional_whitespace(reader)?;
 
       if !seek::begins_with(reader, consts::punctuation::DOUBLE_COLON) {
-        reader.rewind(whitespace_len).unwrap();
+        reader.to(before_double_colon).unwrap();
 
         break;
       };
 
       seek::optional_whitespace(reader)?;
-    };
 
-    if parts.is_empty() {
-      return ExpectedSnafu {
-        what: "Qualified Ident",
-        offset: reader.offset(),
-        path: reader.path.clone()
-      }.fail();
+      let Ok(part) = IdentAST::make(reader) else {
+        reader.to(before_double_colon).unwrap();
+
+        break;
+      };
+
+      parts.push(part);
     };
 
     Ok(Self {

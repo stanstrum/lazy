@@ -25,6 +25,7 @@ pub enum VariableReference {
 #[derive(Debug, Clone)]
 pub struct StructInitializerAST {
   pub span: Span,
+  pub qual: QualifiedAST,
   pub members: Vec<(IdentAST, Expression)>
 }
 

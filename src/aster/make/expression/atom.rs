@@ -5,17 +5,86 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use super::super::{
-  super::{
-    ast::*,
-    SourceReader,
-    AsterResult,
-    errors::*,
-    seek,
-    consts
-  },
-  try_make,
+use crate::aster::{
+  ast::*,
+  SourceReader,
+  AsterResult,
+  errors::*,
+  seek,
+  consts
 };
+
+use crate::{
+  try_make,
+  intent
+};
+
+impl StructInitializerAST {
+  pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
+    let start = reader.offset();
+
+    let qual = QualifiedAST::make(reader)?;
+
+    seek::optional_whitespace(reader)?;
+
+    if !seek::begins_with(reader, consts::grouping::OPEN_BRACE) {
+      return ExpectedSnafu {
+        what: "Open Brace",
+        offset: reader.offset(),
+        path: reader.path.clone(),
+      }.fail();
+    };
+
+    let mut members = Vec::<(IdentAST, Expression)>::new();
+    loop {
+      seek::optional_whitespace(reader)?;
+
+      if seek::begins_with(reader, consts::grouping::CLOSE_BRACE) {
+        break;
+      };
+
+      let ident = intent!(IdentAST::make, reader)?;
+
+      seek::optional_whitespace(reader)?;
+
+      if !seek::begins_with(reader, consts::punctuation::COLON) {
+        return reader.set_intent(
+          ExpectedSnafu {
+            what: "Colon",
+            offset: reader.offset(),
+            path: reader.path.clone(),
+          }.fail()
+        );
+      };
+
+      seek::optional_whitespace(reader)?;
+
+      let expr = intent!(Expression::make, reader)?;
+      members.push((ident, expr));
+
+      seek::optional_whitespace(reader)?;
+
+      if !seek::begins_with(reader, consts::punctuation::COMMA) {
+        if !seek::begins_with(reader, consts::grouping::CLOSE_BRACE) {
+          return reader.set_intent(
+            ExpectedSnafu {
+              what: "Comma or Semicolon",
+              offset: reader.offset(),
+              path: reader.path.clone(),
+            }.fail()
+          );
+        };
+
+        break;
+      };
+    };
+
+    Ok(Self {
+      span: reader.span_since(start),
+      qual, members
+    })
+  }
+}
 
 impl AtomExpressionAST {
   fn make_return(reader: &mut SourceReader) -> AsterResult<Self> {
@@ -64,6 +133,12 @@ impl AtomExpressionAST {
       Ok(Self {
         span: reader.span_since(start),
         a: AtomExpression::Literal(lit),
+        out: Type::Unresolved,
+      })
+    } else if let Some(initializer) = try_make!(StructInitializerAST::make, reader) {
+      Ok(Self {
+        span: reader.span_since(start),
+        a: AtomExpression::StructInitializer(initializer),
         out: Type::Unresolved,
       })
     } else if let Some(qual) = try_make!(QualifiedAST::make, reader) {

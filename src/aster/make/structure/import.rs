@@ -21,11 +21,44 @@ use crate::{
 
 impl ImportPatternAST {
   fn make_qualify(reader: &mut SourceReader) -> AsterResult<Self> {
-    NotImplementedSnafu {
-      what: "make_qualify",
-      offset: reader.offset(),
-      path: reader.path.clone()
-    }.fail()
+    let start = reader.offset();
+
+    let ident = IdentAST::make(reader)?;
+
+    seek::optional_whitespace(reader)?;
+
+    if !seek::begins_with(reader, consts::punctuation::DOUBLE_COLON) {
+      return ExpectedSnafu {
+        what: "Punctuation (\"::\")",
+        offset: reader.offset(),
+        path: reader.path.clone(),
+      }.fail();
+    };
+
+    seek::optional_whitespace(reader)?;
+
+    let child = {
+      if let Some(qualify) = try_make!(ImportPatternAST::make_qualify, reader) {
+        qualify
+      } else if let Some(brace) = try_make!(ImportPatternAST::make_brace, reader) {
+        brace
+      } else if let Some(ident) = try_make!(ImportPatternAST::make_ident, reader) {
+        ident
+      } else {
+        return reader.set_intent(
+          ExpectedSnafu {
+            what: "an import pattern",
+            offset: reader.offset(),
+            path: reader.path.clone()
+          }.fail()
+        );
+      }
+    };
+
+    Ok(Self::Qualify {
+      span: reader.span_since(start),
+      ident, child: Box::new(child)
+    })
   }
 
   fn make_brace(reader: &mut SourceReader) -> AsterResult<Self> {
@@ -39,27 +72,23 @@ impl ImportPatternAST {
       }.fail();
     };
 
-    seek::optional_whitespace(reader)?;
-
     let mut children = Vec::<ImportPatternAST>::new();
 
     loop {
-      let pattern = {
-        if let Some(qualify) = try_make!(ImportPatternAST::make_qualify, reader) {
-          qualify
-        } else if let Some(brace) = try_make!(ImportPatternAST::make_brace, reader) {
-          brace
-        } else if let Some(ident) = try_make!(ImportPatternAST::make_ident, reader) {
-          ident
-        } else {
-          return reader.set_intent(
-            ExpectedSnafu {
-              what: "Import pattern",
-              offset: reader.offset(),
-              path: reader.path.clone(),
-            }.fail()
-          );
-        }
+      seek::optional_whitespace(reader)?;
+
+      let pattern = if let Some(qualify) = try_make!(ImportPatternAST::make_qualify, reader) {
+        qualify
+      } else if let Some(ident) = try_make!(ImportPatternAST::make_ident, reader) {
+        ident
+      } else {
+        return reader.set_intent(
+          ExpectedSnafu {
+            what: "an import subpattern",
+            offset: reader.offset(),
+            path: reader.path.clone()
+          }.fail()
+        );
       };
 
       children.push(pattern);
@@ -67,8 +96,6 @@ impl ImportPatternAST {
       seek::optional_whitespace(reader)?;
 
       if !seek::begins_with(reader, consts::punctuation::COMMA) {
-        seek::optional_whitespace(reader)?;
-
         if !seek::begins_with(reader, consts::grouping::CLOSE_BRACE) {
           return reader.set_intent(
             ExpectedSnafu {
@@ -81,6 +108,8 @@ impl ImportPatternAST {
 
         break;
       };
+
+      seek::optional_whitespace(reader)?;
 
       if seek::begins_with(reader, consts::grouping::CLOSE_BRACE) {
         break;
@@ -125,13 +154,11 @@ impl ImportPatternAST {
     } else if let Some(ident) = try_make!(ImportPatternAST::make_ident, reader) {
       Ok(ident)
     } else {
-      reader.set_intent(
-        ExpectedSnafu {
-          what: "an import pattern",
-          offset: reader.offset(),
-          path: reader.path.clone(),
-        }.fail()
-      )
+      ExpectedSnafu {
+        what: "an import pattern",
+        offset: reader.offset(),
+        path: reader.path.clone(),
+      }.fail()
     }
   }
 }
@@ -173,7 +200,7 @@ impl ImportAST {
     seek::optional_whitespace(reader)?;
 
     let from_start = reader.offset() + 1;
-    let from = intent!(LiteralAST::make, reader)?;
+    let from = intent!(LiteralAST::make_string, reader)?;
 
     let Literal::UnicodeString(from_text) = &from.l else {
       return reader.set_intent(

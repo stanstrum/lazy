@@ -23,11 +23,18 @@ pub enum VariableReference {
 }
 
 #[derive(Debug, Clone)]
+pub struct StructInitializerAST {
+  pub span: Span,
+  pub members: Vec<(IdentAST, Expression)>
+}
+
+#[derive(Debug, Clone)]
 pub enum AtomExpression {
   Literal(LiteralAST),
   UnresolvedVariable(QualifiedAST),
   ValueVariable(QualifiedAST, VariableReference),
   DestinationVariable(QualifiedAST, VariableReference),
+  StructInitializer(StructInitializerAST),
   Return(Option<Box<Expression>>),
   #[allow(unused)]
   Break(Option<Box<Expression>>),

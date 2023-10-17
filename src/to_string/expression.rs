@@ -52,6 +52,39 @@ impl std::string::ToString for AtomExpressionAST {
         }
       },
       AtomExpression::Break(_) => todo!("atomexpression break"),
+      AtomExpression::StructInitializer(StructInitializerAST {
+        qual, members, ..
+      }) => {
+        let mut text = String::new();
+
+        text += qual.to_string().as_str();
+        text += " {";
+
+        if !members.is_empty() {
+          text += "\n";
+        };
+
+        for (i, (ident, expr)) in members.iter().enumerate() {
+          text += str_line_pfx(
+            format!("{}: {}",
+              ident.to_string(),
+              expr.to_string()
+            ),
+            "  "
+          ).as_str();
+
+          if i + 1 != members.len() {
+            text += ",";
+          };
+
+          text += "\n";
+        };
+
+        text += "}";
+
+        text
+      },
+      #[allow(unused)]
       other => todo!("to_string atom expression {other:?}")
     }
   }

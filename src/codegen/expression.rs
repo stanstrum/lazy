@@ -81,7 +81,8 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
           qual.to_string(),
           qual.span.start,
           qual.span.end
-        )
+        ),
+      other => todo!("generate_atom {other:?}")
     })
   }
 

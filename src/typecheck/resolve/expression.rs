@@ -555,6 +555,7 @@ impl Checker {
       AtomExpression::DestinationVariable(..) => todo!("resolve_dest_atom destinationvariable"),
       AtomExpression::Return(_) => todo!("resolve_dest_atom return"),
       AtomExpression::Break(_) => todo!("resolve_dest_atom break"),
+      other => todo!("resolve_dest_atom {other:?}")
     }
   }
 

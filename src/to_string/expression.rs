@@ -52,6 +52,7 @@ impl std::string::ToString for AtomExpressionAST {
         }
       },
       AtomExpression::Break(_) => todo!("atomexpression break"),
+      other => todo!("to_string atom expression {other:?}")
     }
   }
 }

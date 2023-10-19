@@ -18,7 +18,7 @@ pub enum VariableReference {
   #[allow(unused)]
   ResolvedMemberFunction(*const MemberFunctionAST),
   #[allow(unused)]
-  ResolvedMemberOf(*const VariableReference, *const IdentAST),
+  ResolvedMemberOf(*const StructAST, usize),
   ResolvedExternal(*const ExternDeclAST)
 }
 
@@ -148,6 +148,7 @@ impl GetSpan for Expression {
 }
 
 make_get_span![
+  StructInitializerAST,
   BindingAST,
   ControlFlowAST,
   UnaryOperatorExpressionAST

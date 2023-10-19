@@ -139,14 +139,19 @@ impl std::string::ToString for TypeAST {
           "{LIGHT_RED}{}{CLEAR}", ptr.get_name()
         )
       },
-      Type::ConstReferenceTo(ref ty) => format!("&{}", ty.to_string()),
-      Type::ArrayOf(ref len, ref ty) => {
+      Type::ConstReferenceTo(ty) => format!("&{}", ty.to_string()),
+      Type::ArrayOf(len, ty) => {
         match len {
-          Some(ref lit) => format!("[{}]{}", lit.to_string(), ty.to_string()),
+          Some(lit) => format!("[{}]{}", lit.to_string(), ty.to_string()),
           None => format!("[]{}", ty.to_string())
         }
       },
-      Type::Unknown(ref ident) => {
+      Type::Struct(r#struct) => {
+        let r#struct = unsafe { &**r#struct };
+
+        r#struct.ident.to_string()
+      },
+      Type::Unknown(ident) => {
         format!("{LIGHT_RED}{UNDERLINE}{}{CLEAR}", ident.to_string())
       },
       Type::Defined(defined) => {

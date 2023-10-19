@@ -7,6 +7,8 @@
 
 // use std::collections::HashMap;
 
+use std::collections::HashMap;
+
 use super::*;
 use crate::{
   aster::intrinsics,
@@ -18,6 +20,16 @@ use crate::{
 };
 
 const BOOL_COERCION: Option<&Type> = Some(&Type::Intrinsic(intrinsics::BOOL));
+
+fn get_struct_member_idx(r#struct: &StructAST, ident: &IdentAST) -> TypeCheckResult<(Type, usize)> {
+  for (i, (memb_ty, member_ident)) in r#struct.members.iter().enumerate() {
+    if ident == member_ident {
+      return Ok((Type::Defined(memb_ty), i));
+    };
+  };
+
+  todo!("error for ident not found");
+}
 
 impl Checker {
   pub fn resolve_block_expression(&mut self, block: &mut BlockExpressionAST, coerce_to: Option<&Type>) -> TypeCheckResult<()> {
@@ -119,7 +131,58 @@ impl Checker {
   //   Ok(map)
   // }
 
-  fn resolve_atom(&mut self, atom: &mut AtomExpressionAST, coerce_to: Option<&Type>, ) -> TypeCheckResult<Type> {
+  fn get_qualified_structure<'a>(&'a self, qual: &QualifiedAST) -> TypeCheckResult<&'a Structure> {
+    let mut stack = self.stack.iter().filter_map(|ptr| match ptr {
+      ScopePointer::Namespace(ns) => {
+        Some(unsafe { &**ns })
+      },
+      _ => None
+    }).collect::<Vec<_>>();
+
+    let (last, scopes) = qual.parts.split_last().unwrap();
+
+    for part in scopes {
+      let map = &stack.last().unwrap().map;
+
+      match map.get(&part.to_hashable()) {
+        Some(Structure::Namespace(ns)) => {
+          stack.push(ns);
+        },
+        Some(Structure::ImportedNamespace { ns, .. }) => {
+          let ns = unsafe { &**ns };
+
+          stack.push(ns);
+        },
+        _ if part.text == "super" => {
+          stack.pop();
+        },
+        Some(_) => {
+          return InvalidTypeSnafu {
+            text: format!("{} is not a namespace", &part.text),
+            span: part.span(),
+          }.fail();
+        },
+        None => {
+          return UnknownIdentSnafu {
+            text: &part.text,
+            span: part.span(),
+          }.fail();
+        }
+      };
+    };
+
+    let last_ns = stack.last().unwrap();
+
+    match last_ns.map.get(&last.to_hashable()) {
+      Some(structure) => Ok(Self::follow_structure(structure)),
+      None => UnknownIdentSnafu {
+        text: &last.text,
+        span: last.span(),
+      }.fail()
+    }
+  }
+
+  fn resolve_atom(&mut self, atom: &mut AtomExpressionAST, coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
     match &mut atom.a {
       AtomExpression::Literal(lit) => {
         let span = &lit.span;
@@ -227,6 +290,44 @@ impl Checker {
           panic!("failed to resolve atom type `{}`", atom.to_string());
         };
       },
+      AtomExpression::StructInitializer(initializer) => {
+        let Structure::Struct(r#struct) = self.get_qualified_structure(&initializer.qual)? else {
+          return InvalidTypeSnafu {
+            text: "Initializer is not a struct",
+            span: initializer.qual.span(),
+          }.fail();
+        };
+
+        atom.out = Type::Struct(r#struct as *const _);
+
+        let init_len = initializer.members.len();
+        let struct_len = r#struct.members.len();
+        if init_len != struct_len {
+          return IncompatibleTypeSnafu {
+            span: initializer.span(),
+            what: "Struct initializer fields",
+            with: format!("struct definition (expected {struct_len}, got {init_len})"),
+          }.fail();
+        };
+
+        let mut item_map = HashMap::<IdentAST, Type>::new();
+
+        for (ty, ident) in r#struct.members.iter() {
+          item_map.insert(ident.to_owned(), Type::Defined(ty));
+        };
+
+        for (ident, expr) in initializer.members.iter_mut() {
+          let Some(field_ty) = item_map.remove(ident) else {
+            todo!("bad field");
+          };
+
+          let expr_ty = self.resolve_expression(expr, Some(&field_ty))?;
+
+          if !assignable(&expr_ty, &field_ty) {
+            todo!("types dont match")
+          };
+        };
+      },
       _ => todo!("{:#?}", &atom.a),
     };
 
@@ -284,6 +385,55 @@ impl Checker {
     todo!("resolve controlflow");
   }
 
+  fn resolve_dot_member(&mut self, ty: &Type, expr: &mut Expression) -> TypeCheckResult<Type> {
+    match expr {
+      Expression::Atom(atom)
+        if matches!(&atom.a, AtomExpression::UnresolvedVariable(_))
+      => {
+        let AtomExpression::UnresolvedVariable(qual) = &atom.a else {
+          unreachable!();
+        };
+
+        if qual.parts.len() != 1 {
+          return InvalidDotSnafu {
+            span: expr.span()
+          }.fail();
+        };
+
+        let ident = unsafe { qual.parts.first().unwrap_unchecked() };
+
+        let r#struct = match ty {
+          Type::Struct(r#struct) => {
+            unsafe { &**r#struct }
+          },
+          Type::Defined(ast) => {
+            let ast = unsafe { &**ast };
+
+            return self.resolve_dest_dot_member(&ast.e, expr);
+          },
+          _ => todo!("err for bad type {ty:?}")
+        };
+
+        let (memb_ty, idx) = get_struct_member_idx(r#struct, ident)?;
+
+        atom.a = AtomExpression::ValueVariable(
+          qual.clone(),
+          VariableReference::ResolvedMemberOf(r#struct, idx)
+        );
+
+        atom.out = memb_ty;
+
+        Ok(expr.type_of_expect(expr.span())?)
+      },
+      Expression::SubExpression(subexpr) => {
+        self.resolve_dot_member(ty, &mut subexpr.e)
+      },
+      _ => InvalidDotSnafu {
+        span: expr.span(),
+      }.fail()
+    }
+  }
+
   fn resolve_binary_operator(&mut self, binary: &mut BinaryOperatorExpressionAST, coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
     match binary.op {
       BinaryOperator::Assign => {
@@ -299,8 +449,6 @@ impl Checker {
         };
 
         binary.out = Type::Intrinsic(intrinsics::VOID);
-
-        Ok(binary.out.clone())
       },
       BinaryOperator::Add => {
         let out = {
@@ -317,11 +465,15 @@ impl Checker {
 
         // todo: search std lib traits & impls...
         binary.out = out;
-
-        Ok(binary.out.clone())
+      },
+      BinaryOperator::Dot => {
+        let ty = self.resolve_expression(&mut binary.a, None)?;
+        binary.out = self.resolve_dot_member(&ty, &mut binary.b)?;
       },
       _ => todo!("resolve_binary_operator {:?}", binary.op)
-    }
+    };
+
+    Ok(binary.out.clone())
   }
 
   fn resolve_unary_operator(&mut self, unary: &mut UnaryOperatorExpressionAST, coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
@@ -526,6 +678,67 @@ impl Checker {
     }
   }
 
+  fn resolve_dest_dot_member(&mut self, ty: &Type, expr: &mut Expression) -> TypeCheckResult<Type> {
+    match expr {
+      Expression::Atom(atom)
+        if matches!(&atom.a, AtomExpression::UnresolvedVariable(_))
+      => {
+        let AtomExpression::UnresolvedVariable(qual) = &atom.a else {
+          unreachable!();
+        };
+
+        if qual.parts.len() != 1 {
+          return InvalidDotSnafu {
+            span: expr.span()
+          }.fail();
+        };
+
+        let ident = unsafe { qual.parts.first().unwrap_unchecked() };
+
+        let r#struct = match ty {
+          Type::Struct(r#struct) => {
+            unsafe { &**r#struct }
+          },
+          Type::Defined(ast) => {
+            let ast = unsafe { &**ast };
+
+            return self.resolve_dest_dot_member(&ast.e, expr);
+          },
+          _ => todo!("err for bad type {ty:?}")
+        };
+
+        let (memb_ty, idx) = get_struct_member_idx(r#struct, ident)?;
+
+        atom.a = AtomExpression::DestinationVariable(
+          qual.clone(),
+          VariableReference::ResolvedMemberOf(r#struct, idx)
+        );
+
+        atom.out = memb_ty;
+
+        Ok(expr.type_of_expect(expr.span())?)
+      },
+      Expression::SubExpression(subexpr) => {
+        self.resolve_dest_dot_member(ty, &mut subexpr.e)
+      },
+      _ => InvalidDotSnafu {
+        span: expr.span(),
+      }.fail()
+    }
+  }
+
+  fn resolve_dest_binary_operator(&mut self, binary: &mut BinaryOperatorExpressionAST) -> TypeCheckResult<Type> {
+    match &binary.op {
+      BinaryOperator::Dot => {
+        let ty = self.resolve_dest_expression(&mut binary.a)?;
+        binary.out = self.resolve_dest_dot_member(&ty, &mut binary.b)?;
+
+        Ok(binary.out.clone())
+      },
+      other => todo!("resolve_dest_expression binaryoperator {other:?}")
+    }
+  }
+
   fn resolve_dest_expression(&mut self, expr: &mut Expression) -> TypeCheckResult<Type> {
     match expr {
       Expression::Atom(atom) => self.resolve_dest_atom(atom),
@@ -533,7 +746,7 @@ impl Checker {
       Expression::SubExpression(_) => todo!("resolve_dest_expression subexpression"),
       Expression::ControlFlow(_) => todo!("resolve_dest_expression controlflow"),
       Expression::UnaryOperator(unary) => self.resolve_dest_unary_operator(unary),
-      Expression::BinaryOperator(_) => todo!("resolve_dest_expression binaryoperator"),
+      Expression::BinaryOperator(binary) => self.resolve_dest_binary_operator(binary)
     }
   }
 

@@ -99,6 +99,7 @@ impl TypeOf for BinaryOperatorExpressionAST {
         }
       },
       BinaryOperator::Assign => Some(Type::Intrinsic(intrinsics::VOID)),
+      BinaryOperator::Dot => self.b.type_of(),
       op => todo!("typeof for binop {op:#?}")
     }
   }
@@ -162,9 +163,9 @@ impl TypeOf for VariableReference {
 
         Some(Type::Function(func))
       },
-      VariableReference::ResolvedMemberOf(_parent, ident) => {
-        // let parent = unsafe { &**parent };
-        let ident = unsafe { &**ident };
+      VariableReference::ResolvedMemberOf(parent, idx) => {
+        let parent = unsafe { &**parent };
+        let (_, ident) = unsafe { parent.members.get_unchecked(*idx) };
 
         println!("type_of resolved_member_of: ... {}", ident.to_string());
 

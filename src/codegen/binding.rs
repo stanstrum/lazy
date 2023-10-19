@@ -72,12 +72,12 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       )?.expect("value expr did not return a value");
 
       let casted_value = self.builder.build_bitcast(
-          BasicValueEnum::try_from(value).unwrap(),
-          to_basic_type(
-            ptr.get_type().get_element_type()
-          ),
-          "cast"
-        );
+        BasicValueEnum::try_from(value).unwrap(),
+        to_basic_type(
+          ptr.get_type().get_element_type()
+        ),
+        "cast"
+      );
 
       self.builder.build_store(ptr, casted_value);
     };

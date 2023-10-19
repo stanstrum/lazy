@@ -94,6 +94,10 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
 
             Some(casted.as_any_value_enum())
           }
+          None => {
+            Some(value.as_any_value_enum())
+          },
+          #[allow(unused)]
           _ => todo!("cast method {method:?}")
         }
       },

@@ -409,7 +409,7 @@ impl Checker {
           Type::Defined(ast) => {
             let ast = unsafe { &**ast };
 
-            return self.resolve_dest_dot_member(&ast.e, expr);
+            return self.resolve_dot_member(&ast.e, expr);
           },
           _ => todo!("err for bad type {ty:?}")
         };
@@ -467,7 +467,7 @@ impl Checker {
         binary.out = out;
       },
       BinaryOperator::Dot => {
-        let ty = self.resolve_expression(&mut binary.a, None)?;
+        let ty = self.resolve_dest_expression(&mut binary.a)?;
         binary.out = self.resolve_dot_member(&ty, &mut binary.b)?;
       },
       _ => todo!("resolve_binary_operator {:?}", binary.op)
@@ -604,7 +604,7 @@ impl Checker {
       },
       UnaryOperator::UnarySfx(UnarySfxOperator::Cast { to, method }) => {
         self.stack.push(ScopePointer::Expression(expr.as_mut()));
-        self.resolve_expression(expr, None)?;
+        self.resolve_expression(expr, Some(&Type::Defined(to)))?;
         self.stack.pop();
 
         self.resolve_type(to)?;
@@ -630,6 +630,11 @@ impl Checker {
             },
             (Type::Intrinsic(intrinsics::I32), Type::Intrinsic(intrinsics::USIZE)) => {
               *method = Some(CastMethod::ZeroExtend);
+
+              break Ok(Type::Defined(to));
+            },
+            (a, b) if assignable(a, b) => {
+              *method = None;
 
               break Ok(Type::Defined(to));
             },

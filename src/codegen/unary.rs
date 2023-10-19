@@ -27,12 +27,12 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
   pub fn generate_unary_operator(&mut self, unary: &UnaryOperatorExpressionAST) -> CodeGenResult<Option<AnyValueEnum<'ctx>>> {
     Ok(match &unary.op {
       UnaryOperator::UnarySfx(UnarySfxOperator::Call { args }) => {
-        let callee = self.generate_expr(&unary.expr)?
+        let callee = self.generate_expr(&unary.expr, None)?
           .expect("could not generate callee value")
           .into_function_value();
 
         let mut args = args.iter()
-          .map(|arg| self.generate_expr(arg))
+          .map(|arg| self.generate_expr(arg, None))
           .collect::<Result<Vec<_>, _>>()?
           .iter()
           .map(
@@ -75,7 +75,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
         let to_ty = self.generate_type(&to.e)?
           .to_basic_metadata();
 
-        let value = self.generate_expr(unary.expr.as_ref())?
+        let value = self.generate_expr(unary.expr.as_ref(), None)?
             .expect("generate_expr returned None for cast")
             .into_int_value();
 
@@ -98,11 +98,11 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
         }
       },
       UnaryOperator::UnarySfx(UnarySfxOperator::Subscript { arg, dest }) => {
-        let ptr = self.generate_expr(&unary.expr)?
+        let ptr = self.generate_expr(&unary.expr, None)?
           .expect("generate_expr didn't return for subscript dest")
           .into_pointer_value();
 
-        let offset = self.generate_expr(arg)?
+        let offset = self.generate_expr(arg, None)?
           .expect("generate_expr didn't return for subscript value")
           .into_int_value();
 

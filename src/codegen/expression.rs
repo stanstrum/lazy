@@ -47,22 +47,37 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
     }
   }
 
-  fn generate_dest_variable(&mut self, var_ref: &VariableReference) -> CodeGenResult<AnyValueEnum<'ctx>> {
-    let value = self.var_map.get(var_ref)
-      .unwrap_or_else(|| panic!("unresolved dest var ref {var_ref:?}"));
+  fn generate_dest_variable(&mut self, var_ref: &VariableReference, wrt: Option<AnyValueEnum<'ctx>>) -> CodeGenResult<AnyValueEnum<'ctx>> {
+    let value = self.var_map.get(var_ref);
 
-    match var_ref {
-      VariableReference::ResolvedExternal(_)
-      | VariableReference::ResolvedFunction(_)
-      | VariableReference::ResolvedVariable(_) => {
+    match (var_ref, value) {
+      (
+        VariableReference::ResolvedExternal(_)
+        | VariableReference::ResolvedFunction(_)
+        | VariableReference::ResolvedVariable(_),
+        Some(value)
+      ) => {
         // just return the pointer for the dest
         Ok(value.as_any_value_enum())
+      },
+      (
+        VariableReference::ResolvedMemberOf(_, idx),
+        None
+      ) => {
+        let wrt = wrt
+          .expect("MemberOf needs a wrt value")
+          .into_pointer_value();
+
+        let ptr = self.builder.build_struct_gep(wrt, *idx as u32, "member_of_dest")
+          .expect("GEP out of bounds");
+
+        Ok(ptr.as_any_value_enum())
       },
       _ => todo!("generate_dest_variable {var_ref:#?}")
     }
   }
 
-  fn generate_atom(&mut self, ast: &AtomExpressionAST) -> CodeGenResult<Option<AnyValueEnum<'ctx>>> {
+  fn generate_atom(&mut self, ast: &AtomExpressionAST, wrt: Option<AnyValueEnum<'ctx>>) -> CodeGenResult<Option<AnyValueEnum<'ctx>>> {
     Ok(match &ast.a {
       AtomExpression::Literal(lit) => Some(
         self.generate_literal(lit, &ast.out)?
@@ -72,7 +87,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
         self.generate_value_variable(var_ref)?
       ),
       AtomExpression::DestinationVariable(_, var_ref) => Some(
-        self.generate_dest_variable(var_ref)?
+        self.generate_dest_variable(var_ref, wrt)?,
       ),
       AtomExpression::Return(_) => todo!(),
       AtomExpression::Break(_) => todo!(),
@@ -86,13 +101,13 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
     })
   }
 
-  pub fn generate_expr(&mut self, ast: &Expression) -> CodeGenResult<Option<AnyValueEnum<'ctx>>> {
+  pub fn generate_expr(&mut self, ast: &Expression, wrt: Option<AnyValueEnum<'ctx>>) -> CodeGenResult<Option<AnyValueEnum<'ctx>>> {
     match ast {
-      Expression::Atom(ast) => self.generate_atom(ast),
+      Expression::Atom(ast) => self.generate_atom(ast, wrt),
       Expression::Block(_) => todo!("generate_expr block"),
       Expression::SubExpression(_) => todo!("generate_expr subexpression"),
       Expression::ControlFlow(_) => todo!("generate_expr controlflow"),
-      Expression::BinaryOperator(binary) => self.generate_binary_operator(binary),
+      Expression::BinaryOperator(binary) => self.generate_binary_operator(binary, wrt),
       Expression::UnaryOperator(unary) => {
         self.generate_unary_operator(unary)
       },
@@ -107,7 +122,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
         Ok(None)
       },
       BlockExpressionChild::Expression(expr) => {
-        let value = self.generate_expr(expr)?;
+        let value = self.generate_expr(expr, None)?;
 
         if !extends(&expr.type_of().unwrap(), &Type::Intrinsic(intrinsics::VOID)) {
           Ok(
@@ -134,7 +149,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
     };
 
     Ok(
-      self.generate_expr(last)?
+      self.generate_expr(last, None)?
         .map(|value| BasicValueEnum::try_from(value).unwrap())
     )
   }

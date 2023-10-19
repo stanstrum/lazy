@@ -30,7 +30,8 @@ use inkwell::{
   module::Module,
   context::Context,
   builder::Builder,
-  values::AnyValueEnum
+  values::AnyValueEnum,
+  types::StructType
 };
 
 pub struct Codegen<'a, 'ctx> {
@@ -39,6 +40,7 @@ pub struct Codegen<'a, 'ctx> {
   pub builder: &'a Builder<'ctx>,
 
   pub var_map: HashMap<VariableReference, AnyValueEnum<'ctx>>,
+  pub struct_map: HashMap<*const StructAST, StructType<'ctx>>
 }
 
 fn parse_int_literal(text: &str) -> u64 {
@@ -65,6 +67,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
     Self {
       context, module, builder,
       var_map: HashMap::new(),
+      struct_map: HashMap::new()
     }
   }
 

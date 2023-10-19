@@ -67,7 +67,8 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
 
     if ast.value.is_some() {
       let value = self.generate_expr(
-        ast.value.as_ref().unwrap()
+        ast.value.as_ref().unwrap(),
+        None
       )?.expect("value expr did not return a value");
 
       let casted_value = self.builder.build_bitcast(

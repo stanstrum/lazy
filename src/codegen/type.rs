@@ -6,7 +6,10 @@
  */
 
 use inkwell::{
-  types::BasicMetadataTypeEnum,
+  types::{
+    BasicMetadataTypeEnum,
+    BasicTypeEnum
+  },
   AddressSpace
 };
 
@@ -37,12 +40,31 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
     }
   }
 
-  pub fn generate_type(&self, ty: &Type) -> CodeGenResult<MetadataType<'ctx>> {
+  pub fn generate_type(&mut self, ty: &Type) -> CodeGenResult<MetadataType<'ctx>> {
     match ty {
       Type::Intrinsic(intrinsic) => self.generate_intrinsic_type(intrinsic),
       Type::Function(_) => todo!("generate_type function"),
       Type::External(_) => todo!("generate_type external"),
-      Type::Struct(_) => todo!("generate_type struct"),
+      Type::Struct(struct_ptr) => {
+        if let Some(ty) = self.struct_map.get(struct_ptr) {
+          return Ok(MetadataType::Enum(BasicMetadataTypeEnum::StructType(*ty)));
+        };
+
+        let r#struct = unsafe { &**struct_ptr };
+        let mut field_types: Vec<BasicTypeEnum> = Vec::with_capacity(r#struct.members.len());
+
+        for (ty, _) in r#struct.members.iter() {
+          let ty = self.generate_type(&ty.e)?
+            .to_basic_metadata();
+
+          field_types.push(ty.try_into().unwrap());
+        };
+
+        let ty = self.context.struct_type(field_types.as_slice(), false);
+        self.struct_map.insert(*struct_ptr, ty.to_owned());
+
+        Ok(MetadataType::Enum(BasicMetadataTypeEnum::StructType(ty)))
+      },
       Type::ConstReferenceTo(referenced) => {
         let ir_ty = self.generate_type(&referenced.e)?;
 

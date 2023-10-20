@@ -117,8 +117,8 @@ impl std::string::ToString for NamespaceAST {
     let map_iter = self.map.values().map(NamespaceChild::from);
     let mut collected: Vec<NamespaceChild> = imports_iter.chain(map_iter).collect();
 
-    collected.sort_by(
-      |a, b| a.span().start.cmp(&b.span().start)
+    collected.sort_by_key(
+      |x| x.span().start
     );
 
     for structure in collected {

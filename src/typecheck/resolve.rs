@@ -68,7 +68,7 @@ impl Checker {
       stack: vec![
         ScopePointer::Namespace(global)
       ],
-      impls: vec![]
+      // impls: vec![]
     }
   }
 }

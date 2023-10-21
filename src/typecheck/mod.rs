@@ -30,7 +30,7 @@ enum ScopePointer {
 
 pub struct Checker {
   stack: Vec<ScopePointer>,
-  impls: Vec<(Type, *const Impl)>,
+  // impls: Vec<(Type, *const Impl)>,
 }
 
 pub fn check(mut global: NamespaceAST) -> TypeCheckResult<NamespaceAST> {

@@ -24,7 +24,8 @@ enum ScopePointer {
   Function(*mut FunctionAST),
   Block(*mut BlockExpressionAST),
   Impl(*mut Impl),
-  MemberFunction(*mut MemberFunctionAST)
+  MemberFunction(*mut MemberFunctionAST),
+  Template(*mut TemplateAST),
 }
 
 pub struct Checker {

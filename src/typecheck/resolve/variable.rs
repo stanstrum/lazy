@@ -33,11 +33,8 @@ impl Checker {
   fn get_block_expr_scopes(&self) -> Vec<*mut BlockExpressionAST> {
     self.stack.iter().filter_map(|ptr|
       match ptr {
-        | ScopePointer::Namespace(_)
-        | ScopePointer::Function(_)
-        | ScopePointer::Impl(_)
-        | ScopePointer::MemberFunction(_) => None,
-        ScopePointer::Block(block) => Some(*block)
+        ScopePointer::Block(block) => Some(*block),
+        _ => None
       }
     ).collect()
   }

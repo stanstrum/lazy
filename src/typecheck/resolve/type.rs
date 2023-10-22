@@ -44,11 +44,8 @@ impl Checker {
           let mut res_stack: Vec<_> = self.stack.iter()
             .filter_map(|scope|
               match scope {
-                ScopePointer::Function(_)
-                | ScopePointer::Impl(_)
-                | ScopePointer::MemberFunction(_)
-                | ScopePointer::Block(_) => None,
-                ScopePointer::Namespace(ns) => Some(*ns)
+                ScopePointer::Namespace(ns) => Some(*ns),
+                _ => None
               }
             ).collect();
 

@@ -19,10 +19,91 @@ use crate::aster::{
   ast::*,
   SourceReader,
   errors::*,
-  AsterResult
+  AsterResult,
+  seek,
+  consts
 };
 
 use super::try_make;
+
+impl TemplateConstraint {
+  fn make_unconstrained(reader: &mut SourceReader) -> AsterResult<Self> {
+    NotImplementedSnafu {
+      what: "TemplateConstraint::make_unconstrained",
+      offset: reader.offset(),
+      path: reader.path.clone(),
+    }.fail()
+  }
+
+  fn make_extends(reader: &mut SourceReader) -> AsterResult<Self> {
+    NotImplementedSnafu {
+      what: "TemplateConstraint::make_extends",
+      offset: reader.offset(),
+      path: reader.path.clone(),
+    }.fail()
+  }
+
+  pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
+    if let Some(extends) = try_make!(TemplateConstraint::make_extends, reader) {
+      Ok(extends)
+    } else if let Some(unconstrained) = try_make!(TemplateConstraint::make_unconstrained, reader) {
+      Ok(unconstrained)
+    } else {
+      ExpectedSnafu {
+        what: "Template Constraint",
+        offset: reader.offset(),
+        path: reader.path.clone(),
+      }.fail()
+    }
+  }
+}
+
+impl TemplateAST {
+  pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
+    let start = reader.offset();
+
+    if !seek::begins_with(reader, consts::keyword::TEMPLATE) {
+      return ExpectedSnafu {
+        what: "Keyword (template)",
+        offset: reader.offset(),
+        path: reader.path.clone(),
+      }.fail();
+    };
+
+    seek::optional_whitespace(reader)?;
+
+    if !seek::begins_with(reader, consts::punctuation::COLON) {
+      return ExpectedSnafu {
+        what: "Punctuation (\":\")",
+        offset: reader.offset(),
+        path: reader.path.clone(),
+      }.fail();
+    };
+
+    let mut constraints: Vec<TemplateConstraint> = vec![];
+
+    loop {
+      seek::optional_whitespace(reader)?;
+
+      let Ok(constraint) = TemplateConstraint::make(reader) else {
+        break;
+      };
+
+      constraints.push(constraint);
+
+      seek::optional_whitespace(reader)?;
+
+      if !seek::begins_with(reader, consts::punctuation::SEMICOLON) {
+        break;
+      };
+    };
+
+    Ok(Self {
+      span: reader.span_since(start),
+      constraints
+    })
+  }
+}
 
 impl Structure {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {

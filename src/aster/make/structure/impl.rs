@@ -13,7 +13,10 @@ use crate::aster::{
   seek
 };
 
-use crate::intent;
+use crate::{
+  try_make,
+  intent
+};
 
 fn parse_methods(reader: &mut SourceReader) -> AsterResult<Vec<MemberFunctionAST>> {
   if !seek::begins_with(reader, consts::grouping::OPEN_BRACE) {
@@ -54,6 +57,12 @@ impl ImplAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
+    let template = try_make!(TemplateAST::make, reader);
+
+    if template.is_some() {
+      seek::optional_whitespace(reader)?;
+    };
+
     if !seek::begins_with(reader, consts::keyword::IMPL) {
       return ExpectedSnafu {
         what: "Keyword (impl)",
@@ -72,7 +81,8 @@ impl ImplAST {
 
     Ok(Self {
       span: reader.span_since(start),
-      ty, methods
+      ty, methods,
+      template
     })
   }
 }
@@ -80,6 +90,12 @@ impl ImplAST {
 impl ImplForAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
+
+    let template = try_make!(TemplateAST::make, reader);
+
+    if template.is_some() {
+      seek::optional_whitespace(reader)?;
+    };
 
     if !seek::begins_with(reader, consts::keyword::IMPL) {
       return ExpectedSnafu {
@@ -114,6 +130,7 @@ impl ImplForAST {
     Ok(Self {
       span: reader.span_since(start),
       r#trait, ty, methods,
+      template
     })
   }
 }

@@ -50,6 +50,12 @@ impl MemberFunctionAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
+    let template = try_make!(TemplateAST::make, reader);
+
+    if template.is_some() {
+      seek::optional_whitespace(reader)?;
+    };
+
     let decl = MemberFunctionDeclAST::make(reader)?;
 
     seek::optional_whitespace(reader)?;
@@ -58,7 +64,8 @@ impl MemberFunctionAST {
 
     Ok(Self {
       span: reader.span_since(start),
-      decl, body
+      decl, body,
+      template
     })
   }
 }

@@ -11,6 +11,32 @@ use crate::make_get_span;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
+pub enum TemplateConstraint {
+  Unconstrained(IdentAST),
+  Extends(IdentAST, TypeAST)
+  // infer :)
+}
+
+impl GetSpan for TemplateConstraint {
+  fn span(&self) -> Span {
+    match self {
+      TemplateConstraint::Unconstrained(ident) => ident.span(),
+      TemplateConstraint::Extends(ident, ty) => {
+        let ident_span = ident.span();
+
+        Span { end: ty.span.end, ..ident_span }
+      },
+    }
+  }
+}
+
+#[derive(Debug, Clone)]
+pub struct TemplateAST {
+  pub span: Span,
+  pub constraints: Vec<TemplateConstraint>
+}
+
+#[derive(Debug, Clone)]
 pub struct NamespaceAST {
   pub span: Span,
   pub ident: IdentAST,
@@ -24,13 +50,16 @@ pub struct FunctionAST {
   pub span: Span,
   pub decl: FunctionDeclAST,
   pub body: BlockExpressionAST,
+
+  pub template: Option<TemplateAST>
 }
 
 #[derive(Debug, Clone)]
 pub struct StructAST {
   pub span: Span,
   pub ident: IdentAST,
-  pub members: Vec<(TypeAST, IdentAST)>
+  pub members: Vec<(TypeAST, IdentAST)>,
+  pub template: Option<TemplateAST>
 }
 
 #[derive(Debug, Clone)]
@@ -57,14 +86,17 @@ pub struct MemberFunctionAST {
   pub span: Span,
 
   pub decl: MemberFunctionDeclAST,
-  pub body: BlockExpressionAST
+  pub body: BlockExpressionAST,
+
+  pub template: Option<TemplateAST>
 }
 
 #[derive(Debug, Clone)]
 pub struct TraitAST {
   pub span: Span,
   pub ident: IdentAST,
-  pub decls: Vec<MemberFunctionDeclAST>
+  pub decls: Vec<MemberFunctionDeclAST>,
+  pub template: Option<TemplateAST>
 }
 
 #[derive(Debug, Clone)]
@@ -76,6 +108,8 @@ pub struct ImplAST {
   // {
   pub methods: Vec<MemberFunctionAST>,
   // }
+
+  pub template: Option<TemplateAST>
 }
 
 #[derive(Debug, Clone)]
@@ -87,8 +121,10 @@ pub struct ImplForAST {
   // for ...
   pub ty: TypeAST,
   // {
-  pub methods: Vec<MemberFunctionAST>
+  pub methods: Vec<MemberFunctionAST>,
   // }
+
+  pub template: Option<TemplateAST>
 }
 
 #[derive(Debug, Clone)]
@@ -101,7 +137,8 @@ pub enum Impl {
 pub struct TypeAliasAST {
   pub span: Span,
   pub ident: IdentAST,
-  pub ty: TypeAST
+  pub ty: TypeAST,
+  pub template: Option<TemplateAST>
 }
 
 #[derive(Debug, Clone)]

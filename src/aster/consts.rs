@@ -8,6 +8,8 @@
 #![allow(unused)]
 
 pub mod keyword {
+  pub const TEMPLATE: &str = "template";
+
   pub const FN: &str = "fn";
 
   pub const TYPE: &str = "type";

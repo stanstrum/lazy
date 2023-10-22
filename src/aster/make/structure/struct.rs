@@ -14,11 +14,20 @@ use crate::aster::{
   consts
 };
 
-use crate::intent;
+use crate::{
+  try_make,
+  intent
+};
 
 impl StructAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
+
+    let template = try_make!(TemplateAST::make, reader);
+
+    if template.is_some() {
+      seek::optional_whitespace(reader)?;
+    };
 
     if !seek::begins_with(reader, consts::keyword::STRUCT) {
       return ExpectedSnafu {
@@ -79,7 +88,8 @@ impl StructAST {
 
     Ok(Self {
       span: reader.span_since(start),
-      ident, members
+      ident, members,
+      template
     })
   }
 }

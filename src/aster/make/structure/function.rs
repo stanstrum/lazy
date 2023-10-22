@@ -16,7 +16,7 @@ use crate::aster::{
   intrinsics
 };
 
-use crate::intent;
+use crate::{intent, try_make};
 
 impl FunctionDeclAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
@@ -80,12 +80,19 @@ impl FunctionAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
+    let template = try_make!(TemplateAST::make, reader);
+
+    if template.is_some() {
+      seek::optional_whitespace(reader)?;
+    };
+
     let decl = FunctionDeclAST::make(reader)?;
     let body = intent!(BlockExpressionAST::make, reader)?;
 
     Ok(Self {
       span: reader.span_since(start),
       decl, body,
+      template
     })
   }
 }

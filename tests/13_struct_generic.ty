@@ -1,0 +1,19 @@
+/* Copyright (c) 2023 Stan Strum
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+template: T;
+struct Something {
+  T value
+};
+
+main -> i32 {
+  something := Something<i32> { value: 16 };
+
+  printf(c"something.value = %d\n", something.value);
+
+  return 0;
+};

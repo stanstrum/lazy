@@ -23,7 +23,7 @@ impl StructInitializerAST {
   pub fn make(reader: &mut SourceReader) -> AsterResult<Self> {
     let start = reader.offset();
 
-    let qual = QualifiedAST::make(reader)?;
+    let fqual = FullyQualifiedAST::make(reader)?;
 
     seek::optional_whitespace(reader)?;
 
@@ -81,7 +81,7 @@ impl StructInitializerAST {
 
     Ok(Self {
       span: reader.span_since(start),
-      qual, members
+      fqual, members
     })
   }
 }

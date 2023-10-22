@@ -83,7 +83,7 @@ impl TemplateAST {
     loop {
       seek::optional_whitespace(reader)?;
 
-      let Ok(constraint) = TemplateConstraint::make(reader) else {
+      let Some(constraint) = try_make!(TemplateConstraint::make, reader) else {
         break;
       };
 
@@ -91,9 +91,21 @@ impl TemplateAST {
 
       seek::optional_whitespace(reader)?;
 
-      if !seek::begins_with(reader, consts::punctuation::SEMICOLON) {
+      if !seek::begins_with(reader, consts::punctuation::COMMA) {
+        if !seek::begins_with(reader, consts::punctuation::SEMICOLON) {
+          return reader.set_intent(
+            ExpectedSnafu {
+              what: "Semicolon",
+              offset: reader.offset(),
+              path: reader.path.clone()
+            }.fail()
+          );
+        };
+
         break;
       };
+
+      seek::optional_whitespace(reader)?;
     };
 
     Ok(Self {

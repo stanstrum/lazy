@@ -291,42 +291,44 @@ impl Checker {
         };
       },
       AtomExpression::StructInitializer(initializer) => {
-        let Structure::Struct(r#struct) = self.get_qualified_structure(&initializer.qual)? else {
-          return InvalidTypeSnafu {
-            text: "Initializer is not a struct",
-            span: initializer.qual.span(),
-          }.fail();
-        };
+        todo!("fqual resolution");
 
-        atom.out = Type::Struct(r#struct as *const _);
+        // let Structure::Struct(r#struct) = self.get_qualified_structure(&initializer.qual)? else {
+        //   return InvalidTypeSnafu {
+        //     text: "Initializer is not a struct",
+        //     span: initializer.fqual.span(),
+        //   }.fail();
+        // };
 
-        let init_len = initializer.members.len();
-        let struct_len = r#struct.members.len();
-        if init_len != struct_len {
-          return IncompatibleTypeSnafu {
-            span: initializer.span(),
-            what: "Struct initializer fields",
-            with: format!("struct definition (expected {struct_len}, got {init_len})"),
-          }.fail();
-        };
+        // atom.out = Type::Struct(r#struct as *const _);
 
-        let mut item_map = HashMap::<IdentAST, Type>::new();
+        // let init_len = initializer.members.len();
+        // let struct_len = r#struct.members.len();
+        // if init_len != struct_len {
+        //   return IncompatibleTypeSnafu {
+        //     span: initializer.span(),
+        //     what: "Struct initializer fields",
+        //     with: format!("struct definition (expected {struct_len}, got {init_len})"),
+        //   }.fail();
+        // };
 
-        for (ty, ident) in r#struct.members.iter() {
-          item_map.insert(ident.to_owned(), Type::Defined(ty));
-        };
+        // let mut item_map = HashMap::<IdentAST, Type>::new();
 
-        for (ident, expr) in initializer.members.iter_mut() {
-          let Some(field_ty) = item_map.remove(ident) else {
-            todo!("bad field");
-          };
+        // for (ty, ident) in r#struct.members.iter() {
+        //   item_map.insert(ident.to_owned(), Type::Defined(ty));
+        // };
 
-          let expr_ty = self.resolve_expression(expr, Some(&field_ty))?;
+        // for (ident, expr) in initializer.members.iter_mut() {
+        //   let Some(field_ty) = item_map.remove(ident) else {
+        //     todo!("bad field");
+        //   };
 
-          if !assignable(&expr_ty, &field_ty) {
-            todo!("types dont match")
-          };
-        };
+        //   let expr_ty = self.resolve_expression(expr, Some(&field_ty))?;
+
+        //   if !assignable(&expr_ty, &field_ty) {
+        //     todo!("types dont match")
+        //   };
+        // };
       },
       _ => todo!("{:#?}", &atom.a),
     };

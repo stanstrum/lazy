@@ -33,6 +33,41 @@ impl std::string::ToString for VariableReference {
   }
 }
 
+impl std::string::ToString for FullyQualifiedIdentAST {
+  fn to_string(&self) -> String {
+    let mut text = self.ident.to_string();
+
+    if let Some(generics) = self.generics.as_ref() {
+      text += "<";
+
+      if let Some((first, rest)) = generics.split_first() {
+        text += &first.to_string();
+
+        for generic in rest {
+          text += &generic.to_string();
+        };
+      };
+
+      text += ">";
+    };
+
+    text
+  }
+}
+
+impl std::string::ToString for FullyQualifiedAST {
+  fn to_string(&self) -> String {
+    let (first, parts) = self.parts.split_first().unwrap();
+    let mut text = first.to_string();
+
+    for part in parts {
+      text += &format!("::{}", part.to_string());
+    };
+
+    text
+  }
+}
+
 impl std::string::ToString for AtomExpressionAST {
   fn to_string(&self) -> String {
     match &self.a {
@@ -53,11 +88,11 @@ impl std::string::ToString for AtomExpressionAST {
       },
       AtomExpression::Break(_) => todo!("atomexpression break"),
       AtomExpression::StructInitializer(StructInitializerAST {
-        qual, members, ..
+        fqual, members, ..
       }) => {
         let mut text = String::new();
 
-        text += qual.to_string().as_str();
+        text += fqual.to_string().as_str();
         text += " {";
 
         if !members.is_empty() {

@@ -14,15 +14,28 @@ pub struct KeywordAST {
 }
 
 #[derive(Debug, Clone)]
+pub struct IdentAST {
+  pub span: Span,
+  pub text: String,
+}
+
+#[derive(Debug, Clone)]
 pub struct QualifiedAST {
   pub span: Span,
   pub parts: Vec<IdentAST>,
 }
 
 #[derive(Debug, Clone)]
-pub struct IdentAST {
+pub struct FullyQualifiedIdentAST {
   pub span: Span,
-  pub text: String,
+  pub ident: IdentAST,
+  pub generics: Option<Vec<TypeAST>>
+}
+
+#[derive(Debug, Clone)]
+pub struct FullyQualifiedAST {
+  pub span: Span,
+  pub parts: Vec<FullyQualifiedIdentAST>
 }
 
 impl QualifiedAST {
@@ -52,5 +65,6 @@ impl std::cmp::Eq for IdentAST {}
 make_get_span![
   KeywordAST,
   IdentAST,
-  QualifiedAST
+  QualifiedAST,
+  FullyQualifiedAST
 ];

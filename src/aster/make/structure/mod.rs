@@ -28,11 +28,9 @@ use super::try_make;
 
 impl TemplateConstraint {
   fn make_unconstrained(reader: &mut SourceReader) -> AsterResult<Self> {
-    NotImplementedSnafu {
-      what: "TemplateConstraint::make_unconstrained",
-      offset: reader.offset(),
-      path: reader.path.clone(),
-    }.fail()
+    let ident = IdentAST::make(reader)?;
+
+    Ok(Self::Unconstrained(ident))
   }
 
   fn make_extends(reader: &mut SourceReader) -> AsterResult<Self> {

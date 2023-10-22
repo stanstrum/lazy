@@ -11,6 +11,7 @@ mod r#type;
 mod expression;
 mod variable;
 mod r#impl;
+mod r#struct;
 
 pub use super::TypeOf;
 

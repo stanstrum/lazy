@@ -13,6 +13,7 @@ use std::collections::HashMap;
 #[derive(Debug, Clone)]
 pub enum TemplateConstraint {
   Unconstrained(IdentAST),
+  #[allow(unused)]
   Extends(IdentAST, TypeAST)
   // infer :)
 }

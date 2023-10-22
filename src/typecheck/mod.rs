@@ -18,6 +18,7 @@ use crate::aster::ast::*;
 mod extends;
 pub use extends::*;
 
+#[allow(unused)]
 #[derive(Clone, Copy)]
 enum ScopePointer {
   Namespace(*mut NamespaceAST),
@@ -38,13 +39,4 @@ pub fn check(mut global: NamespaceAST) -> TypeCheckResult<NamespaceAST> {
   checker.resolve_ns(&mut global)?;
 
   Ok(global)
-}
-
-fn expect_type_of<T: GetSpan + TypeOf>(subject: &T) -> TypeCheckResult<Type> {
-  match subject.type_of() {
-    Some(ty) => Ok(ty),
-    None => CantInferTypeSnafu {
-      span: subject.span()
-    }.fail()
-  }
 }

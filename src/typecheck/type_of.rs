@@ -13,13 +13,9 @@ pub trait TypeOf {
 
   fn type_of_expect(&self, span: Span) -> TypeCheckResult<Type>
   where Self: std::string::ToString {
-    if let Some(ty) = self.type_of() {
-      Ok(ty)
-    } else {
-      InvalidTypeSnafu {
-        text: format!("Unable to resolve type of: {}", self.to_string()),
-        span
-      }.fail()
+    match self.type_of() {
+      Some(ty) => Ok(ty),
+      None => CantInferTypeSnafu { span }.fail()
     }
   }
 }

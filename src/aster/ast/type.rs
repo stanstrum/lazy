@@ -27,6 +27,7 @@ pub struct LiteralAST {
   pub l: Literal,
 }
 
+#[allow(unused)]
 #[derive(Debug, Clone)]
 pub enum GenericConstraint {
   ExtendsTrait(*const TraitAST)

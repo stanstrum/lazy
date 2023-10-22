@@ -67,8 +67,6 @@ impl Checker {
           block.vars.insert(binding.ident.clone(), binding);
         },
         BlockExpressionChild::Expression(expr) => {
-          self.stack.push(ScopePointer::Expression(expr));
-
           if i + 1 == len && block.returns_last {
             self.resolve_expression(expr, coerce_to)?;
 
@@ -77,8 +75,6 @@ impl Checker {
           } else {
             self.resolve_expression(expr, None)?;
           };
-
-          self.stack.pop();
         },
       };
     };
@@ -366,9 +362,7 @@ impl Checker {
         todo!("if")
       },
       ControlFlow::While(cond, body) => {
-        self.stack.push(ScopePointer::Expression(&mut **cond));
         self.resolve_expression(cond, BOOL_COERCION)?;
-        self.stack.pop();
 
         self.stack.push(ScopePointer::Block(&mut **body));
         self.resolve_block_expression(body, None)?;
@@ -484,9 +478,7 @@ impl Checker {
 
     match &mut unary.op {
       UnaryOperator::UnarySfx(UnarySfxOperator::Call { args }) => {
-        self.stack.push(ScopePointer::Expression(expr.as_mut()));
         self.resolve_dest_expression(expr)?;
-        self.stack.pop();
 
         match expr.type_of() {
           Some(Type::External(external)) => {
@@ -596,18 +588,14 @@ impl Checker {
           None
         };
 
-        self.stack.push(ScopePointer::Expression(expr.as_mut()));
         self.resolve_expression(expr, coerce_to.as_ref())?;
-        self.stack.pop();
 
         unary.out = expr.type_of_expect(expr.span())?;
 
         Ok(unary.out.clone())
       },
       UnaryOperator::UnarySfx(UnarySfxOperator::Cast { to, method }) => {
-        self.stack.push(ScopePointer::Expression(expr.as_mut()));
         self.resolve_expression(expr, Some(&Type::Defined(to)))?;
-        self.stack.pop();
 
         self.resolve_type(to)?;
         unary.out = to.e.to_owned();

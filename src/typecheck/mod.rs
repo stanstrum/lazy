@@ -23,7 +23,6 @@ enum ScopePointer {
   Namespace(*mut NamespaceAST),
   Function(*mut FunctionAST),
   Block(*mut BlockExpressionAST),
-  Expression(*mut Expression),
   Impl(*mut Impl),
   MemberFunction(*mut MemberFunctionAST)
 }

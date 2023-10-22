@@ -45,7 +45,6 @@ impl Checker {
             .filter_map(|scope|
               match scope {
                 ScopePointer::Function(_)
-                | ScopePointer::Expression(_)
                 | ScopePointer::Impl(_)
                 | ScopePointer::MemberFunction(_)
                 | ScopePointer::Block(_) => None,

@@ -36,8 +36,7 @@ impl Checker {
         | ScopePointer::Namespace(_)
         | ScopePointer::Function(_)
         | ScopePointer::Impl(_)
-        | ScopePointer::MemberFunction(_)
-        | ScopePointer::Expression(_) => None,
+        | ScopePointer::MemberFunction(_) => None,
         ScopePointer::Block(block) => Some(*block)
       }
     ).collect()

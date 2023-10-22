@@ -99,6 +99,7 @@ impl Checker {
 
           return Ok(());
         },
+        Type::Generic(..) => todo!("resolve_type for generic"),
         Type::UnresolvedLiteral(_)
         | Type::Unresolved => todo!("type alias dest unresolved"),
       };

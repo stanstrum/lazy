@@ -115,6 +115,7 @@ impl std::string::ToString for Type {
 
         format!("[{}]{}", count, ty.to_string())
       },
+      Type::Generic(ident, ..) => ident.to_string(),
       Type::Defined(ty) => {
         let ty = unsafe { &**ty };
 

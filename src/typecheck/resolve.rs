@@ -54,6 +54,7 @@ impl IsResolved for Type {
       | Type::MutPtrTo(ast) => ast.is_resolved(),
       Type::ArrayOf(lit, ty) =>
         lit.as_ref().is_some_and(is_valid_array_length) && ty.is_resolved(),
+      Type::Generic(..) => todo!("isresolved for generic"),
       Type::Defined(ast) => unsafe { (**ast).is_resolved() },
       Type::Unknown(_) => false,
       Type::UnresolvedLiteral(_)

@@ -27,6 +27,11 @@ pub struct LiteralAST {
   pub l: Literal,
 }
 
+#[derive(Debug, Clone)]
+pub enum GenericConstraint {
+  ExtendsTrait(*const TraitAST)
+}
+
 #[allow(unused)]
 #[derive(Debug, Clone)]
 pub enum Type {
@@ -40,6 +45,7 @@ pub enum Type {
   MutPtrTo(Box<TypeAST>),
   ArrayOf(Option<LiteralAST>, Box<TypeAST>),
   Defined(*const TypeAST),
+  Generic(IdentAST, Vec<GenericConstraint>),
   Unknown(QualifiedAST),
   UnresolvedLiteral(Literal),
   Unresolved

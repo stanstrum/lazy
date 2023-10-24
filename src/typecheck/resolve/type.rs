@@ -186,6 +186,26 @@ impl Checker {
                 continue;
               };
 
+              // sponge: it replaces the whole argument type here:
+              // not going to fix it just yet because i need
+              // to refactor the Type enum so that structs
+              // are unique.  this is because a generic struct
+              // has different resolved representations based on the
+              // specified type in an initializer; e.g.:
+              //
+              // template: T;
+              // struct Something {
+              //   T value
+              // };
+              //
+              // foo {
+              //   val := Something<i32> { value: 10 };
+              // };
+              //
+              // the type of Something::value is Generic(T, [/* no constraints */])
+              // but the type of val is of Struct([
+              //   (i32, "value")
+              // ])
               ty = replace_ty.to_owned();
             },
             _ => {}

@@ -131,9 +131,18 @@ impl Checker {
         };
       },
       AtomExpression::StructInitializer(initializer) => {
-        let initializer_ty = self.resolve_fqual_to_type(&initializer.fqual)?;
+        let mut initializer_ty = self.resolve_fqual_to_type(&initializer.fqual)?;
 
         atom.out = initializer_ty.clone();
+
+        // "if you want something done, do it yourself"
+        while let Type::Defined(ty_ast) = initializer_ty {
+          let ty_ast = unsafe { &*ty_ast };
+
+          initializer_ty = ty_ast.e.to_owned();
+        };
+
+        dbg!(&initializer_ty);
 
         let Type::Struct(r#struct) = initializer_ty else {
           return InvalidTypeSnafu {

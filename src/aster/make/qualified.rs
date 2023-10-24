@@ -138,6 +138,8 @@ impl FullyQualifiedAST {
       seek::optional_whitespace(reader)?;
 
       if !seek::begins_with(reader, consts::punctuation::DOUBLE_COLON) {
+        reader.to(iter_start).unwrap();
+
         break;
       };
 

@@ -87,10 +87,8 @@ impl std::string::ToString for Type {
 
         format!("({}: {}", func.decl.ret.to_string(), args.join(", "))
       },
-      Type::Struct(r#struct) => {
-        let r#struct = unsafe { &**r#struct };
-
-        r#struct.ident.to_string()
+      Type::Struct(fqual, _) => {
+        fqual.to_string()
       },
       Type::External(external) => {
         let external = unsafe { &**external };
@@ -147,11 +145,6 @@ impl std::string::ToString for TypeAST {
           None => format!("[]{}", ty.to_string())
         }
       },
-      Type::Struct(r#struct) => {
-        let r#struct = unsafe { &**r#struct };
-
-        r#struct.ident.to_string()
-      },
       Type::Unknown(ident) => {
         format!("{LIGHT_RED}{UNDERLINE}{}{CLEAR}", ident.to_string())
       },
@@ -161,7 +154,7 @@ impl std::string::ToString for TypeAST {
         defined.to_string()
       },
       Type::Unresolved => format!("{LIGHT_RED}/* unresolved */{CLEAR}"),
-      _ => todo!("exhaustive typeast: {:#?}", self.e)
+      _ => self.e.to_string()
     }
   }
 }

@@ -44,7 +44,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
     let name = &func.decl.ident.text;
     let func_value = self.module.add_function(name, func_ty, None);
 
-    self.var_map.insert(VariableReference::ResolvedFunction(func), func_value.to_owned().as_any_value_enum());
+    self.insert_var_ref(VariableReference::ResolvedFunction(func), func_value.to_owned().as_any_value_enum());
 
     Ok(func_value)
   }

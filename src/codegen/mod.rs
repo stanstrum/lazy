@@ -31,7 +31,6 @@ use inkwell::{
   context::Context,
   builder::Builder,
   values::AnyValueEnum,
-  types::StructType
 };
 
 pub struct Codegen<'a, 'ctx> {
@@ -39,8 +38,10 @@ pub struct Codegen<'a, 'ctx> {
   pub module: &'a Module<'ctx>,
   pub builder: &'a Builder<'ctx>,
 
-  pub var_map: HashMap<VariableReference, AnyValueEnum<'ctx>>,
-  pub struct_map: HashMap<*const StructAST, StructType<'ctx>>
+  pub var_map: HashMap<*const BindingAST, AnyValueEnum<'ctx>>,
+  pub extern_map: HashMap<*const ExternDeclAST, AnyValueEnum<'ctx>>,
+  pub func_map: HashMap<*const FunctionAST, AnyValueEnum<'ctx>>,
+  // pub arg_map: HashMap<*const BindingAST, AnyValueEnum<'ctx>>,
 }
 
 fn parse_int_literal(text: &str) -> u64 {
@@ -67,7 +68,42 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
     Self {
       context, module, builder,
       var_map: HashMap::new(),
-      struct_map: HashMap::new()
+      extern_map: HashMap::new(),
+      func_map: HashMap::new()
+    }
+  }
+
+  pub fn get_var_ref<'b>(&'b self, var_ref: &VariableReference) -> Option<&'b AnyValueEnum<'ctx>> {
+    match var_ref {
+      VariableReference::ResolvedVariable(ptr) => {
+        self.var_map.get(ptr)
+      },
+      VariableReference::ResolvedArgument(_) => todo!(),
+      VariableReference::ResolvedFunction(ptr) => {
+        self.func_map.get(ptr)
+      },
+      VariableReference::ResolvedMemberFunction(_) => todo!(),
+      VariableReference::ResolvedMemberOf(..) => todo!(),
+      VariableReference::ResolvedExternal(ptr) => {
+        self.extern_map.get(ptr)
+      },
+    }
+  }
+
+  pub fn insert_var_ref(&mut self, var_ref: VariableReference, value: AnyValueEnum<'ctx>) -> Option<AnyValueEnum<'ctx>> {
+    match var_ref {
+      VariableReference::ResolvedVariable(ptr) => {
+        self.var_map.insert(ptr, value)
+      },
+      VariableReference::ResolvedArgument(_) => todo!(),
+      VariableReference::ResolvedFunction(ptr) => {
+        self.func_map.insert(ptr, value)
+      },
+      VariableReference::ResolvedMemberFunction(_) => todo!(),
+      VariableReference::ResolvedMemberOf(..) => todo!(),
+      VariableReference::ResolvedExternal(ptr) => {
+        self.extern_map.insert(ptr, value)
+      },
     }
   }
 

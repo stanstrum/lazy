@@ -14,10 +14,10 @@ use crate::typecheck::{
 use crate::aster::ast::*;
 
 impl Checker {
-  pub fn get_struct_member_idx(r#struct: &StructAST, ident: &IdentAST) -> TypeCheckResult<(Type, usize)> {
-    for (i, (memb_ty, member_ident)) in r#struct.members.iter().enumerate() {
+  pub fn get_struct_member_idx(members: &Vec<(Type, IdentAST)>, ident: &IdentAST) -> TypeCheckResult<(Type, usize)> {
+    for (i, (memb_ty, member_ident)) in members.iter().enumerate() {
       if ident == member_ident {
-        return Ok((Type::Defined(memb_ty), i));
+        return Ok((memb_ty.clone(), i));
       };
     };
 

@@ -144,17 +144,17 @@ impl Checker {
 
         dbg!(&initializer_ty);
 
-        let Type::Struct(r#struct) = initializer_ty else {
+        let Type::Struct(fqual, members) = initializer_ty else {
           return InvalidTypeSnafu {
             text: "Initializer is not a struct",
             span: initializer.fqual.span(),
           }.fail();
         };
 
-        let r#struct = unsafe { &*r#struct };
+        // let r#struct = unsafe { &*r#struct };
 
         let init_len = initializer.members.len();
-        let struct_len = r#struct.members.len();
+        let struct_len = members.len();
         if init_len != struct_len {
           return IncompatibleTypeSnafu {
             span: initializer.span(),
@@ -165,8 +165,8 @@ impl Checker {
 
         let mut item_map = HashMap::<IdentAST, Type>::new();
 
-        for (ty, ident) in r#struct.members.iter() {
-          item_map.insert(ident.to_owned(), Type::Defined(ty));
+        for (ty, ident) in members.iter() {
+          item_map.insert(ident.to_owned(), ty.to_owned());
         };
 
         for (ident, expr) in initializer.members.iter_mut() {

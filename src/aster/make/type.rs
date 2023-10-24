@@ -59,10 +59,10 @@ impl TypeAST {
         span: reader.span_since(start),
         e: Type::ArrayOf(len, ty)
       })
-    } else if let Some(qual) = try_make!(FullyQualifiedAST::make, reader) {
-      let ty = match intrinsics::get_intrinsic(&qual) {
+    } else if let Some(fqual) = try_make!(FullyQualifiedAST::make, reader) {
+      let ty = match intrinsics::get_intrinsic(&fqual) {
         Some(ty) => ty,
-        None => Type::Unknown(qual),
+        None => Type::Unknown(fqual),
       };
 
       Ok(Self {

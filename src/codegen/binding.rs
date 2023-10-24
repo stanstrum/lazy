@@ -82,7 +82,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       self.builder.build_store(ptr, casted_value);
     };
 
-    self.var_map.insert(VariableReference::ResolvedVariable(ast), AnyValueEnum::PointerValue(ptr));
+    self.insert_var_ref(VariableReference::ResolvedVariable(ast), AnyValueEnum::PointerValue(ptr));
 
     Ok(())
   }

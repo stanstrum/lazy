@@ -39,7 +39,7 @@ pub enum Type {
   Intrinsic(Intrinsic),
   Function(*const FunctionAST),
   External(*const ExternDeclAST),
-  Struct(*const StructAST),
+  Struct(FullyQualifiedAST, Vec<(Type, IdentAST)>),
   ConstReferenceTo(Box<TypeAST>),
   MutReferenceTo(Box<TypeAST>),
   ConstPtrTo(Box<TypeAST>),

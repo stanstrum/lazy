@@ -60,8 +60,18 @@ pub fn extends(ty: &Type, base: &Type) -> bool {
 
         extends(ty, &ast.e)
       },
-      (Type::Struct(a), Type::Struct(b)) => {
-        a == b
+      (Type::Struct(_, members_a), Type::Struct(_, members_b)) => {
+        if members_a.len() != members_b.len() {
+          return false;
+        };
+
+        for ((ty_a, _), (ty_b, _)) in members_a.iter().zip(members_b.iter()) {
+          if !extends(ty_a, ty_b) {
+            return false
+          };
+        };
+
+        true
       },
       (Type::ConstReferenceTo(a), Type::ConstReferenceTo(b)) => {
         extends(&a.e, &b.e)

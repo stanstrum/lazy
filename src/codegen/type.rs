@@ -45,23 +45,17 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       Type::Intrinsic(intrinsic) => self.generate_intrinsic_type(intrinsic),
       Type::Function(_) => todo!("generate_type function"),
       Type::External(_) => todo!("generate_type external"),
-      Type::Struct(struct_ptr) => {
-        if let Some(ty) = self.struct_map.get(struct_ptr) {
-          return Ok(MetadataType::Enum(BasicMetadataTypeEnum::StructType(*ty)));
-        };
+      Type::Struct(_, members) => {
+        let mut field_types: Vec<BasicTypeEnum> = Vec::with_capacity(members.len());
 
-        let r#struct = unsafe { &**struct_ptr };
-        let mut field_types: Vec<BasicTypeEnum> = Vec::with_capacity(r#struct.members.len());
-
-        for (ty, _) in r#struct.members.iter() {
-          let ty = self.generate_type(&ty.e)?
+        for (ty, _) in members.iter() {
+          let ty = self.generate_type(ty)?
             .to_basic_metadata();
 
           field_types.push(ty.try_into().unwrap());
         };
 
         let ty = self.context.struct_type(field_types.as_slice(), false);
-        self.struct_map.insert(*struct_ptr, ty.to_owned());
 
         Ok(MetadataType::Enum(BasicMetadataTypeEnum::StructType(ty)))
       },

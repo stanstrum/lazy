@@ -46,7 +46,7 @@ impl IsResolved for Type {
   fn is_resolved(&self) -> bool {
     match self {
       Type::Intrinsic(_)
-      | Type::Struct(_)
+      | Type::Struct(..)
       | Type::Function(_)
       | Type::External(_) => true,
       Type::ConstReferenceTo(ast)

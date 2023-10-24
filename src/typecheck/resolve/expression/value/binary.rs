@@ -36,9 +36,9 @@ impl Checker {
 
         let ident = unsafe { qual.parts.first().unwrap_unchecked() };
 
-        let r#struct = match ty {
-          Type::Struct(r#struct) => {
-            unsafe { &**r#struct }
+        let (fqual, members) = match ty {
+          Type::Struct(fqual, members) => {
+            (fqual, members)
           },
           Type::Defined(ast) => {
             let ast = unsafe { &**ast };
@@ -48,11 +48,11 @@ impl Checker {
           _ => todo!("err for bad type {ty:?}")
         };
 
-        let (memb_ty, idx) = Self::get_struct_member_idx(r#struct, ident)?;
+        let (memb_ty, idx) = Self::get_struct_member_idx(members, ident)?;
 
         atom.a = AtomExpression::ValueVariable(
           qual.clone(),
-          VariableReference::ResolvedMemberOf(r#struct, idx)
+          VariableReference::ResolvedMemberOf(fqual.to_owned(), members.to_owned(), idx)
         );
 
         atom.out = memb_ty;

@@ -10,7 +10,7 @@ use crate::make_get_span;
 
 use std::collections::HashMap;
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub enum VariableReference {
   ResolvedVariable(*const BindingAST),
   ResolvedArgument(*const TypeAST),
@@ -18,7 +18,7 @@ pub enum VariableReference {
   #[allow(unused)]
   ResolvedMemberFunction(*const MemberFunctionAST),
   #[allow(unused)]
-  ResolvedMemberOf(*const StructAST, usize),
+  ResolvedMemberOf(FullyQualifiedAST, Vec<(Type, IdentAST)>, usize),
   ResolvedExternal(*const ExternDeclAST)
 }
 

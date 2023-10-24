@@ -159,9 +159,9 @@ impl TypeOf for VariableReference {
 
         Some(Type::Function(func))
       },
-      VariableReference::ResolvedMemberOf(parent, idx) => {
-        let parent = unsafe { &**parent };
-        let (_, ident) = unsafe { parent.members.get_unchecked(*idx) };
+      VariableReference::ResolvedMemberOf(_fqual, members, idx) => {
+        // let parent = unsafe { &**parent };
+        let (_, ident) = unsafe { members.get_unchecked(*idx) };
 
         println!("type_of resolved_member_of: ... {}", ident.to_string());
 

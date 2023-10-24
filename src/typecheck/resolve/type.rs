@@ -9,6 +9,14 @@ use std::collections::HashMap;
 
 use super::*;
 
+fn typeof_struct(r#struct: &StructAST) -> Type {
+  let unwrapped_members = r#struct.members.iter()
+  .map(|(ast, ident)| (ast.e.to_owned(), ident.to_owned()))
+  .collect::<Vec<_>>();
+
+  Type::Struct((&r#struct.ident).into(), unwrapped_members)
+}
+
 impl TemplateAST {
   pub fn to_positional_tuple(&self) -> Vec<(IdentAST, Type)> {
     let mut tuples = Vec::<(IdentAST, Type)>::new();
@@ -63,7 +71,7 @@ impl Checker {
       match &mut ast.e {
         Type::Intrinsic(_)
         | Type::Defined(_)
-        | Type::Struct(_)
+        | Type::Struct(..)
         | Type::Function(_)
         | Type::External(_) => {
           return Ok(());
@@ -150,7 +158,7 @@ impl Checker {
                 break 'replace_with Type::Function(func);
               },
               (true, Some(Structure::Struct(r#struct))) => {
-                break 'replace_with Type::Struct(r#struct);
+                break 'replace_with typeof_struct(r#struct);
               },
               _ => {
                 return UnknownIdentSnafu {
@@ -175,38 +183,18 @@ impl Checker {
   }
 
   fn replace_generics(mut ty: Type, map: HashMap<IdentAST, Type>) -> Type {
-    match ty {
-      Type::Struct(r#struct) => {
-        let r#struct = unsafe { &*r#struct };
+    match &mut ty {
+      Type::Struct(_fqual, members) => {
+        // let r#struct = unsafe { &*r#struct };
 
-        for (memb_ty, _memb_ident) in r#struct.members.iter() {
-          match &memb_ty.e {
+        for (memb_ty, _memb_ident) in members.iter_mut() {
+          match memb_ty {
             Type::Generic(ident, ..) => {
               let Some(replace_ty) = map.get(&ident) else {
                 continue;
               };
 
-              // sponge: it replaces the whole argument type here:
-              // not going to fix it just yet because i need
-              // to refactor the Type enum so that structs
-              // are unique.  this is because a generic struct
-              // has different resolved representations based on the
-              // specified type in an initializer; e.g.:
-              //
-              // template: T;
-              // struct Something {
-              //   T value
-              // };
-              //
-              // foo {
-              //   val := Something<i32> { value: 10 };
-              // };
-              //
-              // the type of Something::value is Generic(T, [/* no constraints */])
-              // but the type of val is of Struct([
-              //   (i32, "value")
-              // ])
-              ty = replace_ty.to_owned();
+              *memb_ty = replace_ty.to_owned();
             },
             _ => {}
           };
@@ -261,7 +249,7 @@ impl Checker {
 
     match child.map(Self::follow_structure) {
       Some(Structure::Struct(r#struct)) => {
-        let ty = Type::Struct(r#struct);
+        let ty = typeof_struct(r#struct);
 
         if let Some(template) = &r#struct.template {
           let Some(specified_generics) = &last.generics else {

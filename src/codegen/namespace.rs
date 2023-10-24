@@ -56,7 +56,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
           let fn_ty = ret_ty.fn_type(arg_tys.as_slice(), decl.varargs);
           let value = self.module.add_function(name, fn_ty, Some(Linkage::External));
 
-          self.var_map.insert(VariableReference::ResolvedExternal(decl), value.as_any_value_enum());
+          self.insert_var_ref(VariableReference::ResolvedExternal(decl), value.as_any_value_enum());
         },
         _ => {}
       };
@@ -72,7 +72,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       for (param, ty) in value.get_param_iter().zip(ast_params.iter()) {
         let var_ref = VariableReference::ResolvedArgument(*ty);
 
-        self.var_map.insert(
+        self.insert_var_ref(
           var_ref,
           param.as_any_value_enum()
         );

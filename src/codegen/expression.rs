@@ -48,23 +48,23 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
         Ok(load.as_any_value_enum())
       },
       VariableReference::ResolvedArgument(_) => {
-        let value = self.var_map.get(var_ref)
+        let value = self.get_var_ref(var_ref)
           .unwrap_or_else(|| panic!("unresolved value var ref {var_ref:#?}"));
 
         Ok(value.as_any_value_enum())
       },
-      VariableReference::ResolvedMemberOf(r#struct, idx) => {
+      VariableReference::ResolvedMemberOf(fqual, members, idx) => {
         let ptr = self.generate_dest_variable(var_ref, wrt)?
           .into_pointer_value();
 
-        let r#struct_ast = unsafe { &**r#struct };
-        let ident = &r#struct_ast.ident;
-        let (_, member_ident) = unsafe { r#struct_ast.members.get_unchecked(*idx) };
+        // let r#struct_ast = unsafe { &**r#struct };
+        // let ident = &r#struct_ast.ident;
+        let (_, member_ident) = unsafe { members.get_unchecked(*idx) };
 
         let load = self.builder.build_load(
           ptr,
           format!("load_{}.{}",
-            ident.to_hashable(),
+            fqual.to_hashable(),
             member_ident.to_hashable()
           ).as_str()
         );
@@ -81,26 +81,26 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
         | VariableReference::ResolvedFunction(_)
         | VariableReference::ResolvedVariable(_)
       => {
-        let value = self.var_map.get(var_ref)
+        let value = self.get_var_ref(var_ref)
           .unwrap_or_else(|| panic!("unresolved dest var ref {var_ref:#?}"));
 
         // just return the pointer for the dest
         Ok(value.as_any_value_enum())
       },
-      VariableReference::ResolvedMemberOf(r#struct_ast, idx) => {
+      VariableReference::ResolvedMemberOf(fqual, members, idx) => {
         let wrt = wrt
           .expect("MemberOf needs a wrt value")
           .into_pointer_value();
 
-        let r#struct_ast = unsafe { &**r#struct_ast };
-        let ident = &r#struct_ast.ident;
-        let (_, member_ident) = unsafe { r#struct_ast.members.get_unchecked(*idx) };
+        // let r#struct_ast = unsafe { &**r#struct_ast };
+        // let ident = &r#struct_ast.ident;
+        let (_, member_ident) = unsafe { members.get_unchecked(*idx) };
 
         let ptr = self.builder.build_struct_gep(
           wrt,
           *idx as u32,
           format!("{}.{}",
-            ident.to_hashable(),
+            fqual.to_hashable(),
             member_ident.to_hashable()
           ).as_str(),
         ).expect("GEP out of bounds");
@@ -134,10 +134,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       AtomExpression::StructInitializer(initializer) => {
         let map: HashMap<IdentAST, Expression> = initializer.members.clone().into_iter().collect();
 
-        let Type::Struct(r#struct_ast) = &ast.out else { unreachable!() };
-        let r#struct_ast = unsafe { &**r#struct_ast };
-
-        let ident = &r#struct_ast.ident;
+        let Type::Struct(fqual, members) = &ast.out else { unreachable!() };
 
         let ty = self.generate_type(&ast.out)?;
         let r#struct = self.builder.build_alloca::<BasicTypeEnum>(
@@ -145,7 +142,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
           "struct_initializer"
         );
 
-        for (idx, member_ident) in r#struct_ast.members.iter().map(|(_, x)| x).enumerate() {
+        for (idx, member_ident) in members.iter().map(|(_, x)| x).enumerate() {
           let curr_ast = map.get(member_ident).unwrap();
           let curr: BasicValueEnum<'ctx> = self.generate_expr(curr_ast, None)?
             .expect("generate_expr didn't return for struct initializer field")
@@ -155,7 +152,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
             r#struct,
             idx as u32,
             format!("store_{}.{}",
-              ident.to_hashable(),
+              fqual.to_hashable(),
               member_ident.to_hashable()
             ).as_str()
           ).expect("struct index out of bounds");

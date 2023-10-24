@@ -91,6 +91,15 @@ pub fn extends(ty: &Type, base: &Type) -> bool {
       (Type::Intrinsic(a), Type::Intrinsic(b)) => {
         a == b
       },
+      (_, Type::Generic(_, constraints)) => {
+        for constraint in constraints.iter() {
+          if !extends_constraint(ty, constraint) {
+            return false;
+          };
+        };
+
+        true
+      },
       _ => {
         false
       }
@@ -104,4 +113,10 @@ pub fn extends(ty: &Type, base: &Type) -> bool {
   // };
 
   // result
+}
+
+fn extends_constraint(_ty: &Type, constraint: &GenericConstraint) -> bool {
+  match constraint {
+    GenericConstraint::ExtendsTrait(_) => todo!("extends constraint"),
+  }
 }

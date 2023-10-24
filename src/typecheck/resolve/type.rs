@@ -10,24 +10,28 @@ use std::collections::HashMap;
 use super::*;
 
 impl TemplateAST {
-  pub fn to_map(&self) -> HashMap<IdentAST, Type> {
-    let mut map = HashMap::<IdentAST, Type>::new();
+  pub fn to_positional_tuple(&self) -> Vec<(IdentAST, Type)> {
+    let mut tuples = Vec::<(IdentAST, Type)>::new();
 
     for constraint in self.constraints.iter() {
       match constraint {
         TemplateConstraint::Unconstrained(ident) => {
-          map.insert(
+          tuples.push((
             ident.clone(),
             Type::Generic(
               ident.clone(), vec![]
-            )
+            ))
           );
         },
         TemplateConstraint::Extends(_, _) => todo!(),
       }
     };
 
-    map
+    tuples
+  }
+
+  pub fn to_map(&self) -> HashMap<IdentAST, Type> {
+    self.to_positional_tuple().into_iter().collect()
   }
 }
 
@@ -168,5 +172,105 @@ impl Checker {
     ast.e = what_to_replace_with;
 
     Ok(())
+  }
+
+  fn replace_generics(mut ty: Type, map: HashMap<IdentAST, Type>) -> Type {
+    match ty {
+      Type::Struct(r#struct) => {
+        let r#struct = unsafe { &*r#struct };
+
+        for (memb_ty, _memb_ident) in r#struct.members.iter() {
+          match &memb_ty.e {
+            Type::Generic(ident, ..) => {
+              let Some(replace_ty) = map.get(&ident) else {
+                continue;
+              };
+
+              ty = replace_ty.to_owned();
+            },
+            _ => {}
+          };
+        };
+
+        ty
+      },
+      _ => todo!("replace_generics {ty:?}")
+    }
+  }
+
+  pub fn resolve_fqual_to_type(&self, fqual: &FullyQualifiedAST) -> TypeCheckResult<Type> {
+    let mut stack = self.stack.iter()
+      .filter_map(|ptr| {
+        let ScopePointer::Namespace(ns) = ptr else {
+          return None;
+        };
+
+        Some(unsafe { &**ns })
+      })
+      .collect::<Vec<_>>();
+
+    let (last, parts) = fqual.parts.split_last().unwrap();
+
+    for part in parts {
+      let map = &stack.last().unwrap().map;
+
+      let text = part.ident.to_hashable();
+      match map.get(&text) {
+        Some(Structure::Namespace(ns)) => {
+          if part.generics.is_some() {
+            todo!("error for namespace traversal with generics");
+          };
+
+          stack.push(ns);
+        },
+        _ if text == "super" => {
+          stack.pop().unwrap();
+        },
+        Some(_) => todo!("unknown structure traversal"),
+        None => {
+          return UnknownIdentSnafu {
+            span: part.span(),
+            text
+          }.fail();
+        },
+      };
+    };
+
+    let map = &stack.last().unwrap().map;
+    let child = map.get(&last.ident.to_hashable());
+
+    match child.map(Self::follow_structure) {
+      Some(Structure::Struct(r#struct)) => {
+        let ty = Type::Struct(r#struct);
+
+        if let Some(template) = &r#struct.template {
+          let Some(specified_generics) = &last.generics else {
+            todo!("error for not satisfying generics")
+          };
+
+          let dest_generics = template.to_positional_tuple();
+
+          let mut replace_map = HashMap::<IdentAST, Type>::new();
+
+          if specified_generics.len() != dest_generics.len() {
+            todo!("error for generic/template length mismatch");
+          };
+
+          for (specified_ty, (generic_ident, generic_ty)) in specified_generics.iter().zip(dest_generics.iter()) {
+            if !extends(&specified_ty.e, generic_ty) {
+              todo!("specified type does not extend generic");
+            };
+
+            replace_map.insert(generic_ident.to_owned(), Type::Defined(specified_ty));
+          };
+
+          Ok(Self::replace_generics(ty, replace_map))
+        } else {
+          Ok(ty)
+        }
+      },
+      Some(_) => todo!("error: invalid initializer"),
+      None => todo!(),
+    }
   }
 }

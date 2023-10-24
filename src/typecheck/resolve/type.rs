@@ -40,7 +40,7 @@ impl Checker {
 
           return Ok(());
         },
-        Type::Unknown(qual) => {
+        Type::Unknown(fqual) => {
           let mut res_stack: Vec<_> = self.stack.iter()
             .filter_map(|scope|
               match scope {
@@ -49,19 +49,19 @@ impl Checker {
               }
             ).collect();
 
-          let last_idx = qual.parts.len() - 1;
-          let part_iter = qual.parts
+          let last_idx = fqual.parts.len() - 1;
+          let part_iter = fqual.parts
             .iter()
             .enumerate()
             .map(
               |(i, ident)|
-                (i == last_idx, ident.text.to_owned())
+                (i == last_idx, ident)
             );
 
           for (is_last, part) in part_iter {
             let map = unsafe { &mut (**res_stack.last().unwrap()).map };
 
-            match (is_last, map.get_mut(&part).map(Self::follow_structure_mut)) {
+            match (is_last, map.get_mut(&part.to_hashable()).map(Self::follow_structure_mut)) {
               (false, Some(Structure::Namespace(ns))) => {
                 res_stack.push(ns);
               },
@@ -70,7 +70,7 @@ impl Checker {
 
                 res_stack.push(ns);
               },
-              (false, _) if part == "super" => {
+              (false, _) if part.ident.text == "super" => {
                 res_stack.pop();
               },
               (true, Some(Structure::TypeAlias(alias))) => {
@@ -86,8 +86,8 @@ impl Checker {
               },
               _ => {
                 return UnknownIdentSnafu {
-                  text: qual.to_hashable(),
-                  span: qual.span()
+                  text: fqual.to_hashable(),
+                  span: fqual.span()
                 }.fail();
               }
             }

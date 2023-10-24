@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use super::ast::{Type, QualifiedAST};
+use super::ast::{Type, FullyQualifiedAST};
 use phf::phf_ordered_map;
 
 #[allow(clippy::upper_case_acronyms)]
@@ -44,12 +44,18 @@ pub static INTRINSICS_MAP: phf::OrderedMap<&'static str, Intrinsic> = phf_ordere
   "isize" => ISIZE,
 };
 
-pub fn get_intrinsic(qual: &QualifiedAST) -> Option<Type> {
-  if qual.parts.len() != 1 {
+pub fn get_intrinsic(fqual: &FullyQualifiedAST) -> Option<Type> {
+  if fqual.parts.len() != 1 {
     return None;
   };
 
-  let ident = qual.parts.first().unwrap();
+  let fident = fqual.parts.first().unwrap();
+
+  if fident.generics.is_some() {
+    return None;
+  };
+
+  let ident = &fident.ident;
 
   for (name, variant) in INTRINSICS_MAP.into_iter() {
     if &ident.text.as_str() == name {

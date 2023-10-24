@@ -104,6 +104,24 @@ impl FullyQualifiedIdentAST {
       generics: Some(generics)
     })
   }
+
+  pub fn to_hashable(&self) -> String {
+    let mut text = self.ident.to_hashable();
+
+    if let Some(generics) = &self.generics {
+      text += "<";
+
+      text += generics.iter()
+        .map(|generic| generic.to_hashable())
+        .collect::<Vec<_>>()
+        .join(", ")
+        .as_str();
+
+      text += ">";
+    };
+
+    text
+  }
 }
 
 impl FullyQualifiedAST {
@@ -138,5 +156,46 @@ impl FullyQualifiedAST {
       span: reader.span_since(start),
       parts
     })
+  }
+
+  pub fn to_hashable(&self) -> String {
+    self.parts
+      .iter()
+      .map(|part| part.to_hashable())
+      .collect::<Vec<_>>()
+      .join("::")
+  }
+}
+
+impl From<&IdentAST> for FullyQualifiedIdentAST {
+  fn from(value: &IdentAST) -> Self {
+    Self {
+      span: value.span(),
+      ident: value.to_owned(),
+      generics: None,
+    }
+  }
+}
+
+impl From<&IdentAST> for FullyQualifiedAST {
+  fn from(value: &IdentAST) -> Self {
+    Self {
+      span: value.span(),
+      parts: vec![value.into()],
+    }
+  }
+}
+
+impl From<&QualifiedAST> for FullyQualifiedAST {
+  fn from(value: &QualifiedAST) -> Self {
+    let parts = value.parts
+      .iter()
+      .map(|part| part.into())
+      .collect::<Vec<_>>();
+
+    Self {
+      span: value.span(),
+      parts
+    }
   }
 }

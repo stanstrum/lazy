@@ -47,7 +47,7 @@ pub enum Type {
   ArrayOf(Option<LiteralAST>, Box<TypeAST>),
   Defined(*const TypeAST),
   Generic(IdentAST, Vec<GenericConstraint>),
-  Unknown(QualifiedAST),
+  Unknown(FullyQualifiedAST),
   UnresolvedLiteral(Literal),
   Unresolved
 }

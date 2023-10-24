@@ -51,9 +51,7 @@ impl Checker {
           self.stack.pop();
         },
         Structure::Struct(r#struct) => {
-          for (ty, _) in r#struct.members.iter_mut() {
-            self.resolve_type(ty)?;
-          };
+          self.resolve_struct(r#struct)?;
         },
         Structure::Trait(_) => todo!("resolve trait"),
         Structure::Impl(r#impl) => {

@@ -118,4 +118,12 @@ impl Checker {
 
     todo!("error for ident not found");
   }
+
+  pub fn resolve_struct(&mut self, r#struct: &mut StructAST) -> TypeCheckResult<()> {
+    for (ty, _) in r#struct.members.iter_mut() {
+      self.resolve_type(ty)?;
+    };
+
+    Ok(())
+  }
 }

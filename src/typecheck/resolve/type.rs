@@ -250,7 +250,6 @@ impl Checker {
     match child.map(Self::follow_structure) {
       Some(Structure::Struct(r#struct)) => {
         let ty = typeof_struct(r#struct);
-
         if let Some(template) = &r#struct.template {
           let Some(specified_generics) = &last.generics else {
             todo!("error for not satisfying generics")
@@ -272,7 +271,13 @@ impl Checker {
             replace_map.insert(generic_ident.to_owned(), Type::Defined(specified_ty));
           };
 
-          Ok(Self::replace_generics(ty, replace_map))
+          let Type::Struct(_, unwrapped_members) = ty else {
+            unreachable!();
+          };
+
+          let new_ty = Type::Struct(fqual.to_owned(), unwrapped_members);
+
+          Ok(Self::replace_generics(new_ty, replace_map))
         } else {
           Ok(ty)
         }

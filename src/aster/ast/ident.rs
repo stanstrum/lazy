@@ -66,5 +66,6 @@ make_get_span![
   KeywordAST,
   IdentAST,
   QualifiedAST,
+  FullyQualifiedIdentAST,
   FullyQualifiedAST
 ];

@@ -227,6 +227,7 @@ impl GetSpan for Structure {
 }
 
 make_get_span![
+  TemplateAST,
   NamespaceAST,
   FunctionDeclAST,
   FunctionAST,

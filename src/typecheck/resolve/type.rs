@@ -169,8 +169,4 @@ impl Checker {
 
     Ok(())
   }
-
-  pub fn resolve_alias(&mut self, alias: &mut TypeAliasAST) -> TypeCheckResult<()> {
-    self.resolve_type(&mut alias.ty)
-  }
 }

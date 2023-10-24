@@ -38,7 +38,7 @@ impl Checker {
     for name in names.iter() {
       match map.get_mut(name).unwrap() {
         Structure::TypeAlias(alias) => {
-          self.resolve_alias(alias)?;
+          self.resolve_type(&mut alias.ty)?;
         },
         Structure::Namespace(ns) => {
           self.stack.push(ScopePointer::Namespace(ns));

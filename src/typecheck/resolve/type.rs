@@ -5,10 +5,56 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use std::collections::HashMap;
+
 use super::*;
 
+impl TemplateAST {
+  pub fn to_map(&self) -> HashMap<IdentAST, Type> {
+    let mut map = HashMap::<IdentAST, Type>::new();
+
+    for constraint in self.constraints.iter() {
+      match constraint {
+        TemplateConstraint::Unconstrained(ident) => {
+          map.insert(
+            ident.clone(),
+            Type::Generic(
+              ident.clone(), vec![]
+            )
+          );
+        },
+        TemplateConstraint::Extends(_, _) => todo!(),
+      }
+    };
+
+    map
+  }
+}
+
 impl Checker {
+  pub fn get_generics(&self) -> HashMap<IdentAST, Type> {
+    let template_iter = self.stack.iter()
+      .filter_map(|ptr| {
+        let ScopePointer::Template(template) = ptr else {
+          return None
+        };
+
+        Some(unsafe { &**template })
+      });
+
+    let mut map = HashMap::<IdentAST, Type>::new();
+    for template in template_iter {
+      for (k, v) in template.to_map() {
+        map.insert(k, v);
+      };
+    };
+
+    map
+  }
+
   pub fn resolve_type(&mut self, ast: &mut TypeAST) -> TypeCheckResult<()> {
+    let generics = self.get_generics();
+
     let what_to_replace_with = 'replace_with: {
       match &mut ast.e {
         Type::Intrinsic(_)
@@ -41,6 +87,24 @@ impl Checker {
           return Ok(());
         },
         Type::Unknown(fqual) => {
+          'find_generic: {
+            if fqual.parts.len() != 1 {
+              break 'find_generic;
+            };
+
+            let fident = fqual.parts.first().unwrap();
+
+            let Some(generic_ty) = generics.get(&fident.ident) else {
+              break 'find_generic
+            };
+
+            if fident.generics.is_some() {
+              todo!("error for generics on a generic");
+            };
+
+            break 'replace_with generic_ty.to_owned();
+          };
+
           let mut res_stack: Vec<_> = self.stack.iter()
             .filter_map(|scope|
               match scope {

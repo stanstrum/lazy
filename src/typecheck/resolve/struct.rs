@@ -7,7 +7,8 @@
 
 use crate::typecheck::{
   Checker,
-  TypeCheckResult
+  TypeCheckResult,
+  ScopePointer
 };
 
 use crate::aster::ast::*;
@@ -120,8 +121,16 @@ impl Checker {
   }
 
   pub fn resolve_struct(&mut self, r#struct: &mut StructAST) -> TypeCheckResult<()> {
+    if let Some(template) = &mut r#struct.template {
+      self.stack.push(ScopePointer::Template(template));
+    };
+
     for (ty, _) in r#struct.members.iter_mut() {
       self.resolve_type(ty)?;
+    };
+
+    if r#struct.template.is_some() {
+      self.stack.pop();
     };
 
     Ok(())

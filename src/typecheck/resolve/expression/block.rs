@@ -8,7 +8,9 @@
 use crate::typecheck::{
   Checker,
   TypeCheckResult,
-  TypeOf
+  errors::*,
+  TypeOf,
+  assignable
 };
 
 use crate::aster::{
@@ -47,6 +49,16 @@ impl Checker {
               span: value.span(),
               e: value_ty
             });
+          };
+
+          if let Some(value) = &binding.value {
+            if !assignable(&(value.type_of_expect_implicit()?), &binding.ty.as_ref().unwrap().e) {
+              return IncompatibleTypeSnafu {
+                span: value.span(),
+                what: "Value expression",
+                with: "binding type",
+              }.fail();
+            };
           };
 
           block.vars.insert(binding.ident.clone(), binding);

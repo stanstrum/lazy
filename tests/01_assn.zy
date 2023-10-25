@@ -5,10 +5,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-type str := []u32;
+template: T;
+struct Slice {
+  &[]T ptr,
+  usize len
+};
 
 hello_explicit {
-  &str hello := "hello";
+  Slice<char> hello := "hello";
   &[5]u8 hello_bytes := b"hello";
 
   usize n1234 := 1234;
@@ -19,7 +23,7 @@ hello_explicit {
 };
 
 implicit {
-  // should be &str
+  // should be Slice<char>
   hello := "hello";
 
   // should be [5]u8

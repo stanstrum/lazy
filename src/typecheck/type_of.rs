@@ -18,6 +18,11 @@ pub trait TypeOf {
       None => CantInferTypeSnafu { span }.fail()
     }
   }
+
+  fn type_of_expect_implicit(&self) -> TypeCheckResult<Type>
+  where Self: std::string::ToString + GetSpan {
+    self.type_of_expect(self.span())
+  }
 }
 
 pub fn dereference_type(ty: &Type, span: Span) -> TypeCheckResult<Type> {

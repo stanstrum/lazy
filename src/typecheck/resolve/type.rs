@@ -11,8 +11,8 @@ use super::*;
 
 fn typeof_struct(r#struct: &StructAST) -> Type {
   let unwrapped_members = r#struct.members.iter()
-  .map(|(ast, ident)| (ast.e.to_owned(), ident.to_owned()))
-  .collect::<Vec<_>>();
+    .map(|(ast, ident)| (ast.e.to_owned(), ident.to_owned()))
+    .collect::<Vec<_>>();
 
   Type::Struct((&r#struct.ident).into(), unwrapped_members)
 }
@@ -137,7 +137,7 @@ impl Checker {
           for (is_last, part) in part_iter {
             let map = unsafe { &mut (**res_stack.last().unwrap()).map };
 
-            match (is_last, map.get_mut(&part.to_hashable()).map(Self::follow_structure_mut)) {
+            match (is_last, map.get_mut(&part.ident.to_hashable()).map(Self::follow_structure_mut)) {
               (false, Some(Structure::Namespace(ns))) => {
                 res_stack.push(ns);
               },
@@ -254,6 +254,7 @@ impl Checker {
     match child.map(Self::follow_structure) {
       Some(Structure::Struct(r#struct)) => {
         let ty = typeof_struct(r#struct);
+
         if let Some(template) = &r#struct.template {
           let Some(specified_generics) = &last.generics else {
             todo!("error for not satisfying generics")

@@ -14,7 +14,7 @@ struct Slice {
 };
 
 main -> i32 {
-  strsl := Slice<char> { ptr: "abcd", len: 4 };
+  strsl := "abcd";
 
   printf(c"%llu\n", strsl.len);
 

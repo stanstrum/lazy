@@ -47,7 +47,29 @@ impl Checker {
               e: array,
             }));
 
-            atom.out = array_reference;
+            let len = Type::Intrinsic(intrinsics::U64);
+
+            let ident = IdentAST {
+              span: lit.span(),
+              text: "str".to_string(),
+            };
+
+            let ptr_ident = IdentAST {
+              span: lit.span(),
+              text: "ptr".to_string(),
+            };
+
+            let len_ident = IdentAST {
+              span: lit.span(),
+              text: "len".to_string(),
+            };
+
+            let slice_struct = Type::Struct((&ident).into(), vec![
+              (array_reference, ptr_ident),
+              (len, len_ident),
+            ]);
+
+            atom.out = slice_struct;
           },
           Literal::ByteString(text) => {
             let len = LiteralAST {

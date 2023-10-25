@@ -54,7 +54,19 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
         let value = i32_type.const_array(values.as_slice());
         global.set_initializer(&value);
 
-        global.as_basic_value_enum()
+        let ptr = global.as_basic_value_enum();
+
+        let char_slice_ty = self.context.struct_type(&[
+          ptr.into_pointer_value().get_type().as_basic_type_enum(),
+          self.context.i64_type().as_basic_type_enum(),
+        ], false);
+
+        let char_slice = char_slice_ty.const_named_struct(&[
+          ptr,
+          self.context.i64_type().const_int(size as u64, false).as_basic_value_enum()
+        ]);
+
+        char_slice.as_basic_value_enum()
       },
       Literal::ByteString(text) => {
         let i8_type = self.context.i8_type();

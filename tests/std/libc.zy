@@ -1,0 +1,51 @@
+/* Copyright (c) 2023 Stan Strum
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+// lib!("c") libc {
+// allow! non_lowercase_type:
+  type CString := []u8;
+
+namespace mem {
+  extern malloc -> &[]u8:
+    usize size;
+
+  extern free: &[]u8 ptr;
+};
+
+namespace fs {
+  // this is not correct but since we're just using it for
+  // the pointer, it should be okay -- effectively `void*`
+  type FILE := []u8;
+
+  extern fopen -> &FILE:
+    &super::CString filename,
+    &super::CString mode;
+
+  extern fclose -> i32:
+    &FILE stream;
+
+  extern fseek -> i32:
+    &FILE stream,
+    i32 offset,
+    i32 whence;
+
+  extern ftell -> i32:
+    &FILE steam;
+
+  extern fread -> usize:
+    &[]u8 ptr,
+    usize size,
+    usize nmemb,
+    &FILE stream;
+};
+
+extern printf -> i32:
+  &CString fmt,
+  ...;
+
+extern puts -> i32:
+  &CString s;

@@ -291,28 +291,27 @@ impl ImportAST {
       ImportPatternAST::Ident { ident, alias, .. } => {
         let key = ident.to_hashable();
 
-        match ns.map.get_mut(&key) {
-          Some(structure) => {
-            let value = Structure::ImportedStructure {
-              ident: alias.as_ref().unwrap_or(ident).clone(),
-              span: pattern.span(),
-              structure,
-            };
-
-            let key = alias.as_ref()
-              .map(|x| x.to_hashable())
-              .unwrap_or(key);
-
-            NamespaceAST::insert_unique(map, key, value)?;
-
-            Ok(())
-          },
-          None => UnknownSnafu {
+        let Some(structure) = ns.map.get_mut(&key) else {
+          return UnknownSnafu {
             what: "Identifier",
             offset: span.start,
             path: span.path,
-          }.fail(),
-        }
+          }.fail();
+        };
+
+        let value = Structure::ImportedStructure {
+          ident: alias.as_ref().unwrap_or(ident).clone(),
+          span: pattern.span(),
+          structure,
+        };
+
+        let key = alias.as_ref()
+          .map(|x| x.to_hashable())
+          .unwrap_or(key);
+
+        NamespaceAST::insert_unique(map, key, value)?;
+
+        Ok(())
       }
     }
   }

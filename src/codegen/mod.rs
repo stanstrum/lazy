@@ -20,6 +20,7 @@ mod binary;
 use std::collections::HashMap;
 
 use errors::*;
+pub use errors::CodeGenError;
 
 use crate::aster::{
   ast::*,

@@ -7,6 +7,8 @@
 
 use snafu::prelude::*;
 
+use crate::aster::Span;
+
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub))]
 pub enum CodeGenError {
@@ -14,7 +16,10 @@ pub enum CodeGenError {
   NotImplemented { what: String },
 
   #[snafu(display("Validation failed: {message}"))]
-  ValidationFailed { message: String }
+  ValidationFailed { message: String },
+
+  #[snafu(display("{msg}"))]
+  AtSpan { msg: String, span: Span }
 }
 
 pub type CodeGenResult<T> = Result<T, CodeGenError>;

@@ -182,26 +182,30 @@ impl Checker {
     Ok(())
   }
 
-  fn replace_generics(mut ty: Type, map: HashMap<IdentAST, Type>) -> Type {
-    match &mut ty {
+  fn replace_generics(ty: &mut Type, map: &HashMap<IdentAST, Type>) {
+    match ty {
+      Type::Generic(ident, ..) => {
+        let Some(replace_ty) = map.get(&ident) else {
+          todo!("error for unknown generic {ident:?}")
+        };
+
+        *ty = replace_ty.to_owned();
+      },
       Type::Struct(_fqual, members) => {
         // let r#struct = unsafe { &*r#struct };
 
         for (memb_ty, _memb_ident) in members.iter_mut() {
-          match memb_ty {
-            Type::Generic(ident, ..) => {
-              let Some(replace_ty) = map.get(&ident) else {
-                continue;
-              };
-
-              *memb_ty = replace_ty.to_owned();
-            },
-            _ => {}
-          };
+          Self::replace_generics(memb_ty, map);
         };
-
-        ty
       },
+      Type::ConstReferenceTo(ty)
+      | Type::MutReferenceTo(ty)
+      | Type::ConstPtrTo(ty)
+      | Type::MutPtrTo(ty)
+      | Type::ArrayOf(_, ty) => {
+        Self::replace_generics(&mut ty.e, map);
+      },
+      Type::Intrinsic(_) => {},
       _ => todo!("replace_generics {ty:?}")
     }
   }
@@ -275,9 +279,10 @@ impl Checker {
             unreachable!();
           };
 
-          let new_ty = Type::Struct(fqual.to_owned(), unwrapped_members);
+          let mut new_ty = Type::Struct(fqual.to_owned(), unwrapped_members);
+          Self::replace_generics(&mut new_ty, &replace_map);
 
-          Ok(Self::replace_generics(new_ty, replace_map))
+          Ok(new_ty)
         } else {
           Ok(ty)
         }

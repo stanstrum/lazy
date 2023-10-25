@@ -22,7 +22,7 @@ use typecheck::errors::TypeCheckError;
 pub(crate) mod colors;
 
 use inkwell::context::Context;
-use codegen::Codegen;
+use codegen::{Codegen, CodeGenError};
 
 use std::process::Command;
 
@@ -194,11 +194,37 @@ fn compile() -> Result<(), LazyError> {
 
   // codegen.init(todo!());
 
-  if let Err(err) = codegen.generate(&checked) {
-    return CompilationSnafu {
-      msg: format!("Code generation failed: {err}")
-    }.fail();
-  };
+  match codegen.generate(&checked) {
+    Err(CodeGenError::AtSpan { msg, span }) => {
+      let src = std::fs::read_to_string(&span.path)
+        .expect("couldn't open file that was already opened");
+
+      let message = Message {
+        level: Level::Error,
+        msg: msg.clone(),
+        sub: "here".to_string(),
+        span,
+      };
+
+      eprintln!("{}", format_message(&src, message));
+
+      return CompilationSnafu {
+        msg,
+      }.fail();
+    },
+    Err(err) => {
+      return CompilationSnafu {
+        msg: format!("Code generation failed: {err}")
+      }.fail();
+    },
+    Ok(_) => {},
+  }
+
+  // if let Err(err) = codegen.generate(&checked) {
+  //   return CompilationSnafu {
+  //     msg: format!("Code generation failed: {err}")
+  //   }.fail();
+  // };
 
   // write to file
   println!("Writing LLVM to a.ll ...");

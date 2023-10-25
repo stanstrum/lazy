@@ -13,12 +13,18 @@ use inkwell::{
   AddressSpace
 };
 
-use crate::{aster::{intrinsics::Intrinsic, ast::{Type, Literal}}, codegen::parse_int_literal};
+use crate::aster::{
+  intrinsics::Intrinsic,
+  ast::*
+};
+
+use crate::codegen::parse_int_literal;
 
 use super::{
   Codegen,
   CodeGenResult,
   metadatatype::MetadataType,
+  errors::*
 };
 
 impl<'a, 'ctx> Codegen<'a, 'ctx> {
@@ -108,7 +114,12 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
 
         self.generate_type(&ast.e)
       },
-      Type::Generic(..) => todo!("error: generate generic"),
+      Type::Generic(ident, ..) => {
+        return AtSpanSnafu {
+          msg: "Cannot generate LLVM for a generic type",
+          span: ident.span(),
+        }.fail();
+      },
       Type::Unknown(_) => todo!("error: generate type unknown"),
       Type::UnresolvedLiteral(_) => todo!("error: generate type unresolved literal"),
       Type::Unresolved => todo!("error: generate type unresolved"),

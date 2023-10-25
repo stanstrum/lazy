@@ -75,7 +75,7 @@ impl std::string::ToString for LiteralAST {
 impl std::string::ToString for Type {
   fn to_string(&self) -> String {
     match self {
-      Type::Intrinsic(intrinsic) => intrinsic.get_name(),
+      Type::Intrinsic(intrinsic) => format!("{LIGHT_RED}{}{CLEAR}", intrinsic.get_name()),
       Type::Function(func) => {
         let func = unsafe { &**func };
 
@@ -120,7 +120,7 @@ impl std::string::ToString for Type {
         ty.to_string()
       },
       Type::Unknown(qual) => {
-        format!("{DARK_GRAY}/* unknown */ {}", qual.to_string())
+        format!("{LIGHT_RED}{BOLD}{UNDERLINE}{}{CLEAR}", qual.to_string())
       },
       Type::UnresolvedLiteral(_) => {
         format!("{DARK_GRAY}/* unresolved literal */")

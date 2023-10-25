@@ -146,6 +146,31 @@ impl std::string::ToString for NamespaceAST {
   }
 }
 
+impl std::string::ToString for TemplateConstraint {
+  fn to_string(&self) -> String {
+    match self {
+      TemplateConstraint::Unconstrained(ident) => ident.to_string(),
+      TemplateConstraint::Extends(_, _) => todo!("to_string for templateconstraint::extends"),
+    }
+  }
+}
+
+impl std::string::ToString for TemplateAST {
+  fn to_string(&self) -> String {
+    let mut text = format!("{LIGHT_RED}template{CLEAR}: ");
+
+    let (last, rest) = self.constraints.split_last().unwrap();
+
+    for constraint in rest {
+      text += format!("{}, ", constraint.to_string()).as_str();
+    };
+
+    text += last.to_string().as_str();
+
+    text
+  }
+}
+
 impl std::string::ToString for Structure {
   fn to_string(&self) -> String {
     match self {
@@ -161,11 +186,18 @@ impl std::string::ToString for Structure {
         ty.to_string()
       ),
       Structure::Struct(StructAST {
-        ident, members, ..
+        ident, members, template, ..
       }) => {
-        let mut text = format!("{LIGHT_RED}struct{CLEAR} {} {{",
+        let mut text = String::new();
+
+        if let Some(template) = template {
+          text += template.to_string().as_str();
+          text += ";\n";
+        };
+
+        text += format!("{LIGHT_RED}struct{CLEAR} {} {{",
           ident.to_string()
-        );
+        ).as_str();
 
         if !members.is_empty() {
           text.push('\n');

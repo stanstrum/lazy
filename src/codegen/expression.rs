@@ -151,13 +151,22 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
           let member_ptr = self.builder.build_struct_gep(
             r#struct,
             idx as u32,
-            format!("store_{}.{}",
+            format!("ptr_{}.{}",
               fqual.to_hashable(),
               member_ident.to_hashable()
             ).as_str()
           ).expect("struct index out of bounds");
 
-          self.builder.build_store(member_ptr, curr);
+          let casted = self.builder.build_bitcast::<BasicTypeEnum, _>(
+            curr,
+            member_ptr.get_type().get_element_type().try_into().unwrap(),
+            format!("casted_{}.{}",
+              fqual.to_hashable(),
+              member_ident.to_hashable()
+            ).as_str()
+          );
+
+          self.builder.build_store(member_ptr, casted);
         };
 
         // todo: this seems redundant; we have to:

@@ -42,7 +42,7 @@ pub struct Codegen<'a, 'ctx> {
   pub var_map: HashMap<*const BindingAST, AnyValueEnum<'ctx>>,
   pub extern_map: HashMap<*const ExternDeclAST, AnyValueEnum<'ctx>>,
   pub func_map: HashMap<*const FunctionAST, AnyValueEnum<'ctx>>,
-  // pub arg_map: HashMap<*const BindingAST, AnyValueEnum<'ctx>>,
+  pub arg_map: HashMap<*const TypeAST, AnyValueEnum<'ctx>>,
 }
 
 fn parse_int_literal(text: &str) -> u64 {
@@ -70,7 +70,8 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       context, module, builder,
       var_map: HashMap::new(),
       extern_map: HashMap::new(),
-      func_map: HashMap::new()
+      func_map: HashMap::new(),
+      arg_map: HashMap::new()
     }
   }
 
@@ -79,7 +80,9 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       VariableReference::ResolvedVariable(ptr) => {
         self.var_map.get(ptr)
       },
-      VariableReference::ResolvedArgument(_) => todo!(),
+      VariableReference::ResolvedArgument(ptr) => {
+        self.arg_map.get(ptr)
+      },
       VariableReference::ResolvedFunction(ptr) => {
         self.func_map.get(ptr)
       },
@@ -96,7 +99,9 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       VariableReference::ResolvedVariable(ptr) => {
         self.var_map.insert(ptr, value)
       },
-      VariableReference::ResolvedArgument(_) => todo!(),
+      VariableReference::ResolvedArgument(ptr) => {
+        self.arg_map.insert(ptr, value)
+      },
       VariableReference::ResolvedFunction(ptr) => {
         self.func_map.insert(ptr, value)
       },

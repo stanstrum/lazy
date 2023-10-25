@@ -142,8 +142,6 @@ impl Checker {
           initializer_ty = ty_ast.e.to_owned();
         };
 
-        dbg!(&initializer_ty);
-
         let Type::Struct(_fqual, members) = initializer_ty else {
           return InvalidTypeSnafu {
             text: "Initializer is not a struct",

@@ -132,29 +132,6 @@ impl std::string::ToString for Type {
 
 impl std::string::ToString for TypeAST {
   fn to_string(&self) -> String {
-    match &self.e {
-      Type::Intrinsic(ptr) => {
-        format!(
-          "{LIGHT_RED}{}{CLEAR}", ptr.get_name()
-        )
-      },
-      Type::ConstReferenceTo(ty) => format!("&{}", ty.to_string()),
-      Type::ArrayOf(len, ty) => {
-        match len {
-          Some(lit) => format!("[{}]{}", lit.to_string(), ty.to_string()),
-          None => format!("[]{}", ty.to_string())
-        }
-      },
-      Type::Unknown(ident) => {
-        format!("{LIGHT_RED}{UNDERLINE}{}{CLEAR}", ident.to_string())
-      },
-      Type::Defined(defined) => {
-        let defined = unsafe { &**defined };
-
-        defined.to_string()
-      },
-      Type::Unresolved => format!("{LIGHT_RED}/* unresolved */{CLEAR}"),
-      _ => self.e.to_string()
-    }
+    self.e.to_string()
   }
 }

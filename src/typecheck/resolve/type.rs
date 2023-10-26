@@ -127,7 +127,7 @@ impl Checker {
 
           let last_idx = fqual.parts.len() - 1;
           let part_iter = fqual.parts
-            .iter()
+            .iter_mut()
             .enumerate()
             .map(
               |(i, ident)|
@@ -158,7 +158,32 @@ impl Checker {
                 break 'replace_with Type::Function(func);
               },
               (true, Some(Structure::Struct(r#struct))) => {
-                break 'replace_with typeof_struct(r#struct);
+                let mut struct_ty = typeof_struct(r#struct);
+
+                if let Some(generics) = &mut part.generics {
+                  for generic in generics.iter_mut() {
+                    self.resolve_type(generic)?;
+                  };
+
+                  if let Some(template) = &r#struct.template {
+                    let map = template.to_positional_tuple()
+                      .iter()
+                      .map(|(ident, _)| ident)
+                      .cloned()
+                      .zip(
+                        generics.iter()
+                          .map(|ast| &ast.e)
+                          .cloned()
+                      )
+                      .collect::<HashMap<_, _>>();
+
+                    Self::replace_generics(&mut struct_ty, &map);
+                  } else {
+                    todo!("error for generic on a struct that does not have them");
+                  };
+                };
+
+                break 'replace_with struct_ty;
               },
               _ => {
                 return UnknownIdentSnafu {

@@ -7,13 +7,10 @@
 
 use std::collections::HashMap;
 
-use inkwell::{
-  values::{
-    BasicValueEnum,
-    AnyValueEnum,
-    AnyValue
-  },
-  types::BasicTypeEnum
+use inkwell::values::{
+  BasicValueEnum,
+  AnyValueEnum,
+  AnyValue
 };
 use crate::{
   aster::{
@@ -134,49 +131,22 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       AtomExpression::StructInitializer(initializer) => {
         let map: HashMap<IdentAST, Expression> = initializer.members.clone().into_iter().collect();
 
-        let Type::Struct(fqual, members) = &ast.out else { unreachable!() };
+        let Type::Struct(_, members) = &ast.out else { unreachable!() };
+        let ty = self.generate_type(&ast.out)?.to_basic_metadata();
 
-        let ty = self.generate_type(&ast.out)?;
-        let r#struct = self.builder.build_alloca::<BasicTypeEnum>(
-          ty.to_basic_metadata().try_into().unwrap(),
-          "struct_initializer"
-        );
-
-        for (idx, member_ident) in members.iter().map(|(_, x)| x).enumerate() {
+        let mut values = Vec::<BasicValueEnum>::new();
+        for  (_, member_ident) in members.iter() {
           let curr_ast = map.get(member_ident).unwrap();
           let curr: BasicValueEnum<'ctx> = self.generate_expr(curr_ast, None)?
             .expect("generate_expr didn't return for struct initializer field")
             .try_into().unwrap();
 
-          let member_ptr = self.builder.build_struct_gep(
-            r#struct,
-            idx as u32,
-            format!("ptr_{}.{}",
-              fqual.to_hashable(),
-              member_ident.to_hashable()
-            ).as_str()
-          ).expect("struct index out of bounds");
-
-          let casted = self.builder.build_bitcast::<BasicTypeEnum, _>(
-            curr,
-            member_ptr.get_type().get_element_type().try_into().unwrap(),
-            format!("casted_{}.{}",
-              fqual.to_hashable(),
-              member_ident.to_hashable()
-            ).as_str()
-          );
-
-          self.builder.build_store(member_ptr, casted);
+          values.push(curr);
         };
 
-        // todo: this seems redundant; we have to:
-        // - alloca the zeroinitializer
-        // - fill the fields by GEP
-        // - load the initialized alloca
-        // - move the load into the binding alloca
-        // review this sometime
-        let r#struct_loaded = self.builder.build_load(r#struct, "struct_initializer_load");
-        Some(r#struct_loaded.as_any_value_enum())
+        let struct_value = ty.into_struct_type().const_named_struct(values.as_slice());
+
+        Some(struct_value.as_any_value_enum())
       },
       #[allow(unused)]
       other => todo!("generate_atom {other:?}")

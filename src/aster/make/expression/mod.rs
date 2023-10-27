@@ -455,7 +455,8 @@ impl Expression {
           };
         },
         LastExprComponent::Body | LastExprComponent::SfxOperator => {
-          let space = seek::optional_whitespace(reader)?;
+          let body_start = reader.offset();
+          seek::optional_whitespace(reader)?;
 
           if let Ok((op, expr)) = Expression::make_binary_half(reader) {
             ops.push(Operator::Binary(op));
@@ -467,7 +468,7 @@ impl Expression {
 
             last = LastExprComponent::SfxOperator;
           } else {
-            reader.rewind(space).unwrap();
+            reader.to(body_start).unwrap();
 
             break;
           };

@@ -20,7 +20,7 @@ impl Checker {
   pub fn resolve_expression(&mut self, expr: &mut Expression, coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
     match expr {
       Expression::Atom(atom) => self.resolve_atom(atom, coerce_to),
-      Expression::Block(_) => todo!("resolve block"),
+      Expression::Block(block) => self.resolve_block_expression(block, coerce_to),
       Expression::SubExpression(subexpr) => {
         subexpr.out = self.resolve_expression(&mut subexpr.e, coerce_to)?;
 

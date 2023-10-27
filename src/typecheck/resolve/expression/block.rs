@@ -19,7 +19,7 @@ use crate::aster::{
 };
 
 impl Checker {
-  pub fn resolve_block_expression(&mut self, block: &mut BlockExpressionAST, coerce_to: Option<&Type>) -> TypeCheckResult<()> {
+  pub fn resolve_block_expression(&mut self, block: &mut BlockExpressionAST, coerce_to: Option<&Type>) -> TypeCheckResult<Type> {
     let len = block.children.len();
 
     if !block.returns_last {
@@ -67,8 +67,7 @@ impl Checker {
           if i + 1 == len && block.returns_last {
             self.resolve_expression(expr, coerce_to)?;
 
-            block.out = expr.type_of()
-              .expect("resolve expression did resolve out type");
+            block.out = expr.type_of_expect_implicit()?;
           } else {
             self.resolve_expression(expr, None)?;
           };
@@ -76,6 +75,6 @@ impl Checker {
       };
     };
 
-    Ok(())
+    Ok(block.out.clone())
   }
 }

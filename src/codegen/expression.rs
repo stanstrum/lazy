@@ -156,7 +156,13 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
   pub fn generate_expr(&mut self, ast: &Expression, wrt: Option<AnyValueEnum<'ctx>>) -> CodeGenResult<Option<AnyValueEnum<'ctx>>> {
     match ast {
       Expression::Atom(ast) => self.generate_atom(ast, wrt),
-      Expression::Block(_) => todo!("generate_expr block"),
+      Expression::Block(block) => {
+        let result = self.generate_block(block)?;
+
+        Ok(
+          result.map(|x| x.as_any_value_enum())
+        )
+      },
       Expression::SubExpression(subexpr) => self.generate_expr(&subexpr.e, wrt),
       Expression::ControlFlow(_) => todo!("generate_expr controlflow"),
       Expression::BinaryOperator(binary) => self.generate_binary_operator(binary, wrt),

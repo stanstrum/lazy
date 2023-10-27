@@ -5,9 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-other_function -> bool:
-  char argument_1,
-  u8 argument_2
+other_function -> i32
 {
   {};
   {};
@@ -19,8 +17,9 @@ other_function -> bool:
     {
       // this should be parsed as the last expression
       // and return
+      0
     }
 
     /* and this should be skipped */
-  };
+  }
 };

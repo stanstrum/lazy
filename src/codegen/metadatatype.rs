@@ -7,7 +7,8 @@
 
 use inkwell::{
   types::{
-    VoidType, BasicMetadataTypeEnum, FunctionType, PointerType, ArrayType
+    VoidType, BasicMetadataTypeEnum, FunctionType, PointerType,
+    // ArrayType
   },
   AddressSpace
 };
@@ -54,16 +55,16 @@ impl<'ctx> MetadataType<'ctx> {
     }
   }
 
-  pub fn array_type(&self, size: u32) -> ArrayType<'ctx> {
-    match self {
-      MetadataType::Void(_) => unimplemented!("array of void"),
-      MetadataType::Enum(BasicMetadataTypeEnum::ArrayType(ty)) => ty.array_type(size),
-      MetadataType::Enum(BasicMetadataTypeEnum::FloatType(ty)) => ty.array_type(size),
-      MetadataType::Enum(BasicMetadataTypeEnum::IntType(ty)) => ty.array_type(size),
-      MetadataType::Enum(BasicMetadataTypeEnum::PointerType(ty)) => ty.array_type(size),
-      MetadataType::Enum(BasicMetadataTypeEnum::StructType(ty)) => ty.array_type(size),
-      MetadataType::Enum(BasicMetadataTypeEnum::VectorType(ty)) => ty.array_type(size),
-      _ => panic!("array of metadatatype?")
-    }
-  }
+  // pub fn array_type(&self, size: u32) -> ArrayType<'ctx> {
+  //   match self {
+  //     MetadataType::Void(_) => unimplemented!("array of void"),
+  //     MetadataType::Enum(BasicMetadataTypeEnum::ArrayType(ty)) => ty.array_type(size),
+  //     MetadataType::Enum(BasicMetadataTypeEnum::FloatType(ty)) => ty.array_type(size),
+  //     MetadataType::Enum(BasicMetadataTypeEnum::IntType(ty)) => ty.array_type(size),
+  //     MetadataType::Enum(BasicMetadataTypeEnum::PointerType(ty)) => ty.array_type(size),
+  //     MetadataType::Enum(BasicMetadataTypeEnum::StructType(ty)) => ty.array_type(size),
+  //     MetadataType::Enum(BasicMetadataTypeEnum::VectorType(ty)) => ty.array_type(size),
+  //     _ => panic!("array of metadatatype?")
+  //   }
+  // }
 }

@@ -18,7 +18,7 @@ use crate::aster::{
   ast::*
 };
 
-use crate::codegen::parse_int_literal;
+// use crate::codegen::parse_int_literal;
 
 use super::{
   Codegen,
@@ -77,7 +77,7 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
       Type::MutReferenceTo(_) => todo!("generate_arg_type mutreferenceto"),
       Type::ConstPtrTo(_) => todo!("generate_arg_type constptrto"),
       Type::MutPtrTo(_) => todo!("generate_arg_type mutptrto"),
-      Type::ArrayOf(count, item) => {
+      Type::ArrayOf(_count, item) => {
         let ir_ty = self.generate_type(&item.e)?;
 
         // use crate::aster::

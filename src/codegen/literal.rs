@@ -55,14 +55,21 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
         global.set_initializer(&value);
 
         let ptr = global.as_basic_value_enum();
+        let casted_ptr_ty = i32_type.ptr_type(AddressSpace::default());
+
+        let casted_ptr = self.builder.build_bitcast(
+          ptr,
+          casted_ptr_ty,
+          "unicode_text_ptr_cast"
+        );
 
         let char_slice_ty = self.context.struct_type(&[
-          ptr.into_pointer_value().get_type().as_basic_type_enum(),
+          casted_ptr_ty.as_basic_type_enum(),
           self.context.i64_type().as_basic_type_enum(),
         ], false);
 
         let char_slice = char_slice_ty.const_named_struct(&[
-          ptr,
+          casted_ptr,
           self.context.i64_type().const_int(size as u64, false).as_basic_value_enum()
         ]);
 

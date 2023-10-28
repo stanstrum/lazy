@@ -82,32 +82,34 @@ impl<'a, 'ctx> Codegen<'a, 'ctx> {
 
         // use crate::aster::
 
-        if count.is_some() {
-          // Ok(MetadataType::Enum(
-          //   ir_ty.array_type(0);
-          //   BasicMetadataTypeEnum::ArrayType(
-          //     ir_ty
-          //   )
-          // ))
+        // if count.is_some() {
+        //   // Ok(MetadataType::Enum(
+        //   //   ir_ty.array_type(0);
+        //   //   BasicMetadataTypeEnum::ArrayType(
+        //   //     ir_ty
+        //   //   )
+        //   // ))
 
-          let item_ty = self.generate_type(&item.e)?;
+        //   let item_ty = self.generate_type(&item.e)?;
 
-          let lit = &count.as_ref().unwrap().l;
-          let Literal::IntLiteral(text) = lit else { unreachable!(); };
+        //   let lit = &count.as_ref().unwrap().l;
+        //   let Literal::IntLiteral(text) = lit else { unreachable!(); };
 
-          Ok(MetadataType::Enum(
-            BasicMetadataTypeEnum::ArrayType(
-              item_ty.array_type(parse_int_literal(text) as u32)
-            )
-          ))
-        } else {
-          // c undefined-length arrays just exploit pointer math ...
-          // practically, there is no difference in type information
-          // between a pointer to an int and a pointer to an int
-          // followed by more ints
+        //   Ok(MetadataType::Enum(
+        //     BasicMetadataTypeEnum::ArrayType(
+        //       item_ty.array_type(parse_int_literal(text) as u32)
+        //     )
+        //   ))
+        // } else {
+        //   // c undefined-length arrays just exploit pointer math ...
+        //   // practically, there is no difference in type information
+        //   // between a pointer to an int and a pointer to an int
+        //   // followed by more ints
 
-          Ok(ir_ty)
-        }
+        //   Ok(ir_ty)
+        // }
+
+        Ok(ir_ty)
       },
       Type::Defined(ast) => {
         let ast = unsafe { &**ast };

@@ -65,6 +65,7 @@ impl IdentAST {
       | consts::keyword::FOR
       | consts::keyword::RETURN
       | consts::keyword::BREAK
+      | "as"
     ) {
       Ok(Self { span, text })
     } else {

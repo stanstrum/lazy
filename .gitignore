@@ -1,5 +1,4 @@
-target/
-a.ll
-a.s
-a.o
-program
+build/
+lazy
+
+.ninja_log

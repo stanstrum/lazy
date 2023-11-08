@@ -1,0 +1,13 @@
+cflags = -Wall
+
+rule cc
+  command = g++ $cflags -c $in -o $out
+
+rule link
+  command = g++ $in -o $out
+
+rule sh
+  command = sh -c $COMMAND
+
+build build/main.o: cc src/main.cpp
+build lazy: link build/main.o

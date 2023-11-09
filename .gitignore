@@ -1,4 +1,9 @@
-build/
+# output executable
 lazy
 
+# ninja
+build/
 .ninja_log
+
+# doxygen
+doxygen/

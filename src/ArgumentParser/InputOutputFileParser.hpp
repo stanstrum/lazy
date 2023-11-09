@@ -1,5 +1,12 @@
 #include "ArgumentParser.hpp"
 
+/**
+ * @brief A class that implements @ref ArgumentParser
+ * and parses the input file and output file for compilation.
+ *
+ * Additionally, it will implicitly parse an input path without -i,
+ * as well as returning an error for duplicate definitions.
+ */
 class InputOutputFileParser: public ArgumentParser {
 private:
   /**
@@ -13,24 +20,23 @@ private:
   std::string m_output;
 
   /**
-   * @enum InputOutputFileParser::State
    * @brief What this parser is looking for next.
-   *
-   * @var State::None
-   * @brief Nothing in particular; could be
-   * a switch, could be an implicit input file.
-   *
-   * @var State::InputFile
-   * @brief An input file path.  This state occurs
-   * after the input switch is explicitly specified.
-   *
-   * @var State::OutputFile
-   * @brief An output file path.  This state occurs
-   * after the output switch is explicitly specified.
    */
   enum State {
+    /**
+     * @brief Nothing in particular; could be
+     * a switch, could be an implicit input file.
+     */
     None,
+    /**
+     * @brief An input file path.  This state occurs
+     * after the input switch is explicitly specified.
+     */
     InputFile,
+    /**
+     * @brief An output file path.  This state occurs
+     * after the output switch is explicitly specified.
+     */
     OutputFile,
   };
 

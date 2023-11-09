@@ -1,6 +1,10 @@
 #include <string>
 #include <vector>
 
+/**
+ * @brief The interface that @ref parse_arguments_with_parsers
+ * uses to parse arguments.
+ */
 class ArgumentParser {
 public:
   /**
@@ -59,5 +63,7 @@ public:
  * @throws runtime_error If at any point an argument cannot be parsed.
  *
  * @param argv argv from main.
+ * @param parsers The vector of pointers to class instances that implement
+ * @ref ArgumentParser.
  */
-void parse_arguments_with_parsers(char **argv, const std::vector<ArgumentParser*>);
+void parse_arguments_with_parsers(char **argv, const std::vector<ArgumentParser*> parsers);

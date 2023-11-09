@@ -15,3 +15,7 @@ build build/ArgumentParser/ArgumentParser.o: cc src/ArgumentParser/ArgumentParse
 build build/ArgumentParser/InputOutputFileParser.o: cc src/ArgumentParser/InputOutputFileParser.cpp
 
 build lazy: link build/main.o build/ArgumentParser/ArgumentParser.o build/ArgumentParser/InputOutputFileParser.o
+default lazy
+
+build doxygen: sh | lazy
+  command = doxygen Doxyfile

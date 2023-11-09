@@ -10,4 +10,8 @@ rule sh
   command = sh -c $COMMAND
 
 build build/main.o: cc src/main.cpp
-build lazy: link build/main.o
+
+build build/ArgumentParser/ArgumentParser.o: cc src/ArgumentParser/ArgumentParser.cpp
+build build/ArgumentParser/InputOutputFileParser.o: cc src/ArgumentParser/InputOutputFileParser.cpp
+
+build lazy: link build/main.o build/ArgumentParser/ArgumentParser.o build/ArgumentParser/InputOutputFileParser.o

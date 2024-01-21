@@ -5,75 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+mod structs;
+pub(crate) use structs::*;
+
 use std::fs::File;
-
-use snafu::prelude::*;
 use utf8_read::Reader;
-
-#[derive(Snafu, Debug)]
-pub(crate) enum TokenizationError {
-  IOError { error: utf8_read::Error }
-}
-
-#[derive(Debug)]
-pub(crate) struct Span {
-  start: usize,
-  end: usize
-}
-
-#[derive(Debug)]
-pub(crate) enum Operator {
-  RightArrow,
-}
-
-#[derive(Debug)]
-pub(crate) enum Punctuation {
-  Colon,
-  Comma,
-  Semicolon
-}
-
-#[derive(Debug)]
-pub(crate) enum CommentType {
-  Line,
-  Multiline
-}
-
-#[derive(Debug)]
-pub(crate) enum TokenEnum {
-  Comment { ty: CommentType, content: String },
-  Whitespace(String),
-  Keyword,
-  Identifier(String),
-  Operator(Operator),
-  Punctuation(Punctuation),
-  Grouping(Grouping),
-}
-
-#[derive(Debug)]
-pub(crate) struct Token {
-  token: TokenEnum,
-  span: Span
-}
-
-impl From<utf8_read::Error> for TokenizationError {
-  fn from(error: utf8_read::Error) -> Self {
-    Self::IOError { error }
-  }
-}
-
-#[derive(Debug)]
-pub(crate) enum GroupingType {
-  Parenthesis,
-  Bracket,
-  CurlyBrace
-}
-
-#[derive(Debug)]
-pub(crate) enum Grouping {
-  Open(GroupingType),
-  Close(GroupingType)
-}
 
 #[derive(Debug)]
 enum State {

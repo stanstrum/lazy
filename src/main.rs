@@ -51,6 +51,13 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
 
   dbg!(&tokens);
 
+  let source = tokens.iter()
+    .map(std::string::ToString::to_string)
+    .reduce(|acc, e| acc + &e)
+    .expect("failed to accumulate source code");
+
+  println!("{source}");
+
   Ok(())
 }
 

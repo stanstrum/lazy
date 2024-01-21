@@ -6,6 +6,7 @@
  */
 
 mod structs;
+mod to_string;
 pub(crate) use structs::*;
 
 use std::fs::File;
@@ -195,7 +196,7 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           add_tok(&i, tok);
         },
         (State::Base, ';') => {
-          let tok = TokenEnum::Punctuation(Punctuation::Comma);
+          let tok = TokenEnum::Punctuation(Punctuation::Semicolon);
 
           add_tok(&i, tok);
         },

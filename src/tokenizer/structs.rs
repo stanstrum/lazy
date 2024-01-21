@@ -12,6 +12,7 @@ pub(crate) enum TokenizationError {
   IOError { error: utf8_read::Error }
 }
 
+#[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Span {
   pub start: usize,
@@ -47,6 +48,7 @@ pub(crate) enum TokenEnum {
   Grouping(Grouping),
 }
 
+#[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Token {
   pub token: TokenEnum,
@@ -59,6 +61,7 @@ impl From<utf8_read::Error> for TokenizationError {
   }
 }
 
+#[allow(unused)]
 #[derive(Debug)]
 pub(crate) enum GroupingType {
   Parenthesis,

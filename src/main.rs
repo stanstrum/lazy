@@ -6,7 +6,6 @@
  */
 
 use std::fs::File;
-use std::io::BufReader;
 
 use snafu::prelude::*;
 use tokenizer::TokenizationError;

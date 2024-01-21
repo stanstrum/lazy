@@ -9,3 +9,4 @@ edition = "2021"
 getopts = "0.2.21"
 snafu = "0.7.5"
 inkwell = { version = "0.2.0", features = ["llvm10-0"] }
+utf8-read = "0.4.0"

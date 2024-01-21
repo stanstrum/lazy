@@ -97,6 +97,7 @@ dependencies = [
  "getopts",
  "inkwell",
  "snafu",
+ "utf8-read",
 ]
 
 [[package]]
@@ -307,6 +308,12 @@ name = "unicode-width"
 version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c0edd1e5b14653f783770bce4a4dabb4a5108a5370a5f5d8cfe8710c361f6c8b"
+
+[[package]]
+name = "utf8-read"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fb566ac06e11c3f13872ebcb0e72ea5f97f0f65a16f45048d0adea21edc28018"
 
 [[package]]
 name = "windows-targets"

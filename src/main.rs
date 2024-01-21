@@ -7,28 +7,14 @@
 
 use std::fs::File;
 
-use snafu::prelude::*;
-use tokenizer::TokenizationError;
-
 pub(self) mod tokenizer;
+pub(self) mod asterizer;
 
-#[derive(Snafu, Debug)]
-enum CompilationError {
-  #[snafu(display("{message}"))]
-  Argument { message: String },
+pub(self) mod error;
+mod debug;
 
-  #[snafu(display("{error}"))]
-  InputFile { error: std::io::Error },
-
-  #[snafu(display("{error}"))]
-  Tokenization { error: tokenizer::TokenizationError },
-}
-
-impl From<TokenizationError> for CompilationError {
-  fn from(error: TokenizationError) -> Self {
-    Self::Tokenization { error }
-  }
-}
+pub(self) use error::CompilationError;
+use error::*;
 
 fn compile(args: Vec<String>) -> Result<(), CompilationError> {
   let Some(input_file_path) = args.get(1) else {
@@ -47,15 +33,11 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
   let mut reader = utf8_read::Reader::new(input_file);
 
   let tokens = tokenizer::tokenize(&mut reader)?;
+  debug::tokens(&tokens);
 
-  dbg!(&tokens);
+  let ast = asterizer::asterize(tokens)?;
 
-  let source = tokens.iter()
-    .map(std::string::ToString::to_string)
-    .reduce(|acc, e| acc + &e)
-    .expect("failed to accumulate source code");
-
-  println!("{source}");
+  debug::ast(&ast);
 
   Ok(())
 }
@@ -63,10 +45,20 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
 fn main() {
   let args: Vec<String> = std::env::args().collect();
 
-  match compile(args) {
-    Ok(_) => {},
-    Err(error) => {
-      eprintln!("Error: {error}");
-    },
+  if let Err(error) = compile(args) {
+    match &error {
+      CompilationError::Argument { .. } => {
+        eprintln!("Argument error: {error}");
+      },
+      CompilationError::InputFile { .. } => {
+        eprintln!("Input file error: {error}");
+      },
+      CompilationError::Tokenization { .. } => {
+        eprintln!("Tokenization error: {error}");
+      },
+      CompilationError::Asterization { .. } => {
+        eprintln!("Asterization error: {error}");
+      }
+    };
   };
 }

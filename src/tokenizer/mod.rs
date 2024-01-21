@@ -12,6 +12,9 @@ pub(crate) use structs::*;
 use std::fs::File;
 use utf8_read::Reader;
 
+pub(crate) mod error;
+pub(crate) use error::TokenizationError;
+
 #[derive(Debug)]
 enum State {
   Base,

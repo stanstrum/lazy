@@ -5,13 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use snafu::prelude::*;
-
-#[derive(Snafu, Debug)]
-pub(crate) enum TokenizationError {
-  IOError { error: utf8_read::Error }
-}
-
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Span {
@@ -53,12 +46,6 @@ pub(crate) enum TokenEnum {
 pub(crate) struct Token {
   pub token: TokenEnum,
   pub span: Span
-}
-
-impl From<utf8_read::Error> for TokenizationError {
-  fn from(error: utf8_read::Error) -> Self {
-    Self::IOError { error }
-  }
 }
 
 #[allow(unused)]

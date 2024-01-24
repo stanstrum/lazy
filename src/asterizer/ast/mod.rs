@@ -1,12 +1,27 @@
-pub(self) mod namespace;
-pub(self) mod global_namespace;
-pub(self) mod top_level_structure;
-pub(self) mod structure;
+macro_rules! import_export {
+  ($name:ident) => {
+    pub(self) mod $name;
+    #[allow(unused)]
+    pub(crate) use $name::*;
+  };
 
-pub(crate) use namespace::*;
-pub(crate) use global_namespace::*;
-pub(crate) use top_level_structure::*;
-pub(crate) use structure::*;
+  ($name:ident, $($names:ident,)+) => {
+    import_export!($name);
+    import_export!($($names),+);
+  };
+
+  ($($names:ident),+) => {
+    import_export!($($names,)+);
+  };
+}
+
+import_export! {
+  namespace,
+  global_namespace,
+  top_level_structure,
+  structure,
+  function,
+}
 
 use super::{
   TokenStream,

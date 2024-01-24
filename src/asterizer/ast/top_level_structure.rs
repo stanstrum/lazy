@@ -21,6 +21,12 @@ impl TopLevelStructure {
 
 impl MakeAst for TopLevelStructure {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    todo!()
+    Ok({
+      if let Some(ns) = Namespace::make(stream)? {
+        Some(TopLevelStructure::Namespace(ns))
+      } else {
+        None
+      }
+    })
   }
 }

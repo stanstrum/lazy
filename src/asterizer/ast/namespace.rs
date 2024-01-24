@@ -16,6 +16,8 @@ pub(crate) struct Namespace {
 
 impl MakeAst for Namespace {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    todo!()
+    eprintln!("{}:{}: Namespace::make empty stub", file!(), line!());
+
+    Ok(None)
   }
 }

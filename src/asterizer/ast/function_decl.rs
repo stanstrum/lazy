@@ -11,25 +11,13 @@ use crate::asterizer::{
   MakeAst
 };
 
-use super::FunctionDeclaration;
-
 #[derive(Debug)]
-pub(crate) struct Function {
-  pub decl: FunctionDeclaration,
+pub(crate) struct FunctionDeclaration {
+  pub name: String,
 }
 
-impl MakeAst for Function {
+impl MakeAst for FunctionDeclaration {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    stream.push_mark();
-
-    let Some(decl) = FunctionDeclaration::make(stream)? else {
-      stream.pop_mark();
-
-      return Ok(None);
-    };
-
-    stream.drop_mark();
-
     todo!()
   }
 }

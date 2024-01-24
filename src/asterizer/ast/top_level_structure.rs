@@ -26,7 +26,7 @@ impl TopLevelStructure {
   pub fn name(&self) -> String {
     match self {
       TopLevelStructure::Namespace(ns) => ns.name.to_owned(),
-      TopLevelStructure::Function(func) => func.name.to_owned(),
+      TopLevelStructure::Function(func) => func.decl.name.to_owned(),
     }
   }
 }

@@ -27,6 +27,7 @@ import_export! {
   global_namespace,
   top_level_structure,
   structure,
+  function_decl,
   function,
 }
 

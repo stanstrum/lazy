@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use crate::asterizer::ast::GlobalNamespace;
 use crate::tokenizer::Token;
 
 pub(crate) fn tokens(toks: &Vec<Token>) {
@@ -18,6 +19,6 @@ pub(crate) fn tokens(toks: &Vec<Token>) {
   println!("{source}");
 }
 
-pub(crate) fn ast(_ast: &()) {
+pub(crate) fn ast(_ast: &GlobalNamespace) {
   todo!("debug ast");
 }

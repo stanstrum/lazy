@@ -61,3 +61,13 @@ pub(crate) enum Grouping {
   Open(GroupingType),
   Close(GroupingType)
 }
+
+impl Token {
+  pub fn variant<'a>(&'a self) -> &'a TokenEnum {
+    &self.token
+  }
+
+  pub fn variant_mut<'a>(&'a mut self) -> &'a mut TokenEnum {
+    &mut self.token
+  }
+}

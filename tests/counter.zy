@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Stan Strum
+/* Copyright (c) 2024 Stan Strum
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -6,10 +6,10 @@
  */
 
 str_to_num -> u32:
-  &str string
+  string: &str
 {
-  usize i := 0;
-  u32 sum := 0;
+  i: usize := 0;
+  sum: u32 := 0;
 
   while i < (str.len)() {
     // ch := *{ str.ptr + i };
@@ -28,9 +28,10 @@ str_to_num -> u32:
 };
 
 main -> u32:
-  u32 argc, &[]str argv
+  argc: u32,
+  argv: &[]str
 {
-  u32 ctr := 0;
+  ctr: u32 := 0;
 
   while true {
     buf := io::stdin();

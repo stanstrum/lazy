@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Stan Strum
+/* Copyright (c) 2024 Stan Strum
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -8,14 +8,14 @@
 type str := []u32;
 
 hello_explicit {
-  &str hello := "hello";
-  &[5]u8 hello_bytes := b"hello";
+  hello: &str := "hello";
+  hello_bytes: &[5]u8 := b"hello";
 
-  usize n1234 := 1234;
-  u64 n5678 := 5678;
+  n1234: usize := 1234;
+  n5678: u64 := 5678;
 
   // should fail
-  u8 n256 := 256;
+  n256: u8 := 256;
 };
 
 implicit {

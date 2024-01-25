@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Stan Strum
+/* Copyright (c) 2024 Stan Strum
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -9,12 +9,12 @@ namespace Something {
   type c_str := &[]u8;
 
   struct HelloWorld {
-    u64 a,
-    c_str text
+    a: u64,
+    text: c_str
   };
 
   struct Other {
-    u8 a,
-    u8 b,
+    a: u8,
+    b: u8
   };
 };

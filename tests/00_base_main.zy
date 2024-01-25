@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Stan Strum
+/* Copyright (c) 2024 Stan Strum
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -6,8 +6,8 @@
  */
 
 other_function -> bool:
-  char argument_1,
-  u8 argument_2
+  argument_1: char,
+  argument_2: u8
 {
   {};
   {};

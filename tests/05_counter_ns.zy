@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Stan Strum
+/* Copyright (c) 2024 Stan Strum
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -13,25 +13,29 @@ namespace io {
   stdin -> Stdin {};
 
   impl Stdin {
-    read_line: &super::str dest {};
+    read_line:
+      dest: &super::str
+    {
+      /* todo */
+    };
   };
 };
 
 namespace string {
   impl &super::str {
-    len -> usize {};
+    public len -> usize {};
   };
 };
 
 namespace ToString {
-  str_to_num -> i32:
-    &super::str text
+  public str_to_num -> i32:
+    text: &super::str
   {
-    mut usize acc := 0;
-    mut usize ctr := 0;
+    mut acc: usize := 0;
+    mut ctr: usize := 0;
 
     while ctr < text.len() {
-      ch := (*text)[ctr];
+      ch := text[ctr];
 
       if ch > b' ' && ch < b'~' {
         acc += ch;
@@ -46,10 +50,9 @@ namespace ToString {
   };
 };
 
-
 main {
-  &str buf;
-  mut usize acc := 0;
+  mut buf: &str;
+  mut acc: usize := 0;
 
   loop {
     io::stdin().read_line(&mut buf);

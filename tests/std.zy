@@ -1,78 +1,91 @@
-/* Copyright (c) 2023 Stan Strum
+/* Copyright (c) 2024 Stan Strum
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-public interface Add<T> {
-  public fn __add -> T:
-    T lhs, T rhs;
-}
+template: T;
+export interface Add {
+  public __add -> T:
+    lhs: T,
+    rhs: T;
+};
 
-public interface Sub<T> {
-  public fn __sub -> T:
-    T lhs, T rhs;
-}
+template: T;
+export interface Sub {
+  public __sub -> T:
+    lhs: T,
+    rhs: T;
+};
 
-public interface IMul<T> {
-  public fn __imul -> T:
-    T lhs, T rhs;
-}
+template: T;
+export interface IMul {
+  public __imul -> T:
+    lhs: T,
+    rhs: T;
+};
 
-public interface IDiv<T> {
-  public fn __idiv -> T:
-    T lhs, T rhs;
-}
+template: T;
+export interface IDiv {
+  public __idiv -> T:
+    lhs: T,
+    rhs: T;
+};
 
-public interface IArithmetic implements Add, Sub, IMul, IDiv;
+export interface IArithmetic extends Add, Sub, IMul, IDiv;
 
-impl IArithmetic for u8 {
-  public fn __add -> u8:
-    u8 lhs, u8 rhs
+impl u8: IArithmetic {
+  __add -> u8:
+    lhs: u8,
+    rhs: u8
   __llvm {
     %tmp1 = add u8 %lhs, %rhs
     ret u8 %tmp1
-  }
+  };
 
-  public fn __sub -> u8:
-    u8 lhs, u8 rhs
+  __sub -> u8:
+    lhs: u8,
+    rhs: u8
   __llvm {
     %tmp1 = sub u8 %lhs, %rhs
     ret u8 %tmp1
-  }
+  };
 
-  public fn __imul -> u8:
-    u8 lhs, u8 rhs
+  __imul -> u8:
+    lhs: u8,
+    rhs: u8
   __llvm {
     %tmp1 = imul u8 %lhs, %rhs
     ret u8 %tmp1
-  }
+  };
 
-  public fn __idiv -> u8:
-    u8 lhs, u8 rhs
+  __idiv -> u8:
+    lhs: u8,
+    rhs: u8
   __llvm {
     %tmp1 = idiv u8 %lhs, %rhs
     ret u8 %tmp1
-  }
-}
+  };
+};
 
-trait Double<T: IMul | FMul> {
-  public fn double -> T: T self
-  {
+template:
+  T extends std::ops::Multiply;
+interface Double {
+  public double -> T {
     self * 2
-  }
+  };
 
-  public fn double_self -> T: mut T self {
-    &self =|> $.double()
-  }
-}
+  public mut double_self -> T {
+    self |>= $.double()
+  };
+};
 
 test double {
-  f32 s = 40;
+  mut s: f32 := 40;
 
   b := s.double();
   s = b;
 
   s |>= $.double();
-}
+};

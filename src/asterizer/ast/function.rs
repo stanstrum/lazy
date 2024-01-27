@@ -22,7 +22,7 @@ impl MakeAst for Function {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     stream.push_mark();
 
-    let Some(_decl) = FunctionDeclaration::make(stream)? else {
+    let Some(decl) = FunctionDeclaration::make(stream)? else {
       stream.pop_mark();
 
       return Ok(None);
@@ -30,6 +30,6 @@ impl MakeAst for Function {
 
     stream.drop_mark();
 
-    todo!()
+    Ok(Some(Self { decl }))
   }
 }

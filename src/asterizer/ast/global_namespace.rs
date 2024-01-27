@@ -7,6 +7,8 @@
 
 use std::collections::HashMap;
 
+use typename::TypeName;
+
 use crate::asterizer::error::ExpectedSnafu;
 use crate::tokenizer::{
   TokenEnum,
@@ -21,7 +23,7 @@ use crate::asterizer::{
 };
 
 #[allow(unused)]
-#[derive(Debug, Default)]
+#[derive(Debug, Default, TypeName)]
 pub(crate) struct GlobalNamespace {
   // file: std::path::PathBuf,
   children: HashMap<String, TopLevelStructure>

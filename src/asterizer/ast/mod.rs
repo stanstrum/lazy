@@ -34,11 +34,13 @@ import_export! {
   function_decl_args,
 }
 
+use typename::TypeName;
+
 use super::{
   TokenStream,
   AsterizerError
 };
 
-pub(crate) trait MakeAst where Self: Sized {
+pub(crate) trait MakeAst where Self: Sized + TypeName {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError>;
 }

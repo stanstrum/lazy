@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use typename::TypeName;
+
 use crate::asterizer::ast::{
   AsterizerError,
   TokenStream,
@@ -14,7 +16,7 @@ use crate::asterizer::ast::{
 use super::Expression;
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, TypeName)]
 pub(crate) struct BlockExpression {
   pub children: Vec<Expression>
 }

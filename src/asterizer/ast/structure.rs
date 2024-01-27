@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use typename::TypeName;
+
 use crate::asterizer::{
   TokenStream,
   AsterizerError,
@@ -14,7 +16,7 @@ use crate::asterizer::{
 use super::Namespace;
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, TypeName)]
 pub(crate) enum Structure {
   Namespace(Namespace),
 }

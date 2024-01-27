@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use typename::TypeName;
+
 use crate::asterizer::{
   error::ExpectedSnafu, AsterizerError, MakeAst, TokenStream
 };
@@ -12,7 +14,7 @@ use crate::asterizer::{
 use super::{BlockExpression, FunctionDeclaration};
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, TypeName)]
 pub(crate) struct Function {
   pub decl: FunctionDeclaration,
   body: BlockExpression

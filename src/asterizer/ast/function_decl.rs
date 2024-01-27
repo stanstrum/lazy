@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use typename::TypeName;
+
 use crate::asterizer::ast::FunctionDeclarationArguments;
 use crate::asterizer::{
   TokenStream,
@@ -22,7 +24,7 @@ use crate::tokenizer::{
 use super::Type;
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, TypeName)]
 pub(crate) struct FunctionDeclaration {
   pub name: String,
   return_type: Option<Type>,

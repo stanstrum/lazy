@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use typename::TypeName;
+
 use crate::tokenizer::{
   Punctuation,
   TokenEnum
@@ -18,14 +20,14 @@ use crate::asterizer::{
 use super::Type;
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, TypeName)]
 pub(crate) struct FunctionDeclarationArgument {
   name: String,
   ty: Type
 }
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, TypeName)]
 pub(crate) struct FunctionDeclarationArguments {
   args: Vec<FunctionDeclarationArgument>
 }

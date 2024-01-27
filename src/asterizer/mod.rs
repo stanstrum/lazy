@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use std::fmt::Debug;
+
 use crate::tokenizer::{Token, TokenEnum};
 
 pub(crate) mod error;
@@ -76,18 +78,39 @@ impl TokenStream {
     }
   }
 
-  pub fn make<Ast: MakeAst>(&mut self) -> Result<Option<Ast>, AsterizerError> {
+  pub fn make<Ast: MakeAst + Debug>(&mut self) -> Result<Option<Ast>, AsterizerError> {
     self.push_mark();
+
+    let type_name = Ast::type_name();
+
+    const PFX: &str = "lazy::asterizer::ast::";
+    let name = if type_name.starts_with(PFX) {
+      type_name.strip_prefix(PFX).unwrap()
+    } else {
+      type_name.as_str()
+    };
+
+    println!("make: {name}");
 
     let result = Ast::make(self);
 
     match &result {
-      Ok(Some(_)) => {
+      Ok(Some(value)) => {
+        println!("make: {name}: success");
+        dbg!(value);
+
         self.drop_mark();
       },
-      Ok(None) | Err(_) => {
+      Ok(None) => {
+        println!("make: {name}: none");
+
         self.pop_mark();
       },
+      Err(err) => {
+        println!("make: {name}: error: {err}");
+
+        self.pop_mark();
+      }
     };
 
     result

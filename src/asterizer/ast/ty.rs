@@ -5,6 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use typename::TypeName;
+
+use crate::tokenizer::TokenEnum;
+
 use crate::asterizer::{
   TokenStream,
   AsterizerError,
@@ -12,19 +16,25 @@ use crate::asterizer::{
 };
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, TypeName)]
 pub(crate) struct NamedType {
   name: String
 }
 
-#[derive(Debug)]
+#[derive(Debug, TypeName)]
 pub(crate) enum Type {
   Named(NamedType)
 }
 
 impl MakeAst for NamedType {
-  fn make(_stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    todo!()
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
+      return Ok(None);
+    };
+
+    let name = name.to_owned();
+
+    Ok(Some(Self { name }))
   }
 }
 

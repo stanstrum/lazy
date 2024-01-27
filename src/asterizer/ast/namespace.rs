@@ -7,6 +7,8 @@
 
 use std::collections::HashMap;
 
+use typename::TypeName;
+
 use crate::asterizer::{
   TokenStream,
   AsterizerError,
@@ -16,7 +18,7 @@ use crate::asterizer::{
 use super::Structure;
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, TypeName)]
 pub(crate) struct Namespace {
   pub name: String,
   children: HashMap<String, Structure>

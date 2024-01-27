@@ -30,6 +30,7 @@ pub(crate) enum CommentType {
   Multiline
 }
 
+#[allow(unused)]
 #[derive(Debug)]
 pub(crate) enum TokenEnum {
   Comment { ty: CommentType, content: String },
@@ -67,7 +68,7 @@ impl Token {
     &self.token
   }
 
-  pub fn variant_mut<'a>(&'a mut self) -> &'a mut TokenEnum {
-    &mut self.token
-  }
+  // pub fn variant_mut<'a>(&'a mut self) -> &'a mut TokenEnum {
+  //   &mut self.token
+  // }
 }

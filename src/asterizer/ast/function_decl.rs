@@ -29,7 +29,7 @@ impl MakeAst for FunctionDeclaration {
 
     let Some(Token {
       token: TokenEnum::Identifier(ident),
-      span
+      span: _span
     }) = stream.next() else {
       stream.pop_mark();
 

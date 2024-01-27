@@ -14,12 +14,6 @@ pub(crate) mod ast;
 
 use ast::{GlobalNamespace, MakeAst};
 
-#[derive(Debug)]
-enum State {
-  TopLevel,
-  Function,
-}
-
 pub(crate) struct TokenStream {
   position: usize,
   marks: Vec<usize>,

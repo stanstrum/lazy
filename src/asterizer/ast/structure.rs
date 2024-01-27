@@ -13,13 +13,14 @@ use crate::asterizer::{
 
 use super::Namespace;
 
+#[allow(unused)]
 #[derive(Debug)]
 pub(crate) enum Structure {
   Namespace(Namespace),
 }
 
 impl MakeAst for Structure {
-  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+  fn make(_stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     todo!()
   }
 }

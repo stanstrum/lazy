@@ -15,6 +15,7 @@ use crate::asterizer::{
 
 use super::Structure;
 
+#[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Namespace {
   pub name: String,
@@ -22,7 +23,7 @@ pub(crate) struct Namespace {
 }
 
 impl MakeAst for Namespace {
-  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+  fn make(_stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     eprintln!("{}:{}: Namespace::make empty stub", file!(), line!());
 
     Ok(None)

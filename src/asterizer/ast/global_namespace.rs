@@ -20,6 +20,7 @@ use crate::asterizer::{
   ast::TopLevelStructure
 };
 
+#[allow(unused)]
 #[derive(Debug, Default)]
 pub(crate) struct GlobalNamespace {
   // file: std::path::PathBuf,

@@ -31,26 +31,19 @@ impl MakeAst for GlobalNamespace {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     println!("GlobalNamespace::make");
 
-    stream.push_mark();
-
     let mut structures = vec![];
 
     stream.skip_whitespace_and_comments();
 
-    while let Some(struc) = TopLevelStructure::make(stream)? {
+    while let Some(struc) = stream.make::<TopLevelStructure>()? {
       structures.push(struc);
 
       stream.skip_whitespace_and_comments();
 
-      match stream.next_variant() {
-        Some(TokenEnum::Punctuation(Punctuation::Semicolon)) => {},
-        _ => {
-          stream.pop_mark();
-
-          // sponge: error here.
-          eprintln!("expected semicolon");
-          return Ok(None);
-        },
+      let Some(TokenEnum::Punctuation(Punctuation::Semicolon)) = stream.next_variant() else {
+        return ExpectedSnafu {
+          what: "a semicolon"
+        }.fail();
       };
     };
 
@@ -65,8 +58,6 @@ impl MakeAst for GlobalNamespace {
         |child| (child.name(), child)
       )
       .collect();
-
-    stream.drop_mark();
 
     Ok(Some(Self { children }))
   }

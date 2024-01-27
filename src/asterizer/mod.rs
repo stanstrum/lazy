@@ -97,7 +97,7 @@ impl TokenStream {
 pub(crate) fn asterize(tokens: Vec<Token>) -> Result<GlobalNamespace, AsterizerError> {
   let mut stream = TokenStream::new(tokens);
 
-  let Some(global) = GlobalNamespace::make(&mut stream)? else {
+  let Some(global) = stream.make::<GlobalNamespace>()? else {
     panic!("no global made")
   };
 

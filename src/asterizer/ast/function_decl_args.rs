@@ -68,8 +68,6 @@ impl MakeAst for FunctionDeclarationArgument {
 
 impl MakeAst for FunctionDeclarationArguments {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    stream.push_mark();
-
     let mut args = vec![];
 
     loop {
@@ -77,7 +75,7 @@ impl MakeAst for FunctionDeclarationArguments {
 
       stream.push_mark();
 
-      let Some(arg) = FunctionDeclarationArgument::make(stream)? else {
+      let Some(arg) = stream.make::<FunctionDeclarationArgument>()? else {
         stream.pop_mark();
 
         break;
@@ -99,8 +97,6 @@ impl MakeAst for FunctionDeclarationArguments {
 
       stream.drop_mark();
     };
-
-    stream.drop_mark();
 
     Ok(Some(Self {
       args

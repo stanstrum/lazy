@@ -33,14 +33,10 @@ impl MakeAst for FunctionDeclaration {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     println!("FunctionDecl::make");
 
-    stream.push_mark();
-
     let Some(Token {
       token: TokenEnum::Identifier(ident),
       span: _span
     }) = stream.next() else {
-      stream.pop_mark();
-
       return Ok(None);
     };
 
@@ -54,7 +50,7 @@ impl MakeAst for FunctionDeclaration {
       if let Some(TokenEnum::Operator(Operator::RightArrow)) = stream.next_variant() {
         stream.skip_whitespace_and_comments();
 
-        if let Some(ty) = Type::make(stream)? {
+        if let Some(ty) = stream.make::<Type>()? {
           stream.drop_mark();
 
           Some(ty)
@@ -76,7 +72,7 @@ impl MakeAst for FunctionDeclaration {
 
     let args = {
       if let Some(TokenEnum::Punctuation(Punctuation::Colon)) = stream.next_variant() {
-        match FunctionDeclarationArguments::make(stream)? {
+        match stream.make::<FunctionDeclarationArguments>()? {
           Some(args) => {
             stream.drop_mark();
 

@@ -11,6 +11,7 @@ use crate::asterizer::{
   MakeAst
 };
 
+#[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct NamedType {
   name: String
@@ -22,9 +23,7 @@ pub(crate) enum Type {
 }
 
 impl MakeAst for NamedType {
-  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-
-
+  fn make(_stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     todo!()
   }
 }

@@ -6,30 +6,30 @@
  */
 
 use crate::asterizer::{
-  TokenStream,
-  AsterizerError,
-  MakeAst
+  error::ExpectedSnafu, AsterizerError, MakeAst, TokenStream
 };
 
-use super::FunctionDeclaration;
+use super::{BlockExpression, FunctionDeclaration};
 
+#[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Function {
   pub decl: FunctionDeclaration,
+  body: BlockExpression
 }
 
 impl MakeAst for Function {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    stream.push_mark();
-
-    let Some(decl) = FunctionDeclaration::make(stream)? else {
-      stream.pop_mark();
-
+    let Some(decl) = stream.make::<FunctionDeclaration>()? else {
       return Ok(None);
     };
 
-    stream.drop_mark();
+    let Some(body) = stream.make::<BlockExpression>()? else {
+      return ExpectedSnafu {
+        what: "a block expression"
+      }.fail();
+    };
 
-    Ok(Some(Self { decl }))
+    Ok(Some(Self { decl, body }))
   }
 }

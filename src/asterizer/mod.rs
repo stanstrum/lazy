@@ -75,6 +75,23 @@ impl TokenStream {
       };
     }
   }
+
+  pub fn make<Ast: MakeAst>(&mut self) -> Result<Option<Ast>, AsterizerError> {
+    self.push_mark();
+
+    let result = Ast::make(self);
+
+    match &result {
+      Ok(Some(_)) => {
+        self.drop_mark();
+      },
+      Ok(None) | Err(_) => {
+        self.pop_mark();
+      },
+    };
+
+    result
+  }
 }
 
 pub(crate) fn asterize(tokens: Vec<Token>) -> Result<GlobalNamespace, AsterizerError> {

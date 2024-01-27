@@ -29,6 +29,9 @@ import_export! {
   structure,
   function_decl,
   function,
+  ty,
+  expression,
+  function_decl_args,
 }
 
 use super::{

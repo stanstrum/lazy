@@ -7,6 +7,7 @@
 
 use std::collections::HashMap;
 
+use crate::asterizer::error::ExpectedSnafu;
 use crate::tokenizer::{
   TokenEnum,
   Punctuation
@@ -27,9 +28,13 @@ pub(crate) struct GlobalNamespace {
 
 impl MakeAst for GlobalNamespace {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    println!("GlobalNamespace::make");
+
     stream.push_mark();
 
     let mut structures = vec![];
+
+    stream.skip_whitespace_and_comments();
 
     while let Some(struc) = TopLevelStructure::make(stream)? {
       structures.push(struc);
@@ -46,6 +51,12 @@ impl MakeAst for GlobalNamespace {
           return Ok(None);
         },
       };
+    };
+
+    if structures.is_empty() {
+      return ExpectedSnafu {
+        what: "a top-level structure"
+      }.fail();
     };
 
     let children = structures.into_iter()

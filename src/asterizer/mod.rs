@@ -64,7 +64,7 @@ impl TokenStream {
   }
 
   pub fn peek<'a>(&'a self) -> Option<&'a Token> {
-    self.tokens.get(self.position + 1)
+    self.tokens.get(self.position)
   }
 
   pub fn peek_variant<'a>(&'a self) -> Option<&'a TokenEnum> {

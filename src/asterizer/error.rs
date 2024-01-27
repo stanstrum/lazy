@@ -13,7 +13,10 @@ use crate::CompilationError;
 #[snafu(visibility(pub(crate)))]
 pub(crate) enum AsterizerError {
   #[snafu(display("Not implemented: {message}"))]
-  NotImplemented { message: String }
+  NotImplemented { message: String },
+
+  #[snafu(display("Expected {what}"))]
+  Expected { what: String }
 }
 
 impl From<AsterizerError> for CompilationError {

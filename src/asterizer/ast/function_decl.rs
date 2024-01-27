@@ -11,6 +11,11 @@ use crate::asterizer::{
   MakeAst
 };
 
+use crate::tokenizer::{
+  Token,
+  TokenEnum, Operator
+};
+
 #[derive(Debug)]
 pub(crate) struct FunctionDeclaration {
   pub name: String,
@@ -18,6 +23,33 @@ pub(crate) struct FunctionDeclaration {
 
 impl MakeAst for FunctionDeclaration {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    todo!()
+    println!("FunctionDecl::make");
+
+    stream.push_mark();
+
+    let Some(Token {
+      token: TokenEnum::Identifier(ident),
+      span
+    }) = stream.next() else {
+      stream.pop_mark();
+
+      return Ok(None);
+    };
+
+    let ident = ident.to_owned();
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(TokenEnum::Operator(Operator::RightArrow)) = stream.next_variant() else {
+      stream.pop_mark();
+
+      return Ok(None);
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    Ok(Some(Self {
+      name: ident.to_owned(),
+    }))
   }
 }

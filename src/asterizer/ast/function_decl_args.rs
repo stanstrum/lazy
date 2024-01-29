@@ -11,6 +11,7 @@ use crate::tokenizer::{
   Punctuation,
   TokenEnum
 };
+
 use crate::asterizer::{
   TokenStream,
   MakeAst,
@@ -34,11 +35,7 @@ pub(crate) struct FunctionDeclarationArguments {
 
 impl MakeAst for FunctionDeclarationArgument {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    stream.push_mark();
-
     let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
-      stream.pop_mark();
-
       return Ok(None);
     };
 
@@ -47,20 +44,16 @@ impl MakeAst for FunctionDeclarationArgument {
     stream.skip_whitespace_and_comments();
 
     let Some(TokenEnum::Punctuation(Punctuation::Colon)) = stream.next_variant() else {
-      stream.pop_mark();
-
       return Ok(None);
     };
 
-    let Some(ty) = Type::make(stream)? else {
-      stream.pop_mark();
+    stream.skip_whitespace_and_comments();
 
+    let Some(ty) = stream.make::<Type>()? else {
       return ExpectedSnafu {
         what: "a type",
       }.fail();
     };
-
-    stream.drop_mark();
 
     Ok(Some(Self {
       name, ty,
@@ -75,29 +68,17 @@ impl MakeAst for FunctionDeclarationArguments {
     loop {
       stream.skip_whitespace_and_comments();
 
-      stream.push_mark();
-
       let Some(arg) = stream.make::<FunctionDeclarationArgument>()? else {
-        stream.pop_mark();
-
         break;
       };
 
-      stream.drop_mark();
-
       args.push(arg);
-
-      stream.push_mark();
 
       stream.skip_whitespace_and_comments();
 
       let Some(TokenEnum::Punctuation(Punctuation::Comma)) = stream.next_variant() else {
-        stream.pop_mark();
-
         break;
       };
-
-      stream.drop_mark();
     };
 
     Ok(Some(Self {

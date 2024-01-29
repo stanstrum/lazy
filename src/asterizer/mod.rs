@@ -7,7 +7,10 @@
 
 use std::fmt::Debug;
 
-use crate::tokenizer::{Token, TokenEnum};
+use crate::tokenizer::{
+  Token,
+  TokenEnum
+};
 
 pub(crate) mod error;
 pub(crate) use error::AsterizerError;
@@ -40,7 +43,7 @@ impl TokenStream {
 
     self.position += 1;
 
-    Some(tok)
+    dbg!(Some(tok))
   }
 
   pub fn next_variant<'a>(&'a mut self) -> Option<&'a TokenEnum> {
@@ -57,6 +60,10 @@ impl TokenStream {
 
   pub fn drop_mark(&mut self) {
     self.marks.pop().unwrap();
+  }
+
+  pub fn mark_len(&self) -> usize {
+    self.marks.len()
   }
 
   pub fn peek<'a>(&'a self) -> Option<&'a Token> {
@@ -79,6 +86,8 @@ impl TokenStream {
   }
 
   pub fn make<Ast: MakeAst + Debug>(&mut self) -> Result<Option<Ast>, AsterizerError> {
+    let marks_len = self.mark_len();
+
     self.push_mark();
 
     let type_name = Ast::type_name();
@@ -112,6 +121,10 @@ impl TokenStream {
         self.pop_mark();
       }
     };
+
+    let new_marks_len = self.mark_len();
+
+    assert!(new_marks_len == marks_len, "mark leak! {marks_len} -> {new_marks_len}");
 
     result
   }

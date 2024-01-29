@@ -8,10 +8,18 @@
 use typename::TypeName;
 
 use crate::asterizer::{
-  error::ExpectedSnafu, AsterizerError, MakeAst, TokenStream
+  error::{
+    AsterizerError,
+    ExpectedSnafu
+  },
+  TokenStream,
+  MakeAst
 };
 
-use super::{BlockExpression, FunctionDeclaration};
+use super::{
+  BlockExpression,
+  FunctionDeclaration
+};
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
@@ -25,6 +33,8 @@ impl MakeAst for Function {
     let Some(decl) = stream.make::<FunctionDeclaration>()? else {
       return Ok(None);
     };
+
+    stream.skip_whitespace_and_comments();
 
     let Some(body) = stream.make::<BlockExpression>()? else {
       return ExpectedSnafu {

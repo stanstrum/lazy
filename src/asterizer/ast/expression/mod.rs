@@ -8,8 +8,28 @@
 mod block;
 pub(crate) use block::*;
 
+use typename::TypeName;
+
+use crate::asterizer::{
+  AsterizerError,
+  TokenStream,
+  MakeAst
+};
+
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, TypeName)]
 pub(crate) enum Expression {
   BlockExpression(BlockExpression)
+}
+
+impl MakeAst for Expression {
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    Ok({
+      if let Some(block) = stream.make::<BlockExpression>()? {
+        Some(Expression::BlockExpression(block))
+      } else {
+        None
+      }
+    })
+  }
 }

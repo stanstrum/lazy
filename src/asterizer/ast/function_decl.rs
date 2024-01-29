@@ -8,6 +8,7 @@
 use typename::TypeName;
 
 use crate::asterizer::ast::FunctionDeclarationArguments;
+
 use crate::asterizer::{
   TokenStream,
   AsterizerError,
@@ -92,8 +93,6 @@ impl MakeAst for FunctionDeclaration {
         None
       }
     };
-
-    stream.drop_mark();
 
     Ok(Some(Self {
       name, return_type, args

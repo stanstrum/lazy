@@ -85,6 +85,10 @@ impl TokenStream {
     }
   }
 
+  pub fn remaining(&self) -> usize {
+    self.tokens.len() - self.position - 1
+  }
+
   pub fn make<Ast: MakeAst + Debug>(&mut self) -> Result<Option<Ast>, AsterizerError> {
     let marks_len = self.mark_len();
 
@@ -135,6 +139,12 @@ pub(crate) fn asterize(tokens: Vec<Token>) -> Result<GlobalNamespace, AsterizerE
 
   let Some(global) = stream.make::<GlobalNamespace>()? else {
     panic!("no global made")
+  };
+
+  stream.skip_whitespace_and_comments();
+
+  if stream.remaining() != 0 {
+    panic!("remaining tokens");
   };
 
   Ok(global)

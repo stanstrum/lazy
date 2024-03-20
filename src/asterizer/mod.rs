@@ -168,9 +168,10 @@ pub(crate) fn asterize(tokens: Vec<Token>) -> Result<GlobalNamespace, AsterizerE
   stream.skip_whitespace_and_comments();
 
   if stream.remaining() != 0 {
-    dbg!(&stream.tokens[stream.position..]);
+    println!("error: remaining tokens {}/{}", stream.position, stream.tokens.len());
+    dbg!(&stream.tokens[stream.position]);
 
-    panic!("remaining tokens {}/{}", stream.position, stream.tokens.len());
+    panic!("asterizer did not consume all tokens");
   };
 
   Ok(global)

@@ -76,7 +76,9 @@ impl MakeAst for FunctionDeclarationArguments {
 
       stream.skip_whitespace_and_comments();
 
-      let Some(TokenEnum::Punctuation(Punctuation::Comma)) = stream.next_variant() else {
+      if let Some(TokenEnum::Punctuation(Punctuation::Comma)) = stream.peek_variant() {
+        stream.seek().unwrap();
+      } else {
         break;
       };
     };

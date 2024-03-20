@@ -39,11 +39,35 @@ impl TokenStream {
       return None;
     };
 
-    let tok = self.tokens.get(self.position).unwrap();
+    // We do this strangely because self.tokens.get later on creates
+    // an immutable reference into the struct, disallowing a mut borrow
+    // for self.seek afterwards
+    let current_position = self.position;
+    self.seek();
 
-    self.position += 1;
+    let tok = self.tokens.get(current_position).unwrap();
 
     dbg!(Some(tok))
+  }
+
+  pub fn seek(&mut self) -> Option<()> {
+    if self.position < self.tokens.len() - 1 {
+      self.position += 1;
+
+      Some(())
+    } else {
+      None
+    }
+  }
+
+  pub fn rewind(&mut self) -> Option<()> {
+    if self.position > 0 {
+      self.position -= 1;
+
+      Some(())
+    } else {
+      None
+    }
   }
 
   pub fn next_variant<'a>(&'a mut self) -> Option<&'a TokenEnum> {
@@ -78,7 +102,7 @@ impl TokenStream {
     loop {
       match self.peek_variant() {
         Some(TokenEnum::Comment { .. } | TokenEnum::Whitespace(..)) => {
-          self.position += 1;
+          self.seek();
         },
         _ => break
       };
@@ -86,7 +110,7 @@ impl TokenStream {
   }
 
   pub fn remaining(&self) -> usize {
-    self.tokens.len() - self.position - 1
+    self.tokens.len() - 1 - self.position
   }
 
   pub fn make<Ast: MakeAst + Debug>(&mut self) -> Result<Option<Ast>, AsterizerError> {
@@ -144,7 +168,9 @@ pub(crate) fn asterize(tokens: Vec<Token>) -> Result<GlobalNamespace, AsterizerE
   stream.skip_whitespace_and_comments();
 
   if stream.remaining() != 0 {
-    panic!("remaining tokens");
+    dbg!(&stream.tokens[stream.position..]);
+
+    panic!("remaining tokens {}/{}", stream.position, stream.tokens.len());
   };
 
   Ok(global)

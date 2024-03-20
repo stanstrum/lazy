@@ -41,7 +41,9 @@ impl MakeAst for BlockExpression {
     loop {
       stream.skip_whitespace_and_comments();
 
-      if let Some(TokenEnum::Grouping(Grouping::Open(GroupingType::CurlyBrace))) = stream.next_variant() {
+      if let Some(TokenEnum::Grouping(Grouping::Close(GroupingType::CurlyBrace))) = stream.peek_variant() {
+        stream.seek();
+
         break;
       };
 
@@ -55,15 +57,25 @@ impl MakeAst for BlockExpression {
 
       stream.skip_whitespace_and_comments();
 
-      if let Some(TokenEnum::Punctuation(Punctuation::Semicolon)) = stream.next_variant() {
+      if let Some(TokenEnum::Punctuation(Punctuation::Semicolon)) = stream.peek_variant() {
+        stream.seek();
+
+        // Continue parsing next expression in block, or possibly no expression
+        // if the block does not return last value
         continue;
       };
-    };
 
-    let Some(TokenEnum::Grouping(Grouping::Close(GroupingType::CurlyBrace))) = stream.next_variant() else {
-      return ExpectedSnafu {
-        what: "a closing curly brace"
-      }.fail();
+      // If we're here, either a mistake has been made or this block returns its last value
+      stream.skip_whitespace_and_comments();
+
+      let Some(TokenEnum::Grouping(Grouping::Close(GroupingType::CurlyBrace))) = stream.next_variant() else {
+        return ExpectedSnafu {
+          what: "a closing curly brace",
+        }.fail();
+      };
+
+      // TODO: mark this block as returning its last value like in Rust
+      break;
     };
 
     Ok(Some(Self { children }))

@@ -27,7 +27,8 @@ use super::Expression;
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct BlockExpression {
-  pub children: Vec<Expression>
+  pub children: Vec<Expression>,
+  pub returns_last: bool
 }
 
 impl MakeAst for BlockExpression {
@@ -37,6 +38,7 @@ impl MakeAst for BlockExpression {
     };
 
     let mut children = vec![];
+    let mut returns_last = false;
 
     loop {
       stream.skip_whitespace_and_comments();
@@ -74,10 +76,10 @@ impl MakeAst for BlockExpression {
         }.fail();
       };
 
-      // TODO: mark this block as returning its last value like in Rust
+      returns_last = true;
       break;
     };
 
-    Ok(Some(Self { children }))
+    Ok(Some(Self { children, returns_last }))
   }
 }

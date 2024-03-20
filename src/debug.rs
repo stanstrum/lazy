@@ -19,6 +19,6 @@ pub(crate) fn tokens(toks: &Vec<Token>) {
   println!("{source}");
 }
 
-pub(crate) fn ast(_ast: &GlobalNamespace) {
-  todo!("debug ast");
+pub(crate) fn ast(ast: &GlobalNamespace) {
+  dbg!(&ast);
 }

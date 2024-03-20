@@ -14,6 +14,7 @@ pub(crate) struct Span {
 
 #[derive(Debug)]
 pub(crate) enum Operator {
+  BindAssign,
   RightArrow,
 }
 

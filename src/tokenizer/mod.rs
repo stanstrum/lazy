@@ -181,6 +181,11 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
         (State::Operator { content, .. }, ':') if content == ":" => {
           todo!("double colon")
         },
+        (State::Operator { start, content, .. }, '=') if content == ":" => {
+          add_tok(start, TokenEnum::Operator(Operator::BindAssign));
+
+          state = State::Base;
+        },
         (State::Operator { start, content }, _) if content == ":" => {
           let tok = TokenEnum::Punctuation(Punctuation::Colon);
 

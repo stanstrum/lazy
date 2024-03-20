@@ -31,22 +31,28 @@ pub(crate) struct GlobalNamespace {
 
 impl MakeAst for GlobalNamespace {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    println!("GlobalNamespace::make");
-
     let mut structures = vec![];
 
     stream.skip_whitespace_and_comments();
 
-    while let Some(struc) = stream.make::<TopLevelStructure>()? {
+    while stream.remaining() > 0 {
+      let Some(struc) = stream.make::<TopLevelStructure>()? else {
+        return ExpectedSnafu {
+          what: "a top-level structure",
+        }.fail();
+      };
+
       structures.push(struc);
 
       stream.skip_whitespace_and_comments();
 
       let Some(TokenEnum::Punctuation(Punctuation::Semicolon)) = stream.next_variant() else {
         return ExpectedSnafu {
-          what: "a semicolon"
+          what: "a semicolon",
         }.fail();
       };
+
+      stream.skip_whitespace_and_comments();
     };
 
     if structures.is_empty() {

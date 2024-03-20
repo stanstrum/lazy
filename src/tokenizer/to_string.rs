@@ -37,12 +37,12 @@ impl ToString for TokenEnum {
         content.to_owned()
       },
       Self::Operator(Operator::RightArrow) => "->".to_owned(),
+      Self::Operator(Operator::BindAssign) => ":=".to_owned(),
       Self::Punctuation(Punctuation::Semicolon) => ";".to_owned(),
       Self::Punctuation(Punctuation::Colon) => ":".to_owned(),
       Self::Punctuation(Punctuation::Comma) => ",".to_owned(),
-      Self::Grouping(Grouping::Open(GroupingType::CurlyBrace)) => "{".to_owned(),
-      Self::Grouping(Grouping::Close(GroupingType::CurlyBrace)) => "}".to_owned(),
-      _ => todo!("{self:#?}")
+      Self::Grouping(grouping) => grouping.to_string(),
+      Self::Keyword(keyword) => keyword.to_string(),
     }
   }
 }

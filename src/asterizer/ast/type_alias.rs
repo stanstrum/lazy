@@ -20,6 +20,7 @@ use crate::tokenizer::{
 
 use super::Type;
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 struct TypeAlias {
   ident: String,

@@ -199,16 +199,18 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
 
           add_tok(&i, tok);
         },
-        (State::Base, '{') => {
-          let tok = TokenEnum::Grouping(Grouping::Open(GroupingType::CurlyBrace));
+        (State::Base,
+          | groupings::OPEN_PARENTHESIS
+          | groupings::CLOSE_PARENTHESIS
+          | groupings::OPEN_BRACKET
+          | groupings::CLOSE_BRACKET
+          | groupings::OPEN_CURLY_BRACE
+          | groupings::CLOSE_CURLY_BRACE
+        ) => {
+          let tok = TokenEnum::Grouping(Grouping::try_from(ch).unwrap());
 
           add_tok(&i, tok);
-        },
-        (State::Base, '}') => {
-          let tok = TokenEnum::Grouping(Grouping::Close(GroupingType::CurlyBrace));
-
-          add_tok(&i, tok);
-        },
+        }
         (State::Base, ';') => {
           let tok = TokenEnum::Punctuation(Punctuation::Semicolon);
 

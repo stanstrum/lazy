@@ -104,6 +104,44 @@ pub(crate) enum Grouping {
   Close(GroupingType)
 }
 
+pub(crate) mod groupings {
+  pub(crate) const OPEN_PARENTHESIS: char = '(';
+  pub(crate) const CLOSE_PARENTHESIS: char = ')';
+  pub(crate) const OPEN_BRACKET: char = '[';
+  pub(crate) const CLOSE_BRACKET: char = ']';
+  pub(crate) const OPEN_CURLY_BRACE: char = '{';
+  pub(crate) const CLOSE_CURLY_BRACE: char = '}';
+}
+
+impl std::string::ToString for Grouping {
+  fn to_string(&self) -> String {
+    match self {
+      Grouping::Open(GroupingType::Parenthesis) => groupings::OPEN_PARENTHESIS,
+      Grouping::Close(GroupingType::Parenthesis) => groupings::CLOSE_PARENTHESIS,
+      Grouping::Open(GroupingType::Bracket) => groupings::OPEN_BRACKET,
+      Grouping::Close(GroupingType::Bracket) => groupings::CLOSE_BRACKET,
+      Grouping::Open(GroupingType::CurlyBrace) => groupings::OPEN_CURLY_BRACE,
+      Grouping::Close(GroupingType::CurlyBrace) => groupings::CLOSE_CURLY_BRACE,
+    }.to_string()
+  }
+}
+
+impl TryFrom<char> for Grouping {
+  type Error = ();
+
+  fn try_from(value: char) -> Result<Self, Self::Error> {
+    match value {
+      groupings::OPEN_PARENTHESIS => Ok(Grouping::Open(GroupingType::Parenthesis)),
+      groupings::CLOSE_PARENTHESIS => Ok(Grouping::Close(GroupingType::Parenthesis)),
+      groupings::OPEN_BRACKET => Ok(Grouping::Open(GroupingType::Bracket)),
+      groupings::CLOSE_BRACKET => Ok(Grouping::Close(GroupingType::Bracket)),
+      groupings::OPEN_CURLY_BRACE => Ok(Grouping::Open(GroupingType::CurlyBrace)),
+      groupings::CLOSE_CURLY_BRACE => Ok(Grouping::Close(GroupingType::CurlyBrace)),
+      _ => Err(())
+    }
+  }
+}
+
 impl Token {
   pub fn variant<'a>(&'a self) -> &'a TokenEnum {
     &self.token

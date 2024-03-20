@@ -60,16 +60,6 @@ impl TokenStream {
     }
   }
 
-  pub fn rewind(&mut self) -> Option<()> {
-    if self.position > 0 {
-      self.position -= 1;
-
-      Some(())
-    } else {
-      None
-    }
-  }
-
   pub fn next_variant<'a>(&'a mut self) -> Option<&'a TokenEnum> {
     self.next().map(Token::variant)
   }

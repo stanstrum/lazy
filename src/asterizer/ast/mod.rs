@@ -29,6 +29,7 @@ import_export! {
   structure,
   function_decl,
   function,
+  type_alias,
   ty,
   expression,
   function_decl_args,

@@ -151,6 +151,12 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
         (State::Text { content, .. }, 'a'..='z' | 'A'..='Z' | '0'..='9' | '_') => {
           content.push(ch);
         },
+        (State::Text { start, content}, _) if content == "type" => {
+          add_tok(start, TokenEnum::Keyword(Keyword::Type));
+
+          state = State::Base;
+          continue;
+        },
         (State::Text { start, content }, _) => {
           let tok = TokenEnum::Identifier(content.to_owned());
 

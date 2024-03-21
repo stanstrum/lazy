@@ -1,4 +1,13 @@
 #[derive(Debug)]
+pub(super) enum NumericType {
+  Binary,
+  Octal,
+  Decimal,
+  Hexadecimal,
+  FloatingPoint, // decimal only
+}
+
+#[derive(Debug)]
 pub(super) enum State {
   Base,
   CommentBegin {
@@ -18,6 +27,11 @@ pub(super) enum State {
   },
   Text {
     start: usize,
+    content: String
+  },
+  NumericLiteral {
+    start: usize,
+    ty: NumericType,
     content: String
   },
   Operator {

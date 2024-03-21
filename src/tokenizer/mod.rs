@@ -7,7 +7,7 @@ use std::fs::File;
 use utf8_read::Reader;
 
 mod state;
-use state::State;
+use state::*;
 
 pub(crate) use structs::*;
 pub(crate) use error::TokenizationError;
@@ -186,6 +186,56 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           let tok = TokenEnum::Punctuation(Punctuation::Semicolon);
 
           add_tok(&i, tok);
+        },
+        (State::Base, '0'..='9') => {
+          state = State::NumericLiteral {
+            start: i,
+            ty: NumericType::Decimal,
+            content: String::from(ch)
+          };
+        },
+        (State::NumericLiteral { .. }, '_') => {
+          // ignore value separator in numerics
+        },
+        (
+          State::NumericLiteral {
+            content,
+            ty: NumericType::Decimal,
+            ..
+          },
+          '0'..='9'
+        ) => {
+          content.push(ch);
+        },
+        (State::NumericLiteral { start, ty: NumericType::FloatingPoint, content }, _) => {
+          let value: f64 = content.parse()
+            .expect("floating-point literal parsing failed");
+
+          let tok = TokenEnum::Literal(Literal::FloatingPoint(value));
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
+        (State::NumericLiteral { start, ty, content }, _) => {
+          let radix = match ty {
+            NumericType::Binary => 2,
+            NumericType::Octal => 8,
+            NumericType::Decimal => 10,
+            NumericType::Hexadecimal => 16,
+            NumericType::FloatingPoint => todo!(),
+          };
+
+          let value = u64::from_str_radix(content, radix)
+            .expect("integer literal parsing failed");
+
+          let tok = TokenEnum::Literal(Literal::Integer(value));
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
         },
         _ => {
           println!();

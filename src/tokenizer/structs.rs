@@ -65,10 +65,17 @@ impl TryFrom<String> for Keyword {
   }
 }
 
+#[derive(Debug)]
+pub(crate) enum Literal {
+  Integer(u64),
+  FloatingPoint(f64)
+}
+
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) enum TokenEnum {
   Comment { ty: CommentType, content: String },
+  Literal(Literal),
   Whitespace(String),
   Keyword(Keyword),
   Identifier(String),

@@ -10,10 +10,10 @@ pub(crate) use block::*;
 
 use typename::TypeName;
 
-use crate::asterizer::{
-  AsterizerError,
+use crate::asterizer::ast::{
+  MakeAst,
   TokenStream,
-  MakeAst
+  AsterizerError
 };
 
 #[allow(unused)]

@@ -15,14 +15,12 @@ use crate::tokenizer::{
 };
 
 use crate::asterizer::ast::{
-  AsterizerError,
+  MakeAst,
   TokenStream,
-  MakeAst
+  Expression
 };
 
-use crate::asterizer::error::ExpectedSnafu;
-
-use super::Expression;
+use crate::asterizer::error::*;
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]

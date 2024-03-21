@@ -9,13 +9,12 @@ use std::collections::HashMap;
 
 use typename::TypeName;
 
-use crate::asterizer::{
+use crate::asterizer::ast::{
+  MakeAst,
   TokenStream,
   AsterizerError,
-  MakeAst
+  Structure
 };
-
-use super::Structure;
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]

@@ -5,6 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use typename::TypeName;
+
+use crate::asterizer::{
+  TokenStream,
+  AsterizerError
+};
+
 macro_rules! import_export {
   ($name:ident) => {
     pub(self) mod $name;
@@ -34,13 +41,6 @@ import_export! {
   expression,
   function_decl_args,
 }
-
-use typename::TypeName;
-
-use super::{
-  TokenStream,
-  AsterizerError
-};
 
 pub(crate) trait MakeAst where Self: Sized + TypeName {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError>;

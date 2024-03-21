@@ -7,13 +7,10 @@
 
 use typename::TypeName;
 
-use crate::asterizer::{
+use crate::asterizer::ast::{
+  MakeAst,
   TokenStream,
   AsterizerError,
-  MakeAst
-};
-
-use super::{
   Namespace,
   Function,
   TypeAlias

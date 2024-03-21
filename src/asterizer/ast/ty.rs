@@ -6,6 +6,7 @@
  */
 
 use typename::TypeName;
+use std::rc::Rc;
 
 use crate::tokenizer::{
   Grouping,
@@ -18,8 +19,6 @@ use crate::asterizer::{
   MakeAst,
   error::*
 };
-
-use std::rc::Rc;
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]

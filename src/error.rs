@@ -7,6 +7,9 @@
 
 use snafu::prelude::*;
 
+use crate::tokenizer::TokenizationError;
+use crate::asterizer::AsterizerError;
+
 #[derive(Snafu, Debug)]
 #[snafu(visibility(pub(crate)))]
 pub(crate) enum CompilationError {
@@ -17,8 +20,8 @@ pub(crate) enum CompilationError {
   InputFile { error: std::io::Error },
 
   #[snafu(display("{error}"))]
-  Tokenization { error: crate::tokenizer::TokenizationError },
+  Tokenization { error: TokenizationError },
 
   #[snafu(display("{error}"))]
-  Asterization { error: crate::asterizer::AsterizerError },
+  Asterization { error: AsterizerError },
 }

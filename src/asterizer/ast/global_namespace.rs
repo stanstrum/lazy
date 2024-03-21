@@ -9,24 +9,24 @@ use std::collections::HashMap;
 
 use typename::TypeName;
 
-use crate::asterizer::error::ExpectedSnafu;
 use crate::tokenizer::{
   TokenEnum,
   Punctuation
 };
 
-use crate::asterizer::{
-  TokenStream,
-  AsterizerError,
+use crate::asterizer::ast::{
   MakeAst,
-  ast::TopLevelStructure
+  TokenStream,
+  TopLevelStructure
 };
+
+use crate::asterizer::error::*;
 
 #[allow(unused)]
 #[derive(Debug, Default, TypeName)]
 pub(crate) struct GlobalNamespace {
   // file: std::path::PathBuf,
-  children: HashMap<String, TopLevelStructure>
+  pub children: HashMap<String, TopLevelStructure>
 }
 
 impl MakeAst for GlobalNamespace {

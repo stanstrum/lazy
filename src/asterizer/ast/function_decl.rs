@@ -7,12 +7,12 @@
 
 use typename::TypeName;
 
-use crate::asterizer::ast::FunctionDeclarationArguments;
-
-use crate::asterizer::{
+use crate::asterizer::ast::{
+  MakeAst,
   TokenStream,
   AsterizerError,
-  MakeAst
+  FunctionDeclarationArguments,
+  Type
 };
 
 use crate::tokenizer::{
@@ -22,14 +22,12 @@ use crate::tokenizer::{
   Punctuation
 };
 
-use super::Type;
-
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct FunctionDeclaration {
   pub name: String,
-  return_type: Option<Type>,
-  args: Option<FunctionDeclarationArguments>,
+  pub return_type: Option<Type>,
+  pub args: Option<FunctionDeclarationArguments>,
 }
 
 impl MakeAst for FunctionDeclaration {

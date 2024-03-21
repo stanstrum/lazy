@@ -7,25 +7,20 @@
 
 use typename::TypeName;
 
-use crate::asterizer::{
-  error::{
-    AsterizerError,
-    ExpectedSnafu
-  },
+use crate::asterizer::ast::{
+  MakeAst,
   TokenStream,
-  MakeAst
-};
-
-use super::{
   BlockExpression,
   FunctionDeclaration
 };
+
+use crate::asterizer::error::*;
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Function {
   pub decl: FunctionDeclaration,
-  body: BlockExpression
+  pub body: BlockExpression
 }
 
 impl MakeAst for Function {

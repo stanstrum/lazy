@@ -7,14 +7,12 @@
 
 use std::string::ToString;
 
-use super::{
+use crate::tokenizer::{
   Token,
   TokenEnum,
   CommentType,
   Operator,
   Punctuation,
-  Grouping,
-  GroupingType
 };
 
 impl ToString for Token {

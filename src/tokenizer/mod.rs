@@ -7,12 +7,13 @@
 
 mod structs;
 mod to_string;
-pub(crate) use structs::*;
 
 use std::fs::File;
 use utf8_read::Reader;
 
 pub(crate) mod error;
+
+pub(crate) use structs::*;
 pub(crate) use error::TokenizationError;
 
 #[derive(Debug)]
@@ -41,7 +42,6 @@ enum State {
     start: usize,
     content: String,
   },
-  // LineComment(String),
   Whitespace {
     start: usize,
     content: String
@@ -49,9 +49,8 @@ enum State {
 }
 
 pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, TokenizationError> {
-  let mut toks: Vec<Token> = vec![];
-
   let mut state = State::Base;
+  let mut toks: Vec<Token> = vec![];
 
   for (i, ch) in reader.into_iter().enumerate() {
     let ch = ch?;
@@ -165,7 +164,7 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           state = State::Base;
           continue;
         },
-        (State::Base, '!' | '%' | '^' | '&' | '*' | '-' | '+' | '=' | '<' | '>' | '|' | '/' | ':' | '.' | '?') => {
+        (State::Base, '!' | '%' | '^' | '&' | '*' | '-' | '+' | '=' | '<' | '>' | '|' | ':' | '.' | '?') => {
           state = State::Operator {
             start: i,
             content: String::from(ch)

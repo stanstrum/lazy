@@ -5,19 +5,22 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+pub(crate) mod error;
+pub(crate) mod ast;
+
+pub(crate) use error::AsterizerError;
+
 use std::fmt::Debug;
+
+use ast::{
+  GlobalNamespace,
+  MakeAst
+};
 
 use crate::tokenizer::{
   Token,
   TokenEnum
 };
-
-pub(crate) mod error;
-pub(crate) use error::AsterizerError;
-
-pub(crate) mod ast;
-
-use ast::{GlobalNamespace, MakeAst};
 
 pub(crate) struct TokenStream {
   position: usize,

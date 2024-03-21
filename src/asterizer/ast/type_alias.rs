@@ -7,18 +7,19 @@
 
 use typename::TypeName;
 
-use crate::asterizer::error::ExpectedSnafu;
-use crate::asterizer::{
-  AsterizerError,
+use crate::asterizer::ast::{
+  MakeAst,
   TokenStream,
-  MakeAst
+  Type
 };
 
 use crate::tokenizer::{
-  Keyword, Operator, TokenEnum
+  TokenEnum,
+  Keyword,
+  Operator
 };
 
-use super::Type;
+use crate::asterizer::error::*;
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]

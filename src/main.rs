@@ -36,7 +36,6 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
   debug::tokens(&tokens);
 
   let ast = asterizer::asterize(tokens)?;
-
   debug::ast(&ast);
 
   Ok(())

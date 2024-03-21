@@ -7,13 +7,12 @@
 
 use typename::TypeName;
 
-use crate::asterizer::{
+use crate::asterizer::ast::{
+  MakeAst,
   TokenStream,
   AsterizerError,
-  MakeAst
+  Namespace
 };
-
-use super::Namespace;
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]

@@ -12,25 +12,25 @@ use crate::tokenizer::{
   TokenEnum
 };
 
-use crate::asterizer::{
-  TokenStream,
+use crate::asterizer::ast::{
   MakeAst,
-  error::*
+  TokenStream,
+  Type
 };
 
-use super::Type;
+use crate::asterizer::error::*;
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct FunctionDeclarationArgument {
-  name: String,
-  ty: Type
+  pub name: String,
+  pub ty: Type
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct FunctionDeclarationArguments {
-  args: Vec<FunctionDeclarationArgument>
+  pub args: Vec<FunctionDeclarationArgument>
 }
 
 impl MakeAst for FunctionDeclarationArgument {

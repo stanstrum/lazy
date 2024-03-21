@@ -1,0 +1,76 @@
+use typename::TypeName;
+
+use crate::tokenizer::{
+  TokenEnum,
+  Punctuation,
+  Grouping,
+  GroupingType
+};
+
+use crate::asterizer::ast::{
+  MakeAst,
+  TokenStream,
+  Expression
+};
+
+use crate::asterizer::error::*;
+
+#[allow(unused)]
+#[derive(Debug, TypeName)]
+pub(crate) struct BlockExpression {
+  pub children: Vec<Expression>,
+  pub returns_last: bool
+}
+
+impl MakeAst for BlockExpression {
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let Some(TokenEnum::Grouping(Grouping::Open(GroupingType::CurlyBrace))) = stream.next_variant() else {
+      return Ok(None);
+    };
+
+    let mut children = vec![];
+    let mut returns_last = false;
+
+    loop {
+      stream.skip_whitespace_and_comments();
+
+      if let Some(TokenEnum::Grouping(Grouping::Close(GroupingType::CurlyBrace))) = stream.peek_variant() {
+        stream.seek();
+
+        break;
+      };
+
+      let Some(expr) = stream.make::<Expression>()? else {
+        return ExpectedSnafu {
+          what: "an expression",
+        }.fail();
+      };
+
+      children.push(expr);
+
+      stream.skip_whitespace_and_comments();
+
+      if let Some(TokenEnum::Punctuation(Punctuation::Semicolon)) = stream.peek_variant() {
+        stream.seek();
+
+        // Continue parsing next expression in block, or possibly no expression
+        // if the block does not return last value
+        continue;
+      };
+
+      // If we're here, either a mistake has been made or this block returns its last value
+      stream.skip_whitespace_and_comments();
+
+      let Some(TokenEnum::Grouping(Grouping::Close(GroupingType::CurlyBrace))) = stream.next_variant() else {
+        return ExpectedSnafu {
+          what: "a closing curly brace",
+        }.fail();
+      };
+
+      returns_last = true;
+      break;
+    };
+
+    Ok(Some(Self { children, returns_last }))
+  }
+}

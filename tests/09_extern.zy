@@ -1,12 +1,5 @@
-/* Copyright (c) 2023 Stan Strum
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
 extern printf -> i32:
-  &[]u8 format, ...;
+  format: &[]u8, ...;
 
 main -> i32 {
   printf(c"Hello, world!\n");

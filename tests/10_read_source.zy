@@ -1,14 +1,8 @@
-/* Copyright (c) 2023 Stan Strum
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
 extern malloc -> &[]u8:
-  usize size;
+  size: usize;
 
-extern free: &[]u8 ptr;
+extern free -> void:
+  ptr: &[]u8;
 
 // this is not correct but since we're just using it for
 // the pointer, it should be okay -- effectively `void*`
@@ -18,47 +12,47 @@ type c_str := []u8;
 
 // fs
 extern fopen -> &FILE:
-  &c_str filename,
-  &c_str mode;
+  filename: &c_str,
+  mode: &c_str;
 
 extern fclose -> i32:
-  &FILE stream;
+  stream: &FILE;
 
 extern fseek -> i32:
-  &FILE stream,
-  i32 offset,
-  i32 whence;
+  stream: &FILE,
+  offset: i32,
+  whence: i32;
 
 extern ftell -> i32:
-  &FILE steam;
+  stream: &FILE;
 
 extern fread -> usize:
-  &[]u8 ptr,
-  usize size,
-  usize nmemb,
-  &FILE stream;
+  ptr: &[]u8,
+  size: usize,
+  nmemb: usize,
+  stream: &FILE;
 
 extern puts -> i32:
-  &c_str s;
+  s: &c_str;
 
 extern printf -> i32:
-  &c_str format, ...;
+  format: &c_str, ...;
 
 read_file -> &[]u8:
-  &[]u8 path
+  path: &[]u8
 {
-  i32 SEEK_SET := 0;
-  i32 SEEK_CUR := 1;
-  i32 SEEK_END := 2;
+  const SEEK_SET: i32 := 0;
+  const SEEK_CUR: i32 := 1;
+  const SEEK_END: i32 := 2;
 
-  &FILE f := fopen(path, c"r");
+  f: &FILE := fopen(path, c"r");
 
   fseek(f, 0, SEEK_END);
   fsize := ftell(f) as usize;
 
   fseek(f, 0, SEEK_SET);
 
-  &c_str string := malloc(fsize + 1);
+  string: &c_str := malloc(fsize + 1);
 
   fread(string, 1, fsize + 1, f);
   string[fsize] = 0;

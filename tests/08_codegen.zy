@@ -1,18 +1,11 @@
-/* Copyright (c) 2023 Stan Strum
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
 type c_str := []u8;
 
 main -> i32:
-  i32 argc,
-  &[]&c_str argv,
-  &[]&c_str envp
+  argc: i32,
+  argv: &[]&c_str,
+  envp: &[]&c_str
 {
-  i32 a := 0;
+  a: i32 := 0;
 
   argc
 };

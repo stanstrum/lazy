@@ -8,7 +8,6 @@ edition = "2021"
 [dependencies]
 getopts = "0.2.21"
 snafu = "0.7.5"
-lazy_static = "1.4.0"
-phf = { version = "0.11.2", features = ["macros"] }
-enum-iterator = "1.4.1"
 inkwell = { version = "0.2.0", features = ["llvm10-0"] }
+utf8-read = "0.4.0"
+typename = "0.1.2"

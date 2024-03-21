@@ -1,26 +1,21 @@
-/* Copyright (c) <year>, <copyright holder>
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
 namespace Whatever {
   export namespace Stuff {
-    export fn do_stuff[&; T] -> &str:
-      T a, T b
+    template: T;
+    export fn do_stuff -> &str:
+      a: T,
+      b: T
     {
-      let s := "hello, world";
+      s := "hello, world";
 
-      defer! s {
-        drop! $;
-      };
-    }
-  }
+      // defer! s {
+      //   drop! $;
+      // };
+    };
+  };
 
   export namespace SomethingElse {
     export class SomeClass {
 
-    }
-  }
-}
+    };
+  };
+};

@@ -1,15 +1,8 @@
-/* Copyright (c) 2023 Stan Strum
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
 type str := []u32;
 type c_str := []u8;
 
 println -> usize:
-  &str text
+  text: &str
 {
   sz1 := write(text);
   sz2 := write(b"\n");
@@ -18,8 +11,8 @@ println -> usize:
 };
 
 main -> i32:
-  i32 argc,
-  &[]c_str argv
+  argc: i32,
+  argv: &[]c_str
 {
   println(b"Hello, world!");
 

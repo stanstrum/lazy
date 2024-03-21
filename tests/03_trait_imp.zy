@@ -1,33 +1,26 @@
-/* Copyright (c) 2023 Stan Strum
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
 main -> i32 {
-  i32 a := 0 + 1;
+  a: i32 := 0 + 1;
 
   0
 };
 
-trait IAdd {
-  pub iadd -> Self:
-    Self rhs;
+interface IAdd {
+  iadd -> Self:
+    rhs: Self;
 };
 
 impl i32 {
-  pub static new -> i32 {
+  public static new -> i32 {
     0
   };
 };
 
 impl i32: IAdd {
-  pub iadd -> i32:
-    i32 rhs
+  iadd -> Self:
+    rhs: Self
   {
     // do stuff
 
-    Self::new()
+    ::new()
   };
 };

@@ -1,45 +1,16 @@
 mod structs;
 mod to_string;
 
+pub(crate) mod error;
+
 use std::fs::File;
 use utf8_read::Reader;
 
-pub(crate) mod error;
+mod state;
+use state::State;
 
 pub(crate) use structs::*;
 pub(crate) use error::TokenizationError;
-
-#[derive(Debug)]
-enum State {
-  Base,
-  CommentBegin {
-    start: usize,
-  },
-  MultilineComment {
-    start: usize,
-    content: String,
-  },
-  LineComment {
-    start: usize,
-    content: String,
-  },
-  MultilineCommentEnding {
-    start: usize,
-    content: String
-  },
-  Text {
-    start: usize,
-    content: String
-  },
-  Operator {
-    start: usize,
-    content: String,
-  },
-  Whitespace {
-    start: usize,
-    content: String
-  },
-}
 
 pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, TokenizationError> {
   let mut state = State::Base;

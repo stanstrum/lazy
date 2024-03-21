@@ -1,3 +1,5 @@
+use typename::TypeName;
+
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Span {
@@ -65,7 +67,7 @@ impl TryFrom<String> for Keyword {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, TypeName, Clone)]
 pub(crate) enum Literal {
   Integer(u64),
   FloatingPoint(f64)

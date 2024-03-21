@@ -22,9 +22,9 @@ use super::Type;
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
-struct TypeAlias {
-  ident: String,
-  ty: Type
+pub(crate) struct TypeAlias {
+  pub name: String,
+  pub ty: Type
 }
 
 impl MakeAst for TypeAlias {
@@ -35,13 +35,13 @@ impl MakeAst for TypeAlias {
 
     stream.skip_whitespace_and_comments();
 
-    let Some(TokenEnum::Identifier(ident)) = stream.next_variant() else {
+    let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
       return ExpectedSnafu {
         what: "an identifier",
       }.fail();
     };
 
-    let ident = ident.to_owned();
+    let name = name.to_owned();
 
     stream.skip_whitespace_and_comments();
 
@@ -60,7 +60,7 @@ impl MakeAst for TypeAlias {
     };
 
     Ok(Some(Self {
-      ident, ty
+      name, ty
     }))
   }
 }

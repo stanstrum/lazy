@@ -15,13 +15,15 @@ use crate::asterizer::{
 
 use super::{
   Namespace,
-  Function
+  Function,
+  TypeAlias
 };
 
 #[derive(Debug, TypeName)]
 pub(crate) enum TopLevelStructure {
   Namespace(Namespace),
-  Function(Function)
+  Function(Function),
+  TypeAlias(TypeAlias)
 }
 
 impl TopLevelStructure {
@@ -29,6 +31,7 @@ impl TopLevelStructure {
     match self {
       TopLevelStructure::Namespace(ns) => ns.name.to_owned(),
       TopLevelStructure::Function(func) => func.decl.name.to_owned(),
+      TopLevelStructure::TypeAlias(alias) => alias.name.to_owned(),
     }
   }
 }
@@ -42,6 +45,8 @@ impl MakeAst for TopLevelStructure {
         Some(TopLevelStructure::Namespace(ns))
       } else if let Some(func) = stream.make::<Function>()? {
         Some(TopLevelStructure::Function(func))
+      } else if let Some(alias) = stream.make::<TypeAlias>()? {
+        Some(TopLevelStructure::TypeAlias(alias))
       } else {
         None
       }

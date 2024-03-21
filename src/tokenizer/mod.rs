@@ -180,8 +180,12 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           add_tok(&i, tok);
         },
         _ => {
+          println!();
+
           dbg!(&toks);
-          todo!("{state:#?}, {ch:#?}")
+          println!("state: {state:#?}, ch: {ch:#?}");
+
+          panic!("unknown tokenization state");
         }
       };
 

@@ -1,15 +1,17 @@
 use typename::TypeName;
 
+use crate::asterizer::ast::{
+  MakeAst,
+  TokenStream
+};
+
+use crate::asterizer::error::*;
+
 use crate::tokenizer::{
   Grouping,
   GroupingType,
+  Operator,
   TokenEnum
-};
-
-use crate::asterizer::{
-  TokenStream,
-  MakeAst,
-  error::*
 };
 
 #[allow(unused)]
@@ -34,6 +36,7 @@ pub(crate) struct ImmutableReferenceTo {
 pub(crate) enum Type {
   Named(NamedType),
   UnsizedArrayOf(UnsizedArrayOf),
+  ImmutableReferenceTo(ImmutableReferenceTo)
 }
 
 impl MakeAst for UnsizedArrayOf {
@@ -45,6 +48,26 @@ impl MakeAst for UnsizedArrayOf {
     stream.skip_whitespace_and_comments();
 
     let Some(TokenEnum::Grouping(Grouping::Close(GroupingType::Bracket))) = stream.next_variant() else {
+      return Ok(None);
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(ty) = stream.make::<Type>()? else {
+      return ExpectedSnafu {
+        what: "a type",
+      }.fail();
+    };
+
+    Ok(Some(Self {
+      ty: Box::new(ty)
+    }))
+  }
+}
+
+impl MakeAst for ImmutableReferenceTo {
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let Some(TokenEnum::Operator(Operator::SingleAnd)) = stream.next_variant() else {
       return Ok(None);
     };
 
@@ -81,6 +104,8 @@ impl MakeAst for Type {
         Some(Type::Named(named))
       } else if let Some(unsized_array_of) = stream.make::<UnsizedArrayOf>()? {
         Some(Type::UnsizedArrayOf(unsized_array_of))
+      } else if let Some(immut_ref_to) = stream.make::<ImmutableReferenceTo>()? {
+        Some(Type::ImmutableReferenceTo(immut_ref_to))
       } else {
         None
       }

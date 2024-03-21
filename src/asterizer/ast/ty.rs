@@ -1,5 +1,4 @@
 use typename::TypeName;
-use std::rc::Rc;
 
 use crate::tokenizer::{
   Grouping,
@@ -22,7 +21,13 @@ pub(crate) struct NamedType {
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct UnsizedArrayOf {
-  pub ty: Rc<Type>
+  pub ty: Box<Type>
+}
+
+#[allow(unused)]
+#[derive(Debug, TypeName)]
+pub(crate) struct ImmutableReferenceTo {
+  pub ty: Box<Type>
 }
 
 #[derive(Debug, TypeName)]
@@ -45,13 +50,15 @@ impl MakeAst for UnsizedArrayOf {
 
     stream.skip_whitespace_and_comments();
 
-    let Some(ty) = stream.make::<Type>()?.map(Rc::new) else {
+    let Some(ty) = stream.make::<Type>()? else {
       return ExpectedSnafu {
         what: "a type",
       }.fail();
     };
 
-    Ok(Some(Self { ty }))
+    Ok(Some(Self {
+      ty: Box::new(ty)
+    }))
   }
 }
 

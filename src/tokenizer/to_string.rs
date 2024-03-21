@@ -27,11 +27,14 @@ impl ToString for TokenEnum {
       | Self::Identifier(content) => {
         content.to_owned()
       },
+      // TODO: make ToString/TryFrom<String> for these and dry this up
       Self::Operator(Operator::RightArrow) => "->".to_owned(),
       Self::Operator(Operator::BindAssign) => ":=".to_owned(),
+      Self::Operator(Operator::SingleAnd) => "&".to_owned(),
       Self::Punctuation(Punctuation::Semicolon) => ";".to_owned(),
       Self::Punctuation(Punctuation::Colon) => ":".to_owned(),
       Self::Punctuation(Punctuation::Comma) => ",".to_owned(),
+      // --
       Self::Grouping(grouping) => grouping.to_string(),
       Self::Keyword(keyword) => keyword.to_string(),
     }

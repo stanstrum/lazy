@@ -9,6 +9,7 @@ pub(crate) struct Span {
 pub(crate) enum Operator {
   BindAssign,
   RightArrow,
+  SingleAnd
 }
 
 #[derive(Debug)]

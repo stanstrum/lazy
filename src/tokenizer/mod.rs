@@ -157,6 +157,14 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           state = State::Base;
           continue;
         },
+        (State::Operator { start, content }, _) if content == "&" => {
+          let tok = TokenEnum::Operator(Operator::SingleAnd);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
         (State::Base, ',') => {
           let tok = TokenEnum::Punctuation(Punctuation::Comma);
 

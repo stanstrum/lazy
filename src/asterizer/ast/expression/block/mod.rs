@@ -19,19 +19,19 @@ use crate::asterizer::ast::{
 use crate::asterizer::error::*;
 
 #[derive(Debug, TypeName)]
-pub(crate) enum BlockExpressionChild {
+pub(crate) enum BlockChild {
   Expression(Expression),
   Binding(Binding),
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
-pub(crate) struct BlockExpression {
-  pub children: Vec<BlockExpressionChild>,
+pub(crate) struct Block {
+  pub children: Vec<BlockChild>,
   pub returns_last: bool
 }
 
-impl MakeAst for BlockExpressionChild {
+impl MakeAst for BlockChild {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     Ok({
       if let Some(expression) = stream.make::<Expression>()? {
@@ -50,7 +50,7 @@ impl MakeAst for BlockExpressionChild {
   }
 }
 
-impl MakeAst for BlockExpression {
+impl MakeAst for Block {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     let Some(TokenEnum::Grouping(Grouping::Open(GroupingType::CurlyBrace))) = stream.next_variant() else {
       return Ok(None);
@@ -68,7 +68,7 @@ impl MakeAst for BlockExpression {
         break;
       };
 
-      let Some(expr) = stream.make::<BlockExpressionChild>()? else {
+      let Some(expr) = stream.make::<BlockChild>()? else {
         return ExpectedSnafu {
           what: "an expression",
         }.fail();

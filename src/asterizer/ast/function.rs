@@ -3,7 +3,7 @@ use typename::TypeName;
 use crate::asterizer::ast::{
   MakeAst,
   TokenStream,
-  BlockExpression,
+  Block,
   FunctionDeclaration
 };
 
@@ -13,7 +13,7 @@ use crate::asterizer::error::*;
 #[derive(Debug, TypeName)]
 pub(crate) struct Function {
   pub decl: FunctionDeclaration,
-  pub body: BlockExpression
+  pub body: Block
 }
 
 impl MakeAst for Function {
@@ -24,7 +24,7 @@ impl MakeAst for Function {
 
     stream.skip_whitespace_and_comments();
 
-    let Some(body) = stream.make::<BlockExpression>()? else {
+    let Some(body) = stream.make::<Block>()? else {
       return ExpectedSnafu {
         what: "a block expression"
       }.fail();

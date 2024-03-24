@@ -17,15 +17,15 @@ use crate::tokenizer::Literal;
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) enum Expression {
-  BlockExpression(BlockExpression),
+  Block(Block),
   Literal(Literal)
 }
 
 impl MakeAst for Expression {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     Ok({
-      if let Some(block) = stream.make::<BlockExpression>()? {
-        Some(Expression::BlockExpression(block))
+      if let Some(block) = stream.make::<Block>()? {
+        Some(Expression::Block(block))
       } else if let Some(literal) = stream.make::<Literal>()? {
         Some(Expression::Literal(literal))
       } else {

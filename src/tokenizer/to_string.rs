@@ -15,6 +15,33 @@ impl ToString for Token {
   }
 }
 
+fn escape_string(original: &String, prefix: Option<char>) -> String {
+  let mut escaped = String::new();
+
+  if let Some(prefix) = prefix {
+    escaped.push(prefix);
+  };
+
+  escaped.push('"');
+
+  for ch in original.chars() {
+    match ch {
+      '\n' => escaped += "\\n",
+      '\t' => escaped += "\\t",
+      '\r' => escaped += "\\r",
+      '\\' => escaped += "\\\\",
+      '\'' => escaped += "\\'",
+      '\0' => escaped += "\\0",
+      // TODO: add more escape codes
+      _ => escaped.push(ch)
+    };
+  };
+
+  escaped.push('"');
+
+  escaped
+}
+
 impl ToString for TokenEnum {
   fn to_string(&self) -> String {
     match self {
@@ -37,6 +64,9 @@ impl ToString for TokenEnum {
       Self::Punctuation(Punctuation::Comma) => ",".to_owned(),
       Self::Literal(Literal::Integer(value)) => value.to_string(),
       Self::Literal(Literal::FloatingPoint(value)) => value.to_string(),
+      Self::Literal(Literal::UnicodeString(content)) => escape_string(content, None),
+      Self::Literal(Literal::CString(content)) => escape_string(content, Some('c')),
+      Self::Literal(Literal::ByteString(content)) => escape_string(content, Some('b')),
       // --
       Self::Grouping(grouping) => grouping.to_string(),
       Self::Keyword(keyword) => keyword.to_string(),

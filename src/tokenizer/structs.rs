@@ -70,7 +70,10 @@ impl TryFrom<String> for Keyword {
 #[derive(Debug, TypeName, Clone)]
 pub(crate) enum Literal {
   Integer(u64),
-  FloatingPoint(f64)
+  FloatingPoint(f64),
+  UnicodeString(String),
+  CString(String),
+  ByteString(String)
 }
 
 #[allow(unused)]

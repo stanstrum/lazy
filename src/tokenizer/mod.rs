@@ -237,6 +237,59 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           state = State::Base;
           continue;
         },
+        (State::Base, '"') => {
+          state = State::StringLiteral {
+            start: i,
+            escape_next: false,
+            ty: StringType::Unicode,
+            content: String::new()
+          };
+        },
+        (State::StringLiteral { escape_next, .. }, '\\') if !*escape_next => {
+          *escape_next = true;
+        },
+        (State::StringLiteral { content, escape_next, .. }, '\\') if *escape_next => {
+          content.push('\\');
+          *escape_next = false;
+        },
+        (State::StringLiteral { content, escape_next, .. }, 'n') if *escape_next => {
+          content.push('\n');
+          *escape_next = false;
+        },
+        (State::StringLiteral { content, escape_next, .. }, 'r') if *escape_next => {
+          content.push('\r');
+          *escape_next = false;
+        },
+        (State::StringLiteral { content, escape_next, .. }, 't') if *escape_next => {
+          content.push('\t');
+          *escape_next = false;
+        },
+        (State::StringLiteral { content, escape_next, .. }, '0') if *escape_next => {
+          content.push('\0');
+          *escape_next = false;
+        },
+        // TODO: add more escape codes
+        (State::StringLiteral {
+          start,
+          content,
+          ty,
+          escape_next: false
+        }, '"') => {
+          let tok = TokenEnum::Literal({
+            match ty {
+              StringType::Unicode => Literal::UnicodeString(content.to_owned()),
+              StringType::C => Literal::CString(content.to_owned()),
+              StringType::Bytes => Literal::ByteString(content.to_owned()),
+            }
+          });
+
+          add_tok(start, tok);
+
+          state = State::Base;
+        },
+        (State::StringLiteral { content, .. }, _) => {
+          content.push(ch);
+        },
         _ => {
           println!();
 

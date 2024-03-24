@@ -8,6 +8,13 @@ pub(super) enum NumericType {
 }
 
 #[derive(Debug)]
+pub(super) enum StringType {
+  Unicode, // 32bit unicode, length-prefixed -- default type
+  C, // 7-bit ASCII, null-terminated (c"hello, world")
+  Bytes, // 7-bit ASCII, not null-terminated (b"hello, world")
+}
+
+#[derive(Debug)]
 pub(super) enum State {
   Base,
   CommentBegin {
@@ -32,6 +39,12 @@ pub(super) enum State {
   NumericLiteral {
     start: usize,
     ty: NumericType,
+    content: String
+  },
+  StringLiteral {
+    start: usize,
+    escape_next: bool,
+    ty: StringType,
     content: String
   },
   Operator {

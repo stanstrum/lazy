@@ -1,3 +1,6 @@
+mod binding;
+use binding::*;
+
 use typename::TypeName;
 
 use crate::tokenizer::{
@@ -15,11 +18,36 @@ use crate::asterizer::ast::{
 
 use crate::asterizer::error::*;
 
+#[derive(Debug, TypeName)]
+pub(crate) enum BlockExpressionChild {
+  Expression(Expression),
+  Binding(Binding),
+}
+
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct BlockExpression {
-  pub children: Vec<Expression>,
+  pub children: Vec<BlockExpressionChild>,
   pub returns_last: bool
+}
+
+impl MakeAst for BlockExpressionChild {
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    Ok({
+      if let Some(expression) = stream.make::<Expression>()? {
+        Some(Self::Expression(expression))
+      } else if let Some(binding) = stream.make::<Binding>()? {
+        // This check comes after expression because a simple expression like:
+        //   `a`
+        // parses for both, except is only valid as an expression.  Given that,
+        // we can assume the programmer means to recall the value, not create
+        // a variable with no name or type.
+        Some(Self::Binding(binding))
+      } else {
+        None
+      }
+    })
+  }
 }
 
 impl MakeAst for BlockExpression {
@@ -40,7 +68,7 @@ impl MakeAst for BlockExpression {
         break;
       };
 
-      let Some(expr) = stream.make::<Expression>()? else {
+      let Some(expr) = stream.make::<BlockExpressionChild>()? else {
         return ExpectedSnafu {
           what: "an expression",
         }.fail();

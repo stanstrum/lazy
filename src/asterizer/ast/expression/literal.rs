@@ -1,5 +1,3 @@
-use typename::TypeName;
-
 use crate::asterizer::ast::{
   MakeAst,
   TokenStream,

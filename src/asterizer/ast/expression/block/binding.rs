@@ -1,7 +1,21 @@
 use typename::TypeName;
 
-use crate::{asterizer::{ast::{Expression, MakeAst, Type}, error::ExpectedSnafu}, tokenizer::{Operator, Punctuation, Token, TokenEnum}};
+use crate::tokenizer::{
+  TokenEnum,
+  Operator,
+  Punctuation,
+};
 
+use crate::asterizer::ast::{
+  MakeAst,
+  TokenStream,
+  Expression,
+  Type
+};
+
+use crate::asterizer::error::*;
+
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Binding {
   // r#mut: bool,
@@ -11,7 +25,7 @@ pub(crate) struct Binding {
 }
 
 impl MakeAst for Binding {
-  fn make(stream: &mut crate::asterizer::TokenStream) -> Result<Option<Self>, super::AsterizerError> {
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
       return Ok(None);
     };

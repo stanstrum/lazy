@@ -2,7 +2,6 @@ mod block;
 mod literal;
 
 pub(crate) use block::*;
-pub(crate) use literal::*;
 
 use typename::TypeName;
 

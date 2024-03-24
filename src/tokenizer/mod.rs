@@ -120,6 +120,22 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           state = State::Base;
           continue;
         },
+        (State::Text { start, content }, '"') if content == "b" => {
+          state = State::StringLiteral {
+            start: *start,
+            escape_next: false,
+            ty: StringType::Bytes,
+            content: String::new()
+          };
+        },
+        (State::Text { start, content }, '"') if content == "c" => {
+          state = State::StringLiteral {
+            start: *start,
+            escape_next: false,
+            ty: StringType::C,
+            content: String::new()
+          };
+        },
         (State::Text { start, content }, _) => {
           let tok = TokenEnum::Identifier(content.to_owned());
 

@@ -35,7 +35,8 @@ impl MakeAst for Binding {
     stream.skip_whitespace_and_comments();
 
     let ty = {
-      if let Some(TokenEnum::Punctuation(Punctuation::Colon)) = stream.next_variant() {
+      if let Some(TokenEnum::Punctuation(Punctuation::Colon)) = stream.peek_variant() {
+        stream.seek();
         stream.skip_whitespace_and_comments();
 
         let Some(ty) = stream.make::<Type>()? else {
@@ -53,7 +54,8 @@ impl MakeAst for Binding {
     stream.skip_whitespace_and_comments();
 
     let expr = {
-      if let Some(TokenEnum::Operator(Operator::BindAssign)) = stream.next_variant() {
+      if let Some(TokenEnum::Operator(Operator::BindAssign)) = stream.peek_variant() {
+        stream.seek();
         stream.skip_whitespace_and_comments();
 
         let Some(expr) = stream.make::<Expression>()? else {

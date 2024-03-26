@@ -14,6 +14,7 @@ use crate::tokenizer::{
   Grouping
 };
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct SubExpression {
   pub expr: Box<Expression>

@@ -142,6 +142,10 @@ impl TokenStream {
 
     result
   }
+
+  pub fn make_boxed<Ast: MakeAst + Debug>(&mut self) -> Result<Option<Box<Ast>>, AsterizerError> {
+    Ok(self.make::<Ast>()?.map(Box::new))
+  }
 }
 
 pub(crate) fn asterize(tokens: Vec<Token>) -> Result<GlobalNamespace, AsterizerError> {

@@ -1,7 +1,5 @@
-import_export! {
-  function_decl,
-  function_decl_args,
-}
+import_export!(function_decl);
+import_export!(function_decl_args);
 
 use typename::TypeName;
 

@@ -1,6 +1,4 @@
-import_export! {
-  literal
-}
+import_export!(literal);
 
 use typename::TypeName;
 

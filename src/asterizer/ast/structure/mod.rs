@@ -1,7 +1,5 @@
-import_export! {
-  namespace,
-  type_alias,
-}
+import_export!(namespace);
+import_export!(type_alias);
 
 use typename::TypeName;
 

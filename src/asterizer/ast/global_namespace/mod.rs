@@ -1,6 +1,4 @@
-import_export! {
-  top_level_structure
-}
+import_export!(top_level_structure);
 
 use std::collections::HashMap;
 use typename::TypeName;

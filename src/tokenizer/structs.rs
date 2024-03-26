@@ -11,7 +11,19 @@ pub(crate) struct Span {
 pub(crate) enum Operator {
   BindAssign,
   RightArrow,
-  SingleAnd
+  SingleAnd,
+  Increment,
+  Add,
+  Decrement,
+  Subtract,
+  Exponent,
+  Multiply,
+  // integer decrement?
+  Divide,
+  Equality,
+  Equals,
+  Range,
+  Dot,
 }
 
 #[derive(Debug)]

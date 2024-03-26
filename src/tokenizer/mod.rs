@@ -173,6 +173,94 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           state = State::Base;
           continue;
         },
+        (State::Operator { start, content }, '+') if content == "+" => {
+          let tok = TokenEnum::Operator(Operator::Increment);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
+        (State::Operator { start, content }, _) if content == "+" => {
+          let tok = TokenEnum::Operator(Operator::Add);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
+        (State::Operator { start, content }, '-') if content == "-" => {
+          let tok = TokenEnum::Operator(Operator::Decrement);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
+        (State::Operator { start, content }, _) if content == "-" => {
+          let tok = TokenEnum::Operator(Operator::Subtract);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
+        (State::Operator { start, content }, '*') if content == "*" => {
+          let tok = TokenEnum::Operator(Operator::Exponent);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
+        (State::Operator { start, content }, _) if content == "*" => {
+          let tok = TokenEnum::Operator(Operator::Multiply);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
+        (State::CommentBegin { start }, _) => {
+          let tok = TokenEnum::Operator(Operator::Divide);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
+        (State::Operator { start, content }, '=') if content == "=" => {
+          let tok = TokenEnum::Operator(Operator::Equality);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
+        (State::Operator { start, content }, _) if content == "=" => {
+          let tok = TokenEnum::Operator(Operator::Equals);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
+        (State::Operator { start, content }, '.') if content == "." => {
+          let tok = TokenEnum::Operator(Operator::Range);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
+        (State::Operator { start, content }, _) if content == "." => {
+          let tok = TokenEnum::Operator(Operator::Dot);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
         (State::Operator { start, content }, _) if content == "&" => {
           let tok = TokenEnum::Operator(Operator::SingleAnd);
 
@@ -214,13 +302,12 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           // ignore value separator in numerics
         },
         (
-          State::NumericLiteral {
-            content,
-            ty: NumericType::Decimal,
-            ..
-          },
+          State::NumericLiteral { content, ty: NumericType::Decimal, .. },
           '0'..='9'
         ) => {
+          content.push(ch);
+        },
+        (State::NumericLiteral { content, ty: NumericType::Decimal, .. }, '.') if !content.contains('.') => {
           content.push(ch);
         },
         (State::NumericLiteral { start, ty: NumericType::FloatingPoint, content }, _) => {

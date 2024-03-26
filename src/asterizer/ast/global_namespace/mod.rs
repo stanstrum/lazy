@@ -1,5 +1,8 @@
-use std::collections::HashMap;
+import_export! {
+  top_level_structure
+}
 
+use std::collections::HashMap;
 use typename::TypeName;
 
 use crate::tokenizer::{
@@ -9,8 +12,7 @@ use crate::tokenizer::{
 
 use crate::asterizer::ast::{
   MakeAst,
-  TokenStream,
-  TopLevelStructure,
+  TokenStream
 };
 
 use crate::asterizer::error::*;

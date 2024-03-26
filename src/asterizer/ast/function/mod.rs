@@ -1,10 +1,14 @@
+import_export! {
+  function_decl,
+  function_decl_args,
+}
+
 use typename::TypeName;
 
 use crate::asterizer::ast::{
   MakeAst,
   TokenStream,
-  Block,
-  FunctionDeclaration
+  Block
 };
 
 use crate::asterizer::error::*;

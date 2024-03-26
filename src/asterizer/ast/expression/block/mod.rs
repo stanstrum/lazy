@@ -1,5 +1,6 @@
-mod binding;
-use binding::*;
+import_export! {
+  binding
+}
 
 use typename::TypeName;
 

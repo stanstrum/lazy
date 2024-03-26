@@ -5,6 +5,7 @@ use crate::asterizer::{
   AsterizerError
 };
 
+#[macro_export]
 macro_rules! import_export {
   ($name:ident) => {
     pub(self) mod $name;
@@ -23,16 +24,11 @@ macro_rules! import_export {
 }
 
 import_export! {
-  namespace,
   global_namespace,
-  top_level_structure,
   structure,
-  function_decl,
   function,
-  type_alias,
-  ty,
   expression,
-  function_decl_args,
+  ty,
 }
 
 pub(crate) trait MakeAst where Self: Sized + TypeName {

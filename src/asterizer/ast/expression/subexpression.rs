@@ -7,12 +7,13 @@ use crate::asterizer::ast::{
   Expression
 };
 
-use crate::asterizer::error::ExpectedSnafu;
 use crate::tokenizer::{
   TokenEnum,
   GroupingType,
   Grouping
 };
+
+use crate::asterizer::error::ExpectedSnafu;
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]

@@ -1,10 +1,14 @@
+import_export! {
+  namespace,
+  type_alias,
+}
+
 use typename::TypeName;
 
 use crate::asterizer::ast::{
   MakeAst,
   TokenStream,
-  AsterizerError,
-  Namespace
+  AsterizerError
 };
 
 #[allow(unused)]

@@ -1,9 +1,11 @@
 mod block;
 mod literal;
 mod subexpression;
+mod atom;
 
 pub(crate) use block::*;
 pub(crate) use subexpression::*;
+pub(crate) use atom::*;
 
 use typename::TypeName;
 
@@ -13,13 +15,11 @@ use crate::asterizer::ast::{
   AsterizerError
 };
 
-use crate::tokenizer::Literal;
-
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) enum Expression {
+  Atom(Atom),
   Block(Block),
-  Literal(Literal),
   SubExpression(SubExpression),
 }
 
@@ -30,8 +30,8 @@ impl MakeAst for Expression {
         Some(Self::Block(block))
       } else if let Some(subexpr) = stream.make()? {
         Some(Self::SubExpression(subexpr))
-      } else if let Some(literal) = stream.make()? {
-        Some(Self::Literal(literal))
+      } else if let Some(atom) = stream.make()? {
+        Some(Self::Atom(atom))
       } else {
         None
       }

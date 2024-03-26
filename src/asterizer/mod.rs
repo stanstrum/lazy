@@ -144,14 +144,14 @@ impl TokenStream {
   }
 
   pub fn make_boxed<Ast: MakeAst + Debug>(&mut self) -> Result<Option<Box<Ast>>, AsterizerError> {
-    Ok(self.make::<Ast>()?.map(Box::new))
+    Ok(self.make()?.map(Box::new))
   }
 }
 
 pub(crate) fn asterize(tokens: Vec<Token>) -> Result<GlobalNamespace, AsterizerError> {
   let mut stream = TokenStream::new(tokens);
 
-  let Some(global) = stream.make::<GlobalNamespace>()? else {
+  let Some(global) = stream.make()? else {
     panic!("no global made")
   };
 

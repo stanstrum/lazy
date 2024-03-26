@@ -39,7 +39,7 @@ impl MakeAst for Binding {
         stream.seek();
         stream.skip_whitespace_and_comments();
 
-        let Some(ty) = stream.make::<Type>()? else {
+        let Some(ty) = stream.make()? else {
           return ExpectedSnafu {
             what: "a type",
           }.fail();
@@ -58,7 +58,7 @@ impl MakeAst for Binding {
         stream.seek();
         stream.skip_whitespace_and_comments();
 
-        let Some(expr) = stream.make::<Expression>()? else {
+        let Some(expr) = stream.make()? else {
           return ExpectedSnafu {
             what: "an expression",
           }.fail();

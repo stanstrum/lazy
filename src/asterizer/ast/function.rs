@@ -18,13 +18,13 @@ pub(crate) struct Function {
 
 impl MakeAst for Function {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let Some(decl) = stream.make::<FunctionDeclaration>()? else {
+    let Some(decl) = stream.make()? else {
       return Ok(None);
     };
 
     stream.skip_whitespace_and_comments();
 
-    let Some(body) = stream.make::<Block>()? else {
+    let Some(body) = stream.make()? else {
       return ExpectedSnafu {
         what: "a block expression"
       }.fail();

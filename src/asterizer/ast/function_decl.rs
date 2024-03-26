@@ -44,7 +44,7 @@ impl MakeAst for FunctionDeclaration {
       if let Some(TokenEnum::Operator(Operator::RightArrow)) = stream.next_variant() {
         stream.skip_whitespace_and_comments();
 
-        if let Some(ty) = stream.make::<Type>()? {
+        if let Some(ty) = stream.make()? {
           stream.drop_mark();
 
           Some(ty)
@@ -66,7 +66,7 @@ impl MakeAst for FunctionDeclaration {
 
     let args = {
       if let Some(TokenEnum::Punctuation(Punctuation::Colon)) = stream.next_variant() {
-        match stream.make::<FunctionDeclarationArguments>()? {
+        match stream.make()? {
           Some(args) => {
             stream.drop_mark();
 

@@ -26,12 +26,12 @@ pub(crate) enum Expression {
 impl MakeAst for Expression {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     Ok({
-      if let Some(block) = stream.make::<Block>()? {
-        Some(Expression::Block(block))
-      } else if let Some(subexpr) = stream.make::<SubExpression>()? {
-        Some(Expression::SubExpression(subexpr))
-      } else if let Some(literal) = stream.make::<Literal>()? {
-        Some(Expression::Literal(literal))
+      if let Some(block) = stream.make()? {
+        Some(Self::Block(block))
+      } else if let Some(subexpr) = stream.make()? {
+        Some(Self::SubExpression(subexpr))
+      } else if let Some(literal) = stream.make()? {
+        Some(Self::Literal(literal))
       } else {
         None
       }

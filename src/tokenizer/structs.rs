@@ -57,10 +57,10 @@ pub(crate) enum Keyword {
 impl std::string::ToString for Keyword {
   fn to_string(&self) -> String {
     match self {
-      Keyword::Type => keywords::TYPE,
-      Keyword::Import => keywords::IMPORT,
-      Keyword::Export => keywords::EXPORT,
-      Keyword::From => keywords::FROM,
+      Self::Type => keywords::TYPE,
+      Self::Import => keywords::IMPORT,
+      Self::Export => keywords::EXPORT,
+      Self::From => keywords::FROM,
     }.to_string()
   }
 }
@@ -70,10 +70,10 @@ impl TryFrom<String> for Keyword {
 
   fn try_from(value: String) -> Result<Self, Self::Error> {
     match value.as_str() {
-      keywords::TYPE => Ok(Keyword::Type),
-      keywords::IMPORT => Ok(Keyword::Import),
-      keywords::EXPORT => Ok(Keyword::Export),
-      keywords::FROM => Ok(Keyword::From),
+      keywords::TYPE => Ok(Self::Type),
+      keywords::IMPORT => Ok(Self::Import),
+      keywords::EXPORT => Ok(Self::Export),
+      keywords::FROM => Ok(Self::From),
       _ => Err(())
     }
   }
@@ -134,12 +134,12 @@ pub(crate) mod groupings {
 impl std::string::ToString for Grouping {
   fn to_string(&self) -> String {
     match self {
-      Grouping::Open(GroupingType::Parenthesis) => groupings::OPEN_PARENTHESIS,
-      Grouping::Close(GroupingType::Parenthesis) => groupings::CLOSE_PARENTHESIS,
-      Grouping::Open(GroupingType::Bracket) => groupings::OPEN_BRACKET,
-      Grouping::Close(GroupingType::Bracket) => groupings::CLOSE_BRACKET,
-      Grouping::Open(GroupingType::CurlyBrace) => groupings::OPEN_CURLY_BRACE,
-      Grouping::Close(GroupingType::CurlyBrace) => groupings::CLOSE_CURLY_BRACE,
+      Self::Open(GroupingType::Parenthesis) => groupings::OPEN_PARENTHESIS,
+      Self::Close(GroupingType::Parenthesis) => groupings::CLOSE_PARENTHESIS,
+      Self::Open(GroupingType::Bracket) => groupings::OPEN_BRACKET,
+      Self::Close(GroupingType::Bracket) => groupings::CLOSE_BRACKET,
+      Self::Open(GroupingType::CurlyBrace) => groupings::OPEN_CURLY_BRACE,
+      Self::Close(GroupingType::CurlyBrace) => groupings::CLOSE_CURLY_BRACE,
     }.to_string()
   }
 }
@@ -149,12 +149,12 @@ impl TryFrom<char> for Grouping {
 
   fn try_from(value: char) -> Result<Self, Self::Error> {
     match value {
-      groupings::OPEN_PARENTHESIS => Ok(Grouping::Open(GroupingType::Parenthesis)),
-      groupings::CLOSE_PARENTHESIS => Ok(Grouping::Close(GroupingType::Parenthesis)),
-      groupings::OPEN_BRACKET => Ok(Grouping::Open(GroupingType::Bracket)),
-      groupings::CLOSE_BRACKET => Ok(Grouping::Close(GroupingType::Bracket)),
-      groupings::OPEN_CURLY_BRACE => Ok(Grouping::Open(GroupingType::CurlyBrace)),
-      groupings::CLOSE_CURLY_BRACE => Ok(Grouping::Close(GroupingType::CurlyBrace)),
+      groupings::OPEN_PARENTHESIS => Ok(Self::Open(GroupingType::Parenthesis)),
+      groupings::CLOSE_PARENTHESIS => Ok(Self::Close(GroupingType::Parenthesis)),
+      groupings::OPEN_BRACKET => Ok(Self::Open(GroupingType::Bracket)),
+      groupings::CLOSE_BRACKET => Ok(Self::Close(GroupingType::Bracket)),
+      groupings::OPEN_CURLY_BRACE => Ok(Self::Open(GroupingType::CurlyBrace)),
+      groupings::CLOSE_CURLY_BRACE => Ok(Self::Close(GroupingType::CurlyBrace)),
       _ => Err(())
     }
   }

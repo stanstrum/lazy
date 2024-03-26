@@ -19,9 +19,9 @@ pub(crate) enum TopLevelStructure {
 impl TopLevelStructure {
   pub fn name(&self) -> String {
     match self {
-      TopLevelStructure::Namespace(ns) => ns.name.to_owned(),
-      TopLevelStructure::Function(func) => func.decl.name.to_owned(),
-      TopLevelStructure::TypeAlias(alias) => alias.name.to_owned(),
+      Self::Namespace(ns) => ns.name.to_owned(),
+      Self::Function(func) => func.decl.name.to_owned(),
+      Self::TypeAlias(alias) => alias.name.to_owned(),
     }
   }
 }
@@ -31,12 +31,12 @@ impl MakeAst for TopLevelStructure {
     println!("TopLevelStructure::make");
 
     Ok({
-      if let Some(ns) = stream.make::<Namespace>()? {
-        Some(TopLevelStructure::Namespace(ns))
-      } else if let Some(func) = stream.make::<Function>()? {
-        Some(TopLevelStructure::Function(func))
-      } else if let Some(alias) = stream.make::<TypeAlias>()? {
-        Some(TopLevelStructure::TypeAlias(alias))
+      if let Some(ns) = stream.make()? {
+        Some(Self::Namespace(ns))
+      } else if let Some(func) = stream.make()? {
+        Some(Self::Function(func))
+      } else if let Some(alias) = stream.make()? {
+        Some(Self::TypeAlias(alias))
       } else {
         None
       }

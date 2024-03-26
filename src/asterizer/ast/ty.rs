@@ -56,7 +56,7 @@ impl MakeAst for SizedArrayOf {
 
     stream.skip_whitespace_and_comments();
 
-    let Some(expr) = stream.make::<Expression>()? else {
+    let Some(expr) = stream.make()? else {
       return Ok(None);
     };
 
@@ -66,7 +66,7 @@ impl MakeAst for SizedArrayOf {
 
     stream.skip_whitespace_and_comments();
 
-    let Some(ty) = stream.make::<Type>()? else {
+    let Some(ty) = stream.make()? else {
       return ExpectedSnafu {
         what: "a type",
       }.fail();
@@ -93,7 +93,7 @@ impl MakeAst for UnsizedArrayOf {
 
     stream.skip_whitespace_and_comments();
 
-    let Some(ty) = stream.make::<Type>()? else {
+    let Some(ty) = stream.make()? else {
       return ExpectedSnafu {
         what: "a type",
       }.fail();
@@ -113,7 +113,7 @@ impl MakeAst for ImmutableReferenceTo {
 
     stream.skip_whitespace_and_comments();
 
-    let Some(ty) = stream.make::<Type>()? else {
+    let Some(ty) = stream.make()? else {
       return ExpectedSnafu {
         what: "a type",
       }.fail();
@@ -140,14 +140,14 @@ impl MakeAst for NamedType {
 impl MakeAst for Type {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     Ok({
-      if let Some(named) = stream.make::<NamedType>()? {
-        Some(Type::Named(named))
-      } else if let Some(sized_array_of) = stream.make::<SizedArrayOf>()? {
-        Some(Type::SizedArrayOf(sized_array_of))
-      } else if let Some(unsized_array_of) = stream.make::<UnsizedArrayOf>()? {
-        Some(Type::UnsizedArrayOf(unsized_array_of))
-      } else if let Some(immut_ref_to) = stream.make::<ImmutableReferenceTo>()? {
-        Some(Type::ImmutableReferenceTo(immut_ref_to))
+      if let Some(named) = stream.make()? {
+        Some(Self::Named(named))
+      } else if let Some(sized_array_of) = stream.make()? {
+        Some(Self::SizedArrayOf(sized_array_of))
+      } else if let Some(unsized_array_of) = stream.make()? {
+        Some(Self::UnsizedArrayOf(unsized_array_of))
+      } else if let Some(immut_ref_to) = stream.make()? {
+        Some(Self::ImmutableReferenceTo(immut_ref_to))
       } else {
         None
       }

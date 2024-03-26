@@ -47,7 +47,7 @@ impl MakeAst for TypeAlias {
 
     stream.skip_whitespace_and_comments();
 
-    let Some(ty) = stream.make::<Type>()? else {
+    let Some(ty) = stream.make()? else {
       return ExpectedSnafu {
         what: "a type",
       }.fail();

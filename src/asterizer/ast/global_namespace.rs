@@ -10,7 +10,7 @@ use crate::tokenizer::{
 use crate::asterizer::ast::{
   MakeAst,
   TokenStream,
-  TopLevelStructure
+  TopLevelStructure,
 };
 
 use crate::asterizer::error::*;
@@ -24,12 +24,12 @@ pub(crate) struct GlobalNamespace {
 
 impl MakeAst for GlobalNamespace {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let mut structures = vec![];
+    let mut structures: Vec<TopLevelStructure> = vec![];
 
     stream.skip_whitespace_and_comments();
 
     while stream.remaining() > 0 {
-      let Some(struc) = stream.make::<TopLevelStructure>()? else {
+      let Some(struc) = stream.make()? else {
         return ExpectedSnafu {
           what: "a top-level structure",
         }.fail();

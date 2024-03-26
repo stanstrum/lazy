@@ -34,9 +34,9 @@ pub(crate) struct Block {
 impl MakeAst for BlockChild {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     Ok({
-      if let Some(expression) = stream.make::<Expression>()? {
+      if let Some(expression) = stream.make()? {
         Some(Self::Expression(expression))
-      } else if let Some(binding) = stream.make::<Binding>()? {
+      } else if let Some(binding) = stream.make()? {
         // This check comes after expression because a simple expression like:
         //   `a`
         // parses for both, except is only valid as an expression.  Given that,
@@ -68,7 +68,7 @@ impl MakeAst for Block {
         break;
       };
 
-      let Some(expr) = stream.make::<BlockChild>()? else {
+      let Some(expr) = stream.make()? else {
         return ExpectedSnafu {
           what: "an expression",
         }.fail();

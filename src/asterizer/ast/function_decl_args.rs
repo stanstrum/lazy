@@ -42,7 +42,7 @@ impl MakeAst for FunctionDeclarationArgument {
 
     stream.skip_whitespace_and_comments();
 
-    let Some(ty) = stream.make::<Type>()? else {
+    let Some(ty) = stream.make()? else {
       return ExpectedSnafu {
         what: "a type",
       }.fail();
@@ -61,7 +61,7 @@ impl MakeAst for FunctionDeclarationArguments {
     loop {
       stream.skip_whitespace_and_comments();
 
-      let Some(arg) = stream.make::<FunctionDeclarationArgument>()? else {
+      let Some(arg) = stream.make()? else {
         break;
       };
 

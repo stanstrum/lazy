@@ -1,8 +1,6 @@
-import_export! {
-  block,
-  subexpression,
-  atom,
-}
+import_export!(block);
+import_export!(subexpression);
+import_export!(atom);
 
 use typename::TypeName;
 

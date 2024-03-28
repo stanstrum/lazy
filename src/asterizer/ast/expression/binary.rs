@@ -28,7 +28,8 @@ pub(crate) enum BinaryOperator {
 #[derive(Debug)]
 pub(crate) struct BinaryExpression {
   pub op: BinaryOperator,
-  pub expr: Box<Expression>
+  pub lhs: Box<Expression>,
+  pub rhs: Box<Expression>,
 }
 
 impl MakeAst for BinaryOperator {

@@ -179,7 +179,6 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           add_tok(start, tok);
 
           state = State::Base;
-          continue;
         },
         (State::Operator { start, content }, _) if content == "+" => {
           let tok = TokenEnum::Operator(Operator::Add);
@@ -195,7 +194,6 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           add_tok(start, tok);
 
           state = State::Base;
-          continue;
         },
         (State::Operator { start, content }, _) if content == "-" => {
           let tok = TokenEnum::Operator(Operator::Subtract);
@@ -211,7 +209,6 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           add_tok(start, tok);
 
           state = State::Base;
-          continue;
         },
         (State::Operator { start, content }, _) if content == "*" => {
           let tok = TokenEnum::Operator(Operator::Multiply);
@@ -235,7 +232,6 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           add_tok(start, tok);
 
           state = State::Base;
-          continue;
         },
         (State::Operator { start, content }, _) if content == "=" => {
           let tok = TokenEnum::Operator(Operator::Equals);
@@ -251,7 +247,6 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           add_tok(start, tok);
 
           state = State::Base;
-          continue;
         },
         (State::Operator { start, content }, _) if content == "." => {
           let tok = TokenEnum::Operator(Operator::Dot);

@@ -8,11 +8,15 @@ use crate::asterizer::ast::{
   AsterizerError,
 };
 
-use crate::tokenizer::Literal;
+use crate::tokenizer::{
+  TokenEnum,
+  Literal,
+};
 
 #[derive(Debug, TypeName)]
 pub(crate) enum Atom {
   Literal(Literal),
+  Variable(String)
 }
 
 impl MakeAst for Atom {
@@ -20,6 +24,12 @@ impl MakeAst for Atom {
     Ok({
       if let Some(literal) = stream.make()? {
         Some(Self::Literal(literal))
+      } else if let Some(TokenEnum::Identifier(name)) = stream.peek_variant() {
+        let name = name.to_owned();
+
+        stream.seek();
+
+        Some(Self::Variable(name))
       } else {
         None
       }

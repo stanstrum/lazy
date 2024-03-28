@@ -65,6 +65,10 @@ impl TokenStream {
   }
 
   pub fn pop_mark(&mut self) {
+    if self.marks.is_empty() {
+      return;
+    };
+
     self.position = self.marks.pop().unwrap();
   }
 

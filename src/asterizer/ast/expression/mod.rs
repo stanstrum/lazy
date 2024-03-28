@@ -5,7 +5,10 @@ import_export!(unary);
 import_export!(binary);
 
 use typename::TypeName;
-use enum_iterator::Sequence;
+use enum_iterator::{
+  Sequence,
+  all,
+};
 
 use crate::asterizer::ast::{
   MakeAst,
@@ -124,20 +127,116 @@ impl<'a> ExpressionResolver<'a> {
 
   pub fn resolve(&mut self) -> Option<Expression> {
     while self.parts.len() > 1 {
+      let before = self.parts.len();
 
+      'pemdas: for pemdas in all::<Pemdas>() {
+        let mut did_work = false;
+
+        'repeat_find_operator: loop {
+          'find_operator: for i in 0.. {
+            dbg!(&pemdas, &self.parts);
+
+            if i >= self.parts.len() {
+              if did_work {
+                did_work = false;
+
+                continue 'repeat_find_operator;
+              } else {
+                continue 'pemdas;
+              };
+            };
+
+            let ExpressionPart::Binary(operator_candidate) = &self.parts[i] else {
+              continue 'find_operator;
+            };
+
+            match (&pemdas, operator_candidate) {
+              | (Pemdas::Exponent, BinaryOperator::Exponent)
+              | (Pemdas::MultiplyDivide,
+                | BinaryOperator::Multiply
+                | BinaryOperator::Divide
+              )
+              | (Pemdas::AddSubtract,
+                | BinaryOperator::Add
+                | BinaryOperator::Subtract
+              )
+              | (Pemdas::Comparison, BinaryOperator::Comparison)
+              | (Pemdas::Assignment, BinaryOperator::Equals)
+              | (Pemdas::Dot,
+                | BinaryOperator::Dot
+                | BinaryOperator::DerefDot
+              ) => {},
+              _ => continue 'find_operator
+            };
+
+            let lhs_index = 'lhs: {
+              for lhs_index in (0..i).rev() {
+                if matches!(self.parts[lhs_index], ExpressionPart::Operand(_)) {
+                  break 'lhs Some(lhs_index);
+                }
+              }
+
+              None
+            };
+
+            let rhs_index = 'rhs: {
+              for rhs_index in i..self.parts.len() {
+                if matches!(self.parts[rhs_index], ExpressionPart::Operand(_)) {
+                  break 'rhs Some(rhs_index);
+                }
+              }
+
+              None
+            };
+
+            assert!(lhs_index.is_some(), "found no left-hand-side");
+            assert!(rhs_index.is_some(), "found no right-hand-side");
+
+            let starting_point = lhs_index.unwrap();
+
+            let rhs = self.parts.remove(rhs_index.unwrap());
+            let op = self.parts.remove(i);
+            let lhs = self.parts.remove(lhs_index.unwrap());
+
+            let (
+              ExpressionPart::Operand(lhs),
+              ExpressionPart::Binary(op),
+              ExpressionPart::Operand(rhs),
+            ) = (lhs, op, rhs) else {
+              unreachable!();
+            };
+
+            let (lhs, rhs) = (Box::new(lhs), Box::new(rhs));
+            let bin_expr = Expression::Binary(BinaryExpression { op, lhs, rhs });
+
+            self.parts.insert(starting_point, ExpressionPart::Operand(bin_expr));
+
+            did_work = true;
+          };
+        };
+      };
+
+      let after = self.parts.len();
+
+      assert!(before != after, "no work done");
     };
 
-    todo!()
+    if let Some(ExpressionPart::Operand(expr)) = self.parts.pop() {
+      Some(expr)
+    } else {
+      None
+    }
   }
 }
 
-#[derive(Sequence)]
+#[derive(Debug, Sequence)]
 enum Pemdas {
   // Parentheses -- SubExpression takes care of this,
   Exponent,
   MultiplyDivide,
   AddSubtract,
   Comparison,
+  Assignment,
   Dot,
 }
 
@@ -149,36 +248,27 @@ impl MakeAst for Expression {
       return Ok(None)
     };
 
-    resolver.stream.push_mark();
-
-    println!("A");
     loop {
+      resolver.stream.push_mark();
       resolver.stream.skip_whitespace_and_comments();
 
       if resolver.make_binary_operator()?.is_none() {
         resolver.stream.pop_mark();
-        println!("B");
 
         break;
       };
-
-      println!("C");
 
       resolver.stream.drop_mark();
       resolver.stream.skip_whitespace_and_comments();
 
       if resolver.make_binary_part()?.is_none() {
-        println!("D");
+        dbg!(&resolver.parts);
 
         return ExpectedSnafu {
           what: "an expression",
         }.fail();
       };
-
-      println!("E");
     };
-
-    println!("F");
 
     dbg!(&resolver.parts);
 

@@ -71,9 +71,7 @@ impl MakeAst for Binding {
     };
 
     if let (None, None) = (&ty, &expr) {
-      return ExpectedSnafu {
-        what: "a type or an expression",
-      }.fail();
+      return Ok(None);
     };
 
     Ok(Some(Self { name, ty, expr }))

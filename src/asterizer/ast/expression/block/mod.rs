@@ -35,15 +35,10 @@ pub(crate) struct Block {
 impl MakeAst for BlockChild {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     Ok({
-      if let Some(expression) = stream.make()? {
-        Some(Self::Expression(expression))
-      } else if let Some(binding) = stream.make()? {
-        // This check comes after expression because a simple expression like:
-        //   `a`
-        // parses for both, except is only valid as an expression.  Given that,
-        // we can assume the programmer means to recall the value, not create
-        // a variable with no name or type.
+      if let Some(binding) = stream.make()? {
         Some(Self::Binding(binding))
+      } else if let Some(expression) = stream.make()? {
+        Some(Self::Expression(expression))
       } else {
         None
       }

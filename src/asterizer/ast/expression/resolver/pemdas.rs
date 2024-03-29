@@ -4,8 +4,17 @@ use enum_iterator::{
 };
 
 use crate::asterizer::ast::{
-  AsterizerError, BinaryExpression, BinaryOperator, Expression, UnaryExpression, UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator
+  AsterizerError,
+  BinaryExpression,
+  BinaryOperator,
+  Expression,
+  UnaryExpression,
+  UnaryOperator,
+  UnaryPrefixOperator,
+  UnarySuffixOperator,
 };
+
+use crate::asterizer::error::ExpectedSnafu;
 
 use super::{
   ExpressionResolver,
@@ -15,7 +24,7 @@ use super::{
 #[derive(Debug, Sequence)]
 enum Pemdas {
   Dot, // and Subscript
-  // Fn Call
+  Call,
   IncrementDecrement,
   // Ref/Deref
   Exponent,
@@ -99,6 +108,7 @@ impl ExpressionResolver<'_> {
             UnaryOperator::Suffix(
               | UnarySuffixOperator::PostIncrement
               | UnarySuffixOperator::PostDecrement
+              | UnarySuffixOperator::Call { .. }
             )
           )) => {
             let ExpressionPart::Unary(op) = self.parts.remove(part_index) else {

@@ -9,6 +9,7 @@ pub(crate) enum UnaryOperator {
   Suffix(UnarySuffixOperator)
 }
 
+#[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct UnaryExpression {
   pub op: UnaryOperator,

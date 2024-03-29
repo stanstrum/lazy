@@ -16,6 +16,7 @@ use crate::tokenizer::{
   TokenEnum,
 };
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) enum UnarySuffixOperator {
   PostIncrement,
@@ -23,6 +24,7 @@ pub(crate) enum UnarySuffixOperator {
   Call { args: Vec<Expression> }
 }
 
+#[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct UnarySuffixExpression {
   pub op: UnarySuffixOperator,

@@ -15,6 +15,7 @@ pub(crate) enum UnaryPrefixOperator {
   PreDecrement,
 }
 
+#[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct UnaryPrefixExpression {
   pub op: UnaryPrefixOperator,

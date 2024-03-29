@@ -54,3 +54,55 @@ fn main() {
     };
   };
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  macro_rules! compile_snippet {
+    ($test_name:ident, $source:literal) => {
+      #[test]
+      fn $test_name() {
+        let args = vec![
+          "test_suite",
+          concat!(
+            "snippets/",
+            $source,
+            ".zy"
+          )
+        ];
+
+        let args = args
+          .into_iter()
+          .map(String::from)
+          .collect();
+
+        compile(args).expect("compilation failed");
+      }
+    };
+  }
+
+  compile_snippet!(assn, "01_assn");
+  compile_snippet!(bare_bones, "bare_bones");
+  compile_snippet!(base_main, "00_base_main");
+  compile_snippet!(codegen, "08_codegen");
+  // compile_snippet!(counter_ns, "05_counter_ns");
+  // compile_snippet!(counter, "counter");
+  compile_snippet!(extended_operators, "04_extended_operators");
+  compile_snippet!(hello_world, "02_hello_world");
+  // compile_snippet!(import_std, "11_import_std");
+  compile_snippet!(message, "message");
+  // compile_snippet!(namespaces, "namespaces");
+  // compile_snippet!(r#extern, "09_extern");
+  // compile_snippet!(r#if, "if");
+  // compile_snippet!(read_source, "10_read_source");
+  // compile_snippet!(slice, "14_slice");
+  // compile_snippet!(std, "std");
+  // compile_snippet!(string_ref, "string_ref");
+  // compile_snippet!(struct_generic, "13_struct_generic");
+  // compile_snippet!(struct_stuff, "07_struct_stuff");
+  // compile_snippet!(structs, "12_structs");
+  // compile_snippet!(trait_imp, "03_trait_imp");
+  compile_snippet!(type_alias, "06_type_alias");
+  // compile_snippet!(type_make, "type_make");
+}

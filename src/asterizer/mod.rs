@@ -136,7 +136,14 @@ impl TokenStream {
       Err(err) => {
         println!("make: {name}: error: {err}");
 
-        self.pop_mark();
+        // clean up marks in case of error
+        loop {
+          self.pop_mark();
+
+          if marks_len == self.mark_len() {
+            break;
+          };
+        };
       }
     };
 

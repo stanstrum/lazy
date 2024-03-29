@@ -77,7 +77,9 @@ mod tests {
           .map(String::from)
           .collect();
 
-        compile(args).expect("compilation failed");
+        if let Err(err) = compile(args) {
+          panic!("compilation failed: {err}");
+        };
       }
     };
   }

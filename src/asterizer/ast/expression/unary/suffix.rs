@@ -7,7 +7,6 @@ use crate::asterizer::ast::{
   Expression,
 };
 
-use crate::asterizer::error::ExpectedSnafu;
 use crate::tokenizer::{
   Grouping,
   GroupingType,
@@ -15,6 +14,8 @@ use crate::tokenizer::{
   Punctuation,
   TokenEnum,
 };
+
+use crate::asterizer::error::ExpectedSnafu;
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]

@@ -7,12 +7,15 @@ import_export!(binary);
 mod resolver;
 use resolver::ExpressionResolver;
 
-use enum_iterator::Sequence;
 use typename::TypeName;
 
-use crate::asterizer::{ast::{
-  AsterizerError, MakeAst, TokenStream
-}, error::ExpectedSnafu};
+use crate::asterizer::ast::{
+  AsterizerError,
+  TokenStream,
+  MakeAst,
+};
+
+use crate::asterizer::error::ExpectedSnafu;
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]

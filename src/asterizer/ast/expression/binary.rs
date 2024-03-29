@@ -25,6 +25,7 @@ pub(crate) enum BinaryOperator {
   DerefDot,
 }
 
+#[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct BinaryExpression {
   pub op: BinaryOperator,

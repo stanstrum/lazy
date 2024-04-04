@@ -44,6 +44,10 @@ mod keywords {
   pub(super) const IMPORT: &str = "import";
   pub(super) const EXPORT: &str = "export";
   pub(super) const FROM: &str = "from";
+  pub(super) const STRUCT: &str = "struct";
+  pub(super) const CLASS: &str = "class";
+  pub(super) const NAMESPACE: &str = "namespace";
+  pub(super) const IMPL: &str = "impl";
 }
 
 #[derive(Debug)]
@@ -52,6 +56,10 @@ pub(crate) enum Keyword {
   Import,
   Export,
   From,
+  Struct,
+  Class,
+  Namespace,
+  Impl,
 }
 
 impl std::string::ToString for Keyword {
@@ -61,19 +69,27 @@ impl std::string::ToString for Keyword {
       Self::Import => keywords::IMPORT,
       Self::Export => keywords::EXPORT,
       Self::From => keywords::FROM,
+      Self::Struct => keywords::STRUCT,
+      Self::Class => keywords::CLASS,
+      Self::Namespace => keywords::NAMESPACE,
+      Self::Impl => keywords::IMPL,
     }.to_string()
   }
 }
 
-impl TryFrom<String> for Keyword {
+impl TryFrom<&String> for Keyword {
   type Error = ();
 
-  fn try_from(value: String) -> Result<Self, Self::Error> {
+  fn try_from(value: &String) -> Result<Self, Self::Error> {
     match value.as_str() {
       keywords::TYPE => Ok(Self::Type),
       keywords::IMPORT => Ok(Self::Import),
       keywords::EXPORT => Ok(Self::Export),
       keywords::FROM => Ok(Self::From),
+      keywords::STRUCT => Ok(Self::Struct),
+      keywords::CLASS => Ok(Self::Class),
+      keywords::NAMESPACE => Ok(Self::Namespace),
+      keywords::IMPL => Ok(Self::Impl),
       _ => Err(())
     }
   }

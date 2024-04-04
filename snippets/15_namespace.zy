@@ -1,0 +1,5 @@
+namespace something {
+  do_stuff -> i32 {
+    0
+  };
+};

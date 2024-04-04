@@ -1,13 +1,22 @@
+use typename::TypeName;
 use std::collections::HashMap;
 
-use typename::TypeName;
+use crate::tokenizer::{
+  Grouping,
+  GroupingType,
+  Keyword,
+  Punctuation,
+  TokenEnum,
+};
 
 use crate::asterizer::ast::{
   MakeAst,
   TokenStream,
   AsterizerError,
-  Structure
+  Structure,
 };
+
+use crate::asterizer::error::ExpectedSnafu;
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
@@ -17,9 +26,54 @@ pub(crate) struct Namespace {
 }
 
 impl MakeAst for Namespace {
-  fn make(_stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    eprintln!("{}:{}: Namespace::make empty stub", file!(), line!());
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let Some(TokenEnum::Keyword(Keyword::Namespace)) = stream.next_variant() else {
+      return Ok(None);
+    };
 
-    Ok(None)
+    stream.skip_whitespace_and_comments();
+
+    let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
+      return ExpectedSnafu {
+        what: "an identifier",
+      }.fail();
+    };
+
+    let name = name.to_owned();
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(TokenEnum::Grouping(Grouping::Open(GroupingType::CurlyBrace))) = stream.next_variant() else {
+      return ExpectedSnafu {
+        what: "an opening curly brace",
+      }.fail();
+    };
+
+    let mut children = HashMap::new();
+
+    loop {
+      stream.skip_whitespace_and_comments();
+
+      if let Some(TokenEnum::Grouping(Grouping::Close(GroupingType::CurlyBrace))) = stream.peek_variant() {
+        stream.seek();
+        break;
+      };
+
+      let Some(structure) = stream.make::<Structure>()? else {
+        return ExpectedSnafu {
+          what: "a structure",
+        }.fail();
+      };
+
+      children.insert(structure.name(), structure);
+
+      let Some(TokenEnum::Punctuation(Punctuation::Semicolon)) = stream.next_variant() else {
+        return ExpectedSnafu {
+          what: "a semicolon",
+        }.fail();
+      };
+    };
+
+    Ok(Some(Self { name, children }))
   }
 }

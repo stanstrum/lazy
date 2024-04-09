@@ -7,7 +7,10 @@ use crate::asterizer::ast::{
   Expression,
 };
 
-use crate::tokenizer::{Operator, TokenEnum};
+use crate::tokenizer::{
+  Operator,
+  TokenEnum,
+};
 
 #[derive(Debug, TypeName)]
 pub(crate) enum UnaryPrefixOperator {
@@ -29,6 +32,7 @@ impl MakeAst for UnaryPrefixOperator {
       match stream.next_variant() {
         Some(TokenEnum::Operator(Operator::Increment)) => Some(UnaryPrefixOperator::PreIncrement),
         Some(TokenEnum::Operator(Operator::Decrement)) => Some(UnaryPrefixOperator::PreDecrement),
+        Some(TokenEnum::Operator(Operator::Separator)) => Some(UnaryPrefixOperator::ImpliedSeparator),
         _ => None
       }
     })

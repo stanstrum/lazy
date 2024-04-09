@@ -23,7 +23,7 @@ use super::{
 
 #[derive(Debug, Sequence)]
 enum Pemdas {
-  Dot, // and Subscript
+  Dot, // and Subscript, as well as Separator
   Call,
   IncrementDecrement,
   // Ref/Deref
@@ -55,6 +55,7 @@ impl ExpressionResolver<'_> {
           | (Pemdas::Dot, ExpressionPart::Binary(
             | BinaryOperator::Dot
             | BinaryOperator::DerefDot
+            | BinaryOperator::Separator
           )) => {
             let lhs_index = part_index - 1;
             let rhs_index = part_index + 1;
@@ -83,11 +84,14 @@ impl ExpressionResolver<'_> {
 
             self.parts.insert(lhs_index, binary_expr);
           },
-          (Pemdas::IncrementDecrement, ExpressionPart::Unary(
+          | (Pemdas::IncrementDecrement, ExpressionPart::Unary(
             UnaryOperator::Prefix(
               | UnaryPrefixOperator::PreIncrement
               | UnaryPrefixOperator::PreDecrement
             )
+          ))
+          | (Pemdas::Dot, ExpressionPart::Unary(
+            UnaryOperator::Prefix(UnaryPrefixOperator::ImpliedSeparator)
           )) => {
             let ExpressionPart::Unary(op) = self.parts.remove(part_index) else {
               unreachable!();

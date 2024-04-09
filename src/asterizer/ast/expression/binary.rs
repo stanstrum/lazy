@@ -47,6 +47,7 @@ impl MakeAst for BinaryOperator {
         Some(TokenEnum::Operator(Operator::Equals)) => Some(Self::Equals),
         Some(TokenEnum::Operator(Operator::Dot)) => Some(Self::Dot),
         Some(TokenEnum::Operator(Operator::RightArrow)) => Some(Self::DerefDot),
+        Some(TokenEnum::Operator(Operator::Separator)) => Some(Self::Separator),
         _ => None
       }
     })

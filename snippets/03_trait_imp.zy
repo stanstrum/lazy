@@ -5,19 +5,19 @@ main -> i32 {
 };
 
 interface IAdd {
-  iadd -> Self:
-    rhs: Self;
+  iadd -> This:
+    rhs: This;
 };
 
-impl i32 {
-  public static new -> i32 {
+class i32 {
+  public static new -> This {
     0
   };
 };
 
 impl i32: IAdd {
-  iadd -> Self:
-    rhs: Self
+  iadd -> This:
+    rhs: This
   {
     // do stuff
 

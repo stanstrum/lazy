@@ -23,6 +23,7 @@ pub(crate) enum BinaryOperator {
   Equals,
   Dot,
   DerefDot,
+  Separator,
 }
 
 #[allow(unused)]

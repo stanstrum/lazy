@@ -18,7 +18,8 @@ use crate::tokenizer::{
 pub(crate) struct TokenStream {
   position: usize,
   marks: Vec<usize>,
-  tokens: Vec<Token>
+  tokens: Vec<Token>,
+  eof: bool,
 }
 
 impl TokenStream {
@@ -26,7 +27,8 @@ impl TokenStream {
     Self {
       position: 0,
       marks: vec![],
-      tokens
+      tokens,
+      eof: false
     }
   }
 
@@ -46,14 +48,12 @@ impl TokenStream {
     dbg!(Some(tok))
   }
 
-  pub fn seek(&mut self) -> Option<()> {
+  pub fn seek(&mut self) {
     if self.position < self.tokens.len() - 1 {
       self.position += 1;
-
-      Some(())
     } else {
-      None
-    }
+      self.eof = true;
+    };
   }
 
   pub fn next_variant<'a>(&'a mut self) -> Option<&'a TokenEnum> {
@@ -81,7 +81,11 @@ impl TokenStream {
   }
 
   pub fn peek<'a>(&'a self) -> Option<&'a Token> {
-    self.tokens.get(self.position)
+    if !self.eof {
+      self.tokens.get(self.position)
+    } else {
+      None
+    }
   }
 
   pub fn peek_variant<'a>(&'a self) -> Option<&'a TokenEnum> {

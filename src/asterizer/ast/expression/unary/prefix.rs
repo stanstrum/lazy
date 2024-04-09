@@ -13,6 +13,7 @@ use crate::tokenizer::{Operator, TokenEnum};
 pub(crate) enum UnaryPrefixOperator {
   PreIncrement,
   PreDecrement,
+  ImpliedSeparator,
 }
 
 #[allow(unused)]

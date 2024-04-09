@@ -70,6 +70,7 @@ impl ToString for TokenEnum {
       Self::Operator(Operator::Equals) => "=".to_owned(),
       Self::Operator(Operator::Range) => "..".to_owned(),
       Self::Operator(Operator::Dot) => ".".to_owned(),
+      Self::Operator(Operator::Separator) => "::".to_owned(),
       Self::Punctuation(Punctuation::Semicolon) => ";".to_owned(),
       Self::Punctuation(Punctuation::Colon) => ":".to_owned(),
       Self::Punctuation(Punctuation::Comma) => ",".to_owned(),

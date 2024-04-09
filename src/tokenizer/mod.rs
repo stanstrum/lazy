@@ -157,8 +157,12 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
 
           state = State::Base;
         },
-        (State::Operator { content, .. }, ':') if content == ":" => {
-          todo!("double colon")
+        (State::Operator { content, start }, ':') if content == ":" => {
+          let tok = TokenEnum::Operator(Operator::Separator);
+
+          add_tok(start, tok);
+
+          state = State::Base;
         },
         (State::Operator { start, content, .. }, '=') if content == ":" => {
           add_tok(start, TokenEnum::Operator(Operator::BindAssign));

@@ -24,6 +24,7 @@ pub(crate) enum Operator {
   Equals,
   Range,
   Dot,
+  Separator,
 }
 
 #[derive(Debug)]

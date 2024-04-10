@@ -47,6 +47,7 @@ mod keywords {
   pub(super) const FROM: &str = "from";
   pub(super) const STRUCT: &str = "struct";
   pub(super) const CLASS: &str = "class";
+  pub(super) const INTERFACE: &str = "interface";
   pub(super) const NAMESPACE: &str = "namespace";
   pub(super) const IMPL: &str = "impl";
 }
@@ -59,6 +60,7 @@ pub(crate) enum Keyword {
   From,
   Struct,
   Class,
+  Interface,
   Namespace,
   Impl,
 }
@@ -72,6 +74,7 @@ impl std::string::ToString for Keyword {
       Self::From => keywords::FROM,
       Self::Struct => keywords::STRUCT,
       Self::Class => keywords::CLASS,
+      Self::Interface => keywords::INTERFACE,
       Self::Namespace => keywords::NAMESPACE,
       Self::Impl => keywords::IMPL,
     }.to_string()
@@ -89,6 +92,7 @@ impl TryFrom<&String> for Keyword {
       keywords::FROM => Ok(Self::From),
       keywords::STRUCT => Ok(Self::Struct),
       keywords::CLASS => Ok(Self::Class),
+      keywords::INTERFACE => Ok(Self::Interface),
       keywords::NAMESPACE => Ok(Self::Namespace),
       keywords::IMPL => Ok(Self::Impl),
       _ => Err(())

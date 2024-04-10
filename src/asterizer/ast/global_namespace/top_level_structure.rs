@@ -6,14 +6,16 @@ use crate::asterizer::ast::{
   AsterizerError,
   Namespace,
   Function,
-  TypeAlias
+  TypeAlias,
+  Interface,
 };
 
 #[derive(Debug, TypeName)]
 pub(crate) enum TopLevelStructure {
   Namespace(Namespace),
   Function(Function),
-  TypeAlias(TypeAlias)
+  TypeAlias(TypeAlias),
+  Interface(Interface),
 }
 
 impl TopLevelStructure {
@@ -22,14 +24,13 @@ impl TopLevelStructure {
       Self::Namespace(ns) => ns.name.to_owned(),
       Self::Function(func) => func.decl.name.to_owned(),
       Self::TypeAlias(alias) => alias.name.to_owned(),
+      Self::Interface(interface) => interface.name.to_owned(),
     }
   }
 }
 
 impl MakeAst for TopLevelStructure {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    println!("TopLevelStructure::make");
-
     Ok({
       if let Some(ns) = stream.make()? {
         Some(Self::Namespace(ns))
@@ -37,6 +38,8 @@ impl MakeAst for TopLevelStructure {
         Some(Self::Function(func))
       } else if let Some(alias) = stream.make()? {
         Some(Self::TypeAlias(alias))
+      } else if let Some(interface) = stream.make()? {
+        Some(Self::Interface(interface))
       } else {
         None
       }

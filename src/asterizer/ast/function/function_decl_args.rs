@@ -45,6 +45,7 @@ impl MakeAst for FunctionDeclarationArgument {
     let Some(ty) = stream.make()? else {
       return ExpectedSnafu {
         what: "a type",
+        span: stream.span()
       }.fail();
     };
 

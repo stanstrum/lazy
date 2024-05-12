@@ -61,9 +61,11 @@ impl ExpressionResolver<'_> {
             let rhs_index = part_index + 1;
 
             let ExpressionPart::Operand(rhs) = self.parts.remove(rhs_index) else {
-              return ExpectedSnafu {
-                what: "an expression",
-              }.fail();
+              todo!("span impl");
+
+              // return ExpectedSnafu {
+              //   what: "an expression",
+              // }.fail();
             };
 
             let ExpressionPart::Binary(op) = self.parts.remove(part_index) else {
@@ -71,9 +73,11 @@ impl ExpressionResolver<'_> {
             };
 
             let ExpressionPart::Operand(lhs) = self.parts.remove(lhs_index) else {
-              return ExpectedSnafu {
-                what: "an expression",
-              }.fail();
+              todo!("span impl");
+
+              // return ExpectedSnafu {
+              //   what: "an expression",
+              // }.fail();
             };
 
             let (lhs, rhs) = (Box::new(lhs), Box::new(rhs));
@@ -98,9 +102,12 @@ impl ExpressionResolver<'_> {
             };
 
             let ExpressionPart::Operand(expr) = self.parts.remove(part_index) else {
-              return ExpectedSnafu {
-                what: "an expression",
-              }.fail();
+              todo!("span impl");
+
+              // return ExpectedSnafu {
+              //   what: "an expression",
+              //   span: todo!("span impl")
+              // }.fail();
             };
 
             let unary_expr = ExpressionPart::Operand(
@@ -126,9 +133,11 @@ impl ExpressionResolver<'_> {
             };
 
             let ExpressionPart::Operand(expr) = self.parts.remove(part_index - 1) else {
-              return ExpectedSnafu {
-                what: "an expression",
-              }.fail();
+              todo!("span impl");
+
+              // return ExpectedSnafu {
+              //   what: "an expression",
+              // }.fail();
             };
 
             let unary_expr = ExpressionPart::Operand(

@@ -86,6 +86,7 @@ impl MakeAst for Expression {
 
         return ExpectedSnafu {
           what: "an expression",
+          span: stream.span()
         }.fail();
       };
     };

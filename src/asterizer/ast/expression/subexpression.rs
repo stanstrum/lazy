@@ -32,6 +32,7 @@ impl MakeAst for SubExpression {
     let Some(expr) = stream.make_boxed::<Expression>()? else {
       return ExpectedSnafu {
         what: "an expression",
+        span: stream.span()
       }.fail();
     };
 
@@ -40,6 +41,7 @@ impl MakeAst for SubExpression {
     let Some(TokenEnum::Grouping(Grouping::Close(GroupingType::Parenthesis))) = stream.next_variant() else {
       return ExpectedSnafu {
         what: "a closing parenthesis",
+        span: stream.span()
       }.fail();
     };
 

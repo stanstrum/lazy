@@ -67,6 +67,7 @@ impl MakeAst for Block {
       let Some(expr) = stream.make()? else {
         return ExpectedSnafu {
           what: "an expression",
+          span: stream.span()
         }.fail();
       };
 
@@ -88,6 +89,7 @@ impl MakeAst for Block {
       let Some(TokenEnum::Grouping(Grouping::Close(GroupingType::CurlyBrace))) = stream.next_variant() else {
         return ExpectedSnafu {
           what: "a closing curly brace",
+          span: stream.span()
         }.fail();
       };
 

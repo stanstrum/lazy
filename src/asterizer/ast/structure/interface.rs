@@ -84,6 +84,7 @@ impl MakeAst for Interface {
     let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
       return ExpectedSnafu {
         what: "an identifier",
+        span: stream.span()
       }.fail();
     };
 
@@ -94,6 +95,7 @@ impl MakeAst for Interface {
     let Some(TokenEnum::Grouping(Grouping::Open(GroupingType::CurlyBrace))) = stream.next_variant() else {
       return ExpectedSnafu {
         what: "an opening curly brace",
+        span: stream.span()
       }.fail();
     };
 
@@ -114,6 +116,7 @@ impl MakeAst for Interface {
       let Some(child) = stream.make()? else {
         return ExpectedSnafu {
           what: "an interface child",
+          span: stream.span()
         }.fail();
       };
 
@@ -124,6 +127,7 @@ impl MakeAst for Interface {
       let Some(TokenEnum::Punctuation(Punctuation::Semicolon)) = stream.next_variant() else {
         return ExpectedSnafu {
           what: "a semicolon",
+          span: stream.span()
         }.fail();
       };
     };

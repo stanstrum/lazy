@@ -42,6 +42,7 @@ impl MakeAst for Binding {
         let Some(ty) = stream.make()? else {
           return ExpectedSnafu {
             what: "a type",
+            span: stream.span()
           }.fail();
         };
 
@@ -61,6 +62,7 @@ impl MakeAst for Binding {
         let Some(expr) = stream.make()? else {
           return ExpectedSnafu {
             what: "an expression",
+            span: stream.span()
           }.fail();
         };
 

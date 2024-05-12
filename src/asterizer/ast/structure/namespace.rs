@@ -36,6 +36,7 @@ impl MakeAst for Namespace {
     let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
       return ExpectedSnafu {
         what: "an identifier",
+        span: stream.span()
       }.fail();
     };
 
@@ -46,6 +47,7 @@ impl MakeAst for Namespace {
     let Some(TokenEnum::Grouping(Grouping::Open(GroupingType::CurlyBrace))) = stream.next_variant() else {
       return ExpectedSnafu {
         what: "an opening curly brace",
+        span: stream.span()
       }.fail();
     };
 
@@ -62,6 +64,7 @@ impl MakeAst for Namespace {
       let Some(structure) = stream.make::<Structure>()? else {
         return ExpectedSnafu {
           what: "a structure",
+          span: stream.span()
         }.fail();
       };
 
@@ -70,6 +73,7 @@ impl MakeAst for Namespace {
       let Some(TokenEnum::Punctuation(Punctuation::Semicolon)) = stream.next_variant() else {
         return ExpectedSnafu {
           what: "a semicolon",
+          span: stream.span()
         }.fail();
       };
     };

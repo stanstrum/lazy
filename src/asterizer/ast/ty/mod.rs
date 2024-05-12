@@ -69,6 +69,7 @@ impl MakeAst for SizedArrayOf {
     let Some(ty) = stream.make()? else {
       return ExpectedSnafu {
         what: "a type",
+        span: stream.span()
       }.fail();
     };
 
@@ -96,6 +97,7 @@ impl MakeAst for UnsizedArrayOf {
     let Some(ty) = stream.make()? else {
       return ExpectedSnafu {
         what: "a type",
+        span: stream.span()
       }.fail();
     };
 
@@ -116,6 +118,8 @@ impl MakeAst for ImmutableReferenceTo {
     let Some(ty) = stream.make()? else {
       return ExpectedSnafu {
         what: "a type",
+        span: stream.span()
+
       }.fail();
     };
 

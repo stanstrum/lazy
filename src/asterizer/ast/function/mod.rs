@@ -28,7 +28,8 @@ impl MakeAst for Function {
 
     let Some(body) = stream.make()? else {
       return ExpectedSnafu {
-        what: "a block expression"
+        what: "a block expression",
+        span: stream.span()
       }.fail();
     };
 

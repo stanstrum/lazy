@@ -32,6 +32,7 @@ impl MakeAst for GlobalNamespace {
       let Some(struc) = stream.make()? else {
         return ExpectedSnafu {
           what: "a top-level structure",
+          span: stream.span()
         }.fail();
       };
 
@@ -42,6 +43,7 @@ impl MakeAst for GlobalNamespace {
       let Some(TokenEnum::Punctuation(Punctuation::Semicolon)) = stream.next_variant() else {
         return ExpectedSnafu {
           what: "a semicolon",
+          span: stream.span()
         }.fail();
       };
 
@@ -50,7 +52,8 @@ impl MakeAst for GlobalNamespace {
 
     if structures.is_empty() {
       return ExpectedSnafu {
-        what: "a top-level structure"
+        what: "a top-level structure",
+        span: stream.span()
       }.fail();
     };
 

@@ -32,6 +32,7 @@ impl MakeAst for TypeAlias {
     let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
       return ExpectedSnafu {
         what: "an identifier",
+        span: stream.span()
       }.fail();
     };
 
@@ -42,6 +43,7 @@ impl MakeAst for TypeAlias {
     let Some(TokenEnum::Operator(Operator::BindAssign)) = stream.next_variant() else {
       return ExpectedSnafu {
         what: "the binding assignment operator",
+        span: stream.span()
       }.fail();
     };
 
@@ -50,6 +52,7 @@ impl MakeAst for TypeAlias {
     let Some(ty) = stream.make()? else {
       return ExpectedSnafu {
         what: "a type",
+        span: stream.span()
       }.fail();
     };
 

@@ -1,7 +1,7 @@
 use typename::TypeName;
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Span {
   pub start: usize,
   pub end: usize

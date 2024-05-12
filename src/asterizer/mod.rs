@@ -12,7 +12,8 @@ use ast::{
 
 use crate::tokenizer::{
   Token,
-  TokenEnum
+  TokenEnum,
+  Span
 };
 
 pub(crate) struct TokenStream {
@@ -30,6 +31,19 @@ impl TokenStream {
       tokens,
       eof: false
     }
+  }
+
+  pub fn span(&self) -> Span {
+    self.peek()
+      .map(|token| token.span.to_owned())
+      .unwrap_or_else(|| {
+        self.tokens.last()
+          .map(|token| token.span.to_owned())
+          .unwrap_or(Span {
+            start: 0,
+            end: 0
+          })
+      })
   }
 
   pub fn next<'a>(&'a mut self) -> Option<&'a Token> {

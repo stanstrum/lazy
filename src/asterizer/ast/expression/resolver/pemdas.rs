@@ -14,8 +14,6 @@ use crate::asterizer::ast::{
   UnarySuffixOperator,
 };
 
-use crate::asterizer::error::ExpectedSnafu;
-
 use super::{
   ExpressionResolver,
   ExpressionPart

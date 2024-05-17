@@ -1,4 +1,4 @@
-use std::{fs::File, mem::take};
+use std::fs::File;
 
 pub(self) mod tokenizer;
 pub(self) mod asterizer;
@@ -8,8 +8,9 @@ mod debug;
 
 use asterizer::AsterizerError;
 pub(self) use error::CompilationError;
+
 use error::*;
-use tokenizer::{GetSpan, Token};
+use tokenizer::GetSpan;
 
 // TODO: make this more efficient -- this can be called multiple times per
 //       error/warning/note, etc.

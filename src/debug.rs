@@ -1,6 +1,7 @@
 use crate::asterizer::ast::GlobalNamespace;
 use crate::tokenizer::Token;
 
+#[allow(unused)]
 pub(crate) fn tokens(toks: &Vec<Token>) {
   dbg!(toks);
 
@@ -12,6 +13,7 @@ pub(crate) fn tokens(toks: &Vec<Token>) {
   println!("{source}");
 }
 
+#[allow(unused)]
 pub(crate) fn ast(ast: &GlobalNamespace) {
   dbg!(&ast);
 }

@@ -19,6 +19,7 @@ use crate::tokenizer::{
 
 use crate::asterizer::error::ExpectedSnafu;
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Method {
   decl: FunctionDeclaration,
@@ -31,6 +32,7 @@ pub(crate) enum InterfaceChild {
   Method(Method),
 }
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Interface {
   pub name: String,
@@ -101,9 +103,9 @@ impl MakeAst for Interface {
 
     let mut children = vec![];
 
-    println!("A");
+    // println!("A");
     loop {
-      println!("B");
+      // println!("B");
 
       stream.skip_whitespace_and_comments();
 

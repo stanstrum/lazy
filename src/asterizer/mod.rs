@@ -59,7 +59,7 @@ impl TokenStream {
 
     let tok = self.tokens.get(current_position).unwrap();
 
-    dbg!(Some(tok))
+    Some(tok)
   }
 
   pub fn seek(&mut self) {
@@ -126,33 +126,33 @@ impl TokenStream {
 
     self.push_mark();
 
-    let type_name = Ast::type_name();
+    // let type_name = Ast::type_name();
 
-    const PFX: &str = "lazy::asterizer::ast::";
-    let name = if type_name.starts_with(PFX) {
-      type_name.strip_prefix(PFX).unwrap()
-    } else {
-      type_name.as_str()
-    };
+    // const PFX: &str = "lazy::asterizer::ast::";
+    // let name = if type_name.starts_with(PFX) {
+    //   type_name.strip_prefix(PFX).unwrap()
+    // } else {
+    //   type_name.as_str()
+    // };
 
-    println!("make: {name}");
+    // println!("make: {name}");
 
     let result = Ast::make(self);
 
     match &result {
-      Ok(Some(value)) => {
-        println!("make: {name}: success");
-        dbg!(value);
+      Ok(Some(_)) => {
+        // println!("make: {name}: success");
+        // dbg!(value);
 
         self.drop_mark();
       },
       Ok(None) => {
-        println!("make: {name}: none");
+        // println!("make: {name}: none");
 
         self.pop_mark();
       },
-      Err(err) => {
-        println!("make: {name}: error: {err}");
+      Err(_) => {
+        // println!("make: {name}: error: {err}");
 
         // clean up marks in case of error
         loop {
@@ -188,7 +188,7 @@ pub(crate) fn asterize(tokens: Vec<Token>) -> Result<GlobalNamespace, AsterizerE
 
   if stream.remaining() != 0 {
     println!("error: remaining tokens {}/{}", stream.position, stream.tokens.len());
-    dbg!(&stream.tokens[stream.position]);
+    // dbg!(&stream.tokens[stream.position]);
 
     panic!("asterizer did not consume all tokens");
   };

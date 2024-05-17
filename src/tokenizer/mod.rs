@@ -39,7 +39,7 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
       });
     };
 
-    print!("{}", ch);
+    // print!("{}", ch);
 
     loop {
       match (&mut state, ch) {

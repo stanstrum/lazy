@@ -25,8 +25,6 @@ pub(crate) struct FunctionDeclaration {
 
 impl MakeAst for FunctionDeclaration {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    println!("FunctionDecl::make");
-
     let Some(Token {
       token: TokenEnum::Identifier(ident),
       span: _span

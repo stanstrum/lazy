@@ -135,8 +135,9 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
   let tokens = tokenizer::tokenize(&mut reader)?;
   let source = tokenizer::stringify(&tokens);
 
-  debug::tokens(&tokens);
+  // debug::tokens(&tokens);
 
+  #[allow(unused_variables)]
   let ast = {
     match asterizer::asterize(tokens) {
       Ok(ast) => ast,
@@ -147,7 +148,8 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
       },
     }
   };
-  debug::ast(&ast);
+
+  // debug::ast(&ast);
 
   Ok(())
 }

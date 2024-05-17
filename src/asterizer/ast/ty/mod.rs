@@ -119,7 +119,6 @@ impl MakeAst for ImmutableReferenceTo {
       return ExpectedSnafu {
         what: "a type",
         span: stream.span()
-
       }.fail();
     };
 

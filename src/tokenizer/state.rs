@@ -12,7 +12,7 @@ pub(super) enum NumericType {
 pub(super) enum StringType {
   Unicode, // 32bit unicode, length-prefixed -- default type
   C, // 7-bit ASCII, null-terminated (c"hello, world")
-  Bytes, // 7-bit ASCII, not null-terminated (b"hello, world")
+  Bytes, // 7-bit ASCII/raw bytes, not null-terminated (b"hello, world")
 }
 
 #[derive(Debug)]

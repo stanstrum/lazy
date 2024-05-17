@@ -7,6 +7,10 @@ pub(crate) struct Span {
   pub end: usize
 }
 
+pub(crate) trait GetSpan<'a> {
+  fn get_span(&'a self) -> &'a Span;
+}
+
 #[derive(Debug)]
 pub(crate) enum Operator {
   BindAssign,

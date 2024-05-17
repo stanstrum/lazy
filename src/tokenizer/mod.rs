@@ -12,6 +12,16 @@ use state::*;
 pub(crate) use structs::*;
 pub(crate) use error::TokenizationError;
 
+pub(crate) fn stringify(tokens: &Vec<Token>) -> String {
+  let mut source = String::new();
+
+  for token in tokens.iter() {
+    source += token.to_string().as_str();
+  };
+
+  source
+}
+
 pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, TokenizationError> {
   let mut state = State::Base;
   let mut toks: Vec<Token> = vec![];

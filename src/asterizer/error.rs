@@ -2,7 +2,10 @@ use snafu::prelude::*;
 
 use crate::CompilationError;
 
-use crate::tokenizer::Span;
+use crate::tokenizer::{
+  Span,
+  GetSpan
+};
 
 #[derive(Snafu, Debug)]
 #[snafu(visibility(pub(crate)))]
@@ -12,6 +15,15 @@ pub(crate) enum AsterizerError {
 
   #[snafu(display("Expected {what}"))]
   Expected { what: String, span: Span }
+}
+
+impl<'a> GetSpan<'a> for AsterizerError {
+  fn get_span(&'a self) -> &'a Span {
+    match &self {
+      AsterizerError::NotImplemented { span, .. } => span,
+      AsterizerError::Expected { span, .. } => span,
+    }
+  }
 }
 
 impl From<AsterizerError> for CompilationError {

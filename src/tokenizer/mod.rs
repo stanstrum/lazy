@@ -23,6 +23,10 @@ pub(crate) fn stringify(tokens: &[Token]) -> String {
     source += token.to_string().as_str();
   };
 
+  // Fixes some odd issues later on by preventing the error reporter
+  // from breaking if the source doesn't end on a newline.  :shrug:
+  source.push('\n');
+
   source
 }
 
@@ -444,8 +448,11 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
         (State::Invalid { start, content }, '\n') => {
           add_tok(start, TokenEnum::Invalid(content.to_owned()));
 
+          let span = toks.last().unwrap().span.to_owned();
+
           return InvalidSourceSnafu {
             parsed: toks,
+            span
           }.fail();
         },
         (State::Invalid { content, .. }, _) => {
@@ -471,7 +478,7 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
   // we have to check it.  Unfortunately, the `add_tok` closure borrows `toks` and we
   // can't append a slightly different Span manually, so here we are.
   for token in toks.iter_mut() {
-    if !matches!(token.token, TokenEnum::Keyword(_)) {
+    if !matches!(token.token, TokenEnum::Keyword(_) | TokenEnum::Invalid(_)) {
       continue;
     };
 

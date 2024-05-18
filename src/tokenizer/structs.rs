@@ -7,7 +7,7 @@ pub(crate) struct Span {
   pub end: usize
 }
 
-pub(crate) trait GetSpan<'a> {
+pub(crate) trait GetSpan {
   fn get_span(&self) -> &Span;
 }
 

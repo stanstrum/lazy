@@ -9,6 +9,7 @@ mod colors;
 
 use error::CompilationError;
 use error::*;
+use tokenizer::TokenizationError;
 
 fn compile(args: Vec<String>) -> Result<(), CompilationError> {
   let Some(input_file_path) = args.get(1) else {
@@ -26,7 +27,25 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
 
   let mut reader = utf8_read::Reader::new(input_file);
 
-  let tokens = tokenizer::tokenize(&mut reader)?;
+  let tokens = match tokenizer::tokenize(&mut reader) {
+    Ok(tokens) => tokens,
+    Err(error) if matches!(error, TokenizationError::InvalidSource { .. }) => {
+      let TokenizationError::InvalidSource { parsed, .. } = &error else {
+        unreachable!();
+      };
+
+      let source = tokenizer::stringify(&parsed);
+      let color_stream = tokenizer::create_color_stream(&parsed);
+
+      pretty_print_error(&error, source, color_stream);
+
+      return Err(error.into());
+    },
+    Err(error) => {
+      return Err(error.into());
+    },
+  };
+
   let source = tokenizer::stringify(&tokens);
   let color_stream = tokenizer::create_color_stream(&tokens);
 

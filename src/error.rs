@@ -53,8 +53,13 @@ pub(super) fn pretty_print_error<'a, T>(error: &'a T, source: String)
     focus_end += 1;
   };
 
-  focus_start += 1;
-  focus_end -= 1;
+  if source.chars().nth(focus_start).unwrap() == '\n' {
+    focus_start += 1;
+  };
+
+  if source.chars().nth(focus_end).unwrap() == '\n' {
+    focus_end -= 1;
+  };
 
   let focus_start_line_number = get_line_number(&source, focus_start);
   let focus_end_line_number = get_line_number(&source, focus_end);

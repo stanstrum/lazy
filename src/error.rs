@@ -60,7 +60,9 @@ pub(super) fn pretty_print_error<'a, T>(error: &'a T, source: String, mut color_
 
   if focus_end >= source.len() {
     focus_end = source.len() - 1;
-  } else if source.chars().nth(focus_end).unwrap() == '\n' {
+  };
+
+  while matches!(source.chars().nth(focus_end).unwrap(), '\n' | '\t' | ' ') {
     focus_end -= 1;
   };
 
@@ -124,16 +126,22 @@ pub(super) fn pretty_print_error<'a, T>(error: &'a T, source: String, mut color_
     if should_do_squiggles {
       print!(" {empty_line_number} {divider} {}", Color::LightGrey.to_string());
 
+      let mut has_printed_squiggle = false;
       let mut should_stop_squiggles = false;
       for col in (line_start..).take(line_length) {
         if col >= span.start && !should_stop_squiggles {
-          print!("^");
-
           if col == span.end {
             should_stop_squiggles = true;
 
+            if !has_printed_squiggle {
+              print!("^");
+            };
+
             break;
           };
+
+          print!("^");
+          has_printed_squiggle = true;
         } else {
           print!(" ");
         };

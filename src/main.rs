@@ -58,7 +58,6 @@ fn pretty_print_error(error: &AsterizerError, source: String) {
   for line_number in focus_start_line_number..=focus_end_line_number {
     print!(" {line_number: >line_number_max_digits$} | ");
 
-    let mut did_newline = false;
     let mut should_do_squiggles = false;
 
     let line_start = index;
@@ -73,18 +72,14 @@ fn pretty_print_error(error: &AsterizerError, source: String) {
         continue;
       };
 
-      print!("{ch}");
-
       if ch == '\n' {
-        did_newline = true;
-
         break;
       };
+
+      print!("{ch}");
     };
 
-    if !did_newline {
-      println!();
-    };
+    println!();
 
     let line_length = index - line_start;
 

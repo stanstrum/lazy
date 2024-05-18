@@ -14,6 +14,8 @@ pub(crate) use error::TokenizationError;
 
 use crate::colors::Color;
 
+use self::error::InvalidSourceSnafu;
+
 pub(crate) fn stringify(tokens: &[Token]) -> String {
   let mut source = String::new();
 
@@ -178,7 +180,7 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           state = State::Base;
           continue;
         },
-        (State::Base, '!' | '%' | '^' | '&' | '*' | '-' | '+' | '=' | '<' | '>' | '|' | ':' | '.' | '?') => {
+        (State::Base, '!' | '%' | '^' | '&' | '*' | '-' | '+' | '=' | /* '<' | '>' | '|' | */ ':' | '.' | '?') => {
           state = State::Operator {
             start: i,
             content: String::from(ch)
@@ -296,6 +298,14 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
         },
         (State::Operator { start, content }, _) if content == "&" => {
           let tok = TokenEnum::Operator(Operator::SingleAnd);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
+        (State::Operator { start, content }, _) if content == "%" => {
+          let tok = TokenEnum::Operator(Operator::Modulo);
 
           add_tok(start, tok);
 
@@ -424,6 +434,21 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           state = State::Base;
         },
         (State::StringLiteral { content, .. }, _) => {
+          content.push(ch);
+        },
+        (State::Base, _) => {
+          state = State::Invalid { start: i, content: String::new() };
+
+          continue;
+        },
+        (State::Invalid { start, content }, '\n') => {
+          add_tok(start, TokenEnum::Invalid(content.to_owned()));
+
+          return InvalidSourceSnafu {
+            parsed: toks,
+          }.fail();
+        },
+        (State::Invalid { content, .. }, _) => {
           content.push(ch);
         },
         _ => {

@@ -1,11 +1,13 @@
 use snafu::prelude::*;
 
 use crate::CompilationError;
+use super::Token;
 
 #[derive(Snafu, Debug)]
 #[snafu(visibility(pub(crate)))]
 pub(crate) enum TokenizationError {
-  IOError { error: utf8_read::Error }
+  IOError { error: utf8_read::Error },
+  InvalidSource { parsed: Vec<Token> }
 }
 
 impl From<utf8_read::Error> for TokenizationError {

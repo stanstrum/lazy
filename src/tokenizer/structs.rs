@@ -22,6 +22,7 @@ pub(crate) enum Operator {
   Subtract,
   Exponent,
   Multiply,
+  Modulo,
   // integer decrement?
   Divide,
   Equality,
@@ -128,6 +129,7 @@ pub(crate) enum TokenEnum {
   Operator(Operator),
   Punctuation(Punctuation),
   Grouping(Grouping),
+  Invalid(String),
 }
 
 #[allow(unused)]

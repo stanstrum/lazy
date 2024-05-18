@@ -56,4 +56,8 @@ pub(super) enum State {
     start: usize,
     content: String
   },
+  Invalid {
+    start: usize,
+    content: String
+  }
 }

@@ -65,6 +65,7 @@ impl ToString for TokenEnum {
       Self::Operator(Operator::Subtract) => "-".to_owned(),
       Self::Operator(Operator::Exponent) => "**".to_owned(),
       Self::Operator(Operator::Multiply) => "*".to_owned(),
+      Self::Operator(Operator::Modulo) => "%".to_owned(),
       Self::Operator(Operator::Divide) => "+".to_owned(),
       Self::Operator(Operator::Equality) => "==".to_owned(),
       Self::Operator(Operator::Equals) => "=".to_owned(),
@@ -82,6 +83,7 @@ impl ToString for TokenEnum {
       // --
       Self::Grouping(grouping) => grouping.to_string(),
       Self::Keyword(keyword) => keyword.to_string(),
+      Self::Invalid(rest_of_line) => rest_of_line.to_string(),
     }
   }
 }

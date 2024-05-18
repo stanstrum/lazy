@@ -12,6 +12,8 @@ use state::*;
 pub(crate) use structs::*;
 pub(crate) use error::TokenizationError;
 
+use crate::colors::Color;
+
 pub(crate) fn stringify(tokens: &[Token]) -> String {
   let mut source = String::new();
 
@@ -20,6 +22,35 @@ pub(crate) fn stringify(tokens: &[Token]) -> String {
   };
 
   source
+}
+
+pub(crate) fn create_color_stream(tokens: &[Token]) -> Vec<(usize, Color)> {
+  let mut color_stream = vec![];
+
+  for token in tokens {
+    let color = {
+      match &token.token {
+        TokenEnum::Comment { .. } => Color::DarkGrey,
+        TokenEnum::Literal(_) => Color::Mint,
+        TokenEnum::Keyword(_) => Color::LightRed,
+        TokenEnum::Identifier(_) => Color::LightBlue,
+        TokenEnum::Operator(_) => Color::LightBlue,
+        _ => continue
+      }
+    };
+
+    let start = token.span.start;
+
+    if let Some((last_start, _)) = color_stream.last() {
+      if start == *last_start {
+        color_stream.pop();
+      };
+    };
+
+    color_stream.push((token.span.start, color));
+  };
+
+  color_stream
 }
 
 pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, TokenizationError> {

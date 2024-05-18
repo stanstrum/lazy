@@ -1,6 +1,7 @@
 use snafu::prelude::*;
 
 use crate::asterizer::AsterizerError;
+use crate::colors::Color;
 use crate::tokenizer::{
   TokenizationError,
   GetSpan
@@ -37,7 +38,7 @@ fn get_line_number(source: &str, index: usize) -> usize {
   line_number
 }
 
-pub(super) fn pretty_print_error<'a, T>(error: &'a T, source: String)
+pub(super) fn pretty_print_error<'a, T>(error: &'a T, source: String, mut color_stream: Vec<(usize, Color)>)
   where T: GetSpan<'a> + std::fmt::Display
 {
   let span = error.get_span();
@@ -93,10 +94,26 @@ pub(super) fn pretty_print_error<'a, T>(error: &'a T, source: String)
         break;
       };
 
+      // TODO: This feels very sloppy -- we have to do this because
+      //       there may be colors in the stream that occur *before*
+      //       the focus source appears, meaning we have to get rid of
+      //       those first using the while loop.  Unfortunately this
+      //       implementation also prints out extraneous control codes
+      //       as a result.
+      while let Some((color_start, color)) = color_stream.first() {
+        if index < *color_start {
+          break;
+        };
+
+        print!("{}{}", Color::Clear.to_string(), color.to_string());
+
+        color_stream.remove(0);
+      };
+
       print!("{ch}");
     };
 
-    println!();
+    println!("{}", Color::Clear.to_string());
 
     let line_length = index - line_start;
 

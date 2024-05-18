@@ -28,6 +28,7 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
 
   let tokens = tokenizer::tokenize(&mut reader)?;
   let source = tokenizer::stringify(&tokens);
+  let color_stream = tokenizer::create_color_stream(&tokens);
 
   // debug::tokens(&tokens);
 
@@ -36,7 +37,7 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
     match asterizer::asterize(tokens) {
       Ok(ast) => ast,
       Err(error) => {
-        pretty_print_error(&error, source);
+        pretty_print_error(&error, source, color_stream);
 
         return AsterizationSnafu { error }.fail();
       },

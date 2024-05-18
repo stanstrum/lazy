@@ -33,18 +33,11 @@ pub(crate) fn create_color_stream(tokens: &[Token]) -> Vec<(usize, Color)> {
         TokenEnum::Comment { .. } => Color::DarkGrey,
         TokenEnum::Literal(_) => Color::Mint,
         TokenEnum::Keyword(_) => Color::LightRed,
-        TokenEnum::Identifier(_) => Color::LightBlue,
+        TokenEnum::Identifier(_) => Color::Creme,
+        TokenEnum::Operator(Operator::Separator) => Color::Creme,
         TokenEnum::Operator(_) => Color::LightBlue,
-        _ => continue
+        _ => Color::Clear
       }
-    };
-
-    let start = token.span.start;
-
-    if let Some((last_start, _)) = color_stream.last() {
-      if start == *last_start {
-        color_stream.pop();
-      };
     };
 
     color_stream.push((token.span.start, color));
@@ -453,11 +446,11 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
   // we have to check it.  Unfortunately, the `add_tok` closure borrows `toks` and we
   // can't append a slightly different Span manually, so here we are.
   for token in toks.iter_mut() {
-    let Token { token: TokenEnum::Keyword(_), span } = token else {
+    if !matches!(token.token, TokenEnum::Keyword(_)) {
       continue;
     };
 
-    span.end -= 1;
+    token.span.end -= 1;
   };
 
   Ok(toks)

@@ -69,12 +69,14 @@ pub(super) fn pretty_print_error<'a, T>(error: &'a T, source: String, mut color_
 
   let empty_line_number = " ".repeat(line_number_max_digits);
 
-  println!(" {empty_line_number} | Error: {error}", );
-  println!(" {empty_line_number} |");
+  let divider = format!("{}|{}", Color::Creme.to_string(), Color::Clear.to_string());
+
+  println!(" {empty_line_number} {divider} {}error{}: {error}", Color::Red.to_string(), Color::Clear.to_string());
+  println!(" {empty_line_number} {divider}");
 
   let mut index = focus_start;
   for line_number in focus_start_line_number..=focus_end_line_number {
-    print!(" {line_number: >line_number_max_digits$} | ");
+    print!(" {}{line_number: >line_number_max_digits$}{} {divider} ", Color::Creme.to_string(), Color::Clear.to_string());
 
     let mut should_do_squiggles = false;
 
@@ -101,7 +103,7 @@ pub(super) fn pretty_print_error<'a, T>(error: &'a T, source: String, mut color_
       //       implementation also prints out extraneous control codes
       //       as a result.
       while let Some((color_start, color)) = color_stream.first() {
-        if index < *color_start {
+        if index <= *color_start {
           break;
         };
 
@@ -118,7 +120,7 @@ pub(super) fn pretty_print_error<'a, T>(error: &'a T, source: String, mut color_
     let line_length = index - line_start;
 
     if should_do_squiggles {
-      print!(" {empty_line_number} | ");
+      print!(" {empty_line_number} {divider} {}", Color::LightGrey.to_string());
 
       let mut should_stop_squiggles = false;
       for col in (line_start..).take(line_length) {
@@ -139,9 +141,9 @@ pub(super) fn pretty_print_error<'a, T>(error: &'a T, source: String, mut color_
         print!(" here");
       };
 
-      println!();
+      println!("{}", Color::Clear.to_string());
     };
   };
 
-  println!(" {empty_line_number} |");
+  println!(" {empty_line_number} {divider}");
 }

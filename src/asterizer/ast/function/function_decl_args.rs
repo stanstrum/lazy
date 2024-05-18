@@ -63,7 +63,10 @@ impl MakeAst for FunctionDeclarationArguments {
       stream.skip_whitespace_and_comments();
 
       let Some(arg) = stream.make()? else {
-        break;
+        return ExpectedSnafu {
+          what: "a function declaration argument",
+          span: stream.span(),
+        }.fail();
       };
 
       args.push(arg);

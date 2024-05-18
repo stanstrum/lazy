@@ -18,6 +18,7 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
     }.fail();
   };
 
+  // TODO: for some reason, this doesn't error when opening a directory :/
   let input_file = match File::open(input_file_path) {
     Ok(file) => file,
     Err(error) => {
@@ -79,13 +80,10 @@ fn main() {
       CompilationError::InputFile { .. } => {
         eprintln!("Input file error: {error}");
       },
-      CompilationError::Tokenization { .. } => {
-        eprintln!("Tokenization error: {error}");
-      },
-      CompilationError::Asterization { .. } => {
-        eprintln!("Asterization error: {error}");
-      }
+      _ => {}
     };
+
+    std::process::exit(1);
   };
 }
 

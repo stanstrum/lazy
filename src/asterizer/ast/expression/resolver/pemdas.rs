@@ -156,7 +156,7 @@ impl ExpressionResolver<'_> {
 
     let len = self.parts.len();
     if len != 1 {
-      dbg!(&self.parts);
+      // dbg!(&self.parts);
 
       panic!("pemdas failed: {len} parts");
     };

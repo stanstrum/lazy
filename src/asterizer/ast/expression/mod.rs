@@ -83,7 +83,7 @@ impl MakeAst for Expression {
       resolver.stream.skip_whitespace_and_comments();
 
       if resolver.make_binary_part()?.is_none() {
-        dbg!(&resolver.parts);
+        // dbg!(&resolver.parts);
 
         return ExpectedSnafu {
           what: "an expression",
@@ -92,7 +92,7 @@ impl MakeAst for Expression {
       };
     };
 
-    dbg!(&resolver.parts);
+    // dbg!(&resolver.parts);
 
     let combined_expr = resolver.resolve()?;
 

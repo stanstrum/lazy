@@ -63,7 +63,7 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
     }
   };
 
-  debug::ast(&ast);
+  // debug::ast(&ast);
 
   Ok(())
 }

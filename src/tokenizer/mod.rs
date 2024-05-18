@@ -472,18 +472,5 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
     };
   };
 
-  // Quick hack to fix some spans being too long due to borrower checker finnickiness
-  // -- this makes error printing a touch cleaner.  Note that the source of this problem
-  // is that we use `add_tok` in the character *after* a, say, keyword is parsed because
-  // we have to check it.  Unfortunately, the `add_tok` closure borrows `toks` and we
-  // can't append a slightly different Span manually, so here we are.
-  for token in toks.iter_mut() {
-    if !matches!(token.token, TokenEnum::Keyword(_) | TokenEnum::Invalid(_)) {
-      continue;
-    };
-
-    token.span.end -= 1;
-  };
-
   Ok(toks)
 }

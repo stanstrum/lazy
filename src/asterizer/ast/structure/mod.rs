@@ -1,6 +1,7 @@
 import_export!(namespace);
 import_export!(type_alias);
 import_export!(r#interface);
+import_export!(r#struct);
 
 use typename::TypeName;
 
@@ -17,6 +18,7 @@ pub(crate) enum Structure {
   Function(Function),
   TypeAlias(TypeAlias),
   Interface(Interface),
+  Struct(Struct)
 }
 
 impl Structure {
@@ -26,6 +28,7 @@ impl Structure {
       Self::Function(func) => func.decl.name.to_owned(),
       Self::TypeAlias(alias) => alias.name.to_owned(),
       Self::Interface(r#interface) => r#interface.name.to_owned(),
+      Self::Struct(r#struct) => r#struct.name.to_owned(),
     }
   }
 }
@@ -41,6 +44,8 @@ impl MakeAst for Structure {
         Some(Self::TypeAlias(alias))
       } else if let Some(alias) = stream.make()? {
         Some(Self::Interface(alias))
+      } else if let Some(r#struct) = stream.make()? {
+        Some(Self::Struct(r#struct))
       } else {
         None
       }

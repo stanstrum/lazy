@@ -37,7 +37,9 @@ fn get_line_number(source: &String, index: usize) -> usize {
   return line_number;
 }
 
-pub(super) fn pretty_print_error(error: &AsterizerError, source: String) {
+pub(super) fn pretty_print_error<'a, T>(error: &'a T, source: String)
+  where T: GetSpan<'a> + std::fmt::Display
+{
   let span = error.get_span();
 
   let mut focus_start = span.start;

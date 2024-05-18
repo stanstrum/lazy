@@ -55,10 +55,10 @@ impl MakeAst for StructMember {
       }.fail();
     };
 
-    return Ok(Some(Self {
+    Ok(Some(Self {
       name,
       ty
-    }));
+    }))
   }
 }
 

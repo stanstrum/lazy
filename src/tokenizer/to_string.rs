@@ -15,7 +15,7 @@ impl ToString for Token {
   }
 }
 
-fn escape_string(original: &String, prefix: Option<char>) -> String {
+fn escape_string(original: &str, prefix: Option<char>) -> String {
   let mut escaped = String::new();
 
   if let Some(prefix) = prefix {

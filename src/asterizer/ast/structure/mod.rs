@@ -35,6 +35,7 @@ impl Structure {
 
 impl MakeAst for Structure {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    #[allow(clippy::manual_map)]
     Ok({
       if let Some(ns) = stream.make()? {
         Some(Self::Namespace(ns))

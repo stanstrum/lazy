@@ -142,6 +142,7 @@ impl MakeAst for NamedType {
 
 impl MakeAst for Type {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    #[allow(clippy::manual_map)]
     Ok({
       if let Some(named) = stream.make()? {
         Some(Self::Named(named))

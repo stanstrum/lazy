@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! import_export {
   ($name:ident) => {
-    pub(self) mod $name;
+    mod $name;
     #[allow(unused)]
     pub(crate) use $name::*;
   };

@@ -34,6 +34,7 @@ pub(crate) struct Block {
 
 impl MakeAst for BlockChild {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    #[allow(clippy::manual_map)]
     Ok({
       if let Some(binding) = stream.make()? {
         Some(Self::Binding(binding))

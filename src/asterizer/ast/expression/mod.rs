@@ -36,6 +36,7 @@ pub(super) enum NonOperatorExpression {
 
 impl MakeAst for NonOperatorExpression {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    #[allow(clippy::manual_map)]
     Ok({
       if let Some(block) = stream.make()? {
         Some(Self::Block(block))

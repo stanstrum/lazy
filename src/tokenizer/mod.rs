@@ -12,7 +12,7 @@ use state::*;
 pub(crate) use structs::*;
 pub(crate) use error::TokenizationError;
 
-pub(crate) fn stringify(tokens: &Vec<Token>) -> String {
+pub(crate) fn stringify(tokens: &[Token]) -> String {
   let mut source = String::new();
 
   for token in tokens.iter() {

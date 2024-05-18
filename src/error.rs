@@ -24,7 +24,7 @@ pub(crate) enum CompilationError {
 
 // TODO: make this more efficient -- this can be called multiple times per
 //       error/warning/note, etc.
-fn get_line_number(source: &String, index: usize) -> usize {
+fn get_line_number(source: &str, index: usize) -> usize {
   // We humans start counting at one
   let mut line_number = 1;
 
@@ -34,7 +34,7 @@ fn get_line_number(source: &String, index: usize) -> usize {
     };
   };
 
-  return line_number;
+  line_number
 }
 
 pub(super) fn pretty_print_error<'a, T>(error: &'a T, source: String)
@@ -61,7 +61,7 @@ pub(super) fn pretty_print_error<'a, T>(error: &'a T, source: String)
 
   let line_number_max_digits = ((focus_end_line_number as f32).log10() + 1f32).floor() as usize;
 
-  let empty_line_number = format!("{}", " ".repeat(line_number_max_digits));
+  let empty_line_number = " ".repeat(line_number_max_digits);
 
   println!(" {empty_line_number} | Error: {error}", );
   println!(" {empty_line_number} |");

@@ -8,7 +8,7 @@ pub(crate) struct Span {
 }
 
 pub(crate) trait GetSpan<'a> {
-  fn get_span(&'a self) -> &'a Span;
+  fn get_span(&self) -> &Span;
 }
 
 #[derive(Debug)]
@@ -186,7 +186,7 @@ impl TryFrom<char> for Grouping {
 }
 
 impl Token {
-  pub fn variant<'a>(&'a self) -> &'a TokenEnum {
+  pub fn variant(&self) -> &TokenEnum {
     &self.token
   }
 }

@@ -46,7 +46,7 @@ impl TokenStream {
       })
   }
 
-  pub fn next<'a>(&'a mut self) -> Option<&'a Token> {
+  pub fn next(&mut self) -> Option<&Token> {
     if self.position >= self.tokens.len() {
       return None;
     };
@@ -70,7 +70,7 @@ impl TokenStream {
     };
   }
 
-  pub fn next_variant<'a>(&'a mut self) -> Option<&'a TokenEnum> {
+  pub fn next_variant(&mut self) -> Option<&TokenEnum> {
     self.next().map(Token::variant)
   }
 
@@ -94,7 +94,7 @@ impl TokenStream {
     self.marks.len()
   }
 
-  pub fn peek<'a>(&'a self) -> Option<&'a Token> {
+  pub fn peek(&self) -> Option<&Token> {
     if !self.eof {
       self.tokens.get(self.position)
     } else {
@@ -102,19 +102,14 @@ impl TokenStream {
     }
   }
 
-  pub fn peek_variant<'a>(&'a self) -> Option<&'a TokenEnum> {
+  pub fn peek_variant(&self) -> Option<&TokenEnum> {
     self.peek().map(Token::variant)
   }
 
   pub fn skip_whitespace_and_comments(&mut self) {
-    loop {
-      match self.peek_variant() {
-        Some(TokenEnum::Comment { .. } | TokenEnum::Whitespace(..)) => {
-          self.seek();
-        },
-        _ => break
-      };
-    }
+    while let Some(TokenEnum::Comment { .. } | TokenEnum::Whitespace(..)) = self.peek_variant() {
+      self.seek();
+    };
   }
 
   pub fn remaining(&self) -> usize {

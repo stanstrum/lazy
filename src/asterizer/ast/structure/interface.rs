@@ -41,6 +41,7 @@ pub(crate) struct Interface {
 
 impl MakeAst for InterfaceChild {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    #[allow(clippy::manual_map)]
     Ok({
       if let Some(alias) = stream.make()? {
         Some(Self::TypeAlias(alias))

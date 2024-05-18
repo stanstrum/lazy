@@ -18,7 +18,7 @@ pub(crate) enum AsterizerError {
 }
 
 impl<'a> GetSpan<'a> for AsterizerError {
-  fn get_span(&'a self) -> &'a Span {
+  fn get_span(&self) -> &Span {
     match &self {
       AsterizerError::NotImplemented { span, .. } => span,
       AsterizerError::Expected { span, .. } => span,

@@ -1,12 +1,12 @@
 use std::fs::File;
 
-pub(self) mod tokenizer;
-pub(self) mod asterizer;
-pub(self) mod error;
+mod tokenizer;
+mod asterizer;
+mod error;
 
 mod debug;
 
-pub(self) use error::CompilationError;
+use error::CompilationError;
 use error::*;
 
 fn compile(args: Vec<String>) -> Result<(), CompilationError> {

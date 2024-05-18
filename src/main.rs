@@ -104,7 +104,7 @@ mod tests {
   compile_snippet!(extended_operators, "04_extended_operators");
   // compile_snippet!(counter_ns, "05_counter_ns");
   compile_snippet!(type_alias, "06_type_alias");
-  // compile_snippet!(struct_stuff, "07_struct_stuff");
+  compile_snippet!(struct_stuff, "07_struct_stuff");
   compile_snippet!(codegen, "08_codegen");
   // compile_snippet!(r#extern, "09_extern");
   // compile_snippet!(read_source, "10_read_source");

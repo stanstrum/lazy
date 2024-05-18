@@ -56,6 +56,14 @@ mod keywords {
   pub(super) const NAMESPACE: &str = "namespace";
   pub(super) const IMPL: &str = "impl";
   pub(super) const EXTERN: &str = "extern";
+  pub(super) const WHILE: &str = "while";
+  pub(super) const FOR: &str = "for";
+  pub(super) const IF: &str = "if";
+  pub(super) const DO: &str = "do";
+  pub(super) const LOOP: &str = "loop";
+  pub(super) const UNTIL: &str = "until";
+  pub(super) const BREAK: &str = "break";
+  pub(super) const CONTINUE: &str = "continue";
 }
 
 #[derive(Debug)]
@@ -70,6 +78,14 @@ pub(crate) enum Keyword {
   Namespace,
   Impl,
   Extern,
+  While,
+  For,
+  If,
+  Do,
+  Loop,
+  Until,
+  Break,
+  Continue,
 }
 
 impl std::string::ToString for Keyword {
@@ -85,6 +101,14 @@ impl std::string::ToString for Keyword {
       Self::Namespace => keywords::NAMESPACE,
       Self::Impl => keywords::IMPL,
       Self::Extern => keywords::EXTERN,
+      Self::While => keywords::WHILE,
+      Self::For => keywords::FOR,
+      Self::If => keywords::IF,
+      Self::Do => keywords::DO,
+      Self::Loop => keywords::LOOP,
+      Self::Until => keywords::UNTIL,
+      Self::Break => keywords::BREAK,
+      Self::Continue => keywords::CONTINUE,
     }.to_string()
   }
 }
@@ -104,6 +128,14 @@ impl TryFrom<&String> for Keyword {
       keywords::NAMESPACE => Ok(Self::Namespace),
       keywords::IMPL => Ok(Self::Impl),
       keywords::EXTERN => Ok(Self::Extern),
+      keywords::WHILE => Ok(Self::While),
+      keywords::FOR => Ok(Self::For),
+      keywords::IF => Ok(Self::If),
+      keywords::DO => Ok(Self::Do),
+      keywords::LOOP => Ok(Self::Loop),
+      keywords::UNTIL => Ok(Self::Until),
+      keywords::BREAK => Ok(Self::Break),
+      keywords::CONTINUE => Ok(Self::Continue),
       _ => Err(())
     }
   }

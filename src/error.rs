@@ -49,7 +49,7 @@ pub(super) fn pretty_print_error<'a, T>(error: &'a T, source: String)
     focus_start -= 1;
   };
 
-  while focus_end < (source.len() - 1) && source.chars().nth(focus_end).unwrap() != '\n' {
+  while focus_end < source.len() && source.chars().nth(focus_end).unwrap() != '\n' {
     focus_end += 1;
   };
 
@@ -101,13 +101,13 @@ pub(super) fn pretty_print_error<'a, T>(error: &'a T, source: String)
       let mut should_stop_squiggles = false;
       for col in (line_start..).take(line_length) {
         if col >= span.start && !should_stop_squiggles {
+          print!("^");
+
           if col == span.end {
             should_stop_squiggles = true;
 
             break;
           };
-
-          print!("^");
         } else {
           print!(" ");
         };

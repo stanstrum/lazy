@@ -7,6 +7,7 @@ use crate::asterizer::ast::{
   Structure,
 };
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) enum TopLevelStructure {
   // import, export, etc.

@@ -13,6 +13,13 @@ use crate::asterizer::ast::{
   Function,
 };
 
+use crate::tokenizer::{
+  TokenEnum,
+  Keyword,
+};
+
+use crate::asterizer::error::ExpectedSnafu;
+
 #[derive(Debug, TypeName)]
 pub(crate) enum Structure {
   Namespace(Namespace),
@@ -21,6 +28,33 @@ pub(crate) enum Structure {
   Interface(Interface),
   Struct(Struct),
   Extern(Extern),
+  Exported(Exported),
+}
+
+#[derive(Debug, TypeName)]
+pub(crate) struct Exported {
+  pub(crate) structure: Box<Structure>
+}
+
+impl MakeAst for Exported {
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let Some(TokenEnum::Keyword(Keyword::Export)) = stream.next_variant() else {
+      return Ok(None);
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(structure) = stream.make()? else {
+      return ExpectedSnafu {
+        what: "a structure",
+        span: stream.span(),
+      }.fail();
+    };
+
+    let structure = Box::new(structure);
+
+    Ok(Some(Self { structure }))
+  }
 }
 
 impl Structure {
@@ -32,6 +66,7 @@ impl Structure {
       Self::Interface(r#interface) => r#interface.name.to_owned(),
       Self::Struct(r#struct) => r#struct.name.to_owned(),
       Self::Extern(r#extern) => r#extern.decl.name.to_owned(),
+      Self::Exported(r#exported) => r#exported.structure.name(),
     }
   }
 }
@@ -52,6 +87,8 @@ impl MakeAst for Structure {
         Some(Self::Struct(r#struct))
       } else if let Some(r#extern) = stream.make()? {
         Some(Self::Extern(r#extern))
+      } else if let Some(exported) = stream.make()? {
+        Some(Self::Exported(exported))
       } else {
         None
       }

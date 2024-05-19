@@ -75,6 +75,17 @@ impl MakeAst for FunctionDeclarationArguments {
 
       if let Some(TokenEnum::Punctuation(Punctuation::Comma)) = stream.peek_variant() {
         stream.seek();
+
+        stream.push_mark();
+        stream.skip_whitespace_and_comments();
+
+        if let Some(TokenEnum::Punctuation(Punctuation::VariadicEllipsis)) = dbg!(stream.peek_variant()) {
+          stream.pop_mark();
+
+          break;
+        } else {
+          stream.drop_mark();
+        };
       } else {
         break;
       };

@@ -10,13 +10,16 @@ use crate::asterizer::ast::{
 use crate::tokenizer::{
   TokenEnum,
   Keyword,
+  Punctuation,
 };
 
 use crate::asterizer::error::ExpectedSnafu;
 
 #[derive(Debug, TypeName)]
 pub(crate) struct Extern {
-  pub(crate) decl: FunctionDeclaration
+  pub(crate) decl: FunctionDeclaration,
+  #[allow(unused)]
+  pub(crate) c_variadic: bool,
 }
 
 impl MakeAst for Extern {
@@ -34,6 +37,22 @@ impl MakeAst for Extern {
       }.fail();
     };
 
-    Ok(Some(Self { decl }))
+    stream.push_mark();
+
+    stream.skip_whitespace_and_comments();
+
+    let c_variadic = {
+      if let Some(TokenEnum::Punctuation(Punctuation::VariadicEllipsis)) = dbg!(stream.next_variant()) {
+        stream.drop_mark();
+
+        true
+      } else {
+        stream.pop_mark();
+
+        false
+      }
+    };
+
+    Ok(Some(Self { decl, c_variadic }))
   }
 }

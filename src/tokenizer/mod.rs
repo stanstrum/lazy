@@ -184,7 +184,7 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           state = State::Base;
           continue;
         },
-        (State::Base, '!' | '%' | '^' | '&' | '*' | '-' | '+' | '=' | /* '<' | '>' | '|' | */ ':' | '.' | '?') => {
+        (State::Base, '!' | '%' | '^' | '&' | '*' | '-' | '+' | '=' | '<' | '>' | /* '|' | */ ':' | '.' | '?') => {
           state = State::Operator {
             start: i,
             content: String::from(ch)
@@ -321,6 +321,88 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
         },
         (State::Operator { start, content }, _) if content == "%" => {
           let tok = TokenEnum::Operator(Operator::Modulo);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
+
+        (State::Operator { content, .. }, '>') if content == ">" || content == ">>" => {
+          content.push(ch);
+        },
+        (State::Operator { content, .. }, '<') if content == "<" => {
+          content.push(ch);
+        },
+        (State::Operator { start, content }, '=') if content == ">>>" => {
+          let tok = TokenEnum::Operator(Operator::LogicalShiftRightAssign);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+        },
+        (State::Operator { start, content }, _) if content == ">>>" => {
+          let tok = TokenEnum::Operator(Operator::LogicalShiftRight);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
+        (State::Operator { start, content }, '=') if content == ">>" => {
+          let tok = TokenEnum::Operator(Operator::ShiftRightAssign);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+        },
+        (State::Operator { start, content }, _) if content == ">>" => {
+          let tok = TokenEnum::Operator(Operator::ShiftRight);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
+        (State::Operator { start, content }, '=') if content == ">" => {
+          let tok = TokenEnum::Operator(Operator::GreaterThanEqual);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+        },
+        (State::Operator { start, content }, _) if content == ">" => {
+          let tok = TokenEnum::Operator(Operator::GreaterThan);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
+        (State::Operator { start, content }, '=') if content == "<<" => {
+          let tok = TokenEnum::Operator(Operator::ShiftLeftAssign);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+        },
+        (State::Operator { start, content }, _) if content == "<<" => {
+          let tok = TokenEnum::Operator(Operator::ShiftLeft);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
+        (State::Operator { start, content }, '=') if content == "<" => {
+          let tok = TokenEnum::Operator(Operator::LessThanEqual);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+        },
+        (State::Operator { start, content }, _) if content == "<" => {
+          let tok = TokenEnum::Operator(Operator::LessThan);
 
           add_tok(start, tok);
 

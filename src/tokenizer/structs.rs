@@ -30,6 +30,16 @@ pub(crate) enum Operator {
   Range,
   Dot,
   Separator,
+  LogicalShiftRightAssign,
+  LogicalShiftRight,
+  ShiftRightAssign,
+  ShiftRight,
+  GreaterThanEqual,
+  GreaterThan,
+  ShiftLeftAssign,
+  ShiftLeft,
+  LessThanEqual,
+  LessThan,
 }
 
 #[derive(Debug)]

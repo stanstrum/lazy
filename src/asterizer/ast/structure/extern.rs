@@ -42,7 +42,7 @@ impl MakeAst for Extern {
     stream.skip_whitespace_and_comments();
 
     let c_variadic = {
-      if let Some(TokenEnum::Punctuation(Punctuation::VariadicEllipsis)) = dbg!(stream.next_variant()) {
+      if let Some(TokenEnum::Punctuation(Punctuation::VariadicEllipsis)) = stream.next_variant() {
         stream.drop_mark();
 
         true

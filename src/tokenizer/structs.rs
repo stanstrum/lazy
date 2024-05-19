@@ -36,7 +36,8 @@ pub(crate) enum Operator {
 pub(crate) enum Punctuation {
   Colon,
   Comma,
-  Semicolon
+  Semicolon,
+  VariadicEllipsis,
 }
 
 #[derive(Debug)]

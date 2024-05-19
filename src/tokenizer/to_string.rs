@@ -75,6 +75,7 @@ impl ToString for TokenEnum {
       Self::Punctuation(Punctuation::Semicolon) => ";".to_owned(),
       Self::Punctuation(Punctuation::Colon) => ":".to_owned(),
       Self::Punctuation(Punctuation::Comma) => ",".to_owned(),
+      Self::Punctuation(Punctuation::VariadicEllipsis) => "...".to_owned(),
       Self::Literal(Literal::Integer(value)) => value.to_string(),
       Self::Literal(Literal::FloatingPoint(value)) => value.to_string(),
       Self::Literal(Literal::UnicodeString(content)) => escape_string(content, None),

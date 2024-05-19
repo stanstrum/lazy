@@ -285,12 +285,23 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           state = State::Base;
           continue;
         },
-        (State::Operator { start, content }, '.') if content == "." => {
+        (State::Operator { start, content }, '.') if content == ".." => {
+          let tok = TokenEnum::Punctuation(Punctuation::VariadicEllipsis);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+        },
+        (State::Operator { start, content }, _) if content == ".." => {
           let tok = TokenEnum::Operator(Operator::Range);
 
           add_tok(start, tok);
 
           state = State::Base;
+          continue;
+        },
+        (State::Operator { content, .. }, '.') if content == "." => {
+          content.push(ch);
         },
         (State::Operator { start, content }, _) if content == "." => {
           let tok = TokenEnum::Operator(Operator::Dot);

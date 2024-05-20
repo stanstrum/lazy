@@ -540,15 +540,17 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
         },
         (State::CharLiteral { start, ty, content }, '\'') => {
           // TODO: validate size
-          assert!(content.len() == 1);
 
-          #[allow(unreachable_code)]
           let tok = TokenEnum::Literal({
+            assert!(content.len() != 0);
+
             match ty {
               CharType::Unicode => {
+                assert!(content.len() <= 4, "unicode character cannot store more than 4 bytes");
                 Literal::UnicodeChar(content.chars().nth(0).unwrap())
               },
               CharType::Byte => {
+                assert!(content.len() == 1, "byte char cannot store more than 1 byte");
                 Literal::ByteChar(u8::try_from(content.chars().nth(0).unwrap()).unwrap())
               },
             }

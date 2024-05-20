@@ -1,0 +1,6 @@
+main {
+  a := b'\x61';
+  B := b'\x42';
+  test_string := "\u{1F60A}\x1b[41mhello world\x1b[0m";
+  test_unicode_char := '\u{2705}'
+};

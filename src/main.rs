@@ -132,6 +132,7 @@ mod tests {
   compile_snippet!(struct_generic, "13_struct_generic");
   compile_snippet!(slice, "14_slice");
   compile_snippet!(namespaces, "15_namespace");
+  compile_snippet!(string_escapes, "17_string_and_char_escapes");
   compile_snippet!(bare_bones, "bare_bones");
   compile_snippet!(counter, "counter");
   compile_snippet!(r#if, "if");

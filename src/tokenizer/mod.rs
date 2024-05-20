@@ -539,16 +539,16 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           // TODO: validate size
 
           let tok = TokenEnum::Literal({
-            assert!(content.len() != 0);
+            assert!(!content.is_empty());
 
             match ty {
               CharType::Unicode => {
                 assert!(content.len() <= 4, "unicode character cannot store more than 4 bytes");
-                Literal::UnicodeChar(content.chars().nth(0).unwrap())
+                Literal::UnicodeChar(content.chars().next().unwrap())
               },
               CharType::Byte => {
                 assert!(content.len() == 1, "byte char cannot store more than 1 byte");
-                Literal::ByteChar(u8::try_from(content.chars().nth(0).unwrap()).unwrap())
+                Literal::ByteChar(u8::try_from(content.chars().next().unwrap()).unwrap())
               },
             }
           });
@@ -670,7 +670,7 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
         }, _) => {
           let heuristic_start = i - codepoint.len();
 
-          let Ok(codepoint_value) = u32::from_str_radix(&codepoint, 16) else {
+          let Ok(codepoint_value) = u32::from_str_radix(codepoint, 16) else {
             state = State::Invalid {
               start: heuristic_start,
               content: codepoint.to_owned()

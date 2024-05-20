@@ -35,8 +35,8 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
         unreachable!();
       };
 
-      let source = tokenizer::stringify(&parsed);
-      let color_stream = tokenizer::create_color_stream(&parsed);
+      let source = tokenizer::stringify(parsed);
+      let color_stream = tokenizer::create_color_stream(parsed);
 
       pretty_print_error(&error, source, color_stream);
 

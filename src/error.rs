@@ -38,7 +38,7 @@ fn get_line_number(source: &str, index: usize) -> usize {
   line_number
 }
 
-pub(super) fn pretty_print_error<'a, T>(error: &'a T, source: String, mut color_stream: Vec<(usize, Color)>)
+pub(super) fn pretty_print_error<T>(error: &T, source: String, mut color_stream: Vec<(usize, Color)>)
   where T: GetSpan + std::fmt::Display
 {
   let span = error.get_span();

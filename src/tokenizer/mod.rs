@@ -60,20 +60,17 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
     let ch = ch?;
 
     let mut add_tok = |start: &usize, token: TokenEnum| {
-      toks.push(dbg!(Token {
+      toks.push(Token {
         token,
         span: Span {
           start: *start,
           end: i,
         }
-      }));
+      });
     };
 
-    // print!("{}", ch);
-    // println!("{state:?}");
-
     loop {
-      match dbg!((&mut state, ch)) {
+      match (&mut state, ch) {
         (State::Base, '/') => {
           state = State::CommentBegin {
             start: i

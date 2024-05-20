@@ -46,7 +46,7 @@ pub(super) fn pretty_print_error<'a, T>(error: &'a T, source: String, mut color_
   let mut focus_start = span.start;
   let mut focus_end = span.end;
 
-  while focus_start > 0 && source.chars().nth(dbg!(focus_start)).unwrap() != '\n' {
+  while focus_start > 0 && source.chars().nth(focus_start).unwrap() != '\n' {
     focus_start -= 1;
   };
 

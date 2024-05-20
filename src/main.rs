@@ -50,7 +50,7 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
   let source = tokenizer::stringify(&tokens);
   let color_stream = tokenizer::create_color_stream(&tokens);
 
-  debug::tokens(&tokens);
+  // debug::tokens(&tokens);
 
   #[allow(unused_variables)]
   let ast = {
@@ -64,7 +64,7 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
     }
   };
 
-  debug::ast(&ast);
+  // debug::ast(&ast);
 
   Ok(())
 }

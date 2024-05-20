@@ -493,6 +493,13 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
             content: String::new()
           };
         },
+        (State::Base, '\'') => {
+          state = State::CharLiteral {
+            start: i,
+            ty: CharType::Unicode,
+            content: String::new()
+          };
+        },
         (State::StringLiteral {
           start,
           content,

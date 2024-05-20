@@ -162,7 +162,9 @@ pub(crate) enum Literal {
   FloatingPoint(f64),
   UnicodeString(String),
   CString(String),
-  ByteString(String)
+  ByteString(String),
+  UnicodeChar(char),
+  ByteChar(u8),
 }
 
 #[allow(unused)]

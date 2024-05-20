@@ -15,14 +15,8 @@ impl ToString for Token {
   }
 }
 
-fn escape_string(original: &str, prefix: Option<char>) -> String {
+fn escape_string(original: &str) -> String {
   let mut escaped = String::new();
-
-  if let Some(prefix) = prefix {
-    escaped.push(prefix);
-  };
-
-  escaped.push('"');
 
   for ch in original.chars() {
     match ch {
@@ -36,8 +30,6 @@ fn escape_string(original: &str, prefix: Option<char>) -> String {
       _ => escaped.push(ch)
     };
   };
-
-  escaped.push('"');
 
   escaped
 }
@@ -88,9 +80,11 @@ impl ToString for TokenEnum {
       Self::Punctuation(Punctuation::VariadicEllipsis) => "...".to_owned(),
       Self::Literal(Literal::Integer(value)) => value.to_string(),
       Self::Literal(Literal::FloatingPoint(value)) => value.to_string(),
-      Self::Literal(Literal::UnicodeString(content)) => escape_string(content, None),
-      Self::Literal(Literal::CString(content)) => escape_string(content, Some('c')),
-      Self::Literal(Literal::ByteString(content)) => escape_string(content, Some('b')),
+      Self::Literal(Literal::UnicodeString(content)) => format!("\"{}\"", escape_string(content)),
+      Self::Literal(Literal::CString(content)) => format!("c\"{}\"", escape_string(content)),
+      Self::Literal(Literal::ByteString(content)) => format!("b\"{}\"", escape_string(content)),
+      Self::Literal(Literal::UnicodeChar(content)) => format!("'{}'", escape_string(&String::from(*content))),
+      Self::Literal(Literal::ByteChar(content)) => format!("b'{}'", escape_string(&String::from(*content as char))),
       // --
       Self::Grouping(grouping) => grouping.to_string(),
       Self::Keyword(keyword) => keyword.to_string(),

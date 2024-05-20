@@ -60,19 +60,20 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
     let ch = ch?;
 
     let mut add_tok = |start: &usize, token: TokenEnum| {
-      toks.push(Token {
+      toks.push(dbg!(Token {
         token,
         span: Span {
           start: *start,
           end: i,
         }
-      });
+      }));
     };
 
     // print!("{}", ch);
+    // println!("{state:?}");
 
     loop {
-      match (&mut state, ch) {
+      match dbg!((&mut state, ch)) {
         (State::Base, '/') => {
           state = State::CommentBegin {
             start: i
@@ -167,6 +168,13 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
             start: *start,
             escape_next: false,
             ty: StringType::C,
+            content: String::new()
+          };
+        },
+        (State::Text { start, content }, '\'') if content == "b" => {
+          state = State::CharLiteral {
+            start: *start,
+            ty: CharType::Byte,
             content: String::new()
           };
         },
@@ -532,6 +540,140 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
         },
         (State::StringLiteral { content, .. }, _) => {
           content.push(ch);
+        },
+        (State::CharLiteral { start, content, ty }, '\\') => {
+          state = State::StringEscape {
+            start: *start,
+            return_to: StringEscapeReturnTo::Char { ty: *ty },
+            content: content.to_owned(),
+            ty: None,
+          };
+        },
+        (State::CharLiteral { start, ty, content }, '\'') => {
+          // TODO: validate size
+          assert!(content.len() == 1);
+
+          #[allow(unreachable_code)]
+          let tok = TokenEnum::Literal({
+            match ty {
+              CharType::Unicode => {
+                Literal::UnicodeChar(content.chars().nth(0).unwrap())
+              },
+              CharType::Byte => {
+                Literal::ByteChar(u8::try_from(content.chars().nth(0).unwrap()).unwrap())
+              },
+            }
+          });
+
+          add_tok(start, tok);
+
+          state = State::Base;
+        },
+        (State::CharLiteral { content, .. }, _) => {
+          content.push(ch);
+        }
+        (State::StringEscape { ty, .. }, 'x') if ty.is_none() => {
+          *ty = Some(StringEscapeType::Hexadecimal { codepoint: String::new() });
+        },
+        (State::StringEscape { ty, .. }, 'o') if ty.is_none() => {
+          *ty = Some(StringEscapeType::Octal { codepoint: String::new() });
+        },
+        (State::StringEscape { ty, .. }, 'u') if ty.is_none() => {
+          *ty = Some(StringEscapeType::Unicode { codepoint: String::new() });
+        },
+        (State::StringEscape { ty: Some(StringEscapeType::Hexadecimal { codepoint }), .. }, '0'..='9' | 'a'..='f' | 'A'..='F') if codepoint.len() < 2 => {
+          codepoint.push(ch);
+        },
+        (State::StringEscape {
+          start,
+          ty: Some(StringEscapeType::Hexadecimal { codepoint }),
+          return_to,
+          content
+        }, _) if codepoint.len() == 2 => {
+          let heuristic_start = i - codepoint.len();
+
+          let Ok(codepoint_value) = u32::from_str_radix(&codepoint, 16) else {
+            state = State::Invalid {
+              start: heuristic_start,
+              content: codepoint.to_owned()
+            };
+
+            break;
+          };
+
+          let Some(parsed_ch) = char::from_u32(codepoint_value) else {
+            state = State::Invalid {
+              start: heuristic_start,
+              content: codepoint.to_owned()
+            };
+
+            break;
+          };
+
+          content.push(parsed_ch);
+
+          match return_to {
+            StringEscapeReturnTo::String { ty } => {
+              state = State::StringLiteral {
+                start: *start,
+                escape_next: false,
+                ty: *ty,
+                content: content.to_owned()
+              };
+            },
+            StringEscapeReturnTo::Char { ty } => {
+              state = State::CharLiteral {
+                start: *start,
+                ty: *ty,
+                content: content.to_owned()
+              };
+            },
+          };
+
+          continue;
+        },
+        (State::StringEscape { ty: Some(StringEscapeType::Octal { codepoint }), .. }, _) if codepoint.len() < 3 => {
+          codepoint.push(ch);
+        },
+        (State::StringEscape { ty: Some(StringEscapeType::Octal { codepoint }), .. }, _) if codepoint.len() == 3 => {
+          todo!("finalize octal")
+        },
+        (State::StringEscape { ty: Some(StringEscapeType::Unicode { codepoint }), .. }, '{') if codepoint.is_empty() => {},
+        (State::StringEscape { ty: Some(StringEscapeType::Unicode { codepoint }), .. }, '}') => {
+          todo!("finalize unicode")
+        },
+        (State::StringEscape { ty: Some(StringEscapeType::Unicode { codepoint }), .. }, '0'..='9' | 'a'..='f' | 'A'..='F') => {
+          codepoint.push(ch);
+        },
+        (State::StringEscape { start, return_to, content, ty: None }, _) => {
+          content.push(match ch {
+            'a' => '\x07',
+            'b' => '\x08',
+            't' => '\t',
+            'n' => '\n',
+            'v' => '\x0b',
+            'f' => '\x0c',
+            'r' => '\r',
+            _ => ch
+          });
+
+          match return_to {
+            StringEscapeReturnTo::String { ty } => {
+              state = State::StringLiteral {
+                start: *start,
+                escape_next: false,
+                ty: ty.to_owned(),
+                content: content.to_owned()
+              };
+            },
+            StringEscapeReturnTo::Char { ty } => {
+              state = State::CharLiteral {
+                start: *start,
+                ty: *ty,
+                content: content.to_owned()
+              };
+            },
+          };
         },
         (State::Base, _) => {
           state = State::Invalid { start: i, content: String::new() };

@@ -158,7 +158,6 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
         (State::Text { start, content }, '"') if content == "b" => {
           state = State::StringLiteral {
             start: *start,
-            escape_next: false,
             ty: StringType::Bytes,
             content: String::new()
           };
@@ -166,7 +165,6 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
         (State::Text { start, content }, '"') if content == "c" => {
           state = State::StringLiteral {
             start: *start,
-            escape_next: false,
             ty: StringType::C,
             content: String::new()
           };
@@ -491,40 +489,14 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
         (State::Base, '"') => {
           state = State::StringLiteral {
             start: i,
-            escape_next: false,
             ty: StringType::Unicode,
             content: String::new()
           };
         },
-        (State::StringLiteral { escape_next, .. }, '\\') if !*escape_next => {
-          *escape_next = true;
-        },
-        (State::StringLiteral { content, escape_next, .. }, '\\') if *escape_next => {
-          content.push('\\');
-          *escape_next = false;
-        },
-        (State::StringLiteral { content, escape_next, .. }, 'n') if *escape_next => {
-          content.push('\n');
-          *escape_next = false;
-        },
-        (State::StringLiteral { content, escape_next, .. }, 'r') if *escape_next => {
-          content.push('\r');
-          *escape_next = false;
-        },
-        (State::StringLiteral { content, escape_next, .. }, 't') if *escape_next => {
-          content.push('\t');
-          *escape_next = false;
-        },
-        (State::StringLiteral { content, escape_next, .. }, '0') if *escape_next => {
-          content.push('\0');
-          *escape_next = false;
-        },
-        // TODO: add more escape codes
         (State::StringLiteral {
           start,
           content,
           ty,
-          escape_next: false
         }, '"') => {
           let tok = TokenEnum::Literal({
             match ty {
@@ -537,6 +509,16 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           add_tok(start, tok);
 
           state = State::Base;
+        },
+        (State::StringLiteral { start, ty, content }, '\\') => {
+          state = State::StringEscape {
+            start: *start,
+            return_to: StringEscapeReturnTo::String {
+              ty: *ty
+            },
+            content: content.to_owned(),
+            ty: None
+          };
         },
         (State::StringLiteral { content, .. }, _) => {
           content.push(ch);
@@ -584,12 +566,102 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
         (State::StringEscape { ty: Some(StringEscapeType::Hexadecimal { codepoint }), .. }, '0'..='9' | 'a'..='f' | 'A'..='F') if codepoint.len() < 2 => {
           codepoint.push(ch);
         },
+        (State::StringEscape { ty: Some(StringEscapeType::Octal { codepoint }), .. }, _) if codepoint.len() < 3 => {
+          codepoint.push(ch);
+        },
+        (State::StringEscape { ty: Some(StringEscapeType::Unicode { codepoint }), .. }, '0'..='9' | 'a'..='f' | 'A'..='F') => {
+          codepoint.push(ch);
+        },
+        (State::StringEscape { ty: Some(StringEscapeType::Unicode { codepoint }), .. }, '{') if codepoint.is_empty() => {
+          // do nothing
+        },
         (State::StringEscape {
           start,
-          ty: Some(StringEscapeType::Hexadecimal { codepoint }),
           return_to,
-          content
+          content,
+          ty: Some(StringEscapeType::Hexadecimal { codepoint })
         }, _) if codepoint.len() == 2 => {
+          state = State::StringEscapeFinalize {
+            start: *start,
+            return_to: *return_to,
+            content: content.to_owned(),
+            ty: Some(StringEscapeType::Hexadecimal {
+              codepoint: codepoint.to_owned()
+            })
+          };
+          continue;
+        },
+        (State::StringEscape {
+          start,
+          return_to,
+          content,
+          ty: Some(StringEscapeType::Octal { codepoint })
+        }, _) if codepoint.len() == 3 => {
+          state = State::StringEscapeFinalize {
+            start: *start,
+            return_to: *return_to,
+            content: content.to_owned(),
+            ty: Some(StringEscapeType::Octal {
+              codepoint: codepoint.to_owned()
+            })
+          };
+          continue;
+        },
+        (State::StringEscape {
+          start,
+          return_to,
+          content,
+          ty: Some(StringEscapeType::Unicode { codepoint })
+        }, '}') => {
+          state = State::StringEscapeFinalize {
+            start: *start,
+            return_to: *return_to,
+            content: content.to_owned(),
+            ty: Some(StringEscapeType::Unicode {
+              codepoint: codepoint.to_owned()
+            })
+          };
+          // don't continue -- we are consuming this ending curly brace
+        },
+        (State::StringEscape { start, return_to, content, ty: None }, _) => {
+          content.push(match ch {
+            'a' => '\x07',
+            'b' => '\x08',
+            't' => '\t',
+            'n' => '\n',
+            'v' => '\x0b',
+            'f' => '\x0c',
+            'r' => '\r',
+            _ => ch
+          });
+
+          match return_to {
+            StringEscapeReturnTo::String { ty } => {
+              state = State::StringLiteral {
+                start: *start,
+                ty: ty.to_owned(),
+                content: content.to_owned()
+              };
+            },
+            StringEscapeReturnTo::Char { ty } => {
+              state = State::CharLiteral {
+                start: *start,
+                ty: *ty,
+                content: content.to_owned()
+              };
+            },
+          };
+        },
+        (State::StringEscapeFinalize {
+          start,
+          return_to,
+          content,
+          ty: Some(
+            | StringEscapeType::Hexadecimal { codepoint }
+            | StringEscapeType::Octal { codepoint }
+            | StringEscapeType::Unicode { codepoint }
+          )
+        }, _) => {
           let heuristic_start = i - codepoint.len();
 
           let Ok(codepoint_value) = u32::from_str_radix(&codepoint, 16) else {
@@ -616,7 +688,6 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
             StringEscapeReturnTo::String { ty } => {
               state = State::StringLiteral {
                 start: *start,
-                escape_next: false,
                 ty: *ty,
                 content: content.to_owned()
               };
@@ -631,49 +702,6 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
           };
 
           continue;
-        },
-        (State::StringEscape { ty: Some(StringEscapeType::Octal { codepoint }), .. }, _) if codepoint.len() < 3 => {
-          codepoint.push(ch);
-        },
-        (State::StringEscape { ty: Some(StringEscapeType::Octal { codepoint }), .. }, _) if codepoint.len() == 3 => {
-          todo!("finalize octal")
-        },
-        (State::StringEscape { ty: Some(StringEscapeType::Unicode { codepoint }), .. }, '{') if codepoint.is_empty() => {},
-        (State::StringEscape { ty: Some(StringEscapeType::Unicode { codepoint }), .. }, '}') => {
-          todo!("finalize unicode")
-        },
-        (State::StringEscape { ty: Some(StringEscapeType::Unicode { codepoint }), .. }, '0'..='9' | 'a'..='f' | 'A'..='F') => {
-          codepoint.push(ch);
-        },
-        (State::StringEscape { start, return_to, content, ty: None }, _) => {
-          content.push(match ch {
-            'a' => '\x07',
-            'b' => '\x08',
-            't' => '\t',
-            'n' => '\n',
-            'v' => '\x0b',
-            'f' => '\x0c',
-            'r' => '\r',
-            _ => ch
-          });
-
-          match return_to {
-            StringEscapeReturnTo::String { ty } => {
-              state = State::StringLiteral {
-                start: *start,
-                escape_next: false,
-                ty: ty.to_owned(),
-                content: content.to_owned()
-              };
-            },
-            StringEscapeReturnTo::Char { ty } => {
-              state = State::CharLiteral {
-                start: *start,
-                ty: *ty,
-                content: content.to_owned()
-              };
-            },
-          };
         },
         (State::Base, _) => {
           state = State::Invalid { start: i, content: String::new() };

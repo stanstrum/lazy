@@ -21,7 +21,7 @@ pub(super) enum CharType {
   Byte, // 7-bit ASCII (b' ', b'~')
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub(super) enum StringEscapeReturnTo {
   String { ty: StringType },
   Char { ty: CharType }
@@ -63,7 +63,6 @@ pub(super) enum State {
   },
   StringLiteral {
     start: usize,
-    escape_next: bool,
     ty: StringType,
     content: String
   },
@@ -73,6 +72,12 @@ pub(super) enum State {
     content: String
   },
   StringEscape {
+    start: usize,
+    return_to: StringEscapeReturnTo,
+    content: String,
+    ty: Option<StringEscapeType>
+  },
+  StringEscapeFinalize {
     start: usize,
     return_to: StringEscapeReturnTo,
     content: String,

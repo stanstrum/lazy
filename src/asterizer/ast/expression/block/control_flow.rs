@@ -15,53 +15,62 @@ use crate::tokenizer::{
 
 use crate::asterizer::error::ExpectedSnafu;
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct IfBranch {
   clause: Expression,
   body: Block
 }
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct If {
   branches: Vec<IfBranch>,
   r#else: Block
 }
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct While {
   clause: Expression,
   body: Block
 }
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct DoWhile {
   body: Block,
   clause: Expression,
 }
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Until {
   clause: Expression,
   body: Block
 }
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct DoUntil {
   body: Block,
   clause: Expression,
 }
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct For {
   clause: Expression,
   body: Block
 }
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Loop {
   body: Block
 }
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) enum ControlFlow {
   If(If),
@@ -102,7 +111,7 @@ impl MakeAst for While {
         span: stream.span()
       }.fail();
     };
-    
+
     Ok(Some(Self { clause, body }))
   }
 }
@@ -136,7 +145,7 @@ impl MakeAst for DoWhile {
         span: stream.span()
       }.fail();
     };
-    
+
     Ok(Some(Self { clause, body }))
   }
 }
@@ -164,7 +173,7 @@ impl MakeAst for Until {
         span: stream.span()
       }.fail();
     };
-    
+
     Ok(Some(Self { clause, body }))
   }
 }
@@ -198,7 +207,7 @@ impl MakeAst for DoUntil {
         span: stream.span()
       }.fail();
     };
-    
+
     Ok(Some(Self { clause, body }))
   }
 }
@@ -237,5 +246,5 @@ impl MakeAst for ControlFlow {
         None
       }
     })
-  }  
+  }
 }

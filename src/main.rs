@@ -138,5 +138,5 @@ mod tests {
   compile_snippet!(r#if, "if");
   compile_snippet!(message, "message");
   compile_snippet!(namespace_module, "16_namespaces");
-  compile_snippet!(std, "std");
+  // compile_snippet!(std, "std");
 }

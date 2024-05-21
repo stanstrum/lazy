@@ -8,6 +8,13 @@ use crate::asterizer::ast::{
   Block,
 };
 
+use crate::tokenizer::{
+  TokenEnum,
+  Keyword,
+};
+
+use crate::asterizer::error::ExpectedSnafu;
+
 #[derive(Debug, TypeName)]
 pub(crate) struct IfBranch {
   clause: Expression,
@@ -33,13 +40,19 @@ pub(crate) struct DoWhile {
 }
 
 #[derive(Debug, TypeName)]
-pub(crate) struct For {
+pub(crate) struct Until {
   clause: Expression,
   body: Block
 }
 
 #[derive(Debug, TypeName)]
-pub(crate) struct Until {
+pub(crate) struct DoUntil {
+  body: Block,
+  clause: Expression,
+}
+
+#[derive(Debug, TypeName)]
+pub(crate) struct For {
   clause: Expression,
   body: Block
 }
@@ -54,8 +67,9 @@ pub(crate) enum ControlFlow {
   If(If),
   While(While),
   DoWhile(DoWhile),
-  For(For),
   Until(Until),
+  DoUntil(DoUntil),
+  For(For),
   Loop(Loop),
 }
 
@@ -66,24 +80,130 @@ impl MakeAst for If {
 }
 
 impl MakeAst for While {
-  fn make(_stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    Ok(None)
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let Some(TokenEnum::Keyword(Keyword::While)) = stream.next_variant() else {
+      return Ok(None);
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(clause) = stream.make()? else {
+      return ExpectedSnafu {
+        what: "an expression",
+        span: stream.span()
+      }.fail();
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(body) = stream.make()? else {
+      return ExpectedSnafu {
+        what: "a block expression",
+        span: stream.span()
+      }.fail();
+    };
+    
+    Ok(Some(Self { clause, body }))
   }
 }
 
 impl MakeAst for DoWhile {
-  fn make(_stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    Ok(None)
-  }
-}
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let Some(TokenEnum::Keyword(Keyword::Do)) = stream.next_variant() else {
+      return Ok(None);
+    };
 
-impl MakeAst for For {
-  fn make(_stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    Ok(None)
+    stream.skip_whitespace_and_comments();
+
+    let Some(body) = stream.make()? else {
+      return ExpectedSnafu {
+        what: "a block expression",
+        span: stream.span()
+      }.fail();
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(TokenEnum::Keyword(Keyword::While)) = stream.next_variant() else {
+      return Ok(None);
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(clause) = stream.make()? else {
+      return ExpectedSnafu {
+        what: "an expression",
+        span: stream.span()
+      }.fail();
+    };
+    
+    Ok(Some(Self { clause, body }))
   }
 }
 
 impl MakeAst for Until {
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let Some(TokenEnum::Keyword(Keyword::Until)) = stream.next_variant() else {
+      return Ok(None);
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(clause) = stream.make()? else {
+      return ExpectedSnafu {
+        what: "an expression",
+        span: stream.span()
+      }.fail();
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(body) = stream.make()? else {
+      return ExpectedSnafu {
+        what: "a block expression",
+        span: stream.span()
+      }.fail();
+    };
+    
+    Ok(Some(Self { clause, body }))
+  }
+}
+
+impl MakeAst for DoUntil {
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let Some(TokenEnum::Keyword(Keyword::Do)) = stream.next_variant() else {
+      return Ok(None);
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(body) = stream.make()? else {
+      return ExpectedSnafu {
+        what: "a block expression",
+        span: stream.span()
+      }.fail();
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(TokenEnum::Keyword(Keyword::Until)) = stream.next_variant() else {
+      return Ok(None);
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(clause) = stream.make()? else {
+      return ExpectedSnafu {
+        what: "an expression",
+        span: stream.span()
+      }.fail();
+    };
+    
+    Ok(Some(Self { clause, body }))
+  }
+}
+
+impl MakeAst for For {
   fn make(_stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     Ok(None)
   }
@@ -100,17 +220,19 @@ impl MakeAst for ControlFlow {
     #[allow(clippy::manual_map)]
     Ok({
       if let Some(r#if) = stream.make()? {
-        Some(r#if)
+        Some(Self::If(r#if))
       } else if let Some(r#while) = stream.make()? {
-        Some(r#while)
+        Some(Self::While(r#while))
       } else if let Some(do_while) = stream.make()? {
-        Some(do_while)
-      } else if let Some(r#for) = stream.make()? {
-        Some(r#for)
+        Some(Self::DoWhile(do_while))
       } else if let Some(until) = stream.make()? {
-        Some(until)
+        Some(Self::Until(until))
+      } else if let Some(do_until) = stream.make()? {
+        Some(Self::DoUntil(do_until))
+      } else if let Some(r#for) = stream.make()? {
+        Some(Self::For(r#for))
       } else if let Some(r#loop) = stream.make()? {
-        Some(r#loop)
+        Some(Self::Loop(r#loop))
       } else {
         None
       }

@@ -26,7 +26,7 @@ pub(crate) struct IfBranch {
 #[derive(Debug, TypeName)]
 pub(crate) struct If {
   branches: Vec<IfBranch>,
-  r#else: Block
+  r#else: Option<Block>,
 }
 
 #[allow(unused)]
@@ -82,9 +82,84 @@ pub(crate) enum ControlFlow {
   Loop(Loop),
 }
 
+impl MakeAst for IfBranch {
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let Some(TokenEnum::Keyword(Keyword::If)) = stream.next_variant() else {
+      return Ok(None);
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(clause) = stream.make()? else {
+      return ExpectedSnafu {
+        what: "an expression",
+        span: stream.span(),
+      }.fail();
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(body) = stream.make()? else {
+      return ExpectedSnafu {
+        what: "an expression",
+        span: stream.span(),
+      }.fail();
+    };
+
+    Ok(Some(Self { clause, body }))
+  }
+}
+
 impl MakeAst for If {
-  fn make(_stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    Ok(None)
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let Some(TokenEnum::Keyword(Keyword::If)) = stream.peek_variant() else {
+      return Ok(None);
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(primary) = stream.make()? else {
+      return ExpectedSnafu {
+        what: "an if branch",
+        span: stream.span(),
+      }.fail();
+    };
+
+    let mut branches = vec![primary];
+    let mut r#else = None;
+
+    loop {
+      stream.push_mark();
+      stream.skip_whitespace_and_comments();
+
+      let Some(TokenEnum::Keyword(Keyword::Else)) = stream.next_variant() else {
+        stream.pop_mark();
+
+        break;
+      };
+
+      stream.drop_mark();
+      stream.skip_whitespace_and_comments();
+
+      if let Some(branch) = stream.make()? {
+        branches.push(branch);
+
+        continue;
+      };
+
+      r#else = stream.make()?;
+
+      if r#else.is_none() {
+        return ExpectedSnafu {
+          what: "an else block",
+          span: stream.span(),
+        }.fail();
+      };
+
+      break;
+    };
+
+    Ok(Some(Self { branches, r#else }))
   }
 }
 
@@ -219,8 +294,21 @@ impl MakeAst for For {
 }
 
 impl MakeAst for Loop {
-  fn make(_stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    Ok(None)
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let Some(TokenEnum::Keyword(Keyword::Loop)) = stream.next_variant() else {
+      return Ok(None);
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(body) = stream.make()? else {
+      return ExpectedSnafu {
+        what: "a block expression",
+        span: stream.span(),
+      }.fail();
+    };
+
+    Ok(Some(Self { body }))
   }
 }
 

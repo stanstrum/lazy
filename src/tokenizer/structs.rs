@@ -70,6 +70,7 @@ mod keywords {
   pub(super) const WHILE: &str = "while";
   pub(super) const FOR: &str = "for";
   pub(super) const IF: &str = "if";
+  pub(super) const ELSE: &str = "else";
   pub(super) const DO: &str = "do";
   pub(super) const LOOP: &str = "loop";
   pub(super) const UNTIL: &str = "until";
@@ -93,6 +94,7 @@ pub(crate) enum Keyword {
   While,
   For,
   If,
+  Else,
   Do,
   Loop,
   Until,
@@ -117,6 +119,7 @@ impl std::string::ToString for Keyword {
       Self::While => keywords::WHILE,
       Self::For => keywords::FOR,
       Self::If => keywords::IF,
+      Self::Else => keywords::ELSE,
       Self::Do => keywords::DO,
       Self::Loop => keywords::LOOP,
       Self::Until => keywords::UNTIL,
@@ -145,6 +148,7 @@ impl TryFrom<&String> for Keyword {
       keywords::WHILE => Ok(Self::While),
       keywords::FOR => Ok(Self::For),
       keywords::IF => Ok(Self::If),
+      keywords::ELSE => Ok(Self::Else),
       keywords::DO => Ok(Self::Do),
       keywords::LOOP => Ok(Self::Loop),
       keywords::UNTIL => Ok(Self::Until),

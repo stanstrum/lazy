@@ -28,14 +28,13 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
 
   let mut reader = utf8_read::Reader::new(input_file);
 
-  let tokens = match tokenizer::tokenize(&mut reader) {
-    Ok(tokens) => tokens,
+  let (source, tokens) = match tokenizer::tokenize(&mut reader) {
+    Ok(result) => result,
     Err(error) if matches!(error, TokenizationError::InvalidSource { .. }) => {
-      let TokenizationError::InvalidSource { parsed, .. } = &error else {
+      let TokenizationError::InvalidSource { parsed, source, .. } = &error else {
         unreachable!();
       };
 
-      let source = tokenizer::stringify(parsed);
       let color_stream = tokenizer::create_color_stream(parsed);
 
       pretty_print_error(&error, source, color_stream);
@@ -47,7 +46,7 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
     },
   };
 
-  let source = tokenizer::stringify(&tokens);
+  // let source = tokenizer::stringify(&tokens);
   let color_stream = tokenizer::create_color_stream(&tokens);
 
   // debug::tokens(&tokens);
@@ -57,7 +56,7 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
     match asterizer::asterize(tokens) {
       Ok(ast) => ast,
       Err(error) => {
-        pretty_print_error(&error, source, color_stream);
+        pretty_print_error(&error, &source, color_stream);
 
         return AsterizationSnafu { error }.fail();
       },

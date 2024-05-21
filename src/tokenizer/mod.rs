@@ -16,20 +16,6 @@ use crate::colors::Color;
 
 use self::error::InvalidSourceSnafu;
 
-pub(crate) fn stringify(tokens: &[Token]) -> String {
-  let mut source = String::new();
-
-  for token in tokens.iter() {
-    source += token.to_string().as_str();
-  };
-
-  // Fixes some odd issues later on by preventing the error reporter
-  // from breaking if the source doesn't end on a newline.  :shrug:
-  source.push('\n');
-
-  source
-}
-
 pub(crate) fn create_color_stream(tokens: &[Token]) -> Vec<(usize, Color)> {
   let mut color_stream = vec![];
 
@@ -52,12 +38,15 @@ pub(crate) fn create_color_stream(tokens: &[Token]) -> Vec<(usize, Color)> {
   color_stream
 }
 
-pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, TokenizationError> {
+pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<(String, Vec<Token>), TokenizationError> {
   let mut state = State::Base;
   let mut toks: Vec<Token> = vec![];
 
+  let mut source = String::new();
+
   for (i, ch) in reader.into_iter().enumerate() {
     let ch = ch?;
+    source.push(ch);
 
     let mut add_tok = |start: &usize, token: TokenEnum| {
       toks.push(Token {
@@ -721,6 +710,7 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
 
           return InvalidSourceSnafu {
             parsed: toks,
+            source,
             span
           }.fail();
         },
@@ -741,5 +731,5 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
     };
   };
 
-  Ok(toks)
+  Ok((source, toks))
 }

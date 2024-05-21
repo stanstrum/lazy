@@ -13,7 +13,12 @@ pub(crate) enum TokenizationError {
   IOError { error: utf8_read::Error },
 
   #[snafu(display("Failed to parse source"))]
-  InvalidSource { parsed: Vec<Token>, span: Span }
+  InvalidSource {
+    parsed: Vec<Token>,
+    #[snafu(source(false))]
+    source: String,
+    span: Span
+  }
 }
 
 impl From<utf8_read::Error> for TokenizationError {

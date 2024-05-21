@@ -126,7 +126,7 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<Vec<Token>, Tokeniza
         (State::LineComment { content, .. }, _) => {
           content.push(ch);
         },
-        (State::Base, ' ' | '\n' | '\t') => {
+        (State::Base, ' ' | '\n' | '\r' | '\t') => {
           state = State::Whitespace {
             start: i,
             content: String::from(ch)

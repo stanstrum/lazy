@@ -1,5 +1,6 @@
 import_export! {
-  binding
+  binding,
+  control_flow
 }
 
 use typename::TypeName;
@@ -23,6 +24,7 @@ use crate::asterizer::error::*;
 pub(crate) enum BlockChild {
   Expression(Expression),
   Binding(Binding),
+  ControlFlow(ControlFlow),
 }
 
 #[allow(unused)]
@@ -40,6 +42,8 @@ impl MakeAst for BlockChild {
         Some(Self::Binding(binding))
       } else if let Some(expression) = stream.make()? {
         Some(Self::Expression(expression))
+      } else if let Some(control_flow) = stream.make()? {
+        Some(Self::ControlFlow(control_flow))
       } else {
         None
       }

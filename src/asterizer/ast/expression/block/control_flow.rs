@@ -13,7 +13,7 @@ use crate::tokenizer::{
   Keyword,
 };
 
-use crate::asterizer::error::ExpectedSnafu;
+use crate::asterizer::error::*;
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
@@ -174,7 +174,7 @@ impl MakeAst for While {
     let Some(clause) = stream.make()? else {
       return ExpectedSnafu {
         what: "an expression",
-        span: stream.span()
+        span: stream.span(),
       }.fail();
     };
 
@@ -183,7 +183,7 @@ impl MakeAst for While {
     let Some(body) = stream.make()? else {
       return ExpectedSnafu {
         what: "a block expression",
-        span: stream.span()
+        span: stream.span(),
       }.fail();
     };
 
@@ -202,7 +202,7 @@ impl MakeAst for DoWhile {
     let Some(body) = stream.make()? else {
       return ExpectedSnafu {
         what: "a block expression",
-        span: stream.span()
+        span: stream.span(),
       }.fail();
     };
 
@@ -217,7 +217,7 @@ impl MakeAst for DoWhile {
     let Some(clause) = stream.make()? else {
       return ExpectedSnafu {
         what: "an expression",
-        span: stream.span()
+        span: stream.span(),
       }.fail();
     };
 
@@ -236,7 +236,7 @@ impl MakeAst for Until {
     let Some(clause) = stream.make()? else {
       return ExpectedSnafu {
         what: "an expression",
-        span: stream.span()
+        span: stream.span(),
       }.fail();
     };
 
@@ -245,7 +245,7 @@ impl MakeAst for Until {
     let Some(body) = stream.make()? else {
       return ExpectedSnafu {
         what: "a block expression",
-        span: stream.span()
+        span: stream.span(),
       }.fail();
     };
 
@@ -264,7 +264,7 @@ impl MakeAst for DoUntil {
     let Some(body) = stream.make()? else {
       return ExpectedSnafu {
         what: "a block expression",
-        span: stream.span()
+        span: stream.span(),
       }.fail();
     };
 
@@ -279,7 +279,7 @@ impl MakeAst for DoUntil {
     let Some(clause) = stream.make()? else {
       return ExpectedSnafu {
         what: "an expression",
-        span: stream.span()
+        span: stream.span(),
       }.fail();
     };
 
@@ -288,8 +288,15 @@ impl MakeAst for DoUntil {
 }
 
 impl MakeAst for For {
-  fn make(_stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    Ok(None)
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let Some(TokenEnum::Keyword(Keyword::For)) = stream.peek_variant() else {
+      return Ok(None)
+    };
+
+    NotImplementedSnafu {
+      message: "for loops are not yet implemented",
+      span: stream.span(),
+    }.fail()
   }
 }
 

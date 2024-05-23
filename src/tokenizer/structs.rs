@@ -77,6 +77,8 @@ mod keywords {
   pub(super) const BREAK: &str = "break";
   pub(super) const CONTINUE: &str = "continue";
   pub(super) const TEMPLATE: &str = "template";
+  pub(super) const CONST: &str = "const";
+  pub(super) const MUT: &str = "mut";
 }
 
 #[derive(Debug)]
@@ -100,7 +102,9 @@ pub(crate) enum Keyword {
   Until,
   Break,
   Continue,
-  Template
+  Template,
+  Const,
+  Mut,
 }
 
 impl std::string::ToString for Keyword {
@@ -126,6 +130,8 @@ impl std::string::ToString for Keyword {
       Self::Break => keywords::BREAK,
       Self::Continue => keywords::CONTINUE,
       Self::Template => keywords::TEMPLATE,
+      Self::Const => keywords::CONST,
+      Self::Mut => keywords::MUT,
     }.to_string()
   }
 }
@@ -155,6 +161,8 @@ impl TryFrom<&String> for Keyword {
       keywords::BREAK => Ok(Self::Break),
       keywords::CONTINUE => Ok(Self::Continue),
       keywords::TEMPLATE => Ok(Self::Template),
+      keywords::CONST => Ok(Self::Const),
+      keywords::MUT => Ok(Self::Mut),
       _ => Err(())
     }
   }

@@ -7,7 +7,6 @@ mod error;
 mod debug;
 mod colors;
 
-use error::CompilationError;
 use error::*;
 use tokenizer::TokenizationError;
 

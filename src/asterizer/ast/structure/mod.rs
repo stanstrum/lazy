@@ -31,11 +31,13 @@ pub(crate) enum TemplatableStructure {
   Exported(Exported),
 }
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct UnconstrainedTemplateConstraint {
   name: String
 }
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct ConstrainedTemplateConstraint {
   ty: Type,
@@ -60,6 +62,7 @@ pub(crate) enum Structure {
   TemplateScope(TemplateScope),
 }
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct TemplateScope {
   constraints: Vec<TemplateConstraint>,

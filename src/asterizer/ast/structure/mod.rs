@@ -28,6 +28,7 @@ pub(crate) enum TemplatableStructure {
   TypeAlias(TypeAlias),
   Interface(Interface),
   Struct(Struct),
+  Exported(Exported),
 }
 
 #[derive(Debug, TypeName)]
@@ -138,11 +139,12 @@ impl MakeAst for TemplateConstraint {
 impl TemplatableStructure {
   pub fn name(&self) -> String {
     match self {
-      TemplatableStructure::Function(func) => &func.decl.name,
-      TemplatableStructure::TypeAlias(alias) => &alias.name,
-      TemplatableStructure::Interface(interface) => &interface.name,
-      TemplatableStructure::Struct(r#struct) => &r#struct.name,
-    }.to_owned()
+      TemplatableStructure::Function(func) => func.decl.name.to_owned(),
+      TemplatableStructure::TypeAlias(alias) => alias.name.to_owned(),
+      TemplatableStructure::Interface(interface) => interface.name.to_owned(),
+      TemplatableStructure::Struct(r#struct) => r#struct.name.to_owned(),
+      TemplatableStructure::Exported(exported) => exported.structure.name(),
+    }
   }
 }
 
@@ -150,7 +152,9 @@ impl MakeAst for TemplatableStructure {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     #[allow(clippy::manual_map)]
     Ok({
-      if let Some(function) = stream.make()? {
+      if let Some(exported) = stream.make()? {
+        Some(Self::Exported(exported))
+      } else if let Some(function) = stream.make()? {
         Some(Self::Function(function))
       } else if let Some(type_alias) = stream.make()? {
         Some(Self::TypeAlias(type_alias))
@@ -244,7 +248,9 @@ impl MakeAst for Structure {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     #[allow(clippy::manual_map)]
     Ok({
-      if let Some(ns) = stream.make()? {
+      if let Some(exported) = stream.make()? {
+        Some(Self::Exported(exported))
+      } else if let Some(ns) = stream.make()? {
         Some(Self::Namespace(ns))
       } else if let Some(func) = stream.make()? {
         Some(Self::Function(func))
@@ -256,8 +262,6 @@ impl MakeAst for Structure {
         Some(Self::Struct(r#struct))
       } else if let Some(r#extern) = stream.make()? {
         Some(Self::Extern(r#extern))
-      } else if let Some(exported) = stream.make()? {
-        Some(Self::Exported(exported))
       } else if let Some(scope) = stream.make()? {
         Some(Self::TemplateScope(scope))
       } else {

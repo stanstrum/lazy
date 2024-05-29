@@ -65,6 +65,7 @@ mod keywords {
   pub(super) const CLASS: &str = "class";
   pub(super) const INTERFACE: &str = "interface";
   pub(super) const NAMESPACE: &str = "namespace";
+  pub(super) const IMPLEMENTS: &str = "implements";
   pub(super) const IMPL: &str = "impl";
   pub(super) const EXTERN: &str = "extern";
   pub(super) const WHILE: &str = "while";
@@ -77,6 +78,7 @@ mod keywords {
   pub(super) const BREAK: &str = "break";
   pub(super) const CONTINUE: &str = "continue";
   pub(super) const TEMPLATE: &str = "template";
+  pub(super) const EXTENDS: &str = "extends";
   pub(super) const CONST: &str = "const";
   pub(super) const MUT: &str = "mut";
 }
@@ -91,6 +93,7 @@ pub(crate) enum Keyword {
   Class,
   Interface,
   Namespace,
+  Implements,
   Impl,
   Extern,
   While,
@@ -103,6 +106,7 @@ pub(crate) enum Keyword {
   Break,
   Continue,
   Template,
+  Extends,
   Const,
   Mut,
 }
@@ -118,6 +122,7 @@ impl std::string::ToString for Keyword {
       Self::Class => keywords::CLASS,
       Self::Interface => keywords::INTERFACE,
       Self::Namespace => keywords::NAMESPACE,
+      Self::Implements => keywords::IMPLEMENTS,
       Self::Impl => keywords::IMPL,
       Self::Extern => keywords::EXTERN,
       Self::While => keywords::WHILE,
@@ -130,6 +135,7 @@ impl std::string::ToString for Keyword {
       Self::Break => keywords::BREAK,
       Self::Continue => keywords::CONTINUE,
       Self::Template => keywords::TEMPLATE,
+      Self::Extends => keywords::EXTENDS,
       Self::Const => keywords::CONST,
       Self::Mut => keywords::MUT,
     }.to_string()
@@ -149,6 +155,7 @@ impl TryFrom<&String> for Keyword {
       keywords::CLASS => Ok(Self::Class),
       keywords::INTERFACE => Ok(Self::Interface),
       keywords::NAMESPACE => Ok(Self::Namespace),
+      keywords::IMPLEMENTS => Ok(Self::Implements),
       keywords::IMPL => Ok(Self::Impl),
       keywords::EXTERN => Ok(Self::Extern),
       keywords::WHILE => Ok(Self::While),
@@ -161,6 +168,7 @@ impl TryFrom<&String> for Keyword {
       keywords::BREAK => Ok(Self::Break),
       keywords::CONTINUE => Ok(Self::Continue),
       keywords::TEMPLATE => Ok(Self::Template),
+      keywords::EXTENDS => Ok(Self::Extends),
       keywords::CONST => Ok(Self::Const),
       keywords::MUT => Ok(Self::Mut),
       _ => Err(())

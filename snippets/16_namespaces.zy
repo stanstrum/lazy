@@ -1,7 +1,7 @@
 namespace Whatever {
   export namespace Stuff {
     template: T;
-    export fn do_stuff -> &str:
+    export do_stuff -> &str:
       a: T,
       b: T
     {

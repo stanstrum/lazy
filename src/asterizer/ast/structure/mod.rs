@@ -11,14 +11,41 @@ use crate::asterizer::ast::{
   TokenStream,
   AsterizerError,
   Function,
+  Type
 };
 
 use crate::tokenizer::{
   TokenEnum,
   Keyword,
+  Punctuation,
 };
 
 use crate::asterizer::error::ExpectedSnafu;
+
+#[derive(Debug, TypeName)]
+pub(crate) enum TemplatableStructure {
+  Function(Function),
+  TypeAlias(TypeAlias),
+  Interface(Interface),
+  Struct(Struct),
+}
+
+#[derive(Debug, TypeName)]
+pub(crate) struct UnconstrainedTemplateConstraint {
+  name: String
+}
+
+#[derive(Debug, TypeName)]
+pub(crate) struct ConstrainedTemplateConstraint {
+  ty: Type,
+  extends: Type
+}
+
+#[derive(Debug, TypeName)]
+pub(crate) enum TemplateConstraint {
+  Unconstrained(UnconstrainedTemplateConstraint),
+  Extends(ConstrainedTemplateConstraint)
+}
 
 #[derive(Debug, TypeName)]
 pub(crate) enum Structure {
@@ -29,6 +56,13 @@ pub(crate) enum Structure {
   Struct(Struct),
   Extern(Extern),
   Exported(Exported),
+  TemplateScope(TemplateScope),
+}
+
+#[derive(Debug, TypeName)]
+pub(crate) struct TemplateScope {
+  constraints: Vec<TemplateConstraint>,
+  structure: TemplatableStructure
 }
 
 #[derive(Debug, TypeName)]
@@ -57,6 +91,140 @@ impl MakeAst for Exported {
   }
 }
 
+impl MakeAst for ConstrainedTemplateConstraint {
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let Some(ty) = stream.make()? else {
+      return Ok(None);
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(TokenEnum::Keyword(Keyword::Extends)) = stream.next_variant() else {
+      return Ok(None);
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(extends) = stream.make()? else {
+      return ExpectedSnafu {
+      what: "a type",
+      span: stream.span(),
+      }.fail();
+    };
+
+    Ok(Some(Self { ty, extends }))
+  }
+}
+
+impl MakeAst for TemplateConstraint {
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    #[allow(clippy::manual_map)]
+    Ok({
+      if let Some(extends) = stream.make()? {
+        Some(Self::Extends(extends))
+      } else if let Some(TokenEnum::Identifier(name)) = stream.peek_variant() {
+        let name = name.to_owned();
+
+        stream.seek();
+
+        Some(Self::Unconstrained(UnconstrainedTemplateConstraint { name }))
+      } else {
+        None
+      }
+    })
+  }
+}
+
+impl TemplatableStructure {
+  pub fn name(&self) -> String {
+    match self {
+      TemplatableStructure::Function(func) => &func.decl.name,
+      TemplatableStructure::TypeAlias(alias) => &alias.name,
+      TemplatableStructure::Interface(interface) => &interface.name,
+      TemplatableStructure::Struct(r#struct) => &r#struct.name,
+    }.to_owned()
+  }
+}
+
+impl MakeAst for TemplatableStructure {
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    #[allow(clippy::manual_map)]
+    Ok({
+      if let Some(function) = stream.make()? {
+        Some(Self::Function(function))
+      } else if let Some(type_alias) = stream.make()? {
+        Some(Self::TypeAlias(type_alias))
+      } else if let Some(interface) = stream.make()? {
+        Some(Self::Interface(interface))
+      } else if let Some(r#struct) = stream.make()? {
+        Some(Self::Struct(r#struct))
+      } else {
+        None
+      }
+    })
+  }
+}
+
+impl MakeAst for TemplateScope {
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let Some(TokenEnum::Keyword(Keyword::Template)) = stream.next_variant() else {
+      return Ok(None);
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(TokenEnum::Punctuation(Punctuation::Colon)) = stream.next_variant() else {
+      return ExpectedSnafu {
+        what: "a colon",
+        span: stream.span(),
+      }.fail();
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(constraint) = stream.make()? else {
+      return ExpectedSnafu {
+        what: "a template constraint",
+        span: stream.span(),
+      }.fail();
+    };
+
+    let mut constraints = vec![constraint];
+    loop {
+      stream.skip_whitespace_and_comments();
+
+      match stream.next_variant() {
+        Some(TokenEnum::Punctuation(Punctuation::Comma)) => {},
+        Some(TokenEnum::Punctuation(Punctuation::Semicolon)) => break,
+        _ => return ExpectedSnafu {
+          what: "a semicolon or comma",
+          span: stream.span(),
+        }.fail()
+      };
+
+      let Some(constraint) = stream.make()? else {
+        return ExpectedSnafu {
+          what: "a template constraint",
+          span: stream.span(),
+        }.fail();
+      };
+
+      constraints.push(constraint);
+    };
+
+    stream.skip_whitespace_and_comments();
+
+    let Some(structure) = stream.make()? else {
+      return ExpectedSnafu {
+        what: "a templatable structre",
+        span: stream.span(),
+      }.fail();
+    };
+
+    Ok(Some(Self { constraints, structure }))
+  }
+}
+
 impl Structure {
   pub fn name(&self) -> String {
     match self {
@@ -67,6 +235,7 @@ impl Structure {
       Self::Struct(r#struct) => r#struct.name.to_owned(),
       Self::Extern(r#extern) => r#extern.decl.name.to_owned(),
       Self::Exported(r#exported) => r#exported.structure.name(),
+      Self::TemplateScope(scope) => scope.structure.name(),
     }
   }
 }
@@ -89,6 +258,8 @@ impl MakeAst for Structure {
         Some(Self::Extern(r#extern))
       } else if let Some(exported) = stream.make()? {
         Some(Self::Exported(exported))
+      } else if let Some(scope) = stream.make()? {
+        Some(Self::TemplateScope(scope))
       } else {
         None
       }

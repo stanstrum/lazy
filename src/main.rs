@@ -1,5 +1,4 @@
-use std::fs::File;
-
+mod compiler;
 mod tokenizer;
 mod asterizer;
 mod error;
@@ -8,7 +7,6 @@ mod debug;
 mod colors;
 
 use error::*;
-use tokenizer::TokenizationError;
 
 fn compile(args: Vec<String>) -> Result<(), CompilationError> {
   let Some(input_file_path) = args.get(1) else {
@@ -17,54 +15,9 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
     }.fail();
   };
 
-  // TODO: for some reason, this doesn't error when opening a directory :/
-  let input_file = match File::open(input_file_path) {
-    Ok(file) => file,
-    Err(error) => {
-      return InputFileSnafu { error }.fail();
-    }
-  };
+  let mut compiler = compiler::Compiler::new(input_file_path.into());
 
-  let mut reader = utf8_read::Reader::new(input_file);
-
-  let (source, tokens) = match tokenizer::tokenize(&mut reader) {
-    Ok(result) => result,
-    Err(error) if matches!(error, TokenizationError::InvalidSource { .. }) => {
-      let TokenizationError::InvalidSource { parsed, source, .. } = &error else {
-        unreachable!();
-      };
-
-      let color_stream = tokenizer::create_color_stream(parsed);
-
-      pretty_print_error(&error, source, color_stream);
-
-      return Err(error.into());
-    },
-    Err(error) => {
-      return Err(error.into());
-    },
-  };
-
-  // let source = tokenizer::stringify(&tokens);
-  let color_stream = tokenizer::create_color_stream(&tokens);
-
-  // debug::tokens(&tokens);
-
-  #[allow(unused_variables)]
-  let ast = {
-    match asterizer::asterize(tokens) {
-      Ok(ast) => ast,
-      Err(error) => {
-        pretty_print_error(&error, &source, color_stream);
-
-        return AsterizationSnafu { error }.fail();
-      },
-    }
-  };
-
-  // debug::ast(&ast);
-
-  Ok(())
+  compiler.compile()
 }
 
 fn main() {

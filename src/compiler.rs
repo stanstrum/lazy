@@ -92,7 +92,7 @@ impl Compiler {
 
     let mut reader = utf8_read::Reader::new(input_file);
 
-    let (source, tokens) = match tokenizer::tokenize(&mut reader) {
+    let (source, tokens) = match tokenizer::tokenize(handle, &mut reader) {
       Ok(result) => result,
       Err(error) if matches!(error, tokenizer::TokenizationError::InvalidSource { .. }) => {
         let tokenizer::TokenizationError::InvalidSource { parsed, source, .. } = &error else {
@@ -117,7 +117,7 @@ impl Compiler {
 
     #[allow(unused_variables)]
     let ast = {
-      match asterizer::asterize(tokens) {
+      match asterizer::asterize(handle, tokens) {
         Ok(ast) => ast,
         Err(error) => {
           crate::pretty_print_error(&error, &source, color_stream);

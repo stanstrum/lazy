@@ -12,7 +12,7 @@ use state::*;
 pub(crate) use structs::*;
 pub(crate) use error::TokenizationError;
 
-use crate::colors::Color;
+use crate::{colors::Color, compiler::Handle};
 
 use self::error::InvalidSourceSnafu;
 
@@ -38,7 +38,7 @@ pub(crate) fn create_color_stream(tokens: &[Token]) -> Vec<(usize, Color)> {
   color_stream
 }
 
-pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<(String, Vec<Token>), TokenizationError> {
+pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(String, Vec<Token>), TokenizationError> {
   let mut state = State::Base;
   let mut toks: Vec<Token> = vec![];
 
@@ -54,6 +54,7 @@ pub(crate) fn tokenize(reader: &mut Reader<File>) -> Result<(String, Vec<Token>)
         span: Span {
           start: *start,
           end: i,
+          handle: handle.to_owned()
         }
       });
     };

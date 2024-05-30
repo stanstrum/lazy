@@ -16,20 +16,24 @@ use crate::tokenizer::{
   Span
 };
 
+use crate::compiler::Handle;
+
 pub(crate) struct TokenStream {
   position: usize,
   marks: Vec<usize>,
   tokens: Vec<Token>,
   eof: bool,
+  handle: Handle
 }
 
 impl TokenStream {
-  pub fn new(tokens: Vec<Token>) -> Self {
+  pub fn new(handle: &Handle, tokens: Vec<Token>) -> Self {
     Self {
       position: 0,
       marks: vec![],
       tokens,
-      eof: false
+      eof: false,
+      handle: handle.to_owned()
     }
   }
 
@@ -41,7 +45,8 @@ impl TokenStream {
           .map(|token| token.span.to_owned())
           .unwrap_or(Span {
             start: 0,
-            end: 0
+            end: 0,
+            handle: self.handle.to_owned()
           })
       })
   }
@@ -172,8 +177,8 @@ impl TokenStream {
   }
 }
 
-pub(crate) fn asterize(tokens: Vec<Token>) -> Result<GlobalNamespace, AsterizerError> {
-  let mut stream = TokenStream::new(tokens);
+pub(crate) fn asterize(handle: &Handle, tokens: Vec<Token>) -> Result<GlobalNamespace, AsterizerError> {
+  let mut stream = TokenStream::new(handle, tokens);
 
   let Some(global) = stream.make()? else {
     panic!("no global made")

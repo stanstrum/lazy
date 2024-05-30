@@ -1,10 +1,13 @@
 use typename::TypeName;
 
+use crate::compiler::Handle;
+
 #[allow(unused)]
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Span {
-  pub start: usize,
-  pub end: usize
+  pub(crate) start: usize,
+  pub(crate) end: usize,
+  pub(crate) handle: Handle,
 }
 
 pub(crate) trait GetSpan {

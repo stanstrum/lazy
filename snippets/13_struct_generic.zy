@@ -9,7 +9,7 @@ import { libc::printf } from "std/index.zy";
 
 template: T;
 struct Something {
-  T value
+  value: T
 };
 
 main -> i32 {

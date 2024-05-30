@@ -9,8 +9,8 @@ import { libc::printf } from "std/index.zy";
 
 template: T;
 struct Slice {
-  &[]T ptr,
-  usize len
+  ptr: &[]T,
+  len: usize
 };
 
 main -> i32 {

@@ -11,9 +11,10 @@
 
 namespace mem {
   extern malloc -> &[]u8:
-    usize size;
+    size: usize ;
 
-  extern free: &[]u8 ptr;
+  extern free:
+    ptr: &[]u8;
 };
 
 namespace fs {
@@ -22,30 +23,30 @@ namespace fs {
   type FILE := []u8;
 
   extern fopen -> &FILE:
-    &super::CString filename,
-    &super::CString mode;
+    filename: &super::CString,
+    mode: &super::CString;
 
   extern fclose -> i32:
-    &FILE stream;
+    stream: &FILE;
 
   extern fseek -> i32:
-    &FILE stream,
-    i32 offset,
-    i32 whence;
+    stream: &FILE,
+    offset: i32,
+    whence: i32;
 
   extern ftell -> i32:
-    &FILE steam;
+    steam: &FILE;
 
   extern fread -> usize:
-    &[]u8 ptr,
-    usize size,
-    usize nmemb,
-    &FILE stream;
+    ptr: &[]u8,
+    size: usize,
+    nmemb: usize,
+    stream: &FILE;
 };
 
 extern printf -> i32:
-  &CString fmt,
+  fmt: &CString,
   ...;
 
 extern puts -> i32:
-  &CString s;
+  s: &CString;

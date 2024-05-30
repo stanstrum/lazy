@@ -8,11 +8,11 @@
 import { libc::printf } from "std/index.zy";
 
 struct Struct {
-  i32 value
+  value: i32
 };
 
 main -> i32 {
-  Struct a;
+  a: Struct;
 
   a.value = 1000;
 

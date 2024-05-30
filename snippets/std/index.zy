@@ -9,6 +9,6 @@ import libc from "./libc.zy";
 
 template: T;
 struct Slice {
-  &[]T ptr,
-  usize len
+  ptr: &[]T,
+  len: usize,
 };

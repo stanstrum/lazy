@@ -40,7 +40,7 @@ impl SourceFile {
   fn open(&self) -> Result<File, CompilationError> {
     match File::open(&self.path) {
       Ok(file) => Ok(file),
-      Err(error) => return InputFileSnafu { error }.fail()
+      Err(error) => InputFileSnafu { error }.fail()
     }
   }
 }

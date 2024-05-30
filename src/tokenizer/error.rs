@@ -13,7 +13,7 @@ use super::{
 pub(crate) enum TokenizationError {
   IOError { error: utf8_read::Error },
 
-  #[snafu(display("Failed to parse source"))]
+  #[snafu(display("failed to parse source"))]
   InvalidSource {
     parsed: Vec<Token>,
     #[snafu(source(false))]

@@ -10,10 +10,10 @@ use crate::tokenizer::{
 #[derive(Snafu, Debug)]
 #[snafu(visibility(pub(crate)))]
 pub(crate) enum AsterizerError {
-  #[snafu(display("Not implemented: {message}"))]
+  #[snafu(display("not implemented: {message}"))]
   NotImplemented { message: String, span: Span },
 
-  #[snafu(display("Expected {what}"))]
+  #[snafu(display("expected {what}"))]
   Expected { what: String, span: Span }
 }
 

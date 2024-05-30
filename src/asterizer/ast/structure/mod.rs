@@ -3,6 +3,7 @@ import_export!(type_alias);
 import_export!(r#interface);
 import_export!(r#struct);
 import_export!(r#extern);
+import_export!(import);
 
 use typename::TypeName;
 

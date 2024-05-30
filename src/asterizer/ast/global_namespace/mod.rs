@@ -6,6 +6,7 @@ use typename::TypeName;
 use crate::asterizer::ast::{
   MakeAst,
   TokenStream,
+  Import,
 };
 
 use crate::tokenizer::{
@@ -19,24 +20,30 @@ use crate::asterizer::error::*;
 #[derive(Debug, Default, TypeName)]
 pub(crate) struct GlobalNamespace {
   // file: std::path::PathBuf,
-  pub(crate) children: HashMap<String, TopLevelStructure>
+  pub(crate) children: HashMap<String, TopLevelStructure>,
+  pub(crate) imports: Vec<Import>,
 }
 
 impl MakeAst for GlobalNamespace {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     let mut structures: Vec<TopLevelStructure> = vec![];
+    let mut imports = vec![];
 
     stream.skip_whitespace_and_comments();
 
     while stream.remaining() > 0 {
-      let Some(r#struct) = stream.make()? else {
-        return ExpectedSnafu {
-          what: "a top-level structure",
-          span: stream.span()
-        }.fail();
-      };
+      if let Some(import) = stream.make()? {
+        imports.push(import);
+      } else {
+        let Some(structure) = stream.make()? else {
+          return ExpectedSnafu {
+            what: "a top-level structure",
+            span: stream.span()
+          }.fail();
+        };
 
-      structures.push(r#struct);
+        structures.push(structure);
+      };
 
       stream.skip_whitespace_and_comments();
 
@@ -63,6 +70,6 @@ impl MakeAst for GlobalNamespace {
       )
       .collect();
 
-    Ok(Some(Self { children }))
+    Ok(Some(Self { children, imports }))
   }
 }

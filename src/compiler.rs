@@ -29,7 +29,7 @@ pub(crate) struct Compiler {
 }
 
 impl SourceFile {
-  fn new(path: PathBuf) -> Self {
+  pub(crate) fn new(path: PathBuf) -> Self {
     Self {
       path,
       data: SourceFileData::Unparsed,

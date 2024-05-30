@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::Path;
 
 use snafu::prelude::*;
 
@@ -40,7 +40,7 @@ fn get_line_number(source: &str, index: usize) -> usize {
   line_number
 }
 
-pub(super) fn pretty_print_error<T>(error: &T, source: &str, mut color_stream: Vec<(usize, Color)>, path: &PathBuf)
+pub(super) fn pretty_print_error<T>(error: &T, source: &str, mut color_stream: Vec<(usize, Color)>, path: &Path)
   where T: GetSpan + std::fmt::Display
 {
   let span = error.get_span();
@@ -68,8 +68,8 @@ pub(super) fn pretty_print_error<T>(error: &T, source: &str, mut color_stream: V
     focus_end -= 1;
   };
 
-  let focus_start_line_number = get_line_number(&source, focus_start);
-  let focus_end_line_number = get_line_number(&source, focus_end);
+  let focus_start_line_number = get_line_number(source, focus_start);
+  let focus_end_line_number = get_line_number(source, focus_end);
 
   let line_number_max_digits = ((focus_end_line_number as f32).log10() + 1f32).floor() as usize;
 
@@ -78,7 +78,7 @@ pub(super) fn pretty_print_error<T>(error: &T, source: &str, mut color_stream: V
   let divider = format!("{}|{}", Color::Creme.to_string(), Color::Clear.to_string());
 
   println!(" {empty_line_number} {divider} {}error{}: {error}", Color::Red.to_string(), Color::Clear.to_string());
-  println!(" {empty_line_number} {divider}    {}in{}: {}", Color::Red.to_string(), Color::Clear.to_string(), path.to_string_lossy().to_string());
+  println!(" {empty_line_number} {divider}    {}in{}: {}", Color::Red.to_string(), Color::Clear.to_string(), path.to_string_lossy());
   println!(" {empty_line_number} {divider}");
 
   let mut index = focus_start;

@@ -101,7 +101,7 @@ impl Compiler {
 
         let color_stream = tokenizer::create_color_stream(parsed);
 
-        crate::pretty_print_error(&error, source, color_stream, &path);
+        crate::pretty_print_error(&error, source, color_stream, path);
 
         return Err(error.into());
       },
@@ -120,7 +120,7 @@ impl Compiler {
       match asterizer::asterize(handle, tokens) {
         Ok(ast) => ast,
         Err(error) => {
-          crate::pretty_print_error(&error, &source, color_stream, &path);
+          crate::pretty_print_error(&error, &source, color_stream, path);
 
           return AsterizationSnafu { error }.fail();
         },

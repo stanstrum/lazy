@@ -69,10 +69,6 @@ pub(crate) struct Handle {
 #[derive(Debug)]
 pub(crate) struct Compiler {
   handle_counter: usize,
-  // TODO: using a singly-linked list may be better here given that we never need to
-  //       read backwards and we remove/reinsert elements at each step of compilation
-  //       so we don't need to worry about null elements that are being replaced --
-  //       also removes the need for constant copying/cloning path bufs
   files: Vec<SourceFile>,
   pub(crate) entry_point: Handle,
 }

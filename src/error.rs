@@ -28,7 +28,7 @@ pub(crate) enum CompilationError {
 // TODO: make this more efficient -- this can be called multiple times per
 //       error/warning/note, etc.
 fn get_line_number(source: &str, index: usize) -> usize {
-  // We humans start counting at one
+  // We "humans" start counting at one
   let mut line_number = 1;
 
   for ch in source.chars().take(index) {

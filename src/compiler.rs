@@ -81,9 +81,10 @@ impl Compiler {
     let Some(SourceFile { path, data: SourceFileData::Unparsed }) = self.get_handle(handle) else {
       unreachable!();
     };
+    let path = path.to_owned();
 
     // TODO: for some reason, this doesn't error when opening a directory :/
-    let input_file = match File::open(path) {
+    let input_file = match File::open(&path) {
       Ok(file) => file,
       Err(error) => {
         return InputFileSnafu { error }.fail();
@@ -101,7 +102,7 @@ impl Compiler {
 
         let color_stream = tokenizer::create_color_stream(parsed);
 
-        crate::pretty_print_error(&error, source, color_stream, path);
+        crate::pretty_print_error(&error, source, color_stream, &path);
 
         return Err(error.into());
       },
@@ -117,10 +118,10 @@ impl Compiler {
 
     #[allow(unused_variables)]
     let ast = {
-      match asterizer::asterize(handle, tokens) {
+      match asterizer::asterize(self, handle, tokens) {
         Ok(ast) => ast,
         Err(error) => {
-          crate::pretty_print_error(&error, &source, color_stream, path);
+          crate::pretty_print_error(&error, &source, color_stream, &path);
 
           return AsterizationSnafu { error }.fail();
         },

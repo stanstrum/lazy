@@ -32,7 +32,7 @@ enum Pemdas {
   Assignment,
 }
 
-impl ExpressionResolver<'_> {
+impl ExpressionResolver<'_, '_> {
   pub fn resolve(mut self) -> Result<Expression, AsterizerError> {
     for pemdas in all::<Pemdas>() {
       let mut part_index = 0;

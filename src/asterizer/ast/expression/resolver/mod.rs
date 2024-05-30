@@ -16,13 +16,13 @@ pub(super) enum ExpressionPart {
   Operand(Expression),
 }
 
-pub(super) struct ExpressionResolver<'a> {
-  pub(crate) stream: &'a mut TokenStream,
+pub(super) struct ExpressionResolver<'a, 'b> {
+  pub(crate) stream: &'a mut TokenStream<'b>,
   pub(crate) parts: Vec<ExpressionPart>
 }
 
-impl<'a> ExpressionResolver<'a> {
-  pub fn new(stream: &'a mut TokenStream) -> Self {
+impl<'a, 'b> ExpressionResolver<'a, 'b> {
+  pub fn new(stream: &'a mut TokenStream<'b>) -> Self {
     Self {
       stream,
       parts: vec![],

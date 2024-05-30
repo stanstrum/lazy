@@ -1,18 +1,48 @@
 use std::fs::File;
 use std::path::PathBuf;
 
+use asterizer::ast::GlobalNamespace;
+use tokenizer::Token;
+
+use colors::Color;
+
 use crate::*;
 
 #[derive(Debug)]
+pub(crate) struct DebugInfo {
+  source: String,
+  color_stream: Vec<(usize, Color)>
+}
+
+#[derive(Debug)]
 pub(crate) enum SourceFileData {
+  Borrowed,
   Unparsed,
+  Tokenized(Vec<Token>),
+  Asterized(GlobalNamespace),
   // TODO
+}
+
+impl Default for SourceFileData {
+  fn default() -> Self {
+    Self::Borrowed
+  }
 }
 
 #[derive(Debug)]
 pub(crate) struct SourceFile {
   pub(crate) path: PathBuf,
   pub(crate) data: SourceFileData,
+  pub(crate) debug_info: Option<DebugInfo>,
+}
+
+impl SourceFile {
+  fn open(&self) -> Result<File, CompilationError> {
+    match File::open(&self.path) {
+      Ok(file) => Ok(file),
+      Err(error) => return InputFileSnafu { error }.fail()
+    }
+  }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -24,6 +54,10 @@ pub(crate) struct Handle {
 #[derive(Debug)]
 pub(crate) struct Compiler {
   handle_counter: usize,
+  // TODO: using a singly-linked list may be better here given that we never need to
+  //       read backwards and we remove/reinsert elements at each step of compilation
+  //       so we don't need to worry about null elements that are being replaced --
+  //       also removes the need for constant copying/cloning path bufs
   files: Vec<SourceFile>,
   entry_point: Handle,
 }
@@ -33,6 +67,7 @@ impl SourceFile {
     Self {
       path,
       data: SourceFileData::Unparsed,
+      debug_info: None
     }
   }
 }
@@ -46,7 +81,14 @@ impl Compiler {
     id
   }
 
-  pub(crate) fn create_handle(&mut self, source_file: SourceFile) -> Handle {
+  // TODO: deduplicate the same file path
+  pub(crate) fn create_handle(&mut self, mut source_file: SourceFile) -> Handle {
+    let metadata = std::fs::metadata(&source_file.path);
+
+    if metadata.is_ok_and(|metadata| metadata.is_dir()) {
+      source_file.path.push("index.zy");
+    };
+
     let id = self.get_unique_handle_id();
     self.files.insert(id, source_file);
 
@@ -77,21 +119,27 @@ impl Compiler {
     self.compile_handle(&self.entry_point.to_owned())
   }
 
-  pub(crate) fn compile_handle(&mut self, handle: &Handle) -> Result<(), CompilationError> {
-    let Some(SourceFile { path, data: SourceFileData::Unparsed }) = self.get_handle(handle) else {
-      unreachable!();
-    };
-    let path = path.to_owned();
+  fn borrow_handle(&mut self, handle: &Handle, processor: fn(&mut Compiler, SourceFile, &Handle) -> Result<SourceFile, CompilationError>) -> Result<(), CompilationError> {
+    let file_ref = &mut self.files[handle.id];
 
-    // TODO: for some reason, this doesn't error when opening a directory :/
-    let input_file = match File::open(&path) {
-      Ok(file) => file,
-      Err(error) => {
-        return InputFileSnafu { error }.fail();
-      }
+    let data = std::mem::take(&mut file_ref.data);
+    let debug_info = std::mem::take(&mut file_ref.debug_info);
+
+    let borrowed_file = SourceFile {
+      path: file_ref.path.to_owned(),
+      debug_info,
+      data,
     };
 
-    let mut reader = utf8_read::Reader::new(input_file);
+    let result = processor(self, borrowed_file, handle)?;
+    self.files[handle.id] = result;
+
+    Ok(())
+  }
+
+  // TODO: move this into tokenizer
+  fn tokenize_file(&mut self, file: SourceFile, handle: &Handle) -> Result<SourceFile, CompilationError> {
+    let mut reader = utf8_read::Reader::new(file.open()?);
 
     let (source, tokens) = match tokenizer::tokenize(handle, &mut reader) {
       Ok(result) => result,
@@ -102,7 +150,7 @@ impl Compiler {
 
         let color_stream = tokenizer::create_color_stream(parsed);
 
-        crate::pretty_print_error(&error, source, color_stream, &path);
+        crate::pretty_print_error(&error, source, color_stream, &file.path);
 
         return Err(error.into());
       },
@@ -114,21 +162,62 @@ impl Compiler {
     // let source = tokenizer::stringify(&tokens);
     let color_stream = tokenizer::create_color_stream(&tokens);
 
-    // debug::tokens(&tokens);
+    let debug_info = Some(DebugInfo {
+      source,
+      color_stream,
+    });
 
-    #[allow(unused_variables)]
-    let ast = {
-      match asterizer::asterize(self, handle, tokens) {
-        Ok(ast) => ast,
-        Err(error) => {
-          crate::pretty_print_error(&error, &source, color_stream, &path);
+    Ok(SourceFile {
+      path: file.path,
+      data: SourceFileData::Tokenized(tokens),
+      debug_info
+    })
+  }
 
-          return AsterizationSnafu { error }.fail();
-        },
-      }
+  // TODO: rework how this works -- we shouldn't need an anonymous callback to turn this into
+  //       a proper processor.  definitely make the compiler a singleton so we can stop playing
+  //       a cat-and-mouse game with the borrow checker.  the compiler is always.
+  // TODO: move this into asterizer
+  fn asterize_file(&mut self, file: SourceFile, handle: &Handle) -> Result<SourceFile, CompilationError> {
+    let SourceFile {
+      path,
+      debug_info,
+      data: SourceFileData::Tokenized(tokens)
+    } = file else {
+      panic!("tried to asterize a non-tokenized file");
     };
 
-    // debug::ast(&ast);
+    let ast = match asterizer::asterize(self, &path, handle, tokens) {
+      Ok(ast) => ast,
+      Err(error) => {
+        let Some(DebugInfo { source, color_stream }) = debug_info else {
+          panic!("no debug info");
+        };
+
+        crate::pretty_print_error(&error, &source, color_stream, &path);
+
+        return AsterizationSnafu { error }.fail();
+      },
+    };
+
+    Ok(SourceFile {
+      path,
+      debug_info,
+      data: SourceFileData::Asterized(ast),
+    })
+  }
+
+  pub(crate) fn compile_handle(&mut self, handle: &Handle) -> Result<(), CompilationError> {
+    self.borrow_handle(handle, Self::tokenize_file)?;
+    self.borrow_handle(handle, Self::asterize_file)?;
+
+    for id in 0..self.files.len() {
+      if matches!(&self.files[id].data, SourceFileData::Unparsed) {
+        self.compile_handle(&Handle { id })?;
+      };
+
+      // dbg!(id, &self.files[id].data);
+    };
 
     Ok(())
   }

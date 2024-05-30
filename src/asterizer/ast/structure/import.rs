@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use typename::TypeName;
 
 use crate::asterizer::ast::{
@@ -194,7 +196,7 @@ impl MakeAst for Import {
       }.fail();
     };
 
-    let mut relative_import_path = stream.compiler.get_handle(&stream.handle).unwrap().path.to_owned();
+    let mut relative_import_path: PathBuf = stream.path.to_owned().parent().expect("no parent directory").into();
     relative_import_path.push(relative_path);
 
     let from = stream.compiler.create_handle(SourceFile::new(relative_import_path));

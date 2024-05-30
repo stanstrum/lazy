@@ -4,6 +4,7 @@ pub(crate) mod ast;
 pub(crate) use error::AsterizerError;
 
 use std::fmt::Debug;
+use std::path::Path;
 
 use ast::{
   GlobalNamespace,
@@ -23,18 +24,20 @@ pub(crate) struct TokenStream<'a> {
   marks: Vec<usize>,
   tokens: Vec<Token>,
   eof: bool,
-  handle: Handle,
+  path: &'a Path,
+  handle: &'a Handle,
   compiler: &'a mut Compiler
 }
 
 impl<'a> TokenStream<'a> {
-  pub fn new(compiler: &'a mut Compiler, handle: &Handle, tokens: Vec<Token>) -> Self {
+  pub fn new(compiler: &'a mut Compiler, path: &'a Path, handle: &'a Handle, tokens: Vec<Token>) -> Self {
     Self {
       position: 0,
       marks: vec![],
       tokens,
       eof: false,
-      handle: handle.to_owned(),
+      path,
+      handle,
       compiler,
     }
   }
@@ -179,8 +182,8 @@ impl<'a> TokenStream<'a> {
   }
 }
 
-pub(crate) fn asterize(compiler: &mut Compiler, handle: &Handle, tokens: Vec<Token>) -> Result<GlobalNamespace, AsterizerError> {
-  let mut stream = TokenStream::new(compiler, handle, tokens);
+pub(crate) fn asterize(compiler: &mut Compiler, path: &Path, handle: &Handle, tokens: Vec<Token>) -> Result<GlobalNamespace, AsterizerError> {
+  let mut stream = TokenStream::new(compiler, path, handle, tokens);
 
   let Some(global) = stream.make()? else {
     panic!("no global made")

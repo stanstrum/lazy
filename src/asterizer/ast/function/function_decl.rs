@@ -5,22 +5,22 @@ use crate::asterizer::ast::{
   TokenStream,
   AsterizerError,
   FunctionDeclarationArguments,
-  Type
+  Type,
 };
 
 use crate::tokenizer::{
   Token,
   TokenEnum,
   Operator,
-  Punctuation
+  Punctuation,
 };
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct FunctionDeclaration {
-  pub name: String,
-  pub return_type: Option<Type>,
-  pub args: Option<FunctionDeclarationArguments>,
+  pub(crate) name: String,
+  pub(crate) return_type: Option<Type>,
+  pub(crate) args: Option<FunctionDeclarationArguments>,
 }
 
 impl MakeAst for FunctionDeclaration {
@@ -35,7 +35,6 @@ impl MakeAst for FunctionDeclaration {
     let name = ident.to_owned();
 
     stream.skip_whitespace_and_comments();
-
     stream.push_mark();
 
     let return_type = {
@@ -59,7 +58,6 @@ impl MakeAst for FunctionDeclaration {
     };
 
     stream.skip_whitespace_and_comments();
-
     stream.push_mark();
 
     let args = {
@@ -83,8 +81,6 @@ impl MakeAst for FunctionDeclaration {
       }
     };
 
-    Ok(Some(Self {
-      name, return_type, args
-    }))
+    Ok(Some(Self { name, return_type, args }))
   }
 }

@@ -8,11 +8,11 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
+  TokenEnum,
   Grouping,
   GroupingType,
-  Operator,
   Punctuation,
-  TokenEnum,
+  Operator,
 };
 
 use crate::asterizer::error::ExpectedSnafu;
@@ -22,14 +22,14 @@ use crate::asterizer::error::ExpectedSnafu;
 pub(crate) enum UnarySuffixOperator {
   PostIncrement,
   PostDecrement,
-  Call { args: Vec<Expression> }
+  Call { args: Vec<Expression> },
 }
 
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct UnarySuffixExpression {
-  pub op: UnarySuffixOperator,
-  pub expr: Box<Expression>
+  pub(crate) op: UnarySuffixOperator,
+  pub(crate) expr: Box<Expression>,
 }
 
 impl MakeAst for UnarySuffixOperator {
@@ -97,4 +97,3 @@ impl MakeAst for UnarySuffixOperator {
     Ok(None)
   }
 }
-

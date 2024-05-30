@@ -11,13 +11,13 @@ pub(crate) enum SourceFileData {
 
 #[derive(Debug)]
 pub(crate) struct SourceFile {
-  path: PathBuf,
-  data: SourceFileData,
+  pub(crate) path: PathBuf,
+  pub(crate) data: SourceFileData,
 }
 
 #[derive(Debug, Clone, Copy)]
-pub(crate)struct Handle {
-  id: usize,
+pub(crate) struct Handle {
+  pub(crate) id: usize,
 }
 
 #[allow(unused)]
@@ -32,7 +32,7 @@ impl SourceFile {
   fn new(path: PathBuf) -> Self {
     Self {
       path,
-      data: SourceFileData::Unparsed
+      data: SourceFileData::Unparsed,
     }
   }
 }

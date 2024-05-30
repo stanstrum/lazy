@@ -16,7 +16,7 @@ use crate::tokenizer::{
 #[derive(Debug, TypeName)]
 pub(crate) enum Atom {
   Literal(Literal),
-  Variable(String)
+  Variable(String),
 }
 
 impl MakeAst for Atom {

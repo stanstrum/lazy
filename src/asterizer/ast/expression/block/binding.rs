@@ -1,16 +1,16 @@
 use typename::TypeName;
 
-use crate::tokenizer::{
-  TokenEnum,
-  Operator,
-  Punctuation,
-};
-
 use crate::asterizer::ast::{
   MakeAst,
   TokenStream,
   Expression,
-  Type
+  Type,
+};
+
+use crate::tokenizer::{
+  TokenEnum,
+  Operator,
+  Punctuation,
 };
 
 use crate::asterizer::error::*;
@@ -18,10 +18,10 @@ use crate::asterizer::error::*;
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Binding {
-  // r#mut: bool,
-  name: String,
-  ty: Option<Type>,
-  expr: Option<Expression>
+  // pub(crate) r#mut: bool,
+  pub(crate) name: String,
+  pub(crate) ty: Option<Type>,
+  pub(crate) expr: Option<Expression>,
 }
 
 impl MakeAst for Binding {

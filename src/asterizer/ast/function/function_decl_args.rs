@@ -1,14 +1,14 @@
 use typename::TypeName;
 
-use crate::tokenizer::{
-  Punctuation,
-  TokenEnum
-};
-
 use crate::asterizer::ast::{
   MakeAst,
   TokenStream,
-  Type
+  Type,
+};
+
+use crate::tokenizer::{
+  TokenEnum,
+  Punctuation,
 };
 
 use crate::asterizer::error::*;
@@ -16,14 +16,14 @@ use crate::asterizer::error::*;
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct FunctionDeclarationArgument {
-  pub name: String,
-  pub ty: Type
+  pub(crate) name: String,
+  pub(crate) ty: Type,
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct FunctionDeclarationArguments {
-  pub args: Vec<FunctionDeclarationArgument>
+  pub(crate) args: Vec<FunctionDeclarationArgument>,
 }
 
 impl MakeAst for FunctionDeclarationArgument {

@@ -4,7 +4,7 @@ use crate::CompilationError;
 
 use crate::tokenizer::{
   Span,
-  GetSpan
+  GetSpan,
 };
 
 #[derive(Snafu, Debug)]

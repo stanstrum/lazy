@@ -4,13 +4,13 @@ use crate::asterizer::ast::{
   MakeAst,
   TokenStream,
   AsterizerError,
-  Expression
+  Expression,
 };
 
 use crate::tokenizer::{
   TokenEnum,
   GroupingType,
-  Grouping
+  Grouping,
 };
 
 use crate::asterizer::error::ExpectedSnafu;
@@ -18,7 +18,7 @@ use crate::asterizer::error::ExpectedSnafu;
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct SubExpression {
-  pub expr: Box<Expression>
+  pub(crate) expr: Box<Expression>,
 }
 
 impl MakeAst for SubExpression {

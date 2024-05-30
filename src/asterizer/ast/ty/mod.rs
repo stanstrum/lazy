@@ -3,41 +3,41 @@ use typename::TypeName;
 use crate::asterizer::ast::{
   MakeAst,
   TokenStream,
-  Expression
+  Expression,
+};
+
+use crate::tokenizer::{
+  TokenEnum,
+  Grouping,
+  GroupingType,
+  Operator,
 };
 
 use crate::asterizer::error::*;
 
-use crate::tokenizer::{
-  Grouping,
-  GroupingType,
-  Operator,
-  TokenEnum
-};
-
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct NamedType {
-  pub name: String
+  pub(crate) name: String
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct SizedArrayOf {
-  pub expr: Expression,
-  pub ty: Box<Type>
+  pub(crate) expr: Expression,
+  pub(crate) ty: Box<Type>
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct UnsizedArrayOf {
-  pub ty: Box<Type>
+  pub(crate) ty: Box<Type>
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct ImmutableReferenceTo {
-  pub ty: Box<Type>
+  pub(crate) ty: Box<Type>
 }
 
 #[derive(Debug, TypeName)]

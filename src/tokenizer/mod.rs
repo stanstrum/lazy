@@ -3,16 +3,17 @@ mod to_string;
 
 pub(crate) mod error;
 
-use std::fs::File;
-use utf8_read::Reader;
-
 mod state;
 use state::*;
+
+use std::fs::File;
+use utf8_read::Reader;
 
 pub(crate) use structs::*;
 pub(crate) use error::TokenizationError;
 
-use crate::{colors::Color, compiler::Handle};
+use crate::colors::Color;
+use crate::compiler::Handle;
 
 use self::error::InvalidSourceSnafu;
 
@@ -54,7 +55,7 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
         span: Span {
           start: *start,
           end: i,
-          handle: handle.to_owned()
+          handle: handle.to_owned(),
         }
       });
     };
@@ -63,19 +64,19 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
       match (&mut state, ch) {
         (State::Base, '/') => {
           state = State::CommentBegin {
-            start: i
+            start: i,
           };
         },
         (State::CommentBegin { start }, '*') => {
           state = State::MultilineComment {
             start: *start,
-            content: String::new()
+            content: String::new(),
           };
         },
         (State::MultilineComment { start, content }, '*') => {
           state = State::MultilineCommentEnding {
             start: *start,
-            content: content.to_owned()
+            content: content.to_owned(),
           };
         },
         (State::MultilineComment { content, .. }, _) => {
@@ -84,7 +85,7 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
         (State::MultilineCommentEnding { start, content }, '/') => {
           let tok = TokenEnum::Comment {
             ty: CommentType::Multiline,
-            content: content.to_owned()
+            content: content.to_owned(),
           };
 
           add_tok(start, tok);
@@ -94,19 +95,19 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
         (State::MultilineCommentEnding { start, content }, _) => {
           state = State::MultilineComment {
             start: *start,
-            content: format!("{content}*{ch}")
+            content: format!("{content}*{ch}"),
           };
         },
         (State::CommentBegin { start }, '/') => {
           state = State::LineComment {
             start: *start,
-            content: String::new()
+            content: String::new(),
           };
         },
         (State::LineComment { start, content }, '\n') => {
           let tok = TokenEnum::Comment {
             ty: CommentType::Line,
-            content: content.to_owned()
+            content: content.to_owned(),
           };
 
           add_tok(start, tok);
@@ -119,7 +120,7 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
         (State::Base, ' ' | '\n' | '\r' | '\t') => {
           state = State::Whitespace {
             start: i,
-            content: String::from(ch)
+            content: String::from(ch),
           };
         },
         (State::Whitespace { content, .. }, ' ' | '\n' | '\t') => {
@@ -136,7 +137,7 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
         (State::Base, 'a'..='z' | 'A'..='Z' | '_') => {
           state = State::Text {
             start: i,
-            content: String::from(ch)
+            content: String::from(ch),
           };
         },
         (State::Text { content, .. }, 'a'..='z' | 'A'..='Z' | '0'..='9' | '_') => {
@@ -146,21 +147,21 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
           state = State::StringLiteral {
             start: *start,
             ty: StringType::Bytes,
-            content: String::new()
+            content: String::new(),
           };
         },
         (State::Text { start, content }, '"') if content == "c" => {
           state = State::StringLiteral {
             start: *start,
             ty: StringType::C,
-            content: String::new()
+            content: String::new(),
           };
         },
         (State::Text { start, content }, '\'') if content == "b" => {
           state = State::CharLiteral {
             start: *start,
             ty: CharType::Byte,
-            content: String::new()
+            content: String::new(),
           };
         },
         (State::Text { start, ref content }, _) => {
@@ -180,7 +181,7 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
         (State::Base, '!' | '%' | '^' | '&' | '*' | '-' | '+' | '=' | '<' | '>' | /* '|' | */ ':' | '.' | '?') => {
           state = State::Operator {
             start: i,
-            content: String::from(ch)
+            content: String::from(ch),
           };
         },
         (State::Operator { start, content }, '>') if content == "-" => {
@@ -428,7 +429,7 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
           state = State::NumericLiteral {
             start: i,
             ty: NumericType::Decimal,
-            content: String::from(ch)
+            content: String::from(ch),
           };
         },
         (State::NumericLiteral { .. }, '_') => {
@@ -477,14 +478,14 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
           state = State::StringLiteral {
             start: i,
             ty: StringType::Unicode,
-            content: String::new()
+            content: String::new(),
           };
         },
         (State::Base, '\'') => {
           state = State::CharLiteral {
             start: i,
             ty: CharType::Unicode,
-            content: String::new()
+            content: String::new(),
           };
         },
         (State::StringLiteral {
@@ -511,7 +512,7 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
               ty: *ty
             },
             content: content.to_owned(),
-            ty: None
+            ty: None,
           };
         },
         (State::StringLiteral { content, .. }, _) => {
@@ -582,7 +583,7 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
             return_to: *return_to,
             content: content.to_owned(),
             ty: Some(StringEscapeType::Hexadecimal {
-              codepoint: codepoint.to_owned()
+              codepoint: codepoint.to_owned(),
             })
           };
           continue;
@@ -598,7 +599,7 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
             return_to: *return_to,
             content: content.to_owned(),
             ty: Some(StringEscapeType::Octal {
-              codepoint: codepoint.to_owned()
+              codepoint: codepoint.to_owned(),
             })
           };
           continue;
@@ -614,8 +615,8 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
             return_to: *return_to,
             content: content.to_owned(),
             ty: Some(StringEscapeType::Unicode {
-              codepoint: codepoint.to_owned()
-            })
+              codepoint: codepoint.to_owned(),
+            }),
           };
           // don't continue -- we are consuming this ending curly brace
         },
@@ -636,14 +637,14 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
               state = State::StringLiteral {
                 start: *start,
                 ty: ty.to_owned(),
-                content: content.to_owned()
+                content: content.to_owned(),
               };
             },
             StringEscapeReturnTo::Char { ty } => {
               state = State::CharLiteral {
                 start: *start,
                 ty: *ty,
-                content: content.to_owned()
+                content: content.to_owned(),
               };
             },
           };
@@ -663,7 +664,7 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
           let Ok(codepoint_value) = u32::from_str_radix(codepoint, 16) else {
             state = State::Invalid {
               start: heuristic_start,
-              content: codepoint.to_owned()
+              content: codepoint.to_owned(),
             };
 
             break;
@@ -672,7 +673,7 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
           let Some(parsed_ch) = char::from_u32(codepoint_value) else {
             state = State::Invalid {
               start: heuristic_start,
-              content: codepoint.to_owned()
+              content: codepoint.to_owned(),
             };
 
             break;
@@ -685,14 +686,14 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
               state = State::StringLiteral {
                 start: *start,
                 ty: *ty,
-                content: content.to_owned()
+                content: content.to_owned(),
               };
             },
             StringEscapeReturnTo::Char { ty } => {
               state = State::CharLiteral {
                 start: *start,
                 ty: *ty,
-                content: content.to_owned()
+                content: content.to_owned(),
               };
             },
           };
@@ -712,7 +713,7 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
           return InvalidSourceSnafu {
             parsed: toks,
             source,
-            span
+            span,
           }.fail();
         },
         (State::Invalid { content, .. }, _) => {

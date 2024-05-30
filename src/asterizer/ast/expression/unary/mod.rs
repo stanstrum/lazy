@@ -6,12 +6,12 @@ use crate::asterizer::ast::Expression;
 #[derive(Debug)]
 pub(crate) enum UnaryOperator {
   Prefix(UnaryPrefixOperator),
-  Suffix(UnarySuffixOperator)
+  Suffix(UnarySuffixOperator),
 }
 
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct UnaryExpression {
-  pub op: UnaryOperator,
-  pub expr: Box<Expression>
+  pub(crate) op: UnaryOperator,
+  pub(crate) expr: Box<Expression>,
 }

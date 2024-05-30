@@ -7,13 +7,13 @@ use std::fmt::Debug;
 
 use ast::{
   GlobalNamespace,
-  MakeAst
+  MakeAst,
 };
 
 use crate::tokenizer::{
   Token,
   TokenEnum,
-  Span
+  Span,
 };
 
 use crate::compiler::Handle;
@@ -23,7 +23,7 @@ pub(crate) struct TokenStream {
   marks: Vec<usize>,
   tokens: Vec<Token>,
   eof: bool,
-  handle: Handle
+  handle: Handle,
 }
 
 impl TokenStream {
@@ -33,7 +33,7 @@ impl TokenStream {
       marks: vec![],
       tokens,
       eof: false,
-      handle: handle.to_owned()
+      handle: handle.to_owned(),
     }
   }
 
@@ -46,7 +46,7 @@ impl TokenStream {
           .unwrap_or(Span {
             start: 0,
             end: 0,
-            handle: self.handle.to_owned()
+            handle: self.handle.to_owned(),
           })
       })
   }
@@ -188,7 +188,6 @@ pub(crate) fn asterize(handle: &Handle, tokens: Vec<Token>) -> Result<GlobalName
 
   if stream.remaining() != 0 {
     println!("error: remaining tokens {}/{}", stream.position, stream.tokens.len());
-    // dbg!(&stream.tokens[stream.position]);
 
     panic!("asterizer did not consume all tokens");
   };

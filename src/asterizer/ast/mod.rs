@@ -11,7 +11,7 @@ import_export!(ty);
 
 use crate::asterizer::{
   TokenStream,
-  AsterizerError
+  AsterizerError,
 };
 
 pub(crate) trait MakeAst where Self: Sized + TypeName {

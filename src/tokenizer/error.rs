@@ -1,6 +1,7 @@
 use snafu::prelude::*;
 
 use crate::CompilationError;
+
 use super::{
   Span,
   GetSpan,

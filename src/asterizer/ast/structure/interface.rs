@@ -1,20 +1,20 @@
 use typename::TypeName;
 
 use crate::asterizer::ast::{
-  AsterizerError,
-  FunctionDeclaration,
   MakeAst,
   TokenStream,
-  Block,
+  AsterizerError,
+  FunctionDeclaration,
   TypeAlias,
+  Block,
 };
 
 use crate::tokenizer::{
   TokenEnum,
-  Grouping,
-  GroupingType,
   Keyword,
   Punctuation,
+  Grouping,
+  GroupingType,
 };
 
 use crate::asterizer::error::ExpectedSnafu;
@@ -22,8 +22,8 @@ use crate::asterizer::error::ExpectedSnafu;
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Method {
-  decl: FunctionDeclaration,
-  body: Option<Block>,
+  pub(crate) decl: FunctionDeclaration,
+  pub(crate) body: Option<Block>,
 }
 
 #[derive(Debug, TypeName)]
@@ -35,8 +35,8 @@ pub(crate) enum InterfaceChild {
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Interface {
-  pub name: String,
-  pub children: Vec<InterfaceChild>
+  pub(crate) name: String,
+  pub(crate) children: Vec<InterfaceChild>,
 }
 
 impl MakeAst for InterfaceChild {
@@ -61,7 +61,6 @@ impl MakeAst for Method {
     };
 
     stream.push_mark();
-
     stream.skip_whitespace_and_comments();
 
     let body = stream.make()?;
@@ -103,11 +102,7 @@ impl MakeAst for Interface {
     };
 
     let mut children = vec![];
-
-    // println!("A");
     loop {
-      // println!("B");
-
       stream.skip_whitespace_and_comments();
 
       if let Some(TokenEnum::Grouping(Grouping::Close(GroupingType::CurlyBrace))) = stream.peek_variant() {

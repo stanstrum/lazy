@@ -7,11 +7,11 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  Grouping,
-  GroupingType,
+  TokenEnum,
   Keyword,
   Punctuation,
-  TokenEnum,
+  Grouping,
+  GroupingType,
 };
 
 use crate::asterizer::error::*;
@@ -55,10 +55,7 @@ impl MakeAst for StructMember {
       }.fail();
     };
 
-    Ok(Some(Self {
-      name,
-      ty
-    }))
+    Ok(Some(Self { name, ty }))
   }
 }
 
@@ -128,9 +125,6 @@ impl MakeAst for Struct {
       break;
     };
 
-    Ok(Some(Self {
-      name,
-      members,
-    }))
+    Ok(Some(Self { name, members }))
   }
 }

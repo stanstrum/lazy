@@ -24,7 +24,7 @@ pub(super) enum CharType {
 #[derive(Debug, Clone, Copy)]
 pub(super) enum StringEscapeReturnTo {
   String { ty: StringType },
-  Char { ty: CharType }
+  Char { ty: CharType },
 }
 
 #[derive(Debug)]
@@ -50,38 +50,38 @@ pub(super) enum State {
   },
   MultilineCommentEnding {
     start: usize,
-    content: String
+    content: String,
   },
   Text {
     start: usize,
-    content: String
+    content: String,
   },
   NumericLiteral {
     start: usize,
     ty: NumericType,
-    content: String
+    content: String,
   },
   StringLiteral {
     start: usize,
     ty: StringType,
-    content: String
+    content: String,
   },
   CharLiteral {
     start: usize,
     ty: CharType,
-    content: String
+    content: String,
   },
   StringEscape {
     start: usize,
     return_to: StringEscapeReturnTo,
     content: String,
-    ty: Option<StringEscapeType>
+    ty: Option<StringEscapeType>,
   },
   StringEscapeFinalize {
     start: usize,
     return_to: StringEscapeReturnTo,
     content: String,
-    ty: Option<StringEscapeType>
+    ty: Option<StringEscapeType>,
   },
   Operator {
     start: usize,
@@ -89,10 +89,10 @@ pub(super) enum State {
   },
   Whitespace {
     start: usize,
-    content: String
+    content: String,
   },
   Invalid {
     start: usize,
-    content: String
-  }
+    content: String,
+  },
 }

@@ -6,7 +6,7 @@ use typename::TypeName;
 use crate::asterizer::ast::{
   MakeAst,
   TokenStream,
-  Block
+  Block,
 };
 
 use crate::asterizer::error::*;
@@ -14,8 +14,8 @@ use crate::asterizer::error::*;
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Function {
-  pub decl: FunctionDeclaration,
-  pub body: Block
+  pub(crate) decl: FunctionDeclaration,
+  pub(crate) body: Block,
 }
 
 impl MakeAst for Function {

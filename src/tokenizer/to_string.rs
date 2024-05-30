@@ -3,10 +3,10 @@ use std::string::ToString;
 use crate::tokenizer::{
   Token,
   TokenEnum,
-  CommentType,
-  Operator,
   Punctuation,
-  Literal
+  Operator,
+  Literal,
+  CommentType,
 };
 
 impl ToString for Token {

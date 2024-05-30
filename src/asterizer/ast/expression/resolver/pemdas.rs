@@ -16,7 +16,7 @@ use crate::asterizer::ast::{
 
 use super::{
   ExpressionResolver,
-  ExpressionPart
+  ExpressionPart,
 };
 
 #[derive(Debug, Sequence)]

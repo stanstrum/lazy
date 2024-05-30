@@ -1,12 +1,13 @@
 use typename::TypeName;
+
 use std::collections::HashMap;
 
 use crate::tokenizer::{
-  Grouping,
-  GroupingType,
+  TokenEnum,
   Keyword,
   Punctuation,
-  TokenEnum,
+  Grouping,
+  GroupingType,
 };
 
 use crate::asterizer::ast::{
@@ -21,8 +22,8 @@ use crate::asterizer::error::ExpectedSnafu;
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Namespace {
-  pub name: String,
-  children: HashMap<String, Structure>
+  pub(crate) name: String,
+  pub(crate) children: HashMap<String, Structure>,
 }
 
 impl MakeAst for Namespace {

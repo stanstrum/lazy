@@ -56,7 +56,7 @@ pub(crate) enum Punctuation {
 #[derive(Debug)]
 pub(crate) enum CommentType {
   Line,
-  Multiline
+  Multiline,
 }
 
 mod keywords {
@@ -207,8 +207,8 @@ pub(crate) enum TokenEnum {
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Token {
-  pub token: TokenEnum,
-  pub span: Span
+  pub(crate) token: TokenEnum,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]

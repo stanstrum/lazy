@@ -1,21 +1,20 @@
 use crate::asterizer::ast::{
   MakeAst,
   TokenStream,
-  AsterizerError
+  AsterizerError,
 };
 
 use crate::tokenizer::{
   TokenEnum,
-  Literal
+  Literal,
 };
 
 impl MakeAst for Literal {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    Ok({
-      match stream.next_variant() {
-        Some(TokenEnum::Literal(literal)) => Some(literal.to_owned()),
-        _ => None
-      }
-    })
+    let Some(TokenEnum::Literal(literal)) = stream.next_variant() else {
+      return Ok(None);
+    };
+
+    Ok(Some(literal.to_owned()))
   }
 }

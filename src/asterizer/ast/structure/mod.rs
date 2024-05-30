@@ -11,7 +11,7 @@ use crate::asterizer::ast::{
   TokenStream,
   AsterizerError,
   Function,
-  Type
+  Type,
 };
 
 use crate::tokenizer::{
@@ -34,14 +34,14 @@ pub(crate) enum TemplatableStructure {
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct UnconstrainedTemplateConstraint {
-  name: String
+  pub(crate) name: String,
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct ConstrainedTemplateConstraint {
-  ty: Type,
-  extends: Type
+  pub(crate) ty: Type,
+  pub(crate) extends: Type,
 }
 
 #[derive(Debug, TypeName)]
@@ -65,8 +65,8 @@ pub(crate) enum Structure {
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct TemplateScope {
-  constraints: Vec<TemplateConstraint>,
-  structure: TemplatableStructure
+  pub(crate) constraints: Vec<TemplateConstraint>,
+  pub(crate) structure: TemplatableStructure,
 }
 
 #[derive(Debug, TypeName)]

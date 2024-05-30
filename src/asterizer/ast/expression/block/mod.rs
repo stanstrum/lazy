@@ -1,21 +1,19 @@
-import_export! {
-  binding,
-  control_flow
-}
+import_export!(binding);
+import_export!(control_flow);
 
 use typename::TypeName;
+
+use crate::asterizer::ast::{
+  MakeAst,
+  TokenStream,
+  Expression,
+};
 
 use crate::tokenizer::{
   TokenEnum,
   Punctuation,
   Grouping,
-  GroupingType
-};
-
-use crate::asterizer::ast::{
-  MakeAst,
-  TokenStream,
-  Expression
+  GroupingType,
 };
 
 use crate::asterizer::error::*;
@@ -30,8 +28,8 @@ pub(crate) enum BlockChild {
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Block {
-  pub children: Vec<BlockChild>,
-  pub returns_last: bool
+  pub(crate) children: Vec<BlockChild>,
+  pub(crate) returns_last: bool,
 }
 
 impl MakeAst for BlockChild {

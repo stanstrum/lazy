@@ -3,11 +3,13 @@ use std::path::Path;
 use snafu::prelude::*;
 
 use crate::asterizer::AsterizerError;
-use crate::colors::Color;
+
 use crate::tokenizer::{
   TokenizationError,
   GetSpan
 };
+
+use crate::colors::Color;
 
 #[derive(Snafu, Debug)]
 #[snafu(visibility(pub(crate)))]

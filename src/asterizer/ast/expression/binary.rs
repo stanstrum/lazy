@@ -1,15 +1,15 @@
 use typename::TypeName;
 
-use crate::tokenizer::{
-  Operator,
-  TokenEnum,
-};
-
 use crate::asterizer::ast::{
   MakeAst,
   TokenStream,
   AsterizerError,
   Expression,
+};
+
+use crate::tokenizer::{
+  TokenEnum,
+  Operator,
 };
 
 #[derive(Debug, TypeName)]
@@ -29,9 +29,9 @@ pub(crate) enum BinaryOperator {
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct BinaryExpression {
-  pub op: BinaryOperator,
-  pub lhs: Box<Expression>,
-  pub rhs: Box<Expression>,
+  pub(crate) op: BinaryOperator,
+  pub(crate) lhs: Box<Expression>,
+  pub(crate) rhs: Box<Expression>,
 }
 
 impl MakeAst for BinaryOperator {

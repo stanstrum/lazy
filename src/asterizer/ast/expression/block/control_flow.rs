@@ -18,56 +18,56 @@ use crate::asterizer::error::*;
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct IfBranch {
-  clause: Expression,
-  body: Block
+  pub(crate) clause: Expression,
+  pub(crate) body: Block,
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct If {
-  branches: Vec<IfBranch>,
-  r#else: Option<Block>,
+  pub(crate) branches: Vec<IfBranch>,
+  pub(crate) r#else: Option<Block>,
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct While {
-  clause: Expression,
-  body: Block
+  pub(crate) clause: Expression,
+  pub(crate) body: Block,
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct DoWhile {
-  body: Block,
-  clause: Expression,
+  pub(crate) body: Block,
+  pub(crate) clause: Expression,
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Until {
-  clause: Expression,
-  body: Block
+  pub(crate) clause: Expression,
+  pub(crate) body: Block,
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct DoUntil {
-  body: Block,
-  clause: Expression,
+  pub(crate) body: Block,
+  pub(crate) clause: Expression,
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct For {
-  clause: Expression,
-  body: Block
+  pub(crate) clause: Expression,
+  pub(crate) body: Block,
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Loop {
-  body: Block
+  pub(crate) body: Block,
 }
 
 #[allow(unused)]

@@ -17,11 +17,11 @@ pub(crate) enum Color {
   LightMagenta,
   LightCyan,
   White,
-
+  // --
   Creme,
   Teal,
   Mint,
-
+  // --
   Underline,
   Bold,
   Clear,

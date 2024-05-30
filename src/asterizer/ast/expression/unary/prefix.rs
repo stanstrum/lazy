@@ -8,8 +8,8 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  Operator,
   TokenEnum,
+  Operator,
 };
 
 #[derive(Debug, TypeName)]
@@ -22,8 +22,8 @@ pub(crate) enum UnaryPrefixOperator {
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct UnaryPrefixExpression {
-  pub op: UnaryPrefixOperator,
-  pub expr: Box<Expression>
+  pub(crate) op: UnaryPrefixOperator,
+  pub(crate) expr: Box<Expression>
 }
 
 impl MakeAst for UnaryPrefixOperator {

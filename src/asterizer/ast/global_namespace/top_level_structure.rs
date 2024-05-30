@@ -15,7 +15,7 @@ pub(crate) enum TopLevelStructure {
 }
 
 impl TopLevelStructure {
-  pub fn name(&self) -> String {
+  pub(crate) fn name(&self) -> String {
     match self {
       Self::Structure(structure) => structure.name(),
     }

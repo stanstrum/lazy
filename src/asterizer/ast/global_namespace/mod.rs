@@ -3,14 +3,14 @@ import_export!(top_level_structure);
 use std::collections::HashMap;
 use typename::TypeName;
 
-use crate::tokenizer::{
-  TokenEnum,
-  Punctuation
-};
-
 use crate::asterizer::ast::{
   MakeAst,
-  TokenStream
+  TokenStream,
+};
+
+use crate::tokenizer::{
+  TokenEnum,
+  Punctuation,
 };
 
 use crate::asterizer::error::*;
@@ -19,7 +19,7 @@ use crate::asterizer::error::*;
 #[derive(Debug, Default, TypeName)]
 pub(crate) struct GlobalNamespace {
   // file: std::path::PathBuf,
-  pub children: HashMap<String, TopLevelStructure>
+  pub(crate) children: HashMap<String, TopLevelStructure>
 }
 
 impl MakeAst for GlobalNamespace {
@@ -29,14 +29,14 @@ impl MakeAst for GlobalNamespace {
     stream.skip_whitespace_and_comments();
 
     while stream.remaining() > 0 {
-      let Some(struc) = stream.make()? else {
+      let Some(r#struct) = stream.make()? else {
         return ExpectedSnafu {
           what: "a top-level structure",
           span: stream.span()
         }.fail();
       };
 
-      structures.push(struc);
+      structures.push(r#struct);
 
       stream.skip_whitespace_and_comments();
 

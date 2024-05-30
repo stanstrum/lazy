@@ -15,10 +15,10 @@ use crate::tokenizer::{
 
 use crate::asterizer::error::ExpectedSnafu;
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Extern {
   pub(crate) decl: FunctionDeclaration,
-  #[allow(unused)]
   pub(crate) c_variadic: bool,
 }
 
@@ -38,7 +38,6 @@ impl MakeAst for Extern {
     };
 
     stream.push_mark();
-
     stream.skip_whitespace_and_comments();
 
     let c_variadic = {

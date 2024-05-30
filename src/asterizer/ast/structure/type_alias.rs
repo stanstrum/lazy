@@ -3,13 +3,13 @@ use typename::TypeName;
 use crate::asterizer::ast::{
   MakeAst,
   TokenStream,
-  Type
+  Type,
 };
 
 use crate::tokenizer::{
   TokenEnum,
   Keyword,
-  Operator
+  Operator,
 };
 
 use crate::asterizer::error::*;
@@ -17,8 +17,8 @@ use crate::asterizer::error::*;
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct TypeAlias {
-  pub name: String,
-  pub ty: Type
+  pub(crate) name: String,
+  pub(crate) ty: Type
 }
 
 impl MakeAst for TypeAlias {
@@ -56,8 +56,6 @@ impl MakeAst for TypeAlias {
       }.fail();
     };
 
-    Ok(Some(Self {
-      name, ty
-    }))
+    Ok(Some(Self { name, ty }))
   }
 }

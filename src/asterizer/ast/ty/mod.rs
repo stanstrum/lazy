@@ -17,8 +17,9 @@ use crate::asterizer::error::*;
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
-pub(crate) struct NamedType {
-  pub(crate) name: String
+pub(crate) struct QualifiedName {
+  pub(crate) implied: bool,
+  pub(crate) parts: Vec<String>,
 }
 
 #[allow(unused)]
@@ -42,7 +43,7 @@ pub(crate) struct ImmutableReferenceTo {
 
 #[derive(Debug, TypeName)]
 pub(crate) enum Type {
-  Named(NamedType),
+  Qualified(QualifiedName),
   SizedArrayOf(SizedArrayOf),
   UnsizedArrayOf(UnsizedArrayOf),
   ImmutableReferenceTo(ImmutableReferenceTo)
@@ -128,15 +129,62 @@ impl MakeAst for ImmutableReferenceTo {
   }
 }
 
-impl MakeAst for NamedType {
+impl MakeAst for QualifiedName {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
-      return Ok(None);
+    let implied = {
+      if let Some(TokenEnum::Operator(Operator::Separator)) = stream.peek_variant() {
+        stream.seek();
+        stream.skip_whitespace_and_comments();
+
+        true
+      } else {
+        false
+      }
     };
 
-    let name = name.to_owned();
+    let Some(TokenEnum::Identifier(first)) = stream.next_variant() else {
+      return if implied {
+        ExpectedSnafu {
+          what: "an identifier",
+          span: stream.span(),
+        }.fail()
+      } else {
+        Ok(None)
+      }
+    };
 
-    Ok(Some(Self { name }))
+    let first = first.to_owned();
+
+    stream.push_mark();
+    stream.skip_whitespace_and_comments();
+
+    let mut parts = vec![first];
+    loop {
+      let Some(TokenEnum::Operator(Operator::Separator)) = stream.next_variant() else {
+        stream.pop_mark();
+        break;
+      };
+      stream.drop_mark();
+      stream.skip_whitespace_and_comments();
+
+      let Some(TokenEnum::Identifier(part)) = stream.next_variant() else {
+        return ExpectedSnafu { 
+          what: "an identifier",
+          span: stream.span(),
+        }.fail();
+      };
+      let part = part.to_owned();
+
+      parts.push(part);
+
+      stream.push_mark();
+      stream.skip_whitespace_and_comments();
+    };
+
+    return Ok(Some(Self {
+      implied,
+      parts,
+    }));
   }
 }
 
@@ -144,8 +192,8 @@ impl MakeAst for Type {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     #[allow(clippy::manual_map)]
     Ok({
-      if let Some(named) = stream.make()? {
-        Some(Self::Named(named))
+      if let Some(qualified) = stream.make()? {
+        Some(Self::Qualified(qualified))
       } else if let Some(sized_array_of) = stream.make()? {
         Some(Self::SizedArrayOf(sized_array_of))
       } else if let Some(unsized_array_of) = stream.make()? {

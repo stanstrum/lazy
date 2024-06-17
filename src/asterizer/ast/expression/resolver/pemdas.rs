@@ -24,7 +24,7 @@ enum Pemdas {
   Dot, // and Subscript, as well as Separator
   Call,
   IncrementDecrement,
-  // Ref/Deref
+  RefDeref,
   Cast,
   Exponent,
   MultiplyDivide,
@@ -95,6 +95,12 @@ impl ExpressionResolver<'_, '_> {
           ))
           | (Pemdas::Dot, ExpressionPart::Unary(
             UnaryOperator::Prefix(UnaryPrefixOperator::ImpliedSeparator)
+          ))
+          | (Pemdas::RefDeref, ExpressionPart::Unary(
+            UnaryOperator::Prefix(
+              | UnaryPrefixOperator::Reference
+              | UnaryPrefixOperator::MutReference
+            )
           )) => {
             let ExpressionPart::Unary(op) = self.parts.remove(part_index) else {
               unreachable!();

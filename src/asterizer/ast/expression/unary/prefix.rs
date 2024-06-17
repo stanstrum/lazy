@@ -10,6 +10,7 @@ use crate::asterizer::ast::{
 use crate::tokenizer::{
   TokenEnum,
   Operator,
+  Keyword,
 };
 
 #[derive(Debug, TypeName)]
@@ -17,6 +18,8 @@ pub(crate) enum UnaryPrefixOperator {
   PreIncrement,
   PreDecrement,
   ImpliedSeparator,
+  Reference,
+  MutReference,
 }
 
 #[allow(unused)]
@@ -33,6 +36,20 @@ impl MakeAst for UnaryPrefixOperator {
         Some(TokenEnum::Operator(Operator::Increment)) => Some(UnaryPrefixOperator::PreIncrement),
         Some(TokenEnum::Operator(Operator::Decrement)) => Some(UnaryPrefixOperator::PreDecrement),
         Some(TokenEnum::Operator(Operator::Separator)) => Some(UnaryPrefixOperator::ImpliedSeparator),
+        Some(TokenEnum::Operator(Operator::SingleAnd)) => {
+          stream.push_mark();
+          stream.skip_whitespace_and_comments();
+
+          if let Some(TokenEnum::Keyword(Keyword::Mut)) = stream.next_variant() {
+            stream.drop_mark();
+
+            Some(UnaryPrefixOperator::MutReference)
+          } else {
+            stream.pop_mark();
+
+            Some(UnaryPrefixOperator::Reference)
+          }
+        },
         _ => None
       }
     })

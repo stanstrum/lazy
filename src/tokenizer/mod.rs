@@ -305,6 +305,31 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
           state = State::Base;
           continue;
         },
+        (State::Operator { content, .. }, '&') if content == "&" => {
+          content.push(ch);
+        },
+        (State::Operator { start, content }, '=') if content == "&&" => {
+          let tok = TokenEnum::Operator(Operator::DoubleAndAssign);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+        },
+        (State::Operator { start, content }, _) if content == "&&" => {
+          let tok = TokenEnum::Operator(Operator::DoubleAnd);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          continue;
+        },
+        (State::Operator { start, content }, '=') if content == "&" => {
+          let tok = TokenEnum::Operator(Operator::SingleAndAssign);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+        },
         (State::Operator { start, content }, _) if content == "&" => {
           let tok = TokenEnum::Operator(Operator::SingleAnd);
 

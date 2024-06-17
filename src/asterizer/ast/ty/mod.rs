@@ -11,6 +11,7 @@ use crate::tokenizer::{
   Grouping,
   GroupingType,
   Operator,
+  Punctuation,
 };
 
 use crate::asterizer::error::*;
@@ -20,6 +21,7 @@ use crate::asterizer::error::*;
 pub(crate) struct QualifiedName {
   pub(crate) implied: bool,
   pub(crate) parts: Vec<String>,
+  pub(crate) template: Option<Vec<Type>>,
 }
 
 #[allow(unused)]
@@ -181,9 +183,47 @@ impl MakeAst for QualifiedName {
       stream.skip_whitespace_and_comments();
     };
 
+    stream.push_mark();
+    stream.skip_whitespace_and_comments();
+
+    let template = 'template: {
+      if let Some(TokenEnum::Operator(Operator::LessThan)) = stream.next_variant() {
+        let mut types = vec![];
+        loop {
+          stream.skip_whitespace_and_comments();
+
+          let Some(ty) = stream.make()? else {
+            stream.pop_mark();
+            break 'template None;
+          };
+
+          types.push(ty);
+          stream.skip_whitespace_and_comments();
+
+          match stream.next_variant() {
+            Some(TokenEnum::Punctuation(Punctuation::Comma)) => {},
+            Some(TokenEnum::Operator(Operator::GreaterThan)) => {
+              stream.drop_mark();
+              break;
+            },
+            _ => {
+              stream.pop_mark();
+              break 'template None;
+            }
+          };
+        };
+
+        Some(types)
+      } else {
+        stream.pop_mark();
+        None
+      }
+    };
+
     return Ok(Some(Self {
       implied,
       parts,
+      template,
     }));
   }
 }

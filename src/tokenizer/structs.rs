@@ -69,6 +69,10 @@ mod keywords {
   pub(super) const FROM: &str = "from";
   pub(super) const STRUCT: &str = "struct";
   pub(super) const CLASS: &str = "class";
+  pub(super) const PRIVATE: &str = "private";
+  pub(super) const PROTECTED: &str = "protected";
+  pub(super) const PUBLIC: &str = "public";
+  pub(super) const ABSTRACT: &str = "abstract";
   pub(super) const INTERFACE: &str = "interface";
   pub(super) const NAMESPACE: &str = "namespace";
   pub(super) const IMPLEMENTS: &str = "implements";
@@ -97,6 +101,10 @@ pub(crate) enum Keyword {
   From,
   Struct,
   Class,
+  Private,
+  Protected,
+  Public,
+  Abstract,
   Interface,
   Namespace,
   Implements,
@@ -126,6 +134,10 @@ impl std::string::ToString for Keyword {
       Self::From => keywords::FROM,
       Self::Struct => keywords::STRUCT,
       Self::Class => keywords::CLASS,
+      Self::Private => keywords::PRIVATE,
+      Self::Protected => keywords::PROTECTED,
+      Self::Public => keywords::PUBLIC,
+      Self::Abstract => keywords::ABSTRACT,
       Self::Interface => keywords::INTERFACE,
       Self::Namespace => keywords::NAMESPACE,
       Self::Implements => keywords::IMPLEMENTS,
@@ -159,6 +171,10 @@ impl TryFrom<&String> for Keyword {
       keywords::FROM => Ok(Self::From),
       keywords::STRUCT => Ok(Self::Struct),
       keywords::CLASS => Ok(Self::Class),
+      keywords::PRIVATE => Ok(Self::Private),
+      keywords::PROTECTED => Ok(Self::Protected),
+      keywords::PUBLIC => Ok(Self::Public),
+      keywords::ABSTRACT => Ok(Self::Abstract),
       keywords::INTERFACE => Ok(Self::Interface),
       keywords::NAMESPACE => Ok(Self::Namespace),
       keywords::IMPLEMENTS => Ok(Self::Implements),

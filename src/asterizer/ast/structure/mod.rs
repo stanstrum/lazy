@@ -2,6 +2,7 @@ import_export!(namespace);
 import_export!(type_alias);
 import_export!(r#interface);
 import_export!(r#struct);
+import_export!(class);
 import_export!(r#extern);
 import_export!(import);
 
@@ -29,6 +30,7 @@ pub(crate) enum TemplatableStructure {
   TypeAlias(TypeAlias),
   Interface(Interface),
   Struct(Struct),
+  Class(Class),
   Exported(Exported),
 }
 
@@ -58,6 +60,7 @@ pub(crate) enum Structure {
   TypeAlias(TypeAlias),
   Interface(Interface),
   Struct(Struct),
+  Class(Class),
   Extern(Extern),
   Exported(Exported),
   TemplateScope(TemplateScope),
@@ -147,6 +150,7 @@ impl TemplatableStructure {
       TemplatableStructure::TypeAlias(alias) => alias.name.to_owned(),
       TemplatableStructure::Interface(interface) => interface.name.to_owned(),
       TemplatableStructure::Struct(r#struct) => r#struct.name.to_owned(),
+      TemplatableStructure::Class(class) => class.name.to_owned(),
       TemplatableStructure::Exported(exported) => exported.structure.name(),
     }
   }
@@ -166,6 +170,8 @@ impl MakeAst for TemplatableStructure {
         Some(Self::Interface(interface))
       } else if let Some(r#struct) = stream.make()? {
         Some(Self::Struct(r#struct))
+      } else if let Some(class) = stream.make()? {
+        Some(Self::Class(class))
       } else {
         None
       }
@@ -241,6 +247,7 @@ impl Structure {
       Self::TypeAlias(alias) => alias.name.to_owned(),
       Self::Interface(r#interface) => r#interface.name.to_owned(),
       Self::Struct(r#struct) => r#struct.name.to_owned(),
+      Self::Class(class) => class.name.to_owned(),
       Self::Extern(r#extern) => r#extern.decl.name.to_owned(),
       Self::Exported(r#exported) => r#exported.structure.name(),
       Self::TemplateScope(scope) => scope.structure.name(),
@@ -264,6 +271,8 @@ impl MakeAst for Structure {
         Some(Self::Interface(alias))
       } else if let Some(r#struct) = stream.make()? {
         Some(Self::Struct(r#struct))
+      } else if let Some(class) = stream.make()? {
+        Some(Self::Class(class))
       } else if let Some(r#extern) = stream.make()? {
         Some(Self::Extern(r#extern))
       } else if let Some(scope) = stream.make()? {

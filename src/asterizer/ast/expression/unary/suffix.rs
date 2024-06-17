@@ -24,6 +24,7 @@ pub(crate) enum UnarySuffixOperator {
   PostIncrement,
   PostDecrement,
   Call { args: Vec<Expression> },
+  Subscript { expr: Box<Expression> },
   Cast { ty: Box<Type> },
 }
 
@@ -81,6 +82,29 @@ impl MakeAst for UnarySuffixOperator {
         };
 
         Ok(Some(Self::Call { args }))
+      },
+      Some(TokenEnum::Grouping(Grouping::Open(GroupingType::Bracket))) => {
+        stream.skip_whitespace_and_comments();
+
+        let Some(expr) = stream.make()? else {
+          return ExpectedSnafu {
+            what: "an expression",
+            span: stream.span(),
+          }.fail();
+        };
+
+        stream.skip_whitespace_and_comments();
+
+        let Some(TokenEnum::Grouping(Grouping::Close(GroupingType::Bracket))) = stream.next_variant() else {
+          return ExpectedSnafu {
+            what: "a closing bracket",
+            span: stream.span(),
+          }.fail();
+        };
+
+        Ok(Some(Self::Subscript {
+          expr: Box::new(expr),
+        }))
       },
       Some(TokenEnum::Punctuation(Punctuation::Colon)) => {
         stream.skip_whitespace_and_comments();

@@ -127,6 +127,11 @@ impl ExpressionResolver<'_, '_> {
               | UnarySuffixOperator::Call { .. }
             )
           ))
+          | (Pemdas::Dot, ExpressionPart::Unary(
+            UnaryOperator::Suffix(
+              UnarySuffixOperator::Subscript { .. }
+            )
+          ))
           | (Pemdas::Cast, ExpressionPart::Unary(
             UnaryOperator::Suffix(
               UnarySuffixOperator::Cast { .. }

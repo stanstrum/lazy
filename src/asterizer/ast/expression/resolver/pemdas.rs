@@ -25,6 +25,7 @@ enum Pemdas {
   Call,
   IncrementDecrement,
   // Ref/Deref
+  Cast,
   Exponent,
   MultiplyDivide,
   AddSubtract,
@@ -119,11 +120,16 @@ impl ExpressionResolver<'_, '_> {
 
             part_index += 1;
           },
-          (Pemdas::IncrementDecrement, ExpressionPart::Unary(
+          | (Pemdas::IncrementDecrement, ExpressionPart::Unary(
             UnaryOperator::Suffix(
               | UnarySuffixOperator::PostIncrement
               | UnarySuffixOperator::PostDecrement
               | UnarySuffixOperator::Call { .. }
+            )
+          ))
+          | (Pemdas::Cast, ExpressionPart::Unary(
+            UnaryOperator::Suffix(
+              UnarySuffixOperator::Cast { .. }
             )
           )) => {
             let ExpressionPart::Unary(op) = self.parts.remove(part_index) else {

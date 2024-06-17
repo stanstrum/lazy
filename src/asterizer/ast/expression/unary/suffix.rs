@@ -5,6 +5,7 @@ use crate::asterizer::ast::{
   TokenStream,
   AsterizerError,
   Expression,
+  Type,
 };
 
 use crate::tokenizer::{
@@ -23,6 +24,7 @@ pub(crate) enum UnarySuffixOperator {
   PostIncrement,
   PostDecrement,
   Call { args: Vec<Expression> },
+  Cast { ty: Box<Type> },
 }
 
 #[allow(unused)]
@@ -34,66 +36,67 @@ pub(crate) struct UnarySuffixExpression {
 
 impl MakeAst for UnarySuffixOperator {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let simple_operator = {
-      match stream.peek_variant() {
-        Some(TokenEnum::Operator(Operator::Increment)) => Some(UnarySuffixOperator::PostIncrement),
-        Some(TokenEnum::Operator(Operator::Decrement)) => Some(UnarySuffixOperator::PostDecrement),
-        _ => None
-      }
-    };
+    match stream.next_variant() {
+      Some(TokenEnum::Operator(Operator::Increment)) => Ok(Some(UnarySuffixOperator::PostIncrement)),
+      Some(TokenEnum::Operator(Operator::Decrement)) => Ok(Some(UnarySuffixOperator::PostDecrement)),
+      Some(TokenEnum::Grouping(Grouping::Open(GroupingType::Parenthesis))) => {
+        let mut args = vec![];
 
-    if simple_operator.is_some() {
-      stream.seek();
+        loop {
+          stream.skip_whitespace_and_comments();
 
-      return Ok(simple_operator);
-    };
+          if args.is_empty() {
+            if let Some(TokenEnum::Grouping(Grouping::Close(GroupingType::Parenthesis))) = stream.peek_variant() {
+              stream.seek();
 
-    if let Some(TokenEnum::Grouping(Grouping::Open(GroupingType::Parenthesis))) = stream.peek_variant() {
-      stream.seek();
+              break;
+            };
+          };
 
-      let mut args = vec![];
+          let Some(arg) = stream.make::<Expression>()? else {
+            return ExpectedSnafu {
+              what: "an expression",
+              span: stream.span()
+            }.fail();
+          };
 
-      loop {
-        stream.skip_whitespace_and_comments();
+          args.push(arg);
 
-        if args.is_empty() {
-          if let Some(TokenEnum::Grouping(Grouping::Close(GroupingType::Parenthesis))) = stream.peek_variant() {
+          stream.skip_whitespace_and_comments();
+
+          if let Some(TokenEnum::Punctuation(Punctuation::Comma)) = stream.peek_variant() {
             stream.seek();
 
-            break;
+            continue;
           };
+
+          let Some(TokenEnum::Grouping(Grouping::Close(GroupingType::Parenthesis))) = stream.next_variant() else {
+            return ExpectedSnafu {
+              what: "a closing parenthesis",
+              span: stream.span()
+            }.fail();
+          };
+
+          break;
         };
 
-        let Some(arg) = stream.make::<Expression>()? else {
-          return ExpectedSnafu {
-            what: "an expression",
-            span: stream.span()
-          }.fail();
-        };
-
-        args.push(arg);
-
+        Ok(Some(Self::Call { args }))
+      },
+      Some(TokenEnum::Punctuation(Punctuation::Colon)) => {
         stream.skip_whitespace_and_comments();
 
-        if let Some(TokenEnum::Punctuation(Punctuation::Comma)) = stream.peek_variant() {
-          stream.seek();
-
-          continue;
-        };
-
-        let Some(TokenEnum::Grouping(Grouping::Close(GroupingType::Parenthesis))) = stream.next_variant() else {
+        let Some(ty) = stream.make()? else {
           return ExpectedSnafu {
-            what: "a closing parenthesis",
-            span: stream.span()
+            what: "a type",
+            span: stream.span(),
           }.fail();
         };
 
-        break;
-      };
-
-      return Ok(Some(Self::Call { args }));
-    };
-
-    Ok(None)
+        Ok(Some(Self::Cast {
+          ty: Box::new(ty),
+        }))
+      },
+      _ => Ok(None)
+    }
   }
 }

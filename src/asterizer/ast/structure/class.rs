@@ -145,9 +145,6 @@ impl MakeAst for MethodArguments {
       let mut read_mut = false;
 
       loop {
-        dbg!(read_reference);
-        dbg!(read_mut);
-
         match stream.peek_variant() {
           Some(TokenEnum::Operator(Operator::SingleAnd)) if !read_reference && !read_mut => {
             stream.seek();
@@ -176,8 +173,6 @@ impl MakeAst for MethodArguments {
           _ => break,
         };
       };
-
-      dbg!("after kind");
 
       'args: {
         stream.push_mark();

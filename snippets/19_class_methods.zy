@@ -14,4 +14,6 @@ class F {
     // do nothing
   };
   abstract abstract_static_and_no_arguments;
+  some_static_method_with_no_return_but_arguments:
+    value: &str;
 };

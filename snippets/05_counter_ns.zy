@@ -16,12 +16,12 @@ namespace io {
 
 namespace string {
   impl &super::str {
-    public len -> usize {};
+    len -> usize {};
   };
 };
 
 namespace ToString {
-  public str_to_num -> i32:
+  str_to_num -> i32:
     text: &super::str
   {
     mut acc: usize := 0;

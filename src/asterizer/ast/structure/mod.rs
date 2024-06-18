@@ -3,6 +3,7 @@ import_export!(type_alias);
 import_export!(r#interface);
 import_export!(r#struct);
 import_export!(class);
+import_export!(r#impl);
 import_export!(r#extern);
 import_export!(import);
 
@@ -32,6 +33,7 @@ pub(crate) enum TemplatableStructure {
   Struct(Struct),
   Class(Class),
   Exported(Exported),
+  Impl(Impl),
 }
 
 #[allow(unused)]
@@ -61,6 +63,7 @@ pub(crate) enum Structure {
   Interface(Interface),
   Struct(Struct),
   Class(Class),
+  Impl(Impl),
   Extern(Extern),
   Exported(Exported),
   TemplateScope(TemplateScope),
@@ -151,6 +154,8 @@ impl TemplatableStructure {
       TemplatableStructure::Interface(interface) => interface.name.to_owned(),
       TemplatableStructure::Struct(r#struct) => r#struct.name.to_owned(),
       TemplatableStructure::Class(class) => class.name.to_owned(),
+      TemplatableStructure::Impl(Impl { kind: ImplKind::Impl { what }, .. }) => format!("impl!{what:?}"),
+      TemplatableStructure::Impl(Impl { kind: ImplKind::ImplFor { what, r#trait }, .. }) => format!("impl!{what:?}!{trait:?}"),
       TemplatableStructure::Exported(exported) => exported.structure.name(),
     }
   }
@@ -172,6 +177,8 @@ impl MakeAst for TemplatableStructure {
         Some(Self::Struct(r#struct))
       } else if let Some(class) = stream.make()? {
         Some(Self::Class(class))
+      } else if let Some(r#impl) = stream.make()? {
+        Some(Self::Impl(r#impl))
       } else {
         None
       }
@@ -248,6 +255,8 @@ impl Structure {
       Self::Interface(r#interface) => r#interface.name.to_owned(),
       Self::Struct(r#struct) => r#struct.name.to_owned(),
       Self::Class(class) => class.name.to_owned(),
+      Self::Impl(Impl { kind: ImplKind::Impl { what }, .. }) => format!("impl!{what:?}"),
+      Self::Impl(Impl { kind: ImplKind::ImplFor { what, r#trait }, .. }) => format!("impl!{what:?}!{trait:?}"),
       Self::Extern(r#extern) => r#extern.decl.name.to_owned(),
       Self::Exported(r#exported) => r#exported.structure.name(),
       Self::TemplateScope(scope) => scope.structure.name(),
@@ -273,6 +282,8 @@ impl MakeAst for Structure {
         Some(Self::Struct(r#struct))
       } else if let Some(class) = stream.make()? {
         Some(Self::Class(class))
+      } else if let Some(r#impl) = stream.make()? {
+        Some(Self::Impl(r#impl))
       } else if let Some(r#extern) = stream.make()? {
         Some(Self::Extern(r#extern))
       } else if let Some(scope) = stream.make()? {

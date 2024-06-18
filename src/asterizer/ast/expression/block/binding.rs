@@ -9,6 +9,7 @@ use crate::asterizer::ast::{
 
 use crate::tokenizer::{
   TokenEnum,
+  Keyword,
   Operator,
   Punctuation,
 };
@@ -18,7 +19,7 @@ use crate::asterizer::error::*;
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Binding {
-  // pub(crate) r#mut: bool,
+  pub(crate) r#mut: bool,
   pub(crate) name: String,
   pub(crate) ty: Option<Type>,
   pub(crate) expr: Option<Expression>,
@@ -26,6 +27,15 @@ pub(crate) struct Binding {
 
 impl MakeAst for Binding {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let r#mut = if let Some(TokenEnum::Keyword(Keyword::Mut)) = stream.peek_variant() {
+      stream.seek();
+      stream.skip_whitespace_and_comments();
+
+      true
+    } else {
+      false
+    };
+
     let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
       return Ok(None);
     };
@@ -76,6 +86,6 @@ impl MakeAst for Binding {
       return Ok(None);
     };
 
-    Ok(Some(Self { name, ty, expr }))
+    Ok(Some(Self { r#mut, name, ty, expr }))
   }
 }

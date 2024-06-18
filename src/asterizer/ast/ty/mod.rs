@@ -220,11 +220,11 @@ impl MakeAst for QualifiedName {
       }
     };
 
-    return Ok(Some(Self {
+    Ok(Some(Self {
       implied,
       parts,
       template,
-    }));
+    }))
   }
 }
 

@@ -17,7 +17,7 @@ use crate::asterizer::ast::{
 
 use crate::asterizer::error::ExpectedSnafu;
 
-#[allow(unused)]
+#[allow(unused, clippy::enum_variant_names)]
 #[derive(Debug, TypeName)]
 pub(crate) enum Expression {
   Atom(Atom),

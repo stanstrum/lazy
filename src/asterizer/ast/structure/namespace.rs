@@ -1,7 +1,5 @@
 use typename::TypeName;
 
-use std::collections::HashMap;
-
 use crate::tokenizer::{
   TokenEnum,
   Keyword,
@@ -23,7 +21,7 @@ use crate::asterizer::error::ExpectedSnafu;
 #[derive(Debug, TypeName)]
 pub(crate) struct Namespace {
   pub(crate) name: String,
-  pub(crate) children: HashMap<String, Structure>,
+  pub(crate) children: Vec<Structure>,
 }
 
 impl MakeAst for Namespace {
@@ -52,7 +50,7 @@ impl MakeAst for Namespace {
       }.fail();
     };
 
-    let mut children = HashMap::new();
+    let mut children = vec![];
 
     loop {
       stream.skip_whitespace_and_comments();
@@ -69,7 +67,7 @@ impl MakeAst for Namespace {
         }.fail();
       };
 
-      children.insert(structure.name(), structure);
+      children.push(structure);
 
       let Some(TokenEnum::Punctuation(Punctuation::Semicolon)) = stream.next_variant() else {
         return ExpectedSnafu {

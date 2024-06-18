@@ -21,6 +21,7 @@ use crate::tokenizer::{
 
 use crate::asterizer::error::ExpectedSnafu;
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) enum ImplKind {
   Impl { what: Type },

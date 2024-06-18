@@ -65,6 +65,7 @@ pub(crate) enum Structure {
   Class(Class),
   Impl(Impl),
   Extern(Extern),
+  Import(Import),
   Exported(Exported),
   TemplateScope(TemplateScope),
 }
@@ -76,6 +77,7 @@ pub(crate) struct TemplateScope {
   pub(crate) structure: TemplatableStructure,
 }
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Exported {
   pub(crate) structure: Box<Structure>
@@ -143,21 +145,6 @@ impl MakeAst for TemplateConstraint {
         None
       }
     })
-  }
-}
-
-impl TemplatableStructure {
-  pub fn name(&self) -> String {
-    match self {
-      TemplatableStructure::Function(func) => func.decl.name.to_owned(),
-      TemplatableStructure::TypeAlias(alias) => alias.name.to_owned(),
-      TemplatableStructure::Interface(interface) => interface.name.to_owned(),
-      TemplatableStructure::Struct(r#struct) => r#struct.name.to_owned(),
-      TemplatableStructure::Class(class) => class.name.to_owned(),
-      TemplatableStructure::Impl(Impl { kind: ImplKind::Impl { what }, .. }) => format!("impl!{what:?}"),
-      TemplatableStructure::Impl(Impl { kind: ImplKind::ImplFor { what, r#trait }, .. }) => format!("impl!{what:?}!{trait:?}"),
-      TemplatableStructure::Exported(exported) => exported.structure.name(),
-    }
   }
 }
 
@@ -246,29 +233,13 @@ impl MakeAst for TemplateScope {
   }
 }
 
-impl Structure {
-  pub fn name(&self) -> String {
-    match self {
-      Self::Namespace(ns) => ns.name.to_owned(),
-      Self::Function(func) => func.decl.name.to_owned(),
-      Self::TypeAlias(alias) => alias.name.to_owned(),
-      Self::Interface(r#interface) => r#interface.name.to_owned(),
-      Self::Struct(r#struct) => r#struct.name.to_owned(),
-      Self::Class(class) => class.name.to_owned(),
-      Self::Impl(Impl { kind: ImplKind::Impl { what }, .. }) => format!("impl!{what:?}"),
-      Self::Impl(Impl { kind: ImplKind::ImplFor { what, r#trait }, .. }) => format!("impl!{what:?}!{trait:?}"),
-      Self::Extern(r#extern) => r#extern.decl.name.to_owned(),
-      Self::Exported(r#exported) => r#exported.structure.name(),
-      Self::TemplateScope(scope) => scope.structure.name(),
-    }
-  }
-}
-
 impl MakeAst for Structure {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
     #[allow(clippy::manual_map)]
     Ok({
-      if let Some(exported) = stream.make()? {
+      if let Some(import) = stream.make()? {
+        Some(Self::Import(import))
+      } else if let Some(exported) = stream.make()? {
         Some(Self::Exported(exported))
       } else if let Some(ns) = stream.make()? {
         Some(Self::Namespace(ns))

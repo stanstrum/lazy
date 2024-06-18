@@ -1,5 +1,4 @@
 mod structs;
-mod to_string;
 
 pub(crate) mod error;
 
@@ -218,6 +217,13 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
 
           state = State::Base;
         },
+        (State::Operator { start, content }, '=') if content == "+" => {
+          let tok = TokenEnum::Operator(Operator::AddAssign);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+        },
         (State::Operator { start, content }, _) if content == "+" => {
           let tok = TokenEnum::Operator(Operator::Add);
 
@@ -233,6 +239,13 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
 
           state = State::Base;
         },
+        (State::Operator { start, content }, '=') if content == "-" => {
+          let tok = TokenEnum::Operator(Operator::SubtractAssign);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+        },
         (State::Operator { start, content }, _) if content == "-" => {
           let tok = TokenEnum::Operator(Operator::Subtract);
 
@@ -241,8 +254,26 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
           state = State::Base;
           continue;
         },
-        (State::Operator { start, content }, '*') if content == "*" => {
+        (State::Operator { start, content }, '=') if content == "**" => {
+          let tok = TokenEnum::Operator(Operator::ExponentAssign);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+        },
+        (State::Operator { start, content }, _) if content == "**" => {
           let tok = TokenEnum::Operator(Operator::Exponent);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+          break;
+        },
+        (State::Operator { content, .. }, '*') if content == "*" => {
+          content.push(ch);
+        },
+        (State::Operator { start, content }, '=') if content == "*" => {
+          let tok = TokenEnum::Operator(Operator::MultiplyAssign);
 
           add_tok(start, tok);
 
@@ -255,6 +286,13 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
 
           state = State::Base;
           continue;
+        },
+        (State::CommentBegin { start }, '=') => {
+          let tok = TokenEnum::Operator(Operator::DivideAssign);
+
+          add_tok(start, tok);
+
+          state = State::Base;
         },
         (State::CommentBegin { start }, _) => {
           let tok = TokenEnum::Operator(Operator::Divide);
@@ -338,6 +376,13 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
           state = State::Base;
           continue;
         },
+        (State::Operator { start, content }, '=') if content == "%" => {
+          let tok = TokenEnum::Operator(Operator::ModuloAssign);
+
+          add_tok(start, tok);
+
+          state = State::Base;
+        },
         (State::Operator { start, content }, _) if content == "%" => {
           let tok = TokenEnum::Operator(Operator::Modulo);
 
@@ -346,7 +391,6 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
           state = State::Base;
           continue;
         },
-
         (State::Operator { content, .. }, '>') if content == ">" || content == ">>" => {
           content.push(ch);
         },

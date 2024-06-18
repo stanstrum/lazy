@@ -29,6 +29,7 @@ enum Pemdas {
   Exponent,
   MultiplyDivide,
   AddSubtract,
+  Logic,
   Comparison,
   Assignment,
 }
@@ -49,12 +50,32 @@ impl ExpressionResolver<'_, '_> {
             | BinaryOperator::Add
             | BinaryOperator::Subtract
           ))
-          | (Pemdas::Comparison, ExpressionPart::Binary(BinaryOperator::Comparison))
-          | (Pemdas::Assignment, ExpressionPart::Binary(BinaryOperator::Equals))
+          | (Pemdas::Comparison, ExpressionPart::Binary(
+            | BinaryOperator::Comparison
+            | BinaryOperator::LessThan
+            | BinaryOperator::LessThanEqual
+            | BinaryOperator::GreaterThan
+            | BinaryOperator::GreaterThanEqual
+          ))
+          | (Pemdas::Assignment, ExpressionPart::Binary(
+            | BinaryOperator::AddAssign
+            | BinaryOperator::SubtractAssign
+            | BinaryOperator::MultiplyAssign
+            | BinaryOperator::ExponentAssign
+            | BinaryOperator::DivideAssign
+            | BinaryOperator::ModuloAssign
+            | BinaryOperator::Equals
+            | BinaryOperator::BitwiseAndAssign
+            | BinaryOperator::LogicalAndAssign
+          ))
           | (Pemdas::Dot, ExpressionPart::Binary(
             | BinaryOperator::Dot
             | BinaryOperator::DerefDot
             | BinaryOperator::Separator
+          ))
+          | (Pemdas::Logic, ExpressionPart::Binary(
+            | BinaryOperator::BitwiseAnd
+            | BinaryOperator::LogicalAnd
           )) => {
             let lhs_index = part_index - 1;
             let rhs_index = part_index + 1;

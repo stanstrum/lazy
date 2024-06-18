@@ -61,12 +61,18 @@ pub(crate) enum MethodBody {
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
+pub(crate) struct MethodArguments {
+  pub(crate) kind: MethodKind,
+  pub(crate) args: Option<Vec<MethodArgument>>,
+}
+
+#[allow(unused)]
+#[derive(Debug, TypeName)]
 pub(crate) struct Method {
   pub(crate) visibility: MemberVisibility,
-  pub(crate) kind: MethodKind,
   pub(crate) name: String,
   pub(crate) return_ty: Option<Type>,
-  pub(crate) args: Option<Vec<MethodArgument>>,
+  pub(crate) args: MethodArguments,
   pub(crate) body: MethodBody,
 }
 
@@ -126,63 +132,8 @@ impl MakeAst for MethodArgument {
   }
 }
 
-impl MakeAst for Method {
+impl MakeAst for MethodArguments {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let visibility = match stream.peek_variant() {
-      Some(TokenEnum::Keyword(Keyword::Private)) => Some(MemberVisibility::Private),
-      Some(TokenEnum::Keyword(Keyword::Protected)) => Some(MemberVisibility::Protected),
-      Some(TokenEnum::Keyword(Keyword::Public)) => Some(MemberVisibility::Public),
-      _ => None
-    };
-
-    if visibility.is_some() {
-      stream.seek();
-      stream.skip_whitespace_and_comments();
-    };
-
-    let visibility = visibility.unwrap_or(MemberVisibility::Private);
-
-    let r#abstract = {
-      if let Some(TokenEnum::Keyword(Keyword::Abstract)) = stream.peek_variant() {
-        stream.seek();
-        stream.skip_whitespace_and_comments();
-
-        true
-      } else {
-        false
-      }
-    };
-
-    let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
-      return ExpectedSnafu {
-        what: "an identifier",
-        span: stream.span(),
-      }.fail();
-    };
-    let name = name.to_owned();
-
-    stream.skip_whitespace_and_comments();
-
-    let return_ty = {
-      if let Some(TokenEnum::Operator(Operator::RightArrow)) = stream.peek_variant() {
-        stream.seek();
-        stream.skip_whitespace_and_comments();
-
-        let Some(ty) = stream.make()? else {
-          return ExpectedSnafu {
-            what: "a type",
-            span: stream.span(),
-          }.fail();
-        };
-
-        stream.skip_whitespace_and_comments();
-
-        Some(ty)
-      } else {
-        None
-      }
-    };
-
     let mut kind = MethodKind::Static;
     let mut args = None;
 
@@ -258,6 +209,69 @@ impl MakeAst for Method {
       };
     };
 
+    Ok(Some(Self { kind, args }))
+  }
+}    
+
+impl MakeAst for Method {
+  fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let visibility = match stream.peek_variant() {
+      Some(TokenEnum::Keyword(Keyword::Private)) => Some(MemberVisibility::Private),
+      Some(TokenEnum::Keyword(Keyword::Protected)) => Some(MemberVisibility::Protected),
+      Some(TokenEnum::Keyword(Keyword::Public)) => Some(MemberVisibility::Public),
+      _ => None
+    };
+
+    if visibility.is_some() {
+      stream.seek();
+      stream.skip_whitespace_and_comments();
+    };
+
+    let visibility = visibility.unwrap_or(MemberVisibility::Private);
+
+    let r#abstract = {
+      if let Some(TokenEnum::Keyword(Keyword::Abstract)) = stream.peek_variant() {
+        stream.seek();
+        stream.skip_whitespace_and_comments();
+
+        true
+      } else {
+        false
+      }
+    };
+
+    let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
+      return ExpectedSnafu {
+        what: "an identifier",
+        span: stream.span(),
+      }.fail();
+    };
+    let name = name.to_owned();
+
+    stream.skip_whitespace_and_comments();
+
+    let return_ty = {
+      if let Some(TokenEnum::Operator(Operator::RightArrow)) = stream.peek_variant() {
+        stream.seek();
+        stream.skip_whitespace_and_comments();
+
+        let Some(ty) = stream.make()? else {
+          return ExpectedSnafu {
+            what: "a type",
+            span: stream.span(),
+          }.fail();
+        };
+
+        stream.skip_whitespace_and_comments();
+
+        Some(ty)
+      } else {
+        None
+      }
+    };
+
+    let args = stream.make()?.expect("method arguments failed");
+
     let body = if !r#abstract {
       stream.skip_whitespace_and_comments();
 
@@ -275,7 +289,6 @@ impl MakeAst for Method {
 
     Ok(Some(Self {
       visibility,
-      kind,
       name,
       return_ty,
       args,

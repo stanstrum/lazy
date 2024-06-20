@@ -1,5 +1,6 @@
 import_export!(binding);
 import_export!(control_flow);
+import_export!(r#return);
 
 use typename::TypeName;
 
@@ -23,6 +24,7 @@ pub(crate) enum BlockChild {
   Expression(Expression),
   Binding(Binding),
   ControlFlow(ControlFlow),
+  Return(Return),
 }
 
 #[allow(unused)]
@@ -42,6 +44,8 @@ impl MakeAst for BlockChild {
         Some(Self::Expression(expression))
       } else if let Some(control_flow) = stream.make()? {
         Some(Self::ControlFlow(control_flow))
+      } else if let Some(r#return) = stream.make()? {
+        Some(Self::Return(r#return))
       } else {
         None
       }

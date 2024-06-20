@@ -39,7 +39,7 @@ namespace ToString {
       ctr++;
     };
 
-    ctr as i32
+    ctr: i32
   };
 };
 

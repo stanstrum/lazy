@@ -91,4 +91,5 @@ mod tests {
   compile_snippet!(message, "message");
   compile_snippet!(namespace_module, "16_namespaces");
   // compile_snippet!(std, "std");
+  compile_snippet!(class_methods, "19_class_methods");
 }

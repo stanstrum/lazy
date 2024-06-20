@@ -90,14 +90,32 @@ impl ExpressionResolver<'_, '_> {
 
             let ExpressionPart::Binary(op) = self.parts.remove(part_index) else {
               unreachable!();
+            };            
+
+            let mut start_lhs_index = lhs_index;
+            while !matches!(&self.parts[start_lhs_index], ExpressionPart::Operand(_)) {
+              start_lhs_index -= 1;
             };
 
-            let ExpressionPart::Operand(lhs) = self.parts.remove(lhs_index) else {
+            let ExpressionPart::Operand(mut lhs) = self.parts.remove(start_lhs_index) else {
               todo!("span impl");
 
               // return ExpectedSnafu {
               //   what: "an expression",
               // }.fail();
+            };
+
+            while start_lhs_index < self.parts.len() && matches!(&self.parts[start_lhs_index], ExpressionPart::Unary(_)) {
+              let ExpressionPart::Unary(op) = self.parts.remove(start_lhs_index) else {
+                unreachable!();
+              };
+
+              lhs = Expression::Unary(
+                UnaryExpression {
+                  expr: Box::new(lhs),
+                  op
+                }
+              );
             };
 
             let (lhs, rhs) = (Box::new(lhs), Box::new(rhs));

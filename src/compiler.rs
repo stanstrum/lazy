@@ -20,6 +20,7 @@ pub(crate) enum SourceFileData {
   Unparsed,
   Tokenized(Vec<Token>),
   Asterized(GlobalNamespace),
+  Typechecked(()),
   // TODO
 }
 
@@ -207,9 +208,39 @@ impl Compiler {
     })
   }
 
+  fn typecheck_file(&mut self, file: SourceFile, handle: &Handle) -> Result<SourceFile, CompilationError> { 
+    let SourceFile {
+      path,
+      debug_info,
+      data: SourceFileData::Asterized(ast)
+    } = file else {
+      panic!("tried to asterize a non-tokenized file");
+    };
+
+    let program = match typechecker::typecheck(self, &path, handle, ast) {
+      Ok(program) => program,
+      Err(error) => {
+        let Some(DebugInfo { source, color_stream }) = debug_info else {
+          panic!("no debug info");
+        };
+
+        crate::pretty_print_error(&error, &source, color_stream, &path);
+
+        return TypecheckSnafu { error }.fail();
+      },
+    };
+
+    Ok(SourceFile {
+      path,
+      debug_info,
+      data: SourceFileData::Typechecked(program),
+    })
+  }
+
   pub(crate) fn compile_handle(&mut self, handle: &Handle) -> Result<(), CompilationError> {
     self.borrow_handle(handle, Self::tokenize_file)?;
     self.borrow_handle(handle, Self::asterize_file)?;
+    self.borrow_handle(handle, Self::typecheck_file)?;
 
     for id in 0..self.files.len() {
       if matches!(&self.files[id].data, SourceFileData::Unparsed) {

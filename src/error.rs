@@ -3,11 +3,11 @@ use std::path::Path;
 use snafu::prelude::*;
 
 use crate::asterizer::AsterizerError;
-
 use crate::tokenizer::{
   TokenizationError,
   GetSpan
 };
+use crate::typechecker::TypeCheckerError;
 
 use crate::colors::Color;
 
@@ -25,6 +25,9 @@ pub(crate) enum CompilationError {
 
   #[snafu(display("{error}"))]
   Asterization { error: AsterizerError },
+
+  #[snafu(display("{error}"))]
+  Typecheck { error: TypeCheckerError },
 }
 
 // TODO: make this more efficient -- this can be called multiple times per

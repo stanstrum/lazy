@@ -1,6 +1,7 @@
 mod compiler;
 mod tokenizer;
 mod asterizer;
+mod typechecker;
 mod error;
 
 mod debug;

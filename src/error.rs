@@ -27,7 +27,7 @@ pub(crate) enum CompilationError {
   Asterization { error: AsterizerError },
 
   #[snafu(display("{error}"))]
-  Typecheck { error: TypeCheckerError },
+  TypeCheck { error: TypeCheckerError },
 }
 
 // TODO: make this more efficient -- this can be called multiple times per

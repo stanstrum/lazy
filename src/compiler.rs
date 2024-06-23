@@ -226,7 +226,7 @@ impl Compiler {
 
         crate::pretty_print_error(&error, &source, color_stream, &path);
 
-        return TypecheckSnafu { error }.fail();
+        return TypeCheckSnafu { error }.fail();
       },
     };
 

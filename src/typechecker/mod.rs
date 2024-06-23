@@ -1,9 +1,11 @@
 mod error;
 
+use typename::TypeName;
+
 use std::collections::HashMap;
 use std::path::Path;
 
-use crate::asterizer::ast::GlobalNamespace;
+use crate::asterizer::ast;
 
 use crate::compiler::{
   Compiler,
@@ -43,6 +45,16 @@ struct NamedVariant {
 
 #[allow(unused)]
 #[derive(Debug, Clone)]
+enum Unparsed {
+  Namespace(ast::Namespace),
+  Function(ast::Function),
+  Type(ast::Type),
+  Struct(ast::Struct),
+  Class(ast::Class),
+}
+
+#[allow(unused)]
+#[derive(Debug, Clone)]
 enum Type {
   Intrinsic(Intrinsic),
   ReferenceTo(Box<Type>),
@@ -55,6 +67,7 @@ enum Type {
   Struct(Vec<StructField>),
   NamedEnum(Vec<NamedVariant>),
   UnnamedEnum(Vec<Type>),
+  Unparsed(Unparsed),
 }
 
 #[allow(unused)]
@@ -71,20 +84,42 @@ struct TypeScope {
 #[allow(unused)]
 pub(crate) struct TypeChecker {
   scope: TypeScope,
+  current_scope: Vec<String>,
 }
 
-impl TypeChecker {
-  fn new() -> Self {
-    Self {
-      scope: TypeScope {
-        children: HashMap::new(),
-      },
+impl TryFrom<&str> for Intrinsic {
+  type Error = ();
+
+  fn try_from(value: &str) -> Result<Self, ()> {
+    match value {
+      "i8" => Ok(Self::I8),
+      "u8" => Ok(Self::U8),
+      "i16" => Ok(Self::I16),
+      "u16" => Ok(Self::U16),
+      "i32" => Ok(Self::I32),
+      "u32" => Ok(Self::U32),
+      "i64" => Ok(Self::I64),
+      "u64" => Ok(Self::U64),
+      "f32" => Ok(Self::F32),
+      "f64" => Ok(Self::F64),
+      _ => Err(()),
     }
   }
 }
 
-pub(crate) fn typecheck(compiler: &mut Compiler, path: &Path, handle: &Handle, ast: GlobalNamespace) -> Result<(), TypeCheckerError> {
+enum ModuleChild {
+  Function(Function),
+  Module(Module),
+}
+
+struct Module {
+  children: Vec<ModuleChild>,
+}
+
+pub(crate) fn typecheck(compiler: &mut Compiler, path: &Path, handle: &Handle, global: ast::GlobalNamespace) -> Result<(), TypeCheckerError> {
   let mut checker = TypeChecker::new();
+
+  checker.register(global)?;
 
   todo!("typecheck")
 }

@@ -5,6 +5,8 @@ use crate::tokenizer::{
   Span,
 };
 
+use crate::CompilationError;
+
 #[derive(Debug, Snafu)]
 pub(crate) enum TypeCheckerError {
 }
@@ -14,5 +16,11 @@ impl GetSpan for TypeCheckerError {
     match self {
       _ => todo!()
     }
+  }
+}
+
+impl From<TypeCheckerError> for CompilationError {
+  fn from(error: TypeCheckerError) -> Self {
+    Self::TypeCheck { error }
   }
 }

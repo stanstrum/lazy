@@ -1,4 +1,4 @@
-  #[allow(unused)]
+#[allow(unused)]
 #[derive(Debug, Clone)]
 pub(crate) enum Intrinsic {
   Void,
@@ -19,6 +19,7 @@ impl TryFrom<&str> for Intrinsic {
 
   fn try_from(value: &str) -> Result<Self, Self::Error> {
     match value {
+      "void" => Ok(Self::Void),
       "u8" => Ok(Self::U8),
       "i8" => Ok(Self::I8),
       "u16" => Ok(Self::U16),

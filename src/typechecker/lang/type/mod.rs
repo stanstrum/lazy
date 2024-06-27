@@ -2,29 +2,29 @@ pub(crate) mod intrinsics;
 
 use crate::asterizer::ast;
 
+use super::super::DomainReference;
+
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) enum Type {
   Intrinsic(intrinsics::Intrinsic),
   Qualified {
     implied: bool,
-    parts: Vec<String>,
+    reference: DomainReference,
     template: Option<Vec<Type>>,
   },
   UnsizedArrayOf(Box<Type>),
 }
 
-impl From<Option<&ast::Type>> for Type {
-  fn from(value: Option<&ast::Type>) -> Self {
+impl Type {
+  pub(crate) fn from_ast_optional(value: Option<&ast::Type>, reference: &DomainReference) -> Self {
     match value {
-      Some(value) => value.into(),
-      None => Self::Intrinsic(intrinsics::Intrinsic::Void),
+      Some(value) => Type::from_ast(value, reference),
+      None => Type::Intrinsic(intrinsics::Intrinsic::Void),
     }
   }
-}
 
-impl From<&ast::Type> for Type {
-  fn from(value: &ast::Type) -> Self {
+  pub(crate) fn from_ast(value: &ast::Type, reference: &DomainReference) -> Self {
     match value {
       ast::Type::Qualified(ast::QualifiedName {
         implied,
@@ -39,11 +39,11 @@ impl From<&ast::Type> for Type {
 
         Type::Qualified {
           implied: *implied,
-          parts: parts.clone(),
+          reference: reference.to_owned(),
           template: template.as_ref()
             .map(
-              |v| v.iter()
-                .map(Into::into)
+              |tys| tys.iter()
+                .map(|ty| Type::from_ast(ty, reference))
                 .collect()
             ),
         }
@@ -51,7 +51,7 @@ impl From<&ast::Type> for Type {
       ast::Type::SizedArrayOf(_) => todo!("from type sizedarrayof"),
       ast::Type::UnsizedArrayOf(ast::UnsizedArrayOf { ty }) => Self::UnsizedArrayOf(
         Box::new(
-          ty.as_ref().into()
+          Type::from_ast(ty.as_ref(), reference)
         )
       ),
       ast::Type::ImmutableReferenceTo(_) => todo!("from type immutablereferenceto"),

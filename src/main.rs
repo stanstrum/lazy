@@ -16,7 +16,7 @@ fn compile(args: Vec<String>) -> Result<(), CompilationError> {
     }.fail();
   };
 
-  let mut compiler = compiler::Compiler::new(input_file_path.into());
+  let compiler = compiler::Compiler::new(input_file_path.into());
 
   compiler.compile()
 }

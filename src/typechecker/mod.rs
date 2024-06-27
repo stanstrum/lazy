@@ -1,125 +1,201 @@
 mod error;
+mod r#type;
 
-use typename::TypeName;
-
+// use std::path::Path;
 use std::collections::HashMap;
-use std::path::Path;
 
-use crate::asterizer::ast;
-
-use crate::compiler::{
+use crate:: compiler::{
   Compiler,
   Handle,
+  SourceFile,
+  SourceFileData,
 };
+
+use crate::asterizer::ast;
+use crate::CompilationError;
 
 pub(crate) use error::*;
 
-#[allow(unused)]
-#[derive(Debug, Clone)]
-enum Intrinsic {
-  U8,
-  I8,
-  U16,
-  I16,
-  U32,
-  I32,
-  U64,
-  I64,
-  F32,
-  F64,
-}
+use r#type::Type;
 
 #[allow(unused)]
-#[derive(Debug, Clone)]
-struct StructField {
-  name: String,
-  ty: Type,
+#[derive(Debug)]
+struct DomainReference {
+  handle: Handle,
+  inner: Vec<String>,
 }
 
-#[allow(unused)]
-#[derive(Debug, Clone)]
-struct NamedVariant {
-  name: String,
-  ty: Type,
-}
-
-#[allow(unused)]
-#[derive(Debug, Clone)]
-enum Unparsed {
-  Namespace(ast::Namespace),
-  Function(ast::Function),
-  Type(ast::Type),
-  Struct(ast::Struct),
-  Class(ast::Class),
-}
-
-#[allow(unused)]
-#[derive(Debug, Clone)]
-enum Type {
-  Intrinsic(Intrinsic),
-  ReferenceTo(Box<Type>),
-  MutReferenceTo(Box<Type>),
-  UnsizedArrayOf(Box<Type>),
-  SizedArrayOf {
-    size: usize,
-    ty: Box<Type>,
-  },
-  Struct(Vec<StructField>),
-  NamedEnum(Vec<NamedVariant>),
-  UnnamedEnum(Vec<Type>),
-  Unparsed(Unparsed),
-}
-
-#[allow(unused)]
-enum TypeScopeChild {
-  Type(Type),
-  Scope(TypeScope),
-}
-
-#[allow(unused)]
-struct TypeScope {
-  children: HashMap<String, TypeScopeChild>,
-}
-
-#[allow(unused)]
-pub(crate) struct TypeChecker {
-  scope: TypeScope,
-  current_scope: Vec<String>,
-}
-
-impl TryFrom<&str> for Intrinsic {
-  type Error = ();
-
-  fn try_from(value: &str) -> Result<Self, ()> {
-    match value {
-      "i8" => Ok(Self::I8),
-      "u8" => Ok(Self::U8),
-      "i16" => Ok(Self::I16),
-      "u16" => Ok(Self::U16),
-      "i32" => Ok(Self::I32),
-      "u32" => Ok(Self::U32),
-      "i64" => Ok(Self::I64),
-      "u64" => Ok(Self::U64),
-      "f32" => Ok(Self::F32),
-      "f64" => Ok(Self::F64),
-      _ => Err(()),
+impl DomainReference {
+  fn new(handle: Handle) -> Self {
+    Self {
+      inner: vec![],
+      handle,
     }
   }
 }
 
-enum ModuleChild {
+#[derive(Debug)]
+enum Instruction {}
+
+#[allow(unused)]
+#[derive(Debug)]
+struct Variable {
+  ty: Type,
+}
+
+#[allow(unused)]
+#[derive(Debug)]
+struct Block {
+  variables: Vec<Variable>,
+  body: Vec<Instruction>,
+}
+
+impl Block {
+  fn new() -> Self {
+    Self {
+      variables: vec![],
+      body: vec![],
+    }
+  }
+}
+
+#[allow(unused)]
+#[derive(Debug)]
+struct Function {
+  arguments: Vec<Type>,
+  return_ty: Type,
+  body: Block,
+}
+
+#[allow(unused)]
+#[derive(Debug)]
+enum DomainMember {
+  Domain(Domain),
   Function(Function),
-  Module(Module),
+  Type(Type),
 }
 
-struct Module {
-  children: Vec<ModuleChild>,
+#[allow(unused)]
+#[derive(Debug)]
+struct Program {
+  inner: HashMap<Handle, Domain>,
 }
 
-pub(crate) fn typecheck(compiler: &mut Compiler, path: &Path, handle: &Handle, global: ast::GlobalNamespace) -> Result<(), TypeCheckerError> {
-  let mut checker = TypeChecker::new();
+#[allow(unused)]
+#[derive(Debug)]
+pub(crate) struct Domain {
+  inner: HashMap<String, DomainMember>,
+}
 
-  checker.register(global)?;
+#[allow(unused)]
+pub(crate) struct TypeChecker<'a> {
+  compiler: &'a Compiler,
+  reference: DomainReference,
+  modules: Program,
+}
 
-  todo!("typecheck")
+trait Preprocess {
+  type Out;
+
+  fn preprocess(&self) -> Self::Out;
+}
+
+struct NamedDomainMember {
+  name: String,
+  member: DomainMember,
+}
+
+impl Preprocess for ast::Structure {
+  type Out = Option<NamedDomainMember>;
+
+  fn preprocess(&self) -> Self::Out {
+    match self {
+      ast::Structure::Namespace(_) => todo!("preprocess namespace"),
+      ast::Structure::Function(ast::Function { decl, .. }) => {
+        let mut arguments = vec![];
+
+        if let Some(decl_args) = &decl.args {
+          for arg in decl_args.args.iter() {
+            arguments.push((&arg.ty).into());
+          };
+        };
+
+        Some(NamedDomainMember {
+          name: decl.name.to_owned(),
+          member: DomainMember::Function(Function {
+            arguments,
+            return_ty: decl.return_type.as_ref().into(),
+            body: Block::new(),
+          })
+        })
+      },
+      ast::Structure::TypeAlias(alias) => {
+        Some(NamedDomainMember {
+          name: alias.name.to_owned(),
+          member: DomainMember::Type((&alias.ty).into())
+        })
+      },
+      ast::Structure::Interface(_) => todo!("preprocess interface"),
+      ast::Structure::Struct(_) => todo!("preprocess struct"),
+      ast::Structure::Class(_) => todo!("preprocess class"),
+      ast::Structure::Extern(_) => todo!("preprocess extern"),
+      ast::Structure::Exported(_) => todo!("preprocess exported"),
+      ast::Structure::TemplateScope(_) => todo!("preprocess templatescope"),
+      _ => None,
+    }
+  }
+}
+
+impl Preprocess for ast::GlobalNamespace {
+  type Out = Domain;
+
+  fn preprocess(&self) -> Self::Out {
+    let mut inner = HashMap::new();
+
+    for child in self.children.iter() {
+      match child {
+        ast::TopLevelStructure::Structure(struc) => {
+          let Some(member) = struc.preprocess() else {
+            continue;
+          };
+
+          inner.insert(member.name, member.member);
+        },
+      };
+    };
+
+    Domain { inner }
+  }
+}
+
+impl<'a> TypeChecker<'a> {
+  pub(crate) fn new(compiler: &'a Compiler) -> Self {
+    Self {
+      compiler,
+      reference: DomainReference::new(compiler.entry_point),
+      modules: Program { inner: HashMap::new() },
+    }
+  }
+
+  pub(crate) fn preprocess(_compiler: &mut Compiler, file: SourceFile, _handle: &Handle) -> Result<SourceFile, CompilationError> {
+    let SourceFile {
+      path,
+      data: SourceFileData::Asterized(ast),
+      debug_info,
+    } = file else {
+      unreachable!();
+    };
+
+    let program = dbg!(ast.preprocess());
+
+    Ok(SourceFile {
+      path,
+      data: SourceFileData::TypeChecked(program),
+      debug_info,
+    })
+  }
+
+  pub(crate) fn check(self) -> Result<(), TypeCheckerError> {
+    todo!()
+  }
 }

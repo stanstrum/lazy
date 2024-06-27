@@ -170,7 +170,7 @@ impl MakeAst for QualifiedName {
       stream.skip_whitespace_and_comments();
 
       let Some(TokenEnum::Identifier(part)) = stream.next_variant() else {
-        return ExpectedSnafu { 
+        return ExpectedSnafu {
           what: "an identifier",
           span: stream.span(),
         }.fail();

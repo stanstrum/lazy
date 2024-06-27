@@ -6,6 +6,11 @@ use tokenizer::Token;
 
 use colors::Color;
 
+use typechecker::{
+  TypeChecker,
+  Domain,
+};
+
 use crate::*;
 
 #[derive(Debug)]
@@ -20,7 +25,7 @@ pub(crate) enum SourceFileData {
   Unparsed,
   Tokenized(Vec<Token>),
   Asterized(GlobalNamespace),
-  Typechecked(()),
+  TypeChecked(Domain),
   // TODO
 }
 
@@ -46,7 +51,7 @@ impl SourceFile {
   }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash)]
 pub(crate) struct Handle {
   pub(crate) id: usize,
 }
@@ -60,7 +65,7 @@ pub(crate) struct Compiler {
   //       so we don't need to worry about null elements that are being replaced --
   //       also removes the need for constant copying/cloning path bufs
   files: Vec<SourceFile>,
-  entry_point: Handle,
+  pub(crate) entry_point: Handle,
 }
 
 impl SourceFile {
@@ -116,8 +121,18 @@ impl Compiler {
   //   self.files.get_mut(handle.id)
   // }
 
-  pub(crate) fn compile(&mut self) -> Result<(), CompilationError> {
-    self.compile_handle(&self.entry_point.to_owned())
+  pub(crate) fn compile(mut self) -> Result<(), CompilationError> {
+    self.compile_handle(&self.entry_point.to_owned())?;
+
+    for id in 0..self.files.len() {
+      let handle = Handle { id };
+
+      self.borrow_handle(&handle, TypeChecker::preprocess)?;
+    };
+
+    let mut checker = TypeChecker::new(&mut self);
+
+    checker.check().map_err(Into::into)
   }
 
   fn borrow_handle(&mut self, handle: &Handle, processor: fn(&mut Compiler, SourceFile, &Handle) -> Result<SourceFile, CompilationError>) -> Result<(), CompilationError> {
@@ -208,39 +223,38 @@ impl Compiler {
     })
   }
 
-  fn typecheck_file(&mut self, file: SourceFile, handle: &Handle) -> Result<SourceFile, CompilationError> { 
-    let SourceFile {
-      path,
-      debug_info,
-      data: SourceFileData::Asterized(ast)
-    } = file else {
-      panic!("tried to asterize a non-tokenized file");
-    };
+  // fn typecheck_file(&mut self, file: SourceFile, handle: &Handle) -> Result<SourceFile, CompilationError> {
+  //   let SourceFile {
+  //     path,
+  //     debug_info,
+  //     data: SourceFileData::Asterized(ast)
+  //   } = file else {
+  //     panic!("tried to asterize a non-tokenized file");
+  //   };
 
-    let program = match typechecker::typecheck(self, &path, handle, ast) {
-      Ok(program) => program,
-      Err(error) => {
-        let Some(DebugInfo { source, color_stream }) = debug_info else {
-          panic!("no debug info");
-        };
+  //   let program = match typechecker::typecheck(self, &path, handle, ast) {
+  //     Ok(program) => program,
+  //     Err(error) => {
+  //       let Some(DebugInfo { source, color_stream }) = debug_info else {
+  //         panic!("no debug info");
+  //       };
 
-        crate::pretty_print_error(&error, &source, color_stream, &path);
+  //       crate::pretty_print_error(&error, &source, color_stream, &path);
 
-        return TypeCheckSnafu { error }.fail();
-      },
-    };
+  //       return TypeCheckSnafu { error }.fail();
+  //     },
+  //   };
 
-    Ok(SourceFile {
-      path,
-      debug_info,
-      data: SourceFileData::Typechecked(program),
-    })
-  }
+  //   Ok(SourceFile {
+  //     path,
+  //     debug_info,
+  //     data: SourceFileData::Typechecked(program),
+  //   })
+  // }
 
   pub(crate) fn compile_handle(&mut self, handle: &Handle) -> Result<(), CompilationError> {
     self.borrow_handle(handle, Self::tokenize_file)?;
     self.borrow_handle(handle, Self::asterize_file)?;
-    self.borrow_handle(handle, Self::typecheck_file)?;
 
     for id in 0..self.files.len() {
       if matches!(&self.files[id].data, SourceFileData::Unparsed) {

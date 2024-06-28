@@ -8,13 +8,16 @@ use crate::tokenizer::{
 use crate::CompilationError;
 
 #[derive(Debug, Snafu)]
+#[snafu(visibility(pub(crate)))]
 pub(crate) enum TypeCheckerError {
+  #[snafu(display("unknown variable: \"{name}\""))]
+  UnknownVariable { name: String }
 }
 
 impl GetSpan for TypeCheckerError {
   fn get_span(&self) -> &Span {
     match self {
-      _ => todo!()
+      _ => todo!("type check span: {self:?}")
     }
   }
 }

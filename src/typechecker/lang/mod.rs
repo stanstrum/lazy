@@ -7,7 +7,7 @@ pub(crate) use r#type::*;
 use crate::tokenizer;
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct VariableReference {
   pub(crate) scope: Rc<Vec<Variable>>,
   pub(crate) id: usize,

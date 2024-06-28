@@ -1,13 +1,7 @@
 use std::collections::HashMap;
 
 use super::lang::{
-  Block,
-  Function,
-  Instruction,
-  Type,
-  Variable,
-  VariableKind,
-  VariableScope,
+  Block, Function, Instruction, Type, Value, Variable, VariableKind, VariableScope
 };
 
 use super::{
@@ -105,7 +99,18 @@ impl Preprocess for ast::Block {
       match child {
         ast::BlockChild::Binding(binding) => {
           if let Some(expr) = &binding.expr {
-            body.push(expr.preprocess(checker));
+            let Ok(reference) = checker.find_variable_by_name(&binding.name) else {
+              todo!("let preprocess throw errors");
+            };
+
+            let value = Value::Instruction(Box::new(
+              expr.preprocess(checker)
+            ));
+
+            body.push(Instruction::Assign {
+              dest: Value::Variable(reference),
+              value,
+            });
           };
         },
         ast::BlockChild::Expression(expr) => {

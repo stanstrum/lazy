@@ -61,6 +61,16 @@ impl/* <'a> */ TypeChecker/* <'a> */ {
     })
   }
 
+  fn find_variable_by_name(&self, name: &str) -> Result<VariableReference, TypeCheckerError> {
+    for scope in self.scope_stack.iter().rev() {
+      if let Some(reference) = scope.get(name) {
+        return Ok(reference.to_owned());
+      };
+    };
+
+    UnknownVariableSnafu { name }.fail()
+  }
+
   pub(crate) fn check(self) -> Result<(), TypeCheckerError> {
     todo!()
   }

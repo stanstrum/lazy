@@ -1,5 +1,7 @@
 pub(crate) mod intrinsics;
 
+use std::rc::Rc;
+
 use crate::asterizer::ast;
 
 use super::super::DomainReference;
@@ -8,12 +10,18 @@ use super::super::DomainReference;
 #[derive(Debug)]
 pub(crate) enum Type {
   Intrinsic(intrinsics::Intrinsic),
-  Qualified {
+  Unresolved {
     implied: bool,
     reference: DomainReference,
     template: Option<Vec<Type>>,
   },
   UnsizedArrayOf(Box<Type>),
+  ReferenceTo {
+    r#mut: bool,
+    ty: Box<Type>,
+  },
+  Shared(Rc<Type>),
+  Unknown,
 }
 
 impl Type {
@@ -37,7 +45,7 @@ impl Type {
           };
         };
 
-        Type::Qualified {
+        Type::Unresolved {
           implied: *implied,
           reference: reference.to_owned(),
           template: template.as_ref()
@@ -54,7 +62,14 @@ impl Type {
           Type::from_ast(ty.as_ref(), reference)
         )
       ),
-      ast::Type::ImmutableReferenceTo(_) => todo!("from type immutablereferenceto"),
+      ast::Type::ImmutableReferenceTo(ast::ImmutableReferenceTo { ty }) => {
+        Type::ReferenceTo {
+          r#mut: false,
+          ty: Box::new(
+            Type::from_ast(ty, reference)
+          )
+        }
+      },
     }
   }
 }

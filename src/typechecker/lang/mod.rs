@@ -1,28 +1,80 @@
 mod r#type;
 
-pub(crate) use r#type::*;
+use std::rc::Rc;
 
-#[derive(Debug)]
-enum Instruction {}
+pub(crate) use r#type::*;
 
 #[allow(unused)]
 #[derive(Debug)]
-pub(crate) struct Variable {
-  ty: Type,
+pub(crate) struct VariableReference {
+  scope: Rc<Block>,
+  id: usize,
+}
+
+#[allow(unused)]
+#[derive(Debug)]
+pub(crate) enum Value {
+  Variable(VariableReference),
+  Instruction(Box<Instruction>),
+}
+
+#[allow(unused)]
+#[derive(Debug)]
+pub(crate) enum Instruction {
+  Assign {
+    dest: Value,
+    value: Value,
+  },
+  Call {
+    func: Value,
+    args: Vec<Value>,
+  },
 }
 
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Block {
-  variables: Vec<Variable>,
-  body: Vec<Instruction>,
+  pub(crate) variables: VariableScope,
+  pub(crate) body: Vec<Instruction>,
 }
 
 impl Block {
+  // pub(crate) fn new() -> Self {
+  //   Self {
+  //     variables: VariableScope::new(),
+  //     body: vec![],
+  //   }
+  // }
+}
+
+#[allow(unused)]
+#[derive(Debug)]
+pub(crate) enum VariableKind {
+  LocalVariable,
+  Argument,
+}
+
+#[allow(unused)]
+#[derive(Debug)]
+pub(crate) struct Variable {
+  pub(crate) kind: VariableKind,
+  pub(crate) ty: Type,
+}
+
+#[allow(unused)]
+#[derive(Debug)]
+pub(crate) struct VariableScope {
+  inner: Rc<Vec<Variable>>,
+}
+
+impl VariableScope {
   pub(crate) fn new() -> Self {
+    Self::from_vec(vec![])
+  }
+
+  pub(crate) fn from_vec(v: Vec<Variable>) -> Self {
     Self {
-      variables: vec![],
-      body: vec![],
+      inner: Rc::new(v),
     }
   }
 }
@@ -30,7 +82,7 @@ impl Block {
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Function {
-  pub(crate) arguments: Vec<Type>,
+  pub(crate) arguments: VariableScope,
   pub(crate) return_ty: Type,
   pub(crate) body: Block,
 }

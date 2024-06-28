@@ -1,16 +1,22 @@
 use std::collections::HashMap;
 
+use super::lang::{
+  Block,
+  Function,
+  Instruction,
+  Type,
+  Variable,
+  VariableKind,
+  VariableScope,
+};
+
 use super::{
   Domain,
-  DomainReference,
   DomainMember,
+  DomainReference,
   NamedDomainMember,
-  lang::{
-    Type,
-    Function,
-    Block,
-  },
 };
+
 use crate::asterizer::ast;
 
 pub(super) trait Preprocess {
@@ -19,37 +25,85 @@ pub(super) trait Preprocess {
   fn preprocess(&self, reference: &DomainReference) -> Self::Out;
 }
 
+impl Preprocess for ast::Block {
+  type Out = Block;
+
+  fn preprocess(&self, reference: &DomainReference) -> Self::Out {
+    let mut variables = vec![];
+    let mut body: Vec<Instruction> = vec![];
+
+    let mut variable_map = HashMap::new();
+
+    for child in self.children.iter() {
+      match child {
+        ast::BlockChild::Expression(_) => todo!(),
+        ast::BlockChild::Binding(binding) => {
+          let variable_id = variables.len();
+
+          variable_map.insert(&binding.name, variable_id);
+          variables.push(Variable {
+            kind: VariableKind::LocalVariable,
+            ty: {
+              if let Some(binding_type) = &binding.ty {
+                Type::from_ast(&binding_type, reference)
+              } else {
+                Type::Unknown
+              }
+            }
+          });
+
+          if let Some(expr) = &binding.expr {
+            // body.push(expr.p(reference));
+            todo!()
+          };
+        },
+        ast::BlockChild::ControlFlow(_) => todo!(),
+        ast::BlockChild::Return(_) => todo!(),
+      };
+    };
+
+    Self::Out {
+      variables: VariableScope::from_vec(variables),
+      body: todo!(),
+    }
+  }
+}
+
+impl Preprocess for ast::Function {
+  type Out = Function;
+
+  fn preprocess(&self, reference: &DomainReference) -> Self::Out {
+    let mut arguments = vec![];
+
+    if let Some(decl_args) = &self.decl.args {
+      for arg in decl_args.args.iter() {
+        arguments.push(Variable {
+          kind: VariableKind::Argument,
+          ty: Type::from_ast(&arg.ty, reference),
+        });
+      };
+    };
+
+    Function {
+      arguments: VariableScope::from_vec(arguments),
+      return_ty: Type::from_ast_optional(self.decl.return_type.as_ref(), reference),
+      body: self.body.preprocess(reference),
+    }
+  }
+}
+
 impl Preprocess for ast::Structure {
   type Out = Option<NamedDomainMember>;
 
   fn preprocess(&self, reference: &DomainReference) -> Self::Out {
     match self {
       ast::Structure::Namespace(_) => todo!("preprocess namespace"),
-      ast::Structure::Function(ast::Function { decl, body: ast_body }) => {
-        let mut arguments = vec![];
-
-        if let Some(decl_args) = &decl.args {
-          for arg in decl_args.args.iter() {
-            arguments.push(Type::from_ast(&arg.ty, reference));
-          };
-        };
-
-        for expr in ast_body.children.iter() {
-          match expr {
-            ast::BlockChild::Expression(_) => todo!(),
-            ast::BlockChild::Binding(_) => todo!(),
-            ast::BlockChild::ControlFlow(_) => todo!(),
-            ast::BlockChild::Return(_) => todo!(),
-          };
-        };
-
+      ast::Structure::Function(func) => {
         Some(NamedDomainMember {
-          name: decl.name.to_owned(),
-          member: DomainMember::Function(Function {
-            arguments,
-            return_ty: Type::from_ast_optional(decl.return_type.as_ref(), reference),
-            body: Block::new(),
-          })
+          name: func.decl.name.to_owned(),
+          member: DomainMember::Function(
+            func.preprocess(reference)
+          ),
         })
       },
       ast::Structure::TypeAlias(alias) => {

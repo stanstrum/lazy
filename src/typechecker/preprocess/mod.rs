@@ -26,12 +26,26 @@ pub(super) trait Preprocess {
   fn preprocess(&self, checker: &mut TypeChecker) -> Self::Out;
 }
 
-impl Preprocess for ast::Expression {
+impl Preprocess for ast::Atom {
   type Out = Instruction;
 
   fn preprocess(&self, _checker: &mut TypeChecker) -> Self::Out {
     match self {
-      ast::Expression::Atom(_) => todo!("preprocess atom"),
+      ast::Atom::Literal(literal) => {
+        Instruction::Literal(literal.to_owned())
+      },
+      ast::Atom::StructInitializer(_) => todo!("preprocess structinitializer"),
+      ast::Atom::Variable(_) => todo!("preprocess variable"),
+    }
+  }
+}
+
+impl Preprocess for ast::Expression {
+  type Out = Instruction;
+
+  fn preprocess(&self, checker: &mut TypeChecker) -> Self::Out {
+    match self {
+      ast::Expression::Atom(atom) => atom.preprocess(checker),
       ast::Expression::Block(_) => todo!("preprocess block"),
       ast::Expression::SubExpression(_) => todo!("preprocess subexpression"),
       ast::Expression::Unary(_) => todo!("preprocess unary"),
@@ -104,12 +118,11 @@ impl Preprocess for ast::Block {
 
     checker.scope_stack.pop();
 
-    todo!()
-
-    // Self::Out {
-    //   variables: VariableScope::from_vec(variables),
-    //   body,
-    // }
+    Self::Out {
+      // TODO: refactor here
+      variables: scope,
+      body,
+    }
   }
 }
 

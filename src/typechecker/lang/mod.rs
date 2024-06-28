@@ -4,6 +4,8 @@ use std::rc::Rc;
 
 pub(crate) use r#type::*;
 
+use crate::tokenizer;
+
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct VariableReference {
@@ -29,6 +31,7 @@ pub(crate) enum Instruction {
     func: Value,
     args: Vec<Value>,
   },
+  Literal(tokenizer::Literal),
 }
 
 #[allow(unused)]

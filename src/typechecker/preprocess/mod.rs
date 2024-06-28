@@ -1,7 +1,14 @@
 use std::collections::HashMap;
 
 use super::lang::{
-  Block, Function, Instruction, Type, Value, Variable, VariableKind, VariableScope
+  Block,
+  Function,
+  Instruction,
+  Type,
+  Value,
+  Variable,
+  VariableKind,
+  VariableScope,
 };
 
 use super::{
@@ -9,6 +16,7 @@ use super::{
   DomainMember,
   NamedDomainMember,
   TypeChecker,
+  TypeCheckerError,
 };
 
 use crate::asterizer::ast;
@@ -17,41 +25,45 @@ use crate::typechecker::lang::VariableReference;
 pub(super) trait Preprocess {
   type Out;
 
-  fn preprocess(&self, checker: &mut TypeChecker) -> Self::Out;
+  fn preprocess(&self, checker: &mut TypeChecker) -> Result<Self::Out, TypeCheckerError>;
 }
 
 impl Preprocess for ast::Atom {
   type Out = Instruction;
 
-  fn preprocess(&self, _checker: &mut TypeChecker) -> Self::Out {
-    match self {
-      ast::Atom::Literal(literal) => {
-        Instruction::Literal(literal.to_owned())
-      },
-      ast::Atom::StructInitializer(_) => todo!("preprocess structinitializer"),
-      ast::Atom::Variable(_) => todo!("preprocess variable"),
-    }
+  fn preprocess(&self, _checker: &mut TypeChecker) -> Result<Self::Out, TypeCheckerError> {
+    Ok({
+      match self {
+        ast::Atom::Literal(literal) => {
+          Instruction::Literal(literal.to_owned())
+        },
+        ast::Atom::StructInitializer(_) => todo!("preprocess structinitializer"),
+        ast::Atom::Variable(_) => todo!("preprocess variable"),
+      }
+    })
   }
 }
 
 impl Preprocess for ast::Expression {
   type Out = Instruction;
 
-  fn preprocess(&self, checker: &mut TypeChecker) -> Self::Out {
-    match self {
-      ast::Expression::Atom(atom) => atom.preprocess(checker),
-      ast::Expression::Block(_) => todo!("preprocess block"),
-      ast::Expression::SubExpression(_) => todo!("preprocess subexpression"),
-      ast::Expression::Unary(_) => todo!("preprocess unary"),
-      ast::Expression::Binary(_) => todo!("preprocess binary"),
-    }
+  fn preprocess(&self, checker: &mut TypeChecker) -> Result<Self::Out, TypeCheckerError> {
+    Ok({
+      match self {
+        ast::Expression::Atom(atom) => atom.preprocess(checker)?,
+        ast::Expression::Block(_) => todo!("preprocess block"),
+        ast::Expression::SubExpression(_) => todo!("preprocess subexpression"),
+        ast::Expression::Unary(_) => todo!("preprocess unary"),
+        ast::Expression::Binary(_) => todo!("preprocess binary"),
+      }
+    })
   }
 }
 
 impl Preprocess for ast::Block {
   type Out = Block;
 
-  fn preprocess(&self, checker: &mut TypeChecker) -> Self::Out {
+  fn preprocess(&self, checker: &mut TypeChecker) -> Result<Self::Out, TypeCheckerError> {
     let mut variables = vec![];
     let mut body = vec![];
 
@@ -67,7 +79,7 @@ impl Preprocess for ast::Block {
             kind: VariableKind::LocalVariable,
             ty: {
               if let Some(binding_type) = &binding.ty {
-                binding_type.preprocess(checker)
+                binding_type.preprocess(checker)?
               } else {
                 Type::Unknown
               }
@@ -93,7 +105,7 @@ impl Preprocess for ast::Block {
           )
         );
 
-    checker.scope_stack.push(dbg!(variable_scope.collect()));
+    checker.scope_stack.push(variable_scope.collect());
 
     for child in self.children.iter() {
       match child {
@@ -104,7 +116,7 @@ impl Preprocess for ast::Block {
             };
 
             let value = Value::Instruction(Box::new(
-              expr.preprocess(checker)
+              expr.preprocess(checker)?
             ));
 
             body.push(Instruction::Assign {
@@ -114,7 +126,7 @@ impl Preprocess for ast::Block {
           };
         },
         ast::BlockChild::Expression(expr) => {
-          body.push(expr.preprocess(checker));
+          body.push(expr.preprocess(checker)?);
         },
         ast::BlockChild::ControlFlow(_) => todo!(),
         ast::BlockChild::Return(_) => todo!(),
@@ -123,78 +135,80 @@ impl Preprocess for ast::Block {
 
     checker.scope_stack.pop();
 
-    Self::Out {
+    Ok(Self::Out {
       // TODO: refactor here
       variables: scope,
       body,
-    }
+    })
   }
 }
 
 impl Preprocess for ast::Function {
   type Out = Function;
 
-  fn preprocess(&self, checker: &mut TypeChecker) -> Self::Out {
+  fn preprocess(&self, checker: &mut TypeChecker) -> Result<Self::Out, TypeCheckerError> {
     let mut arguments = vec![];
 
     if let Some(decl_args) = &self.decl.args {
       for arg in decl_args.args.iter() {
         arguments.push(Variable {
           kind: VariableKind::Argument,
-          ty: arg.ty.preprocess(checker),
+          ty: arg.ty.preprocess(checker)?,
         });
       };
     };
 
-    Function {
+    Ok(Function {
       arguments: VariableScope::from_vec(arguments),
-      return_ty: self.decl.return_type.as_ref().preprocess(checker),
-      body: self.body.preprocess(checker),
-    }
+      return_ty: self.decl.return_type.as_ref().preprocess(checker)?,
+      body: self.body.preprocess(checker)?,
+    })
   }
 }
 
 impl Preprocess for ast::Structure {
   type Out = Option<NamedDomainMember>;
 
-  fn preprocess(&self, checker: &mut TypeChecker) -> Self::Out {
-    match self {
-      ast::Structure::Namespace(_) => todo!("preprocess namespace"),
-      ast::Structure::Function(func) => {
-        Some(NamedDomainMember {
-          name: func.decl.name.to_owned(),
-          member: DomainMember::Function(
-            func.preprocess(checker)
-          ),
-        })
-      },
-      ast::Structure::TypeAlias(alias) => {
-        Some(NamedDomainMember {
-          name: alias.name.to_owned(),
-          member: DomainMember::Type(alias.ty.preprocess(checker))
-        })
-      },
-      ast::Structure::Interface(_) => todo!("preprocess interface"),
-      ast::Structure::Struct(_) => todo!("preprocess struct"),
-      ast::Structure::Class(_) => todo!("preprocess class"),
-      ast::Structure::Extern(_) => todo!("preprocess extern"),
-      ast::Structure::Exported(_) => todo!("preprocess exported"),
-      ast::Structure::TemplateScope(_) => todo!("preprocess templatescope"),
-      _ => None,
-    }
+  fn preprocess(&self, checker: &mut TypeChecker) -> Result<Self::Out, TypeCheckerError> {
+    Ok({
+      match self {
+        ast::Structure::Namespace(_) => todo!("preprocess namespace"),
+        ast::Structure::Function(func) => {
+          Some(NamedDomainMember {
+            name: func.decl.name.to_owned(),
+            member: DomainMember::Function(
+              func.preprocess(checker)?
+            ),
+          })
+        },
+        ast::Structure::TypeAlias(alias) => {
+          Some(NamedDomainMember {
+            name: alias.name.to_owned(),
+            member: DomainMember::Type(alias.ty.preprocess(checker)?)
+          })
+        },
+        ast::Structure::Interface(_) => todo!("preprocess interface"),
+        ast::Structure::Struct(_) => todo!("preprocess struct"),
+        ast::Structure::Class(_) => todo!("preprocess class"),
+        ast::Structure::Extern(_) => todo!("preprocess extern"),
+        ast::Structure::Exported(_) => todo!("preprocess exported"),
+        ast::Structure::TemplateScope(_) => todo!("preprocess templatescope"),
+        _ => None,
+      }
+    })
   }
 }
 
 impl Preprocess for ast::GlobalNamespace {
   type Out = Domain;
 
-  fn preprocess(&self, checker: &mut TypeChecker) -> Self::Out {
+  fn preprocess(&self, checker: &mut TypeChecker) -> Result<Self::Out, TypeCheckerError> {
     let mut inner = HashMap::new();
 
     for child in self.children.iter() {
       match child {
         ast::TopLevelStructure::Structure(struc) => {
-          let Some(member) = struc.preprocess(checker) else {
+          let Some(member) = struc.preprocess(checker)? else {
             continue;
           };
 
@@ -203,6 +217,6 @@ impl Preprocess for ast::GlobalNamespace {
       };
     };
 
-    Domain { inner }
+    Ok(Domain { inner })
   }
 }

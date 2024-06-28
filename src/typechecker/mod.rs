@@ -51,7 +51,7 @@ impl/* <'a> */ TypeChecker/* <'a> */ {
     };
 
     let program = dbg!(
-      ast.preprocess(self)
+      ast.preprocess(self)?
     );
 
     Ok(SourceFile {

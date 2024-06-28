@@ -68,9 +68,9 @@ pub(crate) struct VariableScope {
 }
 
 impl VariableScope {
-  pub(crate) fn new() -> Self {
-    Self::from_vec(vec![])
-  }
+  // pub(crate) fn new() -> Self {
+  //   Self::from_vec(vec![])
+  // }
 
   pub(crate) fn from_vec(v: Vec<Variable>) -> Self {
     Self {

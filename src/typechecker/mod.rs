@@ -5,7 +5,7 @@ mod domain;
 mod preprocess;
 
 use crate::compiler::{
-  Compiler,
+  // Compiler,
   Handle,
   SourceFile,
   SourceFileData,

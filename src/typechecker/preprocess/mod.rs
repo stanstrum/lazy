@@ -30,7 +30,13 @@ impl Preprocess for ast::Expression {
   type Out = Instruction;
 
   fn preprocess(&self, _checker: &mut TypeChecker) -> Self::Out {
-    todo!()
+    match self {
+      ast::Expression::Atom(_) => todo!("preprocess atom"),
+      ast::Expression::Block(_) => todo!("preprocess block"),
+      ast::Expression::SubExpression(_) => todo!("preprocess subexpression"),
+      ast::Expression::Unary(_) => todo!("preprocess unary"),
+      ast::Expression::Binary(_) => todo!("preprocess binary"),
+    }
   }
 }
 
@@ -53,7 +59,7 @@ impl Preprocess for ast::Block {
             kind: VariableKind::LocalVariable,
             ty: {
               if let Some(binding_type) = &binding.ty {
-                Type::from_ast(&binding_type, &checker.reference)
+                binding_type.preprocess(checker)
               } else {
                 Type::Unknown
               }
@@ -83,9 +89,10 @@ impl Preprocess for ast::Block {
 
     for child in self.children.iter() {
       match child {
-        ast::BlockChild::Binding(_) => {
-          // already preprocessed
-          continue;
+        ast::BlockChild::Binding(binding) => {
+          if let Some(expr) = &binding.expr {
+            body.push(expr.preprocess(checker));
+          };
         },
         ast::BlockChild::Expression(expr) => {
           body.push(expr.preprocess(checker));
@@ -116,14 +123,14 @@ impl Preprocess for ast::Function {
       for arg in decl_args.args.iter() {
         arguments.push(Variable {
           kind: VariableKind::Argument,
-          ty: Type::from_ast(&arg.ty, &checker.reference),
+          ty: arg.ty.preprocess(checker),
         });
       };
     };
 
     Function {
       arguments: VariableScope::from_vec(arguments),
-      return_ty: Type::from_ast_optional(self.decl.return_type.as_ref(), &checker.reference),
+      return_ty: self.decl.return_type.as_ref().preprocess(checker),
       body: self.body.preprocess(checker),
     }
   }
@@ -146,7 +153,7 @@ impl Preprocess for ast::Structure {
       ast::Structure::TypeAlias(alias) => {
         Some(NamedDomainMember {
           name: alias.name.to_owned(),
-          member: DomainMember::Type(Type::from_ast(&alias.ty, &checker.reference))
+          member: DomainMember::Type(alias.ty.preprocess(checker))
         })
       },
       ast::Structure::Interface(_) => todo!("preprocess interface"),

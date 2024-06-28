@@ -4,6 +4,8 @@ mod lang;
 mod domain;
 mod preprocess;
 
+use std::collections::HashMap;
+
 use crate::compiler::{
   // Compiler,
   Handle,
@@ -15,6 +17,7 @@ use crate::CompilationError;
 
 pub(crate) use error::*;
 
+use lang::VariableReference;
 use preprocess::Preprocess;
 use domain::*;
 
@@ -25,6 +28,7 @@ pub(crate) struct TypeChecker/* <'a> */ {
   // compiler: &'a Compiler,
   reference: DomainReference,
   modules: Program,
+  scope_stack: Vec<HashMap<String, VariableReference>>,
 }
 
 impl/* <'a> */ TypeChecker/* <'a> */ {
@@ -33,10 +37,11 @@ impl/* <'a> */ TypeChecker/* <'a> */ {
       // compiler,
       reference: DomainReference::new(handle),
       modules: Program::new(),
+      scope_stack: vec![],
     }
   }
 
-  pub(crate) fn preprocess(&mut self, file: SourceFile, handle: &Handle) -> Result<SourceFile, CompilationError> {
+  pub(crate) fn preprocess(&mut self, file: SourceFile, _handle: &Handle) -> Result<SourceFile, CompilationError> {
     let SourceFile {
       path,
       data: SourceFileData::Asterized(ast),
@@ -45,10 +50,8 @@ impl/* <'a> */ TypeChecker/* <'a> */ {
       unreachable!();
     };
 
-    let program_reference = DomainReference::new(*handle);
-
     let program = dbg!(
-      ast.preprocess(&program_reference)
+      ast.preprocess(self)
     );
 
     Ok(SourceFile {

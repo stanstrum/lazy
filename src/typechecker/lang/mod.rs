@@ -7,8 +7,8 @@ pub(crate) use r#type::*;
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct VariableReference {
-  scope: Rc<Block>,
-  id: usize,
+  pub(crate) scope: Rc<Vec<Variable>>,
+  pub(crate) id: usize,
 }
 
 #[allow(unused)]
@@ -76,6 +76,10 @@ impl VariableScope {
     Self {
       inner: Rc::new(v),
     }
+  }
+
+  pub(crate) fn get_inner(&self) -> &Rc<Vec<Variable>> {
+    &self.inner
   }
 }
 

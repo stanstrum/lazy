@@ -122,33 +122,44 @@ impl Compiler {
   // }
 
   pub(crate) fn compile(mut self) -> Result<(), CompilationError> {
-    self.compile_handle(&self.entry_point.to_owned())?;
+    self.compile_handle(self.entry_point)?;
+
+    let mut checker = TypeChecker::new(self.entry_point);
 
     for id in 0..self.files.len() {
       let handle = Handle { id };
 
-      self.borrow_handle(&handle, TypeChecker::preprocess)?;
-    };
+      let borrowed_file = self.take_handle(id);
+      let result = checker.preprocess(borrowed_file, &handle)?;
 
-    let mut checker = TypeChecker::new(&mut self);
+      self.replace_handle(id, result);
+    };
 
     checker.check().map_err(Into::into)
   }
 
-  fn borrow_handle(&mut self, handle: &Handle, processor: fn(&mut Compiler, SourceFile, &Handle) -> Result<SourceFile, CompilationError>) -> Result<(), CompilationError> {
-    let file_ref = &mut self.files[handle.id];
+  fn take_handle(&mut self, id: usize) -> SourceFile {
+    let file_ref = &mut self.files[id];
 
     let data = std::mem::take(&mut file_ref.data);
     let debug_info = std::mem::take(&mut file_ref.debug_info);
 
-    let borrowed_file = SourceFile {
+    SourceFile {
       path: file_ref.path.to_owned(),
       debug_info,
       data,
-    };
+    }
+  }
 
+  fn replace_handle(&mut self, id: usize, file: SourceFile) {
+    self.files[id] = file;
+  }
+
+  fn borrow_handle(&mut self, handle: &Handle, processor: fn(&mut Compiler, SourceFile, &Handle) -> Result<SourceFile, CompilationError>) -> Result<(), CompilationError> {
+    let borrowed_file = self.take_handle(handle.id);
     let result = processor(self, borrowed_file, handle)?;
-    self.files[handle.id] = result;
+
+    self.replace_handle(handle.id, result);
 
     Ok(())
   }
@@ -252,13 +263,13 @@ impl Compiler {
   //   })
   // }
 
-  pub(crate) fn compile_handle(&mut self, handle: &Handle) -> Result<(), CompilationError> {
-    self.borrow_handle(handle, Self::tokenize_file)?;
-    self.borrow_handle(handle, Self::asterize_file)?;
+  pub(crate) fn compile_handle(&mut self, handle: Handle) -> Result<(), CompilationError> {
+    self.borrow_handle(&handle, Self::tokenize_file)?;
+    self.borrow_handle(&handle, Self::asterize_file)?;
 
     for id in 0..self.files.len() {
       if matches!(&self.files[id].data, SourceFileData::Unparsed) {
-        self.compile_handle(&Handle { id })?;
+        self.compile_handle(Handle { id })?;
       };
 
       // dbg!(id, &self.files[id].data);

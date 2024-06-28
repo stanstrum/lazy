@@ -21,22 +21,22 @@ use domain::*;
 pub(crate) use domain::Domain;
 
 #[allow(unused)]
-pub(crate) struct TypeChecker<'a> {
-  compiler: &'a Compiler,
+pub(crate) struct TypeChecker/* <'a> */ {
+  // compiler: &'a Compiler,
   reference: DomainReference,
   modules: Program,
 }
 
-impl<'a> TypeChecker<'a> {
-  pub(crate) fn new(compiler: &'a Compiler) -> Self {
+impl/* <'a> */ TypeChecker/* <'a> */ {
+  pub(crate) fn new(/* compiler: &'a Compiler */ handle: Handle) -> Self {
     Self {
-      compiler,
-      reference: DomainReference::new(compiler.entry_point),
+      // compiler,
+      reference: DomainReference::new(handle),
       modules: Program::new(),
     }
   }
 
-  pub(crate) fn preprocess(_compiler: &mut Compiler, file: SourceFile, handle: &Handle) -> Result<SourceFile, CompilationError> {
+  pub(crate) fn preprocess(&mut self, file: SourceFile, handle: &Handle) -> Result<SourceFile, CompilationError> {
     let SourceFile {
       path,
       data: SourceFileData::Asterized(ast),

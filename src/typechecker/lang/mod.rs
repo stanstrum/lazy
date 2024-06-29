@@ -32,6 +32,7 @@ pub(crate) enum Instruction {
     args: Vec<Value>,
   },
   Literal(tokenizer::Literal),
+  Return(Value),
 }
 
 #[allow(unused)]

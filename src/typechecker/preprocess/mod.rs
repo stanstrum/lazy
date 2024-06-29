@@ -111,7 +111,7 @@ impl Preprocess for ast::Block {
       match child {
         ast::BlockChild::Binding(binding) => {
           if let Some(expr) = &binding.expr {
-            let reference = checker.find_variable_by_name(&binding.name)?;;
+            let reference = checker.find_variable_by_name(&binding.name)?;
 
             let value = Value::Instruction(Box::new(
               expr.preprocess(checker)?
@@ -129,6 +129,17 @@ impl Preprocess for ast::Block {
         ast::BlockChild::ControlFlow(_) => todo!(),
         ast::BlockChild::Return(_) => todo!(),
       };
+    };
+
+    if self.returns_last {
+      let last = body.pop()
+        .expect("a block that returns last must have at least one instruction");
+
+      body.push(
+        Instruction::Return(Value::Instruction(
+          Box::new(last)
+        ))
+      );
     };
 
     checker.scope_stack.pop();

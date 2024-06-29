@@ -21,7 +21,10 @@ use lang::VariableReference;
 use preprocess::Preprocess;
 use domain::*;
 
-pub(crate) use domain::Domain;
+pub(crate) use domain::{
+  Domain,
+  Program,
+};
 
 #[allow(unused)]
 pub(crate) struct TypeChecker/* <'a> */ {
@@ -50,13 +53,11 @@ impl/* <'a> */ TypeChecker/* <'a> */ {
       unreachable!();
     };
 
-    let program = dbg!(
-      ast.preprocess(self)?
-    );
+    let domain = ast.preprocess(self)?;
 
     Ok(SourceFile {
       path,
-      data: SourceFileData::TypeChecked(program),
+      data: SourceFileData::TypeChecked(domain),
       debug_info,
     })
   }
@@ -71,7 +72,9 @@ impl/* <'a> */ TypeChecker/* <'a> */ {
     UnknownVariableSnafu { name }.fail()
   }
 
-  pub(crate) fn check(self) -> Result<(), TypeCheckerError> {
+  pub(crate) fn check(self, program: Program) -> Result<(), TypeCheckerError> {
+    dbg!(&program);
+
     todo!()
   }
 }

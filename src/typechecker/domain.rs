@@ -33,7 +33,7 @@ pub(super) struct DomainReference {
 
 #[allow(unused)]
 #[derive(Debug)]
-pub(super) struct Program {
+pub(crate) struct Program {
   inner: HashMap<Handle, Domain>,
 }
 
@@ -61,5 +61,11 @@ impl Program {
     Self {
       inner: HashMap::new(),
     }
+  }
+}
+
+impl From<HashMap<Handle, Domain>> for Program {
+  fn from(inner: HashMap<Handle, Domain>) -> Self {
+    Self { inner }
   }
 }

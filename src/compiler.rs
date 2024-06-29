@@ -1,4 +1,5 @@
 use std::fs::File;
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 use asterizer::ast::GlobalNamespace;
@@ -9,6 +10,7 @@ use colors::Color;
 use typechecker::{
   TypeChecker,
   Domain,
+  Program,
 };
 
 use crate::*;
@@ -51,7 +53,7 @@ impl SourceFile {
   }
 }
 
-#[derive(Debug, Clone, Copy, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Handle {
   pub(crate) id: usize,
 }
@@ -135,7 +137,24 @@ impl Compiler {
       self.replace_handle(id, result);
     };
 
-    checker.check().map_err(Into::into)
+    let mut program_map = HashMap::new();
+    for id in 0..self.files.len() {
+      let handle = Handle { id };
+      let SourceFile {
+        path,
+        data: SourceFileData::TypeChecked(domain),
+        debug_info,
+      } = self.take_handle(handle.id) else {
+        panic!("cannot typecheck: not all files preprocessed");
+      };
+
+      // TODO: preserve debug info here
+      program_map.insert(handle, domain);
+    };
+
+    let program = Program::from(program_map);
+
+    checker.check(program).map_err(Into::into)
   }
 
   fn take_handle(&mut self, id: usize) -> SourceFile {

@@ -111,9 +111,7 @@ impl Preprocess for ast::Block {
       match child {
         ast::BlockChild::Binding(binding) => {
           if let Some(expr) = &binding.expr {
-            let Ok(reference) = checker.find_variable_by_name(&binding.name) else {
-              todo!("let preprocess throw errors");
-            };
+            let reference = checker.find_variable_by_name(&binding.name)?;;
 
             let value = Value::Instruction(Box::new(
               expr.preprocess(checker)?

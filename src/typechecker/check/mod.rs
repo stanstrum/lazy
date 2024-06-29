@@ -8,7 +8,7 @@ use super::{
 };
 
 use super::lang::{
-  Instruction, TypeCell, Variable
+  Instruction, TypeCell, Value, Variable
 };
 
 use crate::compiler::Handle;
@@ -81,8 +81,56 @@ trait Check {
   fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError>;
 }
 
+trait TypeOf {
+  fn type_of(&self) -> Option<Type>;
+
+  // fn type_of_expect(&self) -> Result<Type, TypeCheckerError> {
+  //   let Some(ty) = self.type_of() else {
+  //     todo!()
+  //   };
+
+  //   Ok(ty)
+  // }
+}
+
 trait Coerce {
   fn coerce(&mut self, checker: &mut TypeChecker, to: &Type) -> Result<bool, TypeCheckerError>;
+}
+
+impl Coerce for Value {
+  fn coerce(&mut self, checker: &mut TypeChecker, to: &Type) -> Result<bool, TypeCheckerError> {
+    todo!()
+  }
+}
+
+impl TypeOf for Type {
+  fn type_of(&self) -> Option<Type> {
+    match self {
+      Type::Intrinsic(_) => todo!(),
+      Type::Unresolved { implied, reference, template } => todo!(),
+      Type::UnsizedArrayOf(_) => todo!(),
+      Type::SizedArrayOf { count, ty } => todo!(),
+      Type::ReferenceTo { r#mut, ty } => todo!(),
+      Type::Shared(_) => todo!(),
+      Type::Function { args, return_ty } => todo!(),
+      Type::Unknown => todo!(),
+    }
+  }
+}
+
+impl TypeOf for TypeCell {
+  fn type_of(&self) -> Option<Type> {
+    self.borrow().type_of()
+  }
+}
+
+impl TypeOf for Value {
+  fn type_of(&self) -> Option<Type> {
+    match self {
+      Value::Variable(var) => var.get().ty.type_of(),
+      Value::Instruction(_) => todo!(),
+    }
+  }
 }
 
 impl Check for Variable {
@@ -93,7 +141,24 @@ impl Check for Variable {
 
 impl Check for Instruction {
   fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
-    todo!()
+    Ok({
+      match self {
+        Instruction::Assign { dest, value } => {
+          match (dest.type_of(), value.type_of()) {
+            (None, Some(rhs)) => {
+              dest.coerce(checker, &rhs)?
+            },
+            (Some(lhs), None) => {
+              value.coerce(checker, &lhs)?
+            },
+            _ => false,
+          }
+        },
+        Instruction::Call { func, args } => todo!(),
+        Instruction::Literal(_) => todo!(),
+        Instruction::Return(_) => todo!(),
+      }
+    })
   }
 }
 

@@ -14,6 +14,12 @@ pub(crate) struct VariableReference {
   pub(crate) id: usize,
 }
 
+impl VariableReference {
+  pub(crate) fn get(&self) -> Variable {
+    self.scope.borrow().get(self.id).unwrap().to_owned()
+  }
+}
+
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) enum Value {
@@ -53,14 +59,14 @@ impl Block {
 }
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) enum VariableKind {
   LocalVariable,
   Argument,
 }
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct Variable {
   pub(crate) kind: VariableKind,
   pub(crate) ty: TypeCell,

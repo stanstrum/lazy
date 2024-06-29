@@ -8,7 +8,7 @@ use tokenizer::Token;
 use colors::Color;
 
 use typechecker::{
-  TypeChecker,
+  Preprocessor,
   Domain,
   Program,
 };
@@ -126,13 +126,13 @@ impl Compiler {
   pub(crate) fn compile(mut self) -> Result<(), CompilationError> {
     self.compile_handle(self.entry_point)?;
 
-    let mut checker = TypeChecker::new(self.entry_point);
+    let mut preprocessor = Preprocessor::new(self.entry_point);
 
     for id in 0..self.files.len() {
       let handle = Handle { id };
 
       let borrowed_file = self.take_handle(id);
-      let result = checker.preprocess(borrowed_file, &handle)?;
+      let result = preprocessor.preprocess(borrowed_file, &handle)?;
 
       self.replace_handle(id, result);
     };
@@ -154,7 +154,7 @@ impl Compiler {
 
     let program = Program::from(program_map);
 
-    checker.check(program).map_err(Into::into)
+    preprocessor.check(program).map_err(Into::into)
   }
 
   fn take_handle(&mut self, id: usize) -> SourceFile {

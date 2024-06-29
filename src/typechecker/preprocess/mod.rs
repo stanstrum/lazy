@@ -15,7 +15,7 @@ use super::{
   Domain,
   DomainMember,
   NamedDomainMember,
-  TypeChecker,
+  Preprocessor,
   TypeCheckerError,
 };
 
@@ -25,13 +25,13 @@ use crate::typechecker::lang::VariableReference;
 pub(super) trait Preprocess {
   type Out;
 
-  fn preprocess(&self, checker: &mut TypeChecker) -> Result<Self::Out, TypeCheckerError>;
+  fn preprocess(&self, preprocessor: &mut Preprocessor) -> Result<Self::Out, TypeCheckerError>;
 }
 
 impl Preprocess for ast::Atom {
   type Out = Instruction;
 
-  fn preprocess(&self, _checker: &mut TypeChecker) -> Result<Self::Out, TypeCheckerError> {
+  fn preprocess(&self, _preprocessor: &mut Preprocessor) -> Result<Self::Out, TypeCheckerError> {
     Ok({
       match self {
         ast::Atom::Literal(literal) => {
@@ -47,10 +47,10 @@ impl Preprocess for ast::Atom {
 impl Preprocess for ast::Expression {
   type Out = Instruction;
 
-  fn preprocess(&self, checker: &mut TypeChecker) -> Result<Self::Out, TypeCheckerError> {
+  fn preprocess(&self, preprocessor: &mut Preprocessor) -> Result<Self::Out, TypeCheckerError> {
     Ok({
       match self {
-        ast::Expression::Atom(atom) => atom.preprocess(checker)?,
+        ast::Expression::Atom(atom) => atom.preprocess(preprocessor)?,
         ast::Expression::Block(_) => todo!("preprocess block"),
         ast::Expression::SubExpression(_) => todo!("preprocess subexpression"),
         ast::Expression::Unary(_) => todo!("preprocess unary"),
@@ -63,7 +63,7 @@ impl Preprocess for ast::Expression {
 impl Preprocess for ast::Block {
   type Out = Block;
 
-  fn preprocess(&self, checker: &mut TypeChecker) -> Result<Self::Out, TypeCheckerError> {
+  fn preprocess(&self, preprocessor: &mut Preprocessor) -> Result<Self::Out, TypeCheckerError> {
     let mut variables = vec![];
     let mut body = vec![];
 
@@ -79,7 +79,7 @@ impl Preprocess for ast::Block {
             kind: VariableKind::LocalVariable,
             ty: {
               if let Some(binding_type) = &binding.ty {
-                binding_type.preprocess(checker)?
+                binding_type.preprocess(preprocessor)?
               } else {
                 Type::Unknown
               }
@@ -105,16 +105,16 @@ impl Preprocess for ast::Block {
           )
         );
 
-    checker.scope_stack.push(variable_scope.collect());
+    preprocessor.scope_stack.push(variable_scope.collect());
 
     for child in self.children.iter() {
       match child {
         ast::BlockChild::Binding(binding) => {
           if let Some(expr) = &binding.expr {
-            let reference = checker.find_variable_by_name(&binding.name)?;
+            let reference = preprocessor.find_variable_by_name(&binding.name)?;
 
             let value = Value::Instruction(Box::new(
-              expr.preprocess(checker)?
+              expr.preprocess(preprocessor)?
             ));
 
             body.push(Instruction::Assign {
@@ -124,7 +124,7 @@ impl Preprocess for ast::Block {
           };
         },
         ast::BlockChild::Expression(expr) => {
-          body.push(expr.preprocess(checker)?);
+          body.push(expr.preprocess(preprocessor)?);
         },
         ast::BlockChild::ControlFlow(_) => todo!(),
         ast::BlockChild::Return(_) => todo!(),
@@ -142,7 +142,7 @@ impl Preprocess for ast::Block {
       );
     };
 
-    checker.scope_stack.pop();
+    preprocessor.scope_stack.pop();
 
     Ok(Self::Out {
       // TODO: refactor here
@@ -155,22 +155,22 @@ impl Preprocess for ast::Block {
 impl Preprocess for ast::Function {
   type Out = Function;
 
-  fn preprocess(&self, checker: &mut TypeChecker) -> Result<Self::Out, TypeCheckerError> {
+  fn preprocess(&self, preprocessor: &mut Preprocessor) -> Result<Self::Out, TypeCheckerError> {
     let mut arguments = vec![];
 
     if let Some(decl_args) = &self.decl.args {
       for arg in decl_args.args.iter() {
         arguments.push(Variable {
           kind: VariableKind::Argument,
-          ty: arg.ty.preprocess(checker)?,
+          ty: arg.ty.preprocess(preprocessor)?,
         });
       };
     };
 
     Ok(Function {
       arguments: VariableScope::from_vec(arguments),
-      return_ty: self.decl.return_type.as_ref().preprocess(checker)?,
-      body: self.body.preprocess(checker)?,
+      return_ty: self.decl.return_type.as_ref().preprocess(preprocessor)?,
+      body: self.body.preprocess(preprocessor)?,
     })
   }
 }
@@ -178,7 +178,7 @@ impl Preprocess for ast::Function {
 impl Preprocess for ast::Structure {
   type Out = Option<NamedDomainMember>;
 
-  fn preprocess(&self, checker: &mut TypeChecker) -> Result<Self::Out, TypeCheckerError> {
+  fn preprocess(&self, preprocessor: &mut Preprocessor) -> Result<Self::Out, TypeCheckerError> {
     Ok({
       match self {
         ast::Structure::Namespace(_) => todo!("preprocess namespace"),
@@ -186,14 +186,14 @@ impl Preprocess for ast::Structure {
           Some(NamedDomainMember {
             name: func.decl.name.to_owned(),
             member: DomainMember::Function(
-              func.preprocess(checker)?
+              func.preprocess(preprocessor)?
             ),
           })
         },
         ast::Structure::TypeAlias(alias) => {
           Some(NamedDomainMember {
             name: alias.name.to_owned(),
-            member: DomainMember::Type(alias.ty.preprocess(checker)?)
+            member: DomainMember::Type(alias.ty.preprocess(preprocessor)?)
           })
         },
         ast::Structure::Interface(_) => todo!("preprocess interface"),
@@ -211,13 +211,13 @@ impl Preprocess for ast::Structure {
 impl Preprocess for ast::GlobalNamespace {
   type Out = Domain;
 
-  fn preprocess(&self, checker: &mut TypeChecker) -> Result<Self::Out, TypeCheckerError> {
+  fn preprocess(&self, preprocessor: &mut Preprocessor) -> Result<Self::Out, TypeCheckerError> {
     let mut inner = HashMap::new();
 
     for child in self.children.iter() {
       match child {
         ast::TopLevelStructure::Structure(struc) => {
-          let Some(member) = struc.preprocess(checker)? else {
+          let Some(member) = struc.preprocess(preprocessor)? else {
             continue;
           };
 

@@ -3,6 +3,7 @@ mod error;
 mod lang;
 mod domain;
 mod preprocess;
+mod check;
 
 use std::collections::HashMap;
 
@@ -15,6 +16,7 @@ use crate::compiler::{
 
 use crate::CompilationError;
 
+use check::Check;
 pub(crate) use error::*;
 
 use lang::VariableReference;
@@ -27,17 +29,15 @@ pub(crate) use domain::{
 };
 
 #[allow(unused)]
-pub(crate) struct TypeChecker/* <'a> */ {
-  // compiler: &'a Compiler,
+pub(crate) struct Preprocessor {
   reference: DomainReference,
   modules: Program,
   scope_stack: Vec<HashMap<String, VariableReference>>,
 }
 
-impl/* <'a> */ TypeChecker/* <'a> */ {
-  pub(crate) fn new(/* compiler: &'a Compiler */ handle: Handle) -> Self {
+impl Preprocessor {
+  pub(crate) fn new(handle: Handle) -> Self {
     Self {
-      // compiler,
       reference: DomainReference::new(handle),
       modules: Program::new(),
       scope_stack: vec![],
@@ -72,8 +72,10 @@ impl/* <'a> */ TypeChecker/* <'a> */ {
     UnknownVariableSnafu { name }.fail()
   }
 
-  pub(crate) fn check(self, program: Program) -> Result<(), TypeCheckerError> {
+  pub(crate) fn check(self, mut program: Program) -> Result<(), TypeCheckerError> {
     dbg!(&program);
+
+    while program.check(&self)? {};
 
     todo!()
   }

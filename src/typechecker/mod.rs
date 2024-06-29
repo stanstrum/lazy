@@ -16,7 +16,7 @@ use crate::compiler::{
 
 use crate::CompilationError;
 
-use check::Check;
+use check::TypeChecker;
 pub(crate) use error::*;
 
 use lang::VariableReference;
@@ -75,7 +75,9 @@ impl Preprocessor {
   pub(crate) fn check(self, mut program: Program) -> Result<(), TypeCheckerError> {
     dbg!(&program);
 
-    while program.check(&self)? {};
+    let mut checker = TypeChecker::new(&program);
+
+    while checker.check(&mut program)? {};
 
     todo!()
   }

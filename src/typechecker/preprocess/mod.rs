@@ -82,7 +82,7 @@ impl Preprocess for ast::Block {
                 binding_type.preprocess(preprocessor)?
               } else {
                 Type::Unknown
-              }
+              }.into()
             }
           });
         },
@@ -91,7 +91,7 @@ impl Preprocess for ast::Block {
     };
 
     let scope = VariableScope::from_vec(variables);
-    let inner = scope.get_inner();
+    let inner = &scope.inner;
 
     let variable_scope =
       variable_map.into_iter().map(
@@ -162,14 +162,14 @@ impl Preprocess for ast::Function {
       for arg in decl_args.args.iter() {
         arguments.push(Variable {
           kind: VariableKind::Argument,
-          ty: arg.ty.preprocess(preprocessor)?,
+          ty: arg.ty.preprocess(preprocessor)?.into(),
         });
       };
     };
 
     Ok(Function {
       arguments: VariableScope::from_vec(arguments),
-      return_ty: self.decl.return_type.as_ref().preprocess(preprocessor)?,
+      return_ty: self.decl.return_type.as_ref().preprocess(preprocessor)?.into(),
       body: self.body.preprocess(preprocessor)?,
     })
   }
@@ -193,7 +193,7 @@ impl Preprocess for ast::Structure {
         ast::Structure::TypeAlias(alias) => {
           Some(NamedDomainMember {
             name: alias.name.to_owned(),
-            member: DomainMember::Type(alias.ty.preprocess(preprocessor)?)
+            member: DomainMember::Type(alias.ty.preprocess(preprocessor)?.into())
           })
         },
         ast::Structure::Interface(_) => todo!("preprocess interface"),

@@ -1,6 +1,7 @@
 mod r#type;
 
 use std::rc::Rc;
+use std::cell::RefCell;
 
 pub(crate) use r#type::*;
 
@@ -9,7 +10,7 @@ use crate::tokenizer;
 #[allow(unused)]
 #[derive(Debug, Clone)]
 pub(crate) struct VariableReference {
-  pub(crate) scope: Rc<Vec<Variable>>,
+  pub(crate) scope: Rc<RefCell<Vec<Variable>>>,
   pub(crate) id: usize,
 }
 
@@ -62,13 +63,13 @@ pub(crate) enum VariableKind {
 #[derive(Debug)]
 pub(crate) struct Variable {
   pub(crate) kind: VariableKind,
-  pub(crate) ty: Type,
+  pub(crate) ty: TypeCell,
 }
 
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct VariableScope {
-  inner: Rc<Vec<Variable>>,
+  pub(crate) inner: Rc<RefCell<Vec<Variable>>>,
 }
 
 impl VariableScope {
@@ -78,12 +79,8 @@ impl VariableScope {
 
   pub(crate) fn from_vec(v: Vec<Variable>) -> Self {
     Self {
-      inner: Rc::new(v),
+      inner: Rc::new(RefCell::new(v)),
     }
-  }
-
-  pub(crate) fn get_inner(&self) -> &Rc<Vec<Variable>> {
-    &self.inner
   }
 }
 
@@ -91,6 +88,6 @@ impl VariableScope {
 #[derive(Debug)]
 pub(crate) struct Function {
   pub(crate) arguments: VariableScope,
-  pub(crate) return_ty: Type,
+  pub(crate) return_ty: TypeCell,
   pub(crate) body: Block,
 }

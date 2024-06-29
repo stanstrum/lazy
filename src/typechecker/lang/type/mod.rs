@@ -1,6 +1,7 @@
 pub(crate) mod intrinsics;
 
-use std::rc::Rc;
+use std::cell::RefCell;
+/*  */use std::rc::Rc;
 
 use crate::asterizer::ast;
 use crate::typechecker::{
@@ -21,19 +22,31 @@ pub(crate) enum Type {
   Unresolved {
     implied: bool,
     reference: DomainReference,
-    template: Option<Vec<Type>>,
+    template: Option<Vec<TypeCell>>,
   },
-  UnsizedArrayOf(Box<Type>),
+  UnsizedArrayOf(TypeCell),
   SizedArrayOf {
     count: Value,
-    ty: Box<Type>,
+    ty: TypeCell,
   },
   ReferenceTo {
     r#mut: bool,
-    ty: Box<Type>,
+    ty: TypeCell,
   },
-  Shared(Rc<Type>),
+  Shared(TypeCell),
+  Function {
+    args: Vec<TypeCell>,
+    return_ty: TypeCell,
+  },
   Unknown,
+}
+
+pub(crate) type TypeCell = Rc<RefCell<Type>>;
+
+impl From<Type> for TypeCell {
+  fn from(value: Type) -> Self {
+    Rc::new(RefCell::new(value))
+  }
 }
 
 impl Preprocess for Option<&ast::Type> {
@@ -68,7 +81,7 @@ impl Preprocess for ast::Type {
             Some({
               template.iter()
                 .map(
-                  |ty| ty.preprocess(preprocessor)
+                  |ty| ty.preprocess(preprocessor).map(Into::into)
                 )
                 .collect::<Result<_, _>>()?
             })
@@ -87,19 +100,17 @@ impl Preprocess for ast::Type {
             expr.preprocess(preprocessor)?
           ));
 
-          let ty = Box::new(ty.preprocess(preprocessor)?);
+          let ty = ty.preprocess(preprocessor)?.into();
 
           Type::SizedArrayOf { count, ty }
         },
         ast::Type::UnsizedArrayOf(ast::UnsizedArrayOf { ty }) => Type::UnsizedArrayOf(
-          Box::new(ty.preprocess(preprocessor)?)
+          ty.preprocess(preprocessor)?.into()
         ),
         ast::Type::ImmutableReferenceTo(ast::ImmutableReferenceTo { ty }) => {
           Type::ReferenceTo {
             r#mut: false,
-            ty: Box::new(
-              ty.preprocess(preprocessor)?
-            )
+            ty: ty.preprocess(preprocessor)?.into()
           }
         },
       }

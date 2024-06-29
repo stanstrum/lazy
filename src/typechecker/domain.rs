@@ -15,7 +15,7 @@ pub(super) struct NamedDomainMember {
 pub(super) enum DomainMember {
   Domain(Domain),
   Function(lang::Function),
-  Type(lang::Type),
+  Type(lang::TypeCell),
 }
 
 #[allow(unused)]
@@ -26,7 +26,7 @@ pub(crate) struct Domain {
 
 #[allow(unused)]
 #[derive(Debug, Clone)]
-pub(super) struct DomainReference {
+pub(crate) struct DomainReference {
   handle: Handle,
   inner: Vec<String>,
 }
@@ -34,7 +34,7 @@ pub(super) struct DomainReference {
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Program {
-  inner: HashMap<Handle, Domain>,
+  pub(crate) inner: HashMap<Handle, Domain>,
 }
 
 impl DomainReference {

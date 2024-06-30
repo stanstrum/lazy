@@ -38,6 +38,7 @@ pub(crate) enum Type {
     args: Vec<TypeCell>,
     return_ty: TypeCell,
   },
+  Struct(Vec<TypeCell>),
   FuzzyInteger,
   Unknown,
 }

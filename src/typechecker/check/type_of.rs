@@ -29,6 +29,7 @@ impl TypeOf for lang::TypeCell {
 
         return_ty.is_resolved()
       },
+      lang::Type::Struct(tys) => tys.iter().all(|ty| ty.is_resolved()),
       | lang::Type::Unresolved { .. }
       // TODO: are these technically resolved?
       //       or should this be caught in a later stage
@@ -65,8 +66,22 @@ impl TypeOf for tokenizer::Literal {
       match self {
         tokenizer::Literal::Integer(_) => lang::Type::FuzzyInteger,
         tokenizer::Literal::FloatingPoint(_) => todo!(),
-        tokenizer::Literal::UnicodeString(_) => todo!(),
-        tokenizer::Literal::CString(_) => todo!(),
+        tokenizer::Literal::UnicodeString(_) => lang::Type::Struct(vec![
+          // size:
+          lang::Type::Intrinsic(lang::intrinsics::USIZE).into(),
+          lang::Type::ReferenceTo {
+            r#mut: false,
+            ty: lang::Type::UnsizedArrayOf(
+              lang::Type::Intrinsic(lang::intrinsics::UNICODE_CHAR).into()
+            ).into(),
+          }.into(),
+        ]),
+        tokenizer::Literal::CString(_) => lang::Type::ReferenceTo {
+          r#mut: false,
+          ty: lang::Type::UnsizedArrayOf(
+            lang::Type::Intrinsic(lang::intrinsics::C_CHAR).into()
+          ).into(),
+        }.into(),
         tokenizer::Literal::ByteString(_) => todo!(),
         tokenizer::Literal::UnicodeChar(_) => todo!(),
         tokenizer::Literal::ByteChar(_) => todo!(),

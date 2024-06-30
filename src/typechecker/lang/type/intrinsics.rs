@@ -1,3 +1,11 @@
+pub(crate) const USIZE: Intrinsic = Intrinsic::U64;
+pub(crate) const ISIZE: Intrinsic = Intrinsic::I64;
+pub(crate) const UNICODE_CHAR: Intrinsic = Intrinsic::U32;
+pub(crate) const C_CHAR: Intrinsic = Intrinsic::I8;
+
+// pub(crate) const DEFAULT_UNSIGNED_INTEGER: Intrinsic = Intrinsic::U32;
+// pub(crate) const DEFAULT_SIGNED_INTEGER: Intrinsic = Intrinsic::I32;
+
 #[allow(unused)]
 #[derive(Debug, Clone)]
 pub(crate) enum Intrinsic {
@@ -28,8 +36,11 @@ impl TryFrom<&str> for Intrinsic {
       "i32" => Ok(Self::I32),
       "u64" => Ok(Self::U64),
       "i64" => Ok(Self::I64),
+      "usize" => Ok(USIZE),
+      "isize" => Ok(ISIZE),
       "f32" => Ok(Self::F32),
       "f64" => Ok(Self::F64),
+      "char" => Ok(UNICODE_CHAR),
       _ => Err(()),
     }
   }

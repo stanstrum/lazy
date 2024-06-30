@@ -93,6 +93,15 @@ impl Check for Type {
 
           return_ty.check(checker)?
         },
+        Type::Struct(tys) => {
+          for ty in tys.iter_mut() {
+            if ty.check(checker)? {
+              return Ok(true);
+            };
+          };
+
+          false
+        },
         | Type::Intrinsic(_)
         | Type::Unknown => false,
       }

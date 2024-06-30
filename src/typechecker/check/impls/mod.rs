@@ -36,7 +36,11 @@ impl Check for Instruction {
         },
         Instruction::Call { .. } => todo!(),
         Instruction::Literal(_) => todo!(),
-        Instruction::Return(_) => todo!(),
+        Instruction::Return(..) => {
+          dbg!("nothing done for return");
+
+          false
+        },
       }
     })
   }
@@ -44,7 +48,7 @@ impl Check for Instruction {
 
 impl Check for Function {
   fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
-    for argument in self.arguments.inner.try_borrow_mut().unwrap().iter_mut() {
+    for argument in self.arguments.inner.borrow_mut().iter_mut() {
       if argument.check(checker)? {
         return Ok(true);
       };
@@ -66,7 +70,7 @@ impl Check for Function {
 
 impl Check for TypeCell {
   fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
-    self.try_borrow_mut().unwrap().check(checker)
+    self.borrow_mut().check(checker)
   }
 }
 
@@ -74,7 +78,8 @@ impl Check for Type {
   fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
     Ok({
       match self {
-        Type::Unresolved { .. } => todo!(),
+        | Type::FuzzyInteger
+        | Type::Unresolved { .. } => todo!(),
         | Type::UnsizedArrayOf(ty)
         | Type::SizedArrayOf { ty, .. }
         | Type::ReferenceTo { ty, .. }

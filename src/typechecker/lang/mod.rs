@@ -1,4 +1,5 @@
 mod r#type;
+pub(super) mod pretty_print;
 
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -21,14 +22,14 @@ impl VariableReference {
 }
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) enum Value {
   Variable(VariableReference),
   Instruction(Box<Instruction>),
 }
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) enum Instruction {
   Assign {
     dest: Value,

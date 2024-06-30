@@ -27,8 +27,8 @@ pub(crate) struct Domain {
 #[allow(unused)]
 #[derive(Debug, Clone)]
 pub(crate) struct DomainReference {
-  handle: Handle,
-  inner: Vec<String>,
+  pub(crate) handle: Handle,
+  pub(crate) inner: Vec<String>,
 }
 
 #[allow(unused)]

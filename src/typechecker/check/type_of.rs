@@ -34,6 +34,7 @@ impl TypeOf for lang::TypeCell {
       // TODO: are these technically resolved?
       //       or should this be caught in a later stage
       | lang::Type::FuzzyInteger
+      | lang::Type::FuzzyString { .. }
       | lang::Type::Unknown => false,
     }
   }
@@ -66,25 +67,22 @@ impl TypeOf for tokenizer::Literal {
       match self {
         tokenizer::Literal::Integer(_) => lang::Type::FuzzyInteger,
         tokenizer::Literal::FloatingPoint(_) => todo!(),
-        tokenizer::Literal::UnicodeString(_) => lang::Type::Struct(vec![
-          // size:
-          lang::Type::Intrinsic(lang::intrinsics::USIZE).into(),
-          lang::Type::ReferenceTo {
-            r#mut: false,
-            ty: lang::Type::UnsizedArrayOf(
-              lang::Type::Intrinsic(lang::intrinsics::UNICODE_CHAR).into()
-            ).into(),
-          }.into(),
-        ]),
-        tokenizer::Literal::CString(_) => lang::Type::ReferenceTo {
-          r#mut: false,
-          ty: lang::Type::UnsizedArrayOf(
-            lang::Type::Intrinsic(lang::intrinsics::C_CHAR).into()
-          ).into(),
-        }.into(),
-        tokenizer::Literal::ByteString(_) => todo!(),
-        tokenizer::Literal::UnicodeChar(_) => todo!(),
-        tokenizer::Literal::ByteChar(_) => todo!(),
+        tokenizer::Literal::UnicodeString(content) => lang::Type::FuzzyString {
+          size: content.len(),
+          element_ty: lang::intrinsics::UNICODE_CHAR,
+        },
+        tokenizer::Literal::ByteString(content) => lang::Type::FuzzyString {
+          size: content.len(),
+          element_ty: lang::intrinsics::Intrinsic::U8,
+        },
+        tokenizer::Literal::CString(content) => lang::Type::FuzzyString {
+          // the `+ 1` is for the null-delimiter
+          size: content.len() + 1,
+          element_ty: lang::intrinsics::C_CHAR,
+        },
+        tokenizer::Literal::UnicodeChar(_) => lang::Type::Intrinsic(lang::intrinsics::UNICODE_CHAR),
+        // TODO: not sure if this should be signed or not
+        tokenizer::Literal::ByteChar(_) => lang::Type::Intrinsic(lang::intrinsics::Intrinsic::U8),
       }
     })
   }

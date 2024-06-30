@@ -79,6 +79,7 @@ impl Check for Type {
     Ok({
       match self {
         | Type::FuzzyInteger
+        | Type::FuzzyString { .. }
         | Type::Unresolved { .. } => todo!(),
         | Type::UnsizedArrayOf(ty)
         | Type::SizedArrayOf { ty, .. }

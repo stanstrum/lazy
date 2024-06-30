@@ -1,7 +1,7 @@
 pub(crate) mod intrinsics;
 
 use std::cell::RefCell;
-/*  */use std::rc::Rc;
+use std::rc::Rc;
 
 use crate::asterizer::ast;
 use crate::typechecker::{
@@ -10,15 +10,16 @@ use crate::typechecker::{
   TypeCheckerError,
 };
 
-use super::{
-  super::DomainReference,
-  Value,
+use crate::typechecker::{
+  DomainReference,
+  lang::Value,
+  lang::intrinsics::Intrinsic,
 };
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) enum Type {
-  Intrinsic(intrinsics::Intrinsic),
+  Intrinsic(Intrinsic),
   Unresolved {
     implied: bool,
     reference: DomainReference,
@@ -40,6 +41,10 @@ pub(crate) enum Type {
   },
   Struct(Vec<TypeCell>),
   FuzzyInteger,
+  FuzzyString {
+    size: usize,
+    element_ty: Intrinsic,
+  },
   Unknown,
 }
 

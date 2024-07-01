@@ -76,7 +76,8 @@ impl Preprocess for ast::Type {
         ast::Type::Qualified(ast::QualifiedName {
           implied,
           parts,
-          template
+          template,
+          ..
         }) => {
           if !implied && parts.len() == 1 && template.is_none() {
             if let Ok(intrinsic) = intrinsics::Intrinsic::try_from(parts.first().unwrap().as_str()) {
@@ -102,7 +103,7 @@ impl Preprocess for ast::Type {
             template: template_tys,
           }
         },
-        ast::Type::SizedArrayOf(ast::SizedArrayOf { expr, ty }) => {
+        ast::Type::SizedArrayOf(ast::SizedArrayOf { expr, ty, .. }) => {
           let count = Value::Instruction(Box::new(
             expr.preprocess(preprocessor)?
           ));
@@ -111,10 +112,10 @@ impl Preprocess for ast::Type {
 
           Type::SizedArrayOf { count, ty }
         },
-        ast::Type::UnsizedArrayOf(ast::UnsizedArrayOf { ty }) => Type::UnsizedArrayOf(
+        ast::Type::UnsizedArrayOf(ast::UnsizedArrayOf { ty, .. }) => Type::UnsizedArrayOf(
           ty.preprocess(preprocessor)?.into()
         ),
-        ast::Type::ImmutableReferenceTo(ast::ImmutableReferenceTo { ty }) => {
+        ast::Type::ImmutableReferenceTo(ast::ImmutableReferenceTo { ty, .. }) => {
           Type::ReferenceTo {
             r#mut: false,
             ty: ty.preprocess(preprocessor)?.into()

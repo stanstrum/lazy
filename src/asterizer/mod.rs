@@ -42,6 +42,18 @@ impl<'a> TokenStream<'a> {
     }
   }
 
+  pub fn span_start(&self) -> usize {
+    self.tokens[self.position].span.start
+  }
+
+  pub fn span_since(&self, start: usize) -> Span {
+    Span {
+      start,
+      end: self.tokens[self.position].span.end,
+      handle: self.handle.to_owned(),
+    }
+  }
+
   pub fn span(&self) -> Span {
     self.peek()
       .map(|token| token.span.to_owned())

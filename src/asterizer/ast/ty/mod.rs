@@ -7,11 +7,12 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  TokenEnum,
   Grouping,
   GroupingType,
   Operator,
   Punctuation,
+  Span,
+  TokenEnum,
 };
 
 use crate::asterizer::error::*;
@@ -22,25 +23,29 @@ pub(crate) struct QualifiedName {
   pub(crate) implied: bool,
   pub(crate) parts: Vec<String>,
   pub(crate) template: Option<Vec<Type>>,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct SizedArrayOf {
   pub(crate) expr: Expression,
-  pub(crate) ty: Box<Type>
+  pub(crate) ty: Box<Type>,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct UnsizedArrayOf {
-  pub(crate) ty: Box<Type>
+  pub(crate) ty: Box<Type>,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct ImmutableReferenceTo {
-  pub(crate) ty: Box<Type>
+  pub(crate) ty: Box<Type>,
+  pub(crate) span: Span,
 }
 
 #[derive(Debug, TypeName)]
@@ -53,6 +58,8 @@ pub(crate) enum Type {
 
 impl MakeAst for SizedArrayOf {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let start = stream.span_start();
+
     let Some(TokenEnum::Grouping(Grouping::Open(GroupingType::Bracket))) = stream.next_variant() else {
       return Ok(None);
     };
@@ -78,13 +85,16 @@ impl MakeAst for SizedArrayOf {
 
     Ok(Some(Self {
       ty: Box::new(ty),
-      expr
+      expr,
+      span: stream.span_since(start),
     }))
   }
 }
 
 impl MakeAst for UnsizedArrayOf {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let start = stream.span_start();
+
     let Some(TokenEnum::Grouping(Grouping::Open(GroupingType::Bracket))) = stream.next_variant() else {
       return Ok(None);
     };
@@ -105,13 +115,16 @@ impl MakeAst for UnsizedArrayOf {
     };
 
     Ok(Some(Self {
-      ty: Box::new(ty)
+      ty: Box::new(ty),
+      span: stream.span_since(start),
     }))
   }
 }
 
 impl MakeAst for ImmutableReferenceTo {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let start = stream.span_start();
+
     let Some(TokenEnum::Operator(Operator::SingleAnd)) = stream.next_variant() else {
       return Ok(None);
     };
@@ -126,13 +139,16 @@ impl MakeAst for ImmutableReferenceTo {
     };
 
     Ok(Some(Self {
-      ty: Box::new(ty)
+      ty: Box::new(ty),
+      span: stream.span_since(start),
     }))
   }
 }
 
 impl MakeAst for QualifiedName {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let start = stream.span_start();
+
     let implied = {
       if let Some(TokenEnum::Operator(Operator::Separator)) = stream.peek_variant() {
         stream.seek();
@@ -224,6 +240,7 @@ impl MakeAst for QualifiedName {
       implied,
       parts,
       template,
+      span: stream.span_since(start),
     }))
   }
 }

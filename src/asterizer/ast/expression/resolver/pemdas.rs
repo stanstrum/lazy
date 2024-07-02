@@ -4,14 +4,7 @@ use enum_iterator::{
 };
 
 use crate::asterizer::ast::{
-  AsterizerError,
-  BinaryExpression,
-  BinaryOperator,
-  Expression,
-  UnaryExpression,
-  UnaryOperator,
-  UnaryPrefixOperator,
-  UnarySuffixOperator,
+  AsterizerError, BinaryExpression, BinaryOperator, BinaryOperatorKind, Expression, UnaryExpression, UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator
 };
 
 use super::{
@@ -46,41 +39,41 @@ impl ExpressionResolver<'_, '_> {
 
       while part_index < self.parts.len() {
         match (&pemdas, &self.parts[part_index]) {
-          | (Pemdas::Exponent, ExpressionPart::Binary(BinaryOperator::Exponent))
+          | (Pemdas::Exponent, ExpressionPart::Binary(BinaryOperator { kind: BinaryOperatorKind::Exponent, .. }))
           | (Pemdas::MultiplyDivide, ExpressionPart::Binary(
-            | BinaryOperator::Multiply
-            | BinaryOperator::Divide
+            | BinaryOperator { kind: BinaryOperatorKind::Multiply, .. }
+            | BinaryOperator { kind: BinaryOperatorKind::Divide, .. }
           ))
           | (Pemdas::AddSubtract, ExpressionPart::Binary(
-            | BinaryOperator::Add
-            | BinaryOperator::Subtract
+            | BinaryOperator { kind: BinaryOperatorKind::Add, .. }
+            | BinaryOperator { kind: BinaryOperatorKind::Subtract, .. }
           ))
           | (Pemdas::Comparison, ExpressionPart::Binary(
-            | BinaryOperator::Comparison
-            | BinaryOperator::LessThan
-            | BinaryOperator::LessThanEqual
-            | BinaryOperator::GreaterThan
-            | BinaryOperator::GreaterThanEqual
+            | BinaryOperator { kind: BinaryOperatorKind::Comparison, .. }
+            | BinaryOperator { kind: BinaryOperatorKind::LessThan, .. }
+            | BinaryOperator { kind: BinaryOperatorKind::LessThanEqual, .. }
+            | BinaryOperator { kind: BinaryOperatorKind::GreaterThan, .. }
+            | BinaryOperator { kind: BinaryOperatorKind::GreaterThanEqual, .. }
           ))
           | (Pemdas::Assignment, ExpressionPart::Binary(
-            | BinaryOperator::AddAssign
-            | BinaryOperator::SubtractAssign
-            | BinaryOperator::MultiplyAssign
-            | BinaryOperator::ExponentAssign
-            | BinaryOperator::DivideAssign
-            | BinaryOperator::ModuloAssign
-            | BinaryOperator::Equals
-            | BinaryOperator::BitwiseAndAssign
-            | BinaryOperator::LogicalAndAssign
+            | BinaryOperator { kind: BinaryOperatorKind::AddAssign, .. }
+            | BinaryOperator { kind: BinaryOperatorKind::SubtractAssign, .. }
+            | BinaryOperator { kind: BinaryOperatorKind::MultiplyAssign, .. }
+            | BinaryOperator { kind: BinaryOperatorKind::ExponentAssign, .. }
+            | BinaryOperator { kind: BinaryOperatorKind::DivideAssign, .. }
+            | BinaryOperator { kind: BinaryOperatorKind::ModuloAssign, .. }
+            | BinaryOperator { kind: BinaryOperatorKind::Equals, .. }
+            | BinaryOperator { kind: BinaryOperatorKind::BitwiseAndAssign, .. }
+            | BinaryOperator { kind: BinaryOperatorKind::LogicalAndAssign, .. }
           ))
           | (Pemdas::Dot, ExpressionPart::Binary(
-            | BinaryOperator::Dot
-            | BinaryOperator::DerefDot
-            | BinaryOperator::Separator
+            | BinaryOperator { kind: BinaryOperatorKind::Dot, .. }
+            | BinaryOperator { kind: BinaryOperatorKind::DerefDot, .. }
+            | BinaryOperator { kind: BinaryOperatorKind::Separator, .. }
           ))
           | (Pemdas::Logic, ExpressionPart::Binary(
-            | BinaryOperator::BitwiseAnd
-            | BinaryOperator::LogicalAnd
+            | BinaryOperator { kind: BinaryOperatorKind::BitwiseAnd, .. }
+            | BinaryOperator { kind: BinaryOperatorKind::LogicalAnd, .. }
           )) => {
             let lhs_index = part_index - 1;
             let rhs_index = part_index + 1;

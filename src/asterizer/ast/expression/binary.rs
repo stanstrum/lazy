@@ -15,7 +15,7 @@ use crate::tokenizer::{
 };
 
 #[derive(Debug, TypeName)]
-pub(crate) enum BinaryOperator {
+pub(crate) enum BinaryOperatorKind {
   Add,
   AddAssign,
   Subtract,
@@ -52,6 +52,13 @@ pub(crate) enum BinaryOperator {
 }
 
 #[allow(unused)]
+#[derive(Debug, TypeName)]
+pub(crate) struct BinaryOperator {
+  pub(crate) kind: BinaryOperatorKind,
+  pub(crate) span: Span,
+}
+
+#[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct BinaryExpression {
   pub(crate) op: BinaryOperator,
@@ -62,55 +69,62 @@ pub(crate) struct BinaryExpression {
 
 impl GetSpan for BinaryOperator {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for BinaryExpression {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl MakeAst for BinaryOperator {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    Ok({
-      match stream.next_variant() {
-        Some(TokenEnum::Operator(Operator::Add)) => Some(Self::Add),
-        Some(TokenEnum::Operator(Operator::AddAssign)) => Some(Self::AddAssign),
-        Some(TokenEnum::Operator(Operator::Subtract)) => Some(Self::Subtract),
-        Some(TokenEnum::Operator(Operator::SubtractAssign)) => Some(Self::SubtractAssign),
-        Some(TokenEnum::Operator(Operator::Exponent)) => Some(Self::Exponent),
-        Some(TokenEnum::Operator(Operator::ExponentAssign)) => Some(Self::ExponentAssign),
-        Some(TokenEnum::Operator(Operator::Multiply)) => Some(Self::Multiply),
-        Some(TokenEnum::Operator(Operator::MultiplyAssign)) => Some(Self::MultiplyAssign),
-        Some(TokenEnum::Operator(Operator::Divide)) => Some(Self::Divide),
-        Some(TokenEnum::Operator(Operator::DivideAssign)) => Some(Self::DivideAssign),
-        Some(TokenEnum::Operator(Operator::Modulo)) => Some(Self::Modulo),
-        Some(TokenEnum::Operator(Operator::ModuloAssign)) => Some(Self::ModuloAssign),
-        Some(TokenEnum::Operator(Operator::Equality)) => Some(Self::Comparison),
-        Some(TokenEnum::Operator(Operator::LessThan)) => Some(Self::LessThan),
-        Some(TokenEnum::Operator(Operator::LessThanEqual)) => Some(Self::LessThanEqual),
-        Some(TokenEnum::Operator(Operator::GreaterThan)) => Some(Self::GreaterThan),
-        Some(TokenEnum::Operator(Operator::GreaterThanEqual)) => Some(Self::GreaterThanEqual),
-        Some(TokenEnum::Operator(Operator::Equals)) => Some(Self::Equals),
-        Some(TokenEnum::Operator(Operator::Dot)) => Some(Self::Dot),
-        Some(TokenEnum::Operator(Operator::RightArrow)) => Some(Self::DerefDot),
-        Some(TokenEnum::Operator(Operator::Separator)) => Some(Self::Separator),
-        Some(TokenEnum::Operator(Operator::SingleAnd)) => Some(Self::BitwiseAnd),
-        Some(TokenEnum::Operator(Operator::SingleAndAssign)) => Some(Self::BitwiseAndAssign),
-        // Some(TokenEnum::Operator(Operator::SingleOr)) => Some(Self::BitwiseOr),
-        // Some(TokenEnum::Operator(Operator::SingleOrAssign)) => Some(Self::BitwiseOrAssign),
-        // Some(TokenEnum::Operator(Operator::SingleXor)) => Some(Self::BitwiseXor),
-        // Some(TokenEnum::Operator(Operator::SingleXorAssign)) => Some(Self::BitwiseXorAssign),
-        Some(TokenEnum::Operator(Operator::DoubleAnd)) => Some(Self::LogicalAnd),
-        Some(TokenEnum::Operator(Operator::DoubleAndAssign)) => Some(Self::LogicalAndAssign),
-        // Some(TokenEnum::Operator(Operator::DoubleOr)) => Some(Self::LogicalOr),
-        // Some(TokenEnum::Operator(Operator::DoubleOrAssign)) => Some(Self::LogicalOrAssign),
-        // Some(TokenEnum::Operator(Operator::DoubleXor)) => Some(Self::LogicalXor),
-        // Some(TokenEnum::Operator(Operator::DoubleXorAssign)) => Some(Self::LogicalXorAssign),
-        _ => None
-      }
-    })
+    let Some(variant) = stream.next_variant() else {
+      return Ok(None);
+    };
+
+    let kind = match variant {
+      TokenEnum::Operator(Operator::Add) => BinaryOperatorKind::Add,
+      TokenEnum::Operator(Operator::AddAssign) => BinaryOperatorKind::AddAssign,
+      TokenEnum::Operator(Operator::Subtract) => BinaryOperatorKind::Subtract,
+      TokenEnum::Operator(Operator::SubtractAssign) => BinaryOperatorKind::SubtractAssign,
+      TokenEnum::Operator(Operator::Exponent) => BinaryOperatorKind::Exponent,
+      TokenEnum::Operator(Operator::ExponentAssign) => BinaryOperatorKind::ExponentAssign,
+      TokenEnum::Operator(Operator::Multiply) => BinaryOperatorKind::Multiply,
+      TokenEnum::Operator(Operator::MultiplyAssign) => BinaryOperatorKind::MultiplyAssign,
+      TokenEnum::Operator(Operator::Divide) => BinaryOperatorKind::Divide,
+      TokenEnum::Operator(Operator::DivideAssign) => BinaryOperatorKind::DivideAssign,
+      TokenEnum::Operator(Operator::Modulo) => BinaryOperatorKind::Modulo,
+      TokenEnum::Operator(Operator::ModuloAssign) => BinaryOperatorKind::ModuloAssign,
+      TokenEnum::Operator(Operator::Equality) => BinaryOperatorKind::Comparison,
+      TokenEnum::Operator(Operator::LessThan) => BinaryOperatorKind::LessThan,
+      TokenEnum::Operator(Operator::LessThanEqual) => BinaryOperatorKind::LessThanEqual,
+      TokenEnum::Operator(Operator::GreaterThan) => BinaryOperatorKind::GreaterThan,
+      TokenEnum::Operator(Operator::GreaterThanEqual) => BinaryOperatorKind::GreaterThanEqual,
+      TokenEnum::Operator(Operator::Equals) => BinaryOperatorKind::Equals,
+      TokenEnum::Operator(Operator::Dot) => BinaryOperatorKind::Dot,
+      TokenEnum::Operator(Operator::RightArrow) => BinaryOperatorKind::DerefDot,
+      TokenEnum::Operator(Operator::Separator) => BinaryOperatorKind::Separator,
+      TokenEnum::Operator(Operator::SingleAnd) => BinaryOperatorKind::BitwiseAnd,
+      TokenEnum::Operator(Operator::SingleAndAssign) => BinaryOperatorKind::BitwiseAndAssign,
+      // TokenEnum::Operator(Operator::SingleOr) => BinaryOperatorKind::BitwiseOr,
+      // TokenEnum::Operator(Operator::SingleOrAssign) => BinaryOperatorKind::BitwiseOrAssign,
+      // TokenEnum::Operator(Operator::SingleXor) => BinaryOperatorKind::BitwiseXor,
+      // TokenEnum::Operator(Operator::SingleXorAssign) => BinaryOperatorKind::BitwiseXorAssign,
+      TokenEnum::Operator(Operator::DoubleAnd) => BinaryOperatorKind::LogicalAnd,
+      TokenEnum::Operator(Operator::DoubleAndAssign) => BinaryOperatorKind::LogicalAndAssign,
+      // TokenEnum::Operator(Operator::DoubleOr) => BinaryOperatorKind::LogicalOr,
+      // TokenEnum::Operator(Operator::DoubleOrAssign) => BinaryOperatorKind::LogicalOrAssign,
+      // TokenEnum::Operator(Operator::DoubleXor) => BinaryOperatorKind::LogicalXor,
+      // TokenEnum::Operator(Operator::DoubleXorAssign) => BinaryOperatorKind::LogicalXorAssign,
+      _ => return Ok(None),
+    };
+
+    Ok(Some(Self {
+      kind,
+      span: stream.span_mark(),
+    }))
   }
 }

@@ -208,8 +208,8 @@ impl TryFrom<&String> for Keyword {
   }
 }
 
-#[derive(Debug, TypeName, Clone)]
-pub(crate) enum Literal {
+#[derive(Debug, Clone)]
+pub(crate) enum LiteralKind {
   Integer(u64),
   FloatingPoint(f64),
   UnicodeString(String),
@@ -217,6 +217,12 @@ pub(crate) enum Literal {
   ByteString(String),
   UnicodeChar(char),
   ByteChar(u8),
+}
+
+#[derive(Debug, TypeName, Clone)]
+pub(crate) struct Literal {
+  pub(crate) kind: LiteralKind,
+  pub(crate) span: Span,
 }
 
 impl GetSpan for Literal {

@@ -11,14 +11,15 @@ use crate::asterizer::ast::{
 use crate::asterizer::error::ExpectedSnafu;
 
 use crate::tokenizer::{
+  GetSpan,
   Grouping,
   GroupingType,
   Keyword,
   Literal,
+  LiteralKind,
   Operator,
   Punctuation,
   Span,
-  GetSpan,
   TokenEnum,
 };
 
@@ -232,7 +233,7 @@ impl MakeAst for Import {
 
     stream.skip_whitespace_and_comments();
 
-    let Some(Literal::UnicodeString(relative_path)) = stream.make()? else {
+    let Some(Literal { kind: LiteralKind::UnicodeString(relative_path), .. }) = stream.make()? else {
       return ExpectedSnafu {
         what: "an import path",
         span: stream.span(),

@@ -517,7 +517,14 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
           let value: f64 = content.parse()
             .expect("floating-point literal parsing failed");
 
-          let tok = TokenEnum::Literal(Literal::FloatingPoint(value));
+          let tok = TokenEnum::Literal(Literal {
+            kind: LiteralKind::FloatingPoint(value),
+            span: Span {
+              start: *start,
+              end: i,
+              handle: *handle
+            },
+          });
 
           add_tok(start, tok);
 
@@ -536,7 +543,14 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
           let value = u64::from_str_radix(content, radix)
             .expect("integer literal parsing failed");
 
-          let tok = TokenEnum::Literal(Literal::Integer(value));
+          let tok = TokenEnum::Literal(Literal {
+            kind: LiteralKind::Integer(value),
+            span: Span {
+              start: *start,
+              end: i,
+              handle: *handle
+            }
+          });
 
           add_tok(start, tok);
 
@@ -562,11 +576,16 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
           content,
           ty,
         }, '"') => {
-          let tok = TokenEnum::Literal({
-            match ty {
-              StringType::Unicode => Literal::UnicodeString(content.to_owned()),
-              StringType::C => Literal::CString(content.to_owned()),
-              StringType::Bytes => Literal::ByteString(content.to_owned()),
+          let tok = TokenEnum::Literal(Literal {
+            kind: match ty {
+              StringType::Unicode => LiteralKind::UnicodeString(content.to_owned()),
+              StringType::C => LiteralKind::CString(content.to_owned()),
+              StringType::Bytes => LiteralKind::ByteString(content.to_owned()),
+            },
+            span: Span {
+              start: *start,
+              end: i,
+              handle: *handle
             }
           });
 
@@ -601,15 +620,22 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
           let tok = TokenEnum::Literal({
             assert!(!content.is_empty());
 
-            match ty {
-              CharType::Unicode => {
-                assert!(content.len() <= 4, "unicode character cannot store more than 4 bytes");
-                Literal::UnicodeChar(content.chars().next().unwrap())
+            Literal {
+              kind: match ty {
+                CharType::Unicode => {
+                  assert!(content.len() <= 4, "unicode character cannot store more than 4 bytes");
+                  LiteralKind::UnicodeChar(content.chars().next().unwrap())
+                },
+                CharType::Byte => {
+                  assert!(content.len() == 1, "byte char cannot store more than 1 byte");
+                  LiteralKind::ByteChar(u8::try_from(content.chars().next().unwrap()).unwrap())
+                },
               },
-              CharType::Byte => {
-                assert!(content.len() == 1, "byte char cannot store more than 1 byte");
-                Literal::ByteChar(u8::try_from(content.chars().next().unwrap()).unwrap())
-              },
+              span: Span {
+                start: *start,
+                end: i,
+                handle: *handle
+              }
             }
           });
 

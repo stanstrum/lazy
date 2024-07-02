@@ -1,5 +1,5 @@
-
-use crate::{tokenizer, typechecker::lang};
+use crate::typechecker::lang;
+use crate::tokenizer;
 
 pub(super) trait TypeOf {
   fn type_of(&self) -> Option<lang::Type>;
@@ -65,27 +65,27 @@ impl TypeOf for tokenizer::Literal {
   fn type_of(&self) -> Option<lang::Type> {
     Some({
       match self {
-        tokenizer::Literal::Integer(_) => lang::Type::FuzzyInteger { span: todo!() },
-        tokenizer::Literal::FloatingPoint(_) => todo!(),
-        tokenizer::Literal::UnicodeString(content) => lang::Type::FuzzyString {
+        tokenizer::Literal { kind: tokenizer::LiteralKind::Integer(_), span } => lang::Type::FuzzyInteger { span: span.to_owned() },
+        tokenizer::Literal { kind: tokenizer::LiteralKind::FloatingPoint(_), .. } => todo!(),
+        tokenizer::Literal { kind: tokenizer::LiteralKind::UnicodeString(content), span } => lang::Type::FuzzyString {
           size: content.len(),
           element_ty: lang::intrinsics::UNICODE_CHAR,
-          span: todo!(),
+          span: span.to_owned(),
         },
-        tokenizer::Literal::ByteString(content) => lang::Type::FuzzyString {
+        tokenizer::Literal { kind: tokenizer::LiteralKind::ByteString(content), span } => lang::Type::FuzzyString {
           size: content.len(),
           element_ty: lang::intrinsics::Intrinsic::U8,
-          span: todo!(),
+          span: span.to_owned(),
         },
-        tokenizer::Literal::CString(content) => lang::Type::FuzzyString {
+        tokenizer::Literal { kind: tokenizer::LiteralKind::CString(content), span } => lang::Type::FuzzyString {
           // the `+ 1` is for the null-delimiter
           size: content.len() + 1,
           element_ty: lang::intrinsics::C_CHAR,
-          span: todo!(),
+          span: span.to_owned(),
         },
-        tokenizer::Literal::UnicodeChar(_) => lang::Type::Intrinsic(lang::intrinsics::UNICODE_CHAR),
+        tokenizer::Literal { kind: tokenizer::LiteralKind::UnicodeChar(_), .. } => lang::Type::Intrinsic(lang::intrinsics::UNICODE_CHAR),
         // TODO: not sure if this should be signed or not
-        tokenizer::Literal::ByteChar(_) => lang::Type::Intrinsic(lang::intrinsics::Intrinsic::U8),
+        tokenizer::Literal { kind: tokenizer::LiteralKind::ByteChar(_), .. } => lang::Type::Intrinsic(lang::intrinsics::Intrinsic::U8),
       }
     })
   }

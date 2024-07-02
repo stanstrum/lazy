@@ -9,8 +9,10 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  TokenEnum,
   Keyword,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
 use crate::asterizer::error::*;
@@ -20,6 +22,7 @@ use crate::asterizer::error::*;
 pub(crate) struct IfBranch {
   pub(crate) clause: Expression,
   pub(crate) body: Block,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
@@ -27,6 +30,7 @@ pub(crate) struct IfBranch {
 pub(crate) struct If {
   pub(crate) branches: Vec<IfBranch>,
   pub(crate) r#else: Option<Block>,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
@@ -34,6 +38,7 @@ pub(crate) struct If {
 pub(crate) struct While {
   pub(crate) clause: Expression,
   pub(crate) body: Block,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
@@ -41,6 +46,7 @@ pub(crate) struct While {
 pub(crate) struct DoWhile {
   pub(crate) body: Block,
   pub(crate) clause: Expression,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
@@ -48,6 +54,7 @@ pub(crate) struct DoWhile {
 pub(crate) struct Until {
   pub(crate) clause: Expression,
   pub(crate) body: Block,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
@@ -55,6 +62,7 @@ pub(crate) struct Until {
 pub(crate) struct DoUntil {
   pub(crate) body: Block,
   pub(crate) clause: Expression,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
@@ -62,12 +70,14 @@ pub(crate) struct DoUntil {
 pub(crate) struct For {
   pub(crate) clause: Expression,
   pub(crate) body: Block,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Loop {
   pub(crate) body: Block,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
@@ -82,9 +92,63 @@ pub(crate) enum ControlFlow {
   Loop(Loop),
 }
 
+impl GetSpan for IfBranch {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for If {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for While {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for DoWhile {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for Until {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for DoUntil {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for For {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for Loop {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for ControlFlow {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
 impl MakeAst for IfBranch {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let Some(TokenEnum::Keyword(Keyword::If)) = stream.next_variant() else {
+        let Some(TokenEnum::Keyword(Keyword::If)) = stream.next_variant() else {
       return Ok(None);
     };
 
@@ -106,7 +170,11 @@ impl MakeAst for IfBranch {
       }.fail();
     };
 
-    Ok(Some(Self { clause, body }))
+    Ok(Some(Self {
+      clause,
+      body,
+      span: stream.span_mark(),
+     }))
   }
 }
 
@@ -159,7 +227,11 @@ impl MakeAst for If {
       break;
     };
 
-    Ok(Some(Self { branches, r#else }))
+    Ok(Some(Self {
+      branches,
+      r#else,
+      span: stream.span_mark(),
+     }))
   }
 }
 
@@ -187,7 +259,11 @@ impl MakeAst for While {
       }.fail();
     };
 
-    Ok(Some(Self { clause, body }))
+    Ok(Some(Self {
+      clause,
+      body,
+      span: stream.span_mark(),
+    }))
   }
 }
 
@@ -221,7 +297,11 @@ impl MakeAst for DoWhile {
       }.fail();
     };
 
-    Ok(Some(Self { clause, body }))
+    Ok(Some(Self {
+      clause,
+      body,
+      span: stream.span_mark(),
+    }))
   }
 }
 
@@ -249,7 +329,11 @@ impl MakeAst for Until {
       }.fail();
     };
 
-    Ok(Some(Self { clause, body }))
+    Ok(Some(Self {
+      clause,
+      body,
+      span: stream.span_mark(),
+    }))
   }
 }
 
@@ -283,7 +367,11 @@ impl MakeAst for DoUntil {
       }.fail();
     };
 
-    Ok(Some(Self { clause, body }))
+    Ok(Some(Self {
+      clause,
+      body,
+      span: stream.span_mark(),
+    }))
   }
 }
 
@@ -315,7 +403,10 @@ impl MakeAst for Loop {
       }.fail();
     };
 
-    Ok(Some(Self { body }))
+    Ok(Some(Self {
+      body,
+      span: stream.span_mark(),
+    }))
   }
 }
 

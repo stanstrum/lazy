@@ -12,12 +12,16 @@ use ast::{
 };
 
 use crate::tokenizer::{
+  GetSpan,
+  Span,
   Token,
   TokenEnum,
-  Span,
 };
 
-use crate::compiler::{Compiler, Handle};
+use crate::compiler::{
+  Compiler,
+  Handle,
+};
 
 pub(crate) struct TokenStream<'a> {
   position: usize,
@@ -43,12 +47,12 @@ impl<'a> TokenStream<'a> {
   }
 
   pub fn span_start(&self) -> usize {
-    self.tokens[self.position].span.start
+    self.position
   }
 
-  pub fn span_since(&self, start: usize) -> Span {
+  pub fn span_mark(&self) -> Span {
     Span {
-      start,
+      start: *self.marks.last().unwrap(),
       end: self.tokens[self.position].span.end,
       handle: self.handle.to_owned(),
     }
@@ -138,7 +142,7 @@ impl<'a> TokenStream<'a> {
     self.tokens.len() - 1 - self.position
   }
 
-  pub fn make<Ast: MakeAst + Debug>(&mut self) -> Result<Option<Ast>, AsterizerError> {
+  pub fn make<Ast: MakeAst + Debug + GetSpan>(&mut self) -> Result<Option<Ast>, AsterizerError> {
     let marks_len = self.mark_len();
 
     self.push_mark();
@@ -189,7 +193,7 @@ impl<'a> TokenStream<'a> {
     result
   }
 
-  pub fn make_boxed<Ast: MakeAst + Debug>(&mut self) -> Result<Option<Box<Ast>>, AsterizerError> {
+  pub fn make_boxed<Ast: MakeAst + Debug + GetSpan>(&mut self) -> Result<Option<Box<Ast>>, AsterizerError> {
     Ok(self.make()?.map(Box::new))
   }
 }

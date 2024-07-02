@@ -11,6 +11,7 @@ use crate::tokenizer::{
   GroupingType,
   Operator,
   Punctuation,
+  GetSpan,
   Span,
   TokenEnum,
 };
@@ -56,10 +57,38 @@ pub(crate) enum Type {
   ImmutableReferenceTo(ImmutableReferenceTo)
 }
 
+impl GetSpan for QualifiedName {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for SizedArrayOf {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for UnsizedArrayOf {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for ImmutableReferenceTo {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for Type {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
 impl MakeAst for SizedArrayOf {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let start = stream.span_start();
-
     let Some(TokenEnum::Grouping(Grouping::Open(GroupingType::Bracket))) = stream.next_variant() else {
       return Ok(None);
     };
@@ -86,16 +115,14 @@ impl MakeAst for SizedArrayOf {
     Ok(Some(Self {
       ty: Box::new(ty),
       expr,
-      span: stream.span_since(start),
+      span: stream.span_mark(),
     }))
   }
 }
 
 impl MakeAst for UnsizedArrayOf {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let start = stream.span_start();
-
-    let Some(TokenEnum::Grouping(Grouping::Open(GroupingType::Bracket))) = stream.next_variant() else {
+        let Some(TokenEnum::Grouping(Grouping::Open(GroupingType::Bracket))) = stream.next_variant() else {
       return Ok(None);
     };
 
@@ -116,7 +143,7 @@ impl MakeAst for UnsizedArrayOf {
 
     Ok(Some(Self {
       ty: Box::new(ty),
-      span: stream.span_since(start),
+      span: stream.span_mark(),
     }))
   }
 }
@@ -140,16 +167,14 @@ impl MakeAst for ImmutableReferenceTo {
 
     Ok(Some(Self {
       ty: Box::new(ty),
-      span: stream.span_since(start),
+      span: stream.span_mark(),
     }))
   }
 }
 
 impl MakeAst for QualifiedName {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let start = stream.span_start();
-
-    let implied = {
+        let implied = {
       if let Some(TokenEnum::Operator(Operator::Separator)) = stream.peek_variant() {
         stream.seek();
         stream.skip_whitespace_and_comments();
@@ -240,7 +265,7 @@ impl MakeAst for QualifiedName {
       implied,
       parts,
       template,
-      span: stream.span_since(start),
+      span: stream.span_mark(),
     }))
   }
 }

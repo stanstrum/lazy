@@ -7,9 +7,11 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  TokenEnum,
   Keyword,
   Operator,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
 use crate::asterizer::error::*;
@@ -18,7 +20,14 @@ use crate::asterizer::error::*;
 #[derive(Debug, TypeName)]
 pub(crate) struct TypeAlias {
   pub(crate) name: String,
-  pub(crate) ty: Type
+  pub(crate) ty: Type,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for TypeAlias {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for TypeAlias {
@@ -56,6 +65,10 @@ impl MakeAst for TypeAlias {
       }.fail();
     };
 
-    Ok(Some(Self { name, ty }))
+    Ok(Some(Self {
+      name,
+      ty,
+      span: stream.span_mark(),
+    }))
   }
 }

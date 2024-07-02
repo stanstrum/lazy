@@ -18,9 +18,11 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  TokenEnum,
   Keyword,
   Punctuation,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
 use crate::asterizer::error::ExpectedSnafu;
@@ -40,6 +42,7 @@ pub(crate) enum TemplatableStructure {
 #[derive(Debug, TypeName)]
 pub(crate) struct UnconstrainedTemplateConstraint {
   pub(crate) name: String,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
@@ -47,6 +50,7 @@ pub(crate) struct UnconstrainedTemplateConstraint {
 pub(crate) struct ConstrainedTemplateConstraint {
   pub(crate) ty: Type,
   pub(crate) extends: Type,
+  pub(crate) span: Span,
 }
 
 #[derive(Debug, TypeName)]
@@ -75,17 +79,61 @@ pub(crate) enum Structure {
 pub(crate) struct TemplateScope {
   pub(crate) constraints: Vec<TemplateConstraint>,
   pub(crate) structure: TemplatableStructure,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Exported {
-  pub(crate) structure: Box<Structure>
+  pub(crate) structure: Box<Structure>,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for TemplatableStructure {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for UnconstrainedTemplateConstraint {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for ConstrainedTemplateConstraint {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for TemplateConstraint {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for Structure {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for TemplateScope {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for Exported {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for Exported {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let Some(TokenEnum::Keyword(Keyword::Export)) = stream.next_variant() else {
+        let Some(TokenEnum::Keyword(Keyword::Export)) = stream.next_variant() else {
       return Ok(None);
     };
 
@@ -100,7 +148,10 @@ impl MakeAst for Exported {
 
     let structure = Box::new(structure);
 
-    Ok(Some(Self { structure }))
+    Ok(Some(Self {
+      structure,
+      span: stream.span_mark(),
+    }))
   }
 }
 
@@ -125,7 +176,11 @@ impl MakeAst for ConstrainedTemplateConstraint {
       }.fail();
     };
 
-    Ok(Some(Self { ty, extends }))
+    Ok(Some(Self {
+      ty,
+      extends,
+      span: stream.span_mark(),
+    }))
   }
 }
 
@@ -140,7 +195,10 @@ impl MakeAst for TemplateConstraint {
 
         stream.seek();
 
-        Some(Self::Unconstrained(UnconstrainedTemplateConstraint { name }))
+        Some(Self::Unconstrained(UnconstrainedTemplateConstraint {
+          name,
+          span: stream.span_mark(),
+        }))
       } else {
         None
       }
@@ -175,13 +233,11 @@ impl MakeAst for TemplatableStructure {
 
 impl MakeAst for TemplateScope {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let Some(TokenEnum::Keyword(Keyword::Template)) = stream.next_variant() else {
+        let Some(TokenEnum::Keyword(Keyword::Template)) = stream.next_variant() else {
       return Ok(None);
     };
 
-    stream.skip_whitespace_and_comments();
-
-    let Some(TokenEnum::Punctuation(Punctuation::Colon)) = stream.next_variant() else {
+        let Some(TokenEnum::Punctuation(Punctuation::Colon)) = stream.next_variant() else {
       return ExpectedSnafu {
         what: "a colon",
         span: stream.span(),
@@ -224,12 +280,16 @@ impl MakeAst for TemplateScope {
 
     let Some(structure) = stream.make()? else {
       return ExpectedSnafu {
-        what: "a templatable structre",
+        what: "a templatable structure",
         span: stream.span(),
       }.fail();
     };
 
-    Ok(Some(Self { constraints, structure }))
+    Ok(Some(Self {
+      constraints,
+      structure,
+      span: stream.span_mark(),
+    }))
   }
 }
 

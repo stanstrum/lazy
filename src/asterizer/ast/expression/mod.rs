@@ -15,6 +15,11 @@ use crate::asterizer::ast::{
   MakeAst,
 };
 
+use crate::tokenizer::{
+  Span,
+  GetSpan,
+};
+
 use crate::asterizer::error::ExpectedSnafu;
 
 #[allow(unused, clippy::enum_variant_names)]
@@ -32,6 +37,18 @@ pub(super) enum NonOperatorExpression {
   Atom(Atom),
   Block(Block),
   SubExpression(SubExpression),
+}
+
+impl GetSpan for Expression {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for NonOperatorExpression {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for NonOperatorExpression {

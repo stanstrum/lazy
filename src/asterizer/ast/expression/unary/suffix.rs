@@ -9,11 +9,13 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  TokenEnum,
   Grouping,
   GroupingType,
-  Punctuation,
   Operator,
+  Punctuation,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
 use crate::asterizer::error::ExpectedSnafu;
@@ -33,6 +35,19 @@ pub(crate) enum UnarySuffixOperator {
 pub(crate) struct UnarySuffixExpression {
   pub(crate) op: UnarySuffixOperator,
   pub(crate) expr: Box<Expression>,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for UnarySuffixOperator {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for UnarySuffixExpression {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for UnarySuffixOperator {

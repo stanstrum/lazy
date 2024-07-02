@@ -9,10 +9,12 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  Token,
-  TokenEnum,
   Operator,
   Punctuation,
+  Span,
+  GetSpan,
+  Token,
+  TokenEnum,
 };
 
 #[allow(unused)]
@@ -21,11 +23,18 @@ pub(crate) struct FunctionDeclaration {
   pub(crate) name: String,
   pub(crate) return_type: Option<Type>,
   pub(crate) args: Option<FunctionDeclarationArguments>,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for FunctionDeclaration {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for FunctionDeclaration {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let Some(Token {
+        let Some(Token {
       token: TokenEnum::Identifier(ident),
       span: _span
     }) = stream.next() else {
@@ -81,6 +90,11 @@ impl MakeAst for FunctionDeclaration {
       }
     };
 
-    Ok(Some(Self { name, return_type, args }))
+    Ok(Some(Self {
+      name,
+      return_type,
+      args,
+      span: stream.span_mark(),
+    }))
   }
 }

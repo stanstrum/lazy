@@ -19,6 +19,11 @@ use super::{
   ExpressionPart,
 };
 
+use crate::tokenizer::{
+  Span,
+  GetSpan,
+};
+
 #[derive(Debug, Sequence)]
 enum Pemdas {
   Dot, // and Subscript, as well as Separator
@@ -90,7 +95,7 @@ impl ExpressionResolver<'_, '_> {
 
             let ExpressionPart::Binary(op) = self.parts.remove(part_index) else {
               unreachable!();
-            };            
+            };
 
             let mut start_lhs_index = lhs_index;
             while !matches!(&self.parts[start_lhs_index], ExpressionPart::Operand(_)) {
@@ -110,18 +115,35 @@ impl ExpressionResolver<'_, '_> {
                 unreachable!();
               };
 
+              let lhs_span = lhs.get_span().to_owned();
+
+              let new_span = Span {
+                end: op.get_span().end,
+                ..lhs_span
+              };
+
               lhs = Expression::Unary(
                 UnaryExpression {
                   expr: Box::new(lhs),
-                  op
+                  op,
+                  span: new_span,
                 }
               );
             };
 
             let (lhs, rhs) = (Box::new(lhs), Box::new(rhs));
 
+            let lhs_span = lhs.get_span().to_owned();
+            let rhs_span = lhs.get_span().to_owned();
+
             let binary_expr = ExpressionPart::Operand(Expression::Binary(BinaryExpression {
-              op, lhs, rhs
+              op,
+              lhs,
+              rhs,
+              span: Span {
+                start: lhs_span.start,
+                ..rhs_span
+              }
             }));
 
             self.parts.insert(lhs_index, binary_expr);
@@ -154,10 +176,17 @@ impl ExpressionResolver<'_, '_> {
               // }.fail();
             };
 
+            let expr_span = expr.get_span().to_owned();
+            let start = op.get_span().start;
+
             let unary_expr = ExpressionPart::Operand(
               Expression::Unary(UnaryExpression {
                 op,
                 expr: Box::new(expr),
+                span: Span {
+                  start,
+                  ..expr_span
+                }
               })
             );
 
@@ -194,10 +223,17 @@ impl ExpressionResolver<'_, '_> {
               // }.fail();
             };
 
+            let expr_span = expr.get_span().to_owned();
+            let end = op.get_span().end;
+
             let unary_expr = ExpressionPart::Operand(
               Expression::Unary(UnaryExpression {
                 op,
                 expr: Box::new(expr),
+                span: Span {
+                  end,
+                  ..expr_span
+                }
               })
             );
 

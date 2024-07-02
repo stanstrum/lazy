@@ -219,6 +219,12 @@ pub(crate) enum Literal {
   ByteChar(u8),
 }
 
+impl GetSpan for Literal {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) enum TokenEnum {

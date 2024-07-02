@@ -10,12 +10,14 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  TokenEnum,
-  Keyword,
   Grouping,
   GroupingType,
+  Keyword,
   Operator,
   Punctuation,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
 use crate::asterizer::error::ExpectedSnafu;
@@ -35,6 +37,7 @@ pub(crate) struct Field {
   pub(crate) r#mut: bool,
   pub(crate) name: String,
   pub(crate) ty: Type,
+  pub(crate) span: Span,
 }
 
 #[derive(Debug)]
@@ -51,6 +54,7 @@ pub(crate) enum MethodKind {
 pub(crate) struct MethodArgument {
   pub(crate) name: String,
   pub(crate) ty: Type,
+  pub(crate) span: Span,
 }
 
 #[derive(Debug)]
@@ -64,6 +68,7 @@ pub(crate) enum MethodBody {
 pub(crate) struct MethodArguments {
   pub(crate) kind: MethodKind,
   pub(crate) args: Option<Vec<MethodArgument>>,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
@@ -74,6 +79,7 @@ pub(crate) struct Method {
   pub(crate) return_ty: Option<Type>,
   pub(crate) args: MethodArguments,
   pub(crate) body: MethodBody,
+  pub(crate) span: Span,
 }
 
 #[derive(Debug, TypeName)]
@@ -87,6 +93,7 @@ pub(crate) enum ClassMember {
 pub(crate) struct ClassChild {
   pub(crate) template: Option<TemplateScope>,
   pub(crate) body: ClassMember,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
@@ -94,6 +101,67 @@ pub(crate) struct ClassChild {
 pub(crate) struct Class {
   pub(crate) name: String,
   pub(crate) children: Vec<ClassChild>,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for MemberVisibility {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for Field {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for MethodKind {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for MethodArgument {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for MethodBody {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for MethodArguments {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for Method {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for ClassMember {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for ClassChild {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for Class {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for Field {
@@ -128,7 +196,11 @@ impl MakeAst for MethodArgument {
       }.fail();
     };
 
-    Ok(Some(Self { name, ty }))
+    Ok(Some(Self {
+      name,
+      ty,
+      span: stream.span_mark(),
+    }))
   }
 }
 
@@ -215,17 +287,19 @@ impl MakeAst for MethodArguments {
       };
     };
 
-    Ok(Some(Self { kind, args }))
+    Ok(Some(Self {
+      kind,
+      args,
+      span: stream.span_mark(),
+    }))
   }
-}    
+}
 
 impl MakeAst for Method {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let visibility = match stream.peek_variant() {
+        let visibility = match stream.peek_variant() {
       Some(TokenEnum::Keyword(Keyword::Private)) => Some(MemberVisibility::Private),
-      Some(TokenEnum::Keyword(Keyword::Protected)) => Some(MemberVisibility::Protected),
-      Some(TokenEnum::Keyword(Keyword::Public)) => Some(MemberVisibility::Public),
-      _ => None
+          _ => None
     };
 
     if visibility.is_some() {
@@ -299,12 +373,14 @@ impl MakeAst for Method {
       return_ty,
       args,
       body,
+      span: stream.span_mark(),
     }))
   }
 }
 
 impl MakeAst for ClassChild {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
+    let start = stream.span_start();
     let template = stream.make()?;
 
     if template.is_some() {
@@ -317,11 +393,13 @@ impl MakeAst for ClassChild {
         Some(Self {
           template,
           body: ClassMember::Field(field),
+          span: stream.span_mark(),
         })
       } else if let Some(method) = stream.make()? {
         Some(Self {
           template,
           body: ClassMember::Method(method),
+          span: stream.span_mark(),
         })
       } else {
         None
@@ -332,13 +410,11 @@ impl MakeAst for ClassChild {
 
 impl MakeAst for Class {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let Some(TokenEnum::Keyword(Keyword::Class)) = stream.next_variant() else {
+        let Some(TokenEnum::Keyword(Keyword::Class)) = stream.next_variant() else {
       return Ok(None);
     };
 
-    stream.skip_whitespace_and_comments();
-
-    let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
+        let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
       return ExpectedSnafu {
         what: "an identifier",
         span: stream.span(),
@@ -385,6 +461,10 @@ impl MakeAst for Class {
       };
     };
 
-    Ok(Some(Self { name, children }))
+    Ok(Some(Self {
+      name,
+      children,
+      span: stream.span_mark(),
+    }))
   }
 }

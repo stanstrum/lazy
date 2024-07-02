@@ -9,10 +9,12 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  TokenEnum,
   Grouping,
   GroupingType,
   Punctuation,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
 use crate::asterizer::error::ExpectedSnafu;
@@ -22,6 +24,7 @@ use crate::asterizer::error::ExpectedSnafu;
 pub(crate) struct StructInitializerChild {
   pub(crate) name: String,
   pub(crate) value: Box<Expression>,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
@@ -29,11 +32,24 @@ pub(crate) struct StructInitializerChild {
 pub(crate) struct StructInitializer {
   pub(crate) name: QualifiedName,
   pub(crate) children: Vec<StructInitializerChild>,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for StructInitializerChild {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for StructInitializer {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for StructInitializerChild {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
+        let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
       return Ok(None);
     };
     let name = name.to_owned();
@@ -56,13 +72,14 @@ impl MakeAst for StructInitializerChild {
     Ok(Some(Self {
       name,
       value: Box::new(value),
+      span: stream.span_mark(),
     }))
   }
 }
 
 impl MakeAst for StructInitializer {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let Some(name) = stream.make()? else {
+        let Some(name) = stream.make()? else {
       return Ok(None);
     };
 
@@ -101,6 +118,10 @@ impl MakeAst for StructInitializer {
       };
     };
 
-    Ok(Some(Self { name, children }))
+    Ok(Some(Self {
+      name,
+      children,
+      span: stream.span_mark(),
+     }))
   }
 }

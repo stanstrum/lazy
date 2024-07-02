@@ -8,10 +8,12 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  TokenEnum,
   Keyword,
   Operator,
   Punctuation,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
 use crate::asterizer::error::*;
@@ -23,11 +25,18 @@ pub(crate) struct Binding {
   pub(crate) name: String,
   pub(crate) ty: Option<Type>,
   pub(crate) expr: Option<Expression>,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for Binding {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for Binding {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let r#mut = if let Some(TokenEnum::Keyword(Keyword::Mut)) = stream.peek_variant() {
+        let r#mut = if let Some(TokenEnum::Keyword(Keyword::Mut)) = stream.peek_variant() {
       stream.seek();
       stream.skip_whitespace_and_comments();
 
@@ -86,6 +95,12 @@ impl MakeAst for Binding {
       return Ok(None);
     };
 
-    Ok(Some(Self { r#mut, name, ty, expr }))
+    Ok(Some(Self {
+      r#mut,
+      name,
+      ty,
+      expr,
+      span: stream.span_mark(),
+     }))
   }
 }

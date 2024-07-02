@@ -11,22 +11,28 @@ use crate::asterizer::ast::{
 use crate::asterizer::error::ExpectedSnafu;
 
 use crate::tokenizer::{
-  TokenEnum,
-  Keyword,
-  Punctuation,
-  Literal,
-  Operator,
   Grouping,
   GroupingType,
+  Keyword,
+  Literal,
+  Operator,
+  Punctuation,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
-use crate::compiler::{Handle, SourceFile};
+use crate::compiler::{
+  Handle,
+  SourceFile,
+};
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Qualify {
   pub(crate) name: String,
   pub(crate) rest: Box<ImportPattern>,
+  pub(crate) span: Span,
 }
 
 #[derive(Debug, TypeName)]
@@ -41,6 +47,7 @@ pub(crate) enum ImportPattern {
 #[derive(Debug, TypeName)]
 pub(crate) struct ImportBrace {
   pub(crate) children: Vec<ImportPattern>,
+  pub(crate) span: Span,
 }
 
 #[derive(Debug, TypeName)]
@@ -54,11 +61,42 @@ pub(crate) enum TopLevelImportPattern {
 pub(crate) struct Import {
   pub(crate) pattern: TopLevelImportPattern,
   pub(crate) from: Handle,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for Qualify {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for ImportPattern {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for ImportBrace {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for TopLevelImportPattern {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for Import {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for ImportPattern {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    if let Some(TokenEnum::Identifier(name)) = stream.peek_variant() {
+        if let Some(TokenEnum::Identifier(name)) = stream.peek_variant() {
       let name = name.to_owned();
       stream.seek();
 
@@ -79,7 +117,11 @@ impl MakeAst for ImportPattern {
 
         let rest = Box::new(subpattern);
 
-        return Ok(Some(Self::Qualify(Qualify { name, rest })))
+        return Ok(Some(Self::Qualify(Qualify {
+          name,
+          rest,
+          span: stream.span_mark(),
+        })))
       };
 
       stream.pop_mark();
@@ -143,16 +185,17 @@ impl MakeAst for ImportBrace {
       break;
     };
 
-    Ok(Some(Self { children }))
+    Ok(Some(Self {
+      children,
+      span: stream.span_mark(),
+    }))
   }
 }
 
 impl MakeAst for TopLevelImportPattern {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    if let Some(TokenEnum::Identifier(name)) = stream.peek_variant() {
+        if let Some(TokenEnum::Identifier(name)) = stream.peek_variant() {
       let name = name.to_owned();
-
-      stream.seek();
 
       Ok(Some(Self::All(name)))
     } else if let Some(brace) = stream.make()? {
@@ -201,6 +244,10 @@ impl MakeAst for Import {
 
     let from = stream.compiler.create_handle(SourceFile::new(relative_import_path));
 
-    Ok(Some(Self { pattern, from }))
+    Ok(Some(Self {
+      pattern,
+      from,
+      span: stream.span_mark(),
+    }))
   }
 }

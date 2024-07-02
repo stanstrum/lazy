@@ -10,11 +10,13 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  TokenEnum,
-  Keyword,
-  Punctuation,
   Grouping,
   GroupingType,
+  Keyword,
+  Punctuation,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
 use crate::asterizer::error::ExpectedSnafu;
@@ -24,6 +26,7 @@ use crate::asterizer::error::ExpectedSnafu;
 pub(crate) struct Method {
   pub(crate) decl: FunctionDeclaration,
   pub(crate) body: Option<Block>,
+  pub(crate) span: Span,
 }
 
 #[derive(Debug, TypeName)]
@@ -37,6 +40,25 @@ pub(crate) enum InterfaceChild {
 pub(crate) struct Interface {
   pub(crate) name: String,
   pub(crate) children: Vec<InterfaceChild>,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for Method {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for InterfaceChild {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for Interface {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for InterfaceChild {
@@ -56,7 +78,7 @@ impl MakeAst for InterfaceChild {
 
 impl MakeAst for Method {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let Some(decl) = stream.make()? else {
+        let Some(decl) = stream.make()? else {
       return Ok(None);
     };
 
@@ -71,7 +93,11 @@ impl MakeAst for Method {
       stream.pop_mark();
     };
 
-    Ok(Some(Self { decl, body }))
+    Ok(Some(Self {
+      decl,
+      body,
+      span: stream.span_mark(),
+    }))
   }
 }
 
@@ -130,6 +156,10 @@ impl MakeAst for Interface {
       };
     };
 
-    Ok(Some(Self { name, children }))
+    Ok(Some(Self {
+      name,
+      children,
+      span: stream.span_mark(),
+    }))
   }
 }

@@ -7,11 +7,22 @@ use crate::asterizer::ast::{
   Structure,
 };
 
+use crate::tokenizer::{
+  Span,
+  GetSpan,
+};
+
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) enum TopLevelStructure {
   // import, export, etc.
   Structure(Structure),
+}
+
+impl GetSpan for TopLevelStructure {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for TopLevelStructure {

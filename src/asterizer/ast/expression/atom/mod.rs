@@ -12,7 +12,15 @@ use crate::asterizer::ast::{
 use crate::tokenizer::{
   TokenEnum,
   Literal,
+  Span,
+  GetSpan,
 };
+
+impl GetSpan for Atom {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
 
 #[derive(Debug, TypeName)]
 pub(crate) enum Atom {

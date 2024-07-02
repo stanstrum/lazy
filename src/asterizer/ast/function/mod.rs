@@ -9,6 +9,11 @@ use crate::asterizer::ast::{
   Block,
 };
 
+use crate::tokenizer::{
+  Span,
+  GetSpan,
+};
+
 use crate::asterizer::error::*;
 
 #[allow(unused)]
@@ -16,11 +21,18 @@ use crate::asterizer::error::*;
 pub(crate) struct Function {
   pub(crate) decl: FunctionDeclaration,
   pub(crate) body: Block,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for Function {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for Function {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let Some(decl) = stream.make()? else {
+        let Some(decl) = stream.make()? else {
       return Ok(None);
     };
 
@@ -33,6 +45,10 @@ impl MakeAst for Function {
       }.fail();
     };
 
-    Ok(Some(Self { decl, body }))
+    Ok(Some(Self {
+      decl,
+      body,
+      span: stream.span_mark(),
+    }))
   }
 }

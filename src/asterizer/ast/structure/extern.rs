@@ -8,9 +8,11 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  TokenEnum,
   Keyword,
   Punctuation,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
 use crate::asterizer::error::ExpectedSnafu;
@@ -20,11 +22,18 @@ use crate::asterizer::error::ExpectedSnafu;
 pub(crate) struct Extern {
   pub(crate) decl: FunctionDeclaration,
   pub(crate) c_variadic: bool,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for Extern {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for Extern {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let Some(TokenEnum::Keyword(Keyword::Extern)) = stream.next_variant() else {
+        let Some(TokenEnum::Keyword(Keyword::Extern)) = stream.next_variant() else {
       return Ok(None);
     };
 
@@ -52,6 +61,10 @@ impl MakeAst for Extern {
       }
     };
 
-    Ok(Some(Self { decl, c_variadic }))
+    Ok(Some(Self {
+      decl,
+      c_variadic,
+      span: stream.span_mark(),
+    }))
   }
 }

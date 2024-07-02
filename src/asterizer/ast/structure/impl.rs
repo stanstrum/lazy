@@ -11,12 +11,14 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  TokenEnum,
-  Keyword,
   Grouping,
   GroupingType,
-  Punctuation,
+  Keyword,
   Operator,
+  Punctuation,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
 use crate::asterizer::error::ExpectedSnafu;
@@ -36,6 +38,7 @@ pub(crate) struct ImplMethod {
   pub(crate) return_ty: Option<Type>,
   pub(crate) args: MethodArguments,
   pub(crate) body: Block,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
@@ -43,11 +46,30 @@ pub(crate) struct ImplMethod {
 pub(crate) struct Impl {
   pub(crate) kind: ImplKind,
   pub(crate) children: Vec<ImplMethod>,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for ImplKind {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for ImplMethod {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for Impl {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for ImplMethod {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let template = stream.make()?;
+        let template = stream.make()?;
 
     if template.is_some() {
       stream.skip_whitespace_and_comments();
@@ -100,6 +122,7 @@ impl MakeAst for ImplMethod {
       return_ty,
       args,
       body,
+      span: stream.span_mark(),
     }))
   }
 }
@@ -182,6 +205,7 @@ impl MakeAst for Impl {
     Ok(Some(Self {
       kind,
       children,
+      span: stream.span_mark(),
     }))
   }
 }

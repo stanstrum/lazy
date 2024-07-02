@@ -8,8 +8,10 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  TokenEnum,
   Operator,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
 #[derive(Debug, TypeName)]
@@ -55,6 +57,19 @@ pub(crate) struct BinaryExpression {
   pub(crate) op: BinaryOperator,
   pub(crate) lhs: Box<Expression>,
   pub(crate) rhs: Box<Expression>,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for BinaryOperator {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for BinaryExpression {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for BinaryOperator {

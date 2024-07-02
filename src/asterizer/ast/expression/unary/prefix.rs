@@ -8,9 +8,11 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  TokenEnum,
-  Operator,
   Keyword,
+  Operator,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
 #[derive(Debug, TypeName)]
@@ -26,7 +28,20 @@ pub(crate) enum UnaryPrefixOperator {
 #[derive(Debug)]
 pub(crate) struct UnaryPrefixExpression {
   pub(crate) op: UnaryPrefixOperator,
-  pub(crate) expr: Box<Expression>
+  pub(crate) expr: Box<Expression>,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for UnaryPrefixOperator {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for UnaryPrefixExpression {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for UnaryPrefixOperator {

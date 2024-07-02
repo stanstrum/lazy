@@ -8,22 +8,31 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  TokenEnum,
   Punctuation,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
 use crate::asterizer::error::*;
 
 #[allow(unused)]
-#[derive(Debug, Default, TypeName)]
+#[derive(Debug, TypeName)]
 pub(crate) struct GlobalNamespace {
   // file: std::path::PathBuf,
   pub(crate) children: Vec<TopLevelStructure>,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for GlobalNamespace {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for GlobalNamespace {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let mut structures: Vec<TopLevelStructure> = vec![];
+        let mut structures: Vec<TopLevelStructure> = vec![];
 
     stream.skip_whitespace_and_comments();
 
@@ -57,6 +66,7 @@ impl MakeAst for GlobalNamespace {
 
     Ok(Some(Self {
       children: structures,
+      span: stream.span_mark(),
     }))
   }
 }

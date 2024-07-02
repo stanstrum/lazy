@@ -11,6 +11,8 @@ use crate::tokenizer::{
   TokenEnum,
   GroupingType,
   Grouping,
+  Span,
+  GetSpan,
 };
 
 use crate::asterizer::error::ExpectedSnafu;
@@ -19,11 +21,18 @@ use crate::asterizer::error::ExpectedSnafu;
 #[derive(Debug, TypeName)]
 pub(crate) struct SubExpression {
   pub(crate) expr: Box<Expression>,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for SubExpression {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for SubExpression {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let Some(TokenEnum::Grouping(Grouping::Open(GroupingType::Parenthesis))) = stream.next_variant() else {
+        let Some(TokenEnum::Grouping(Grouping::Open(GroupingType::Parenthesis))) = stream.next_variant() else {
       return Ok(None)
     };
 
@@ -45,6 +54,9 @@ impl MakeAst for SubExpression {
       }.fail();
     };
 
-    Ok(Some(Self { expr }))
+    Ok(Some(Self {
+      expr,
+      span: stream.span_mark(),
+    }))
   }
 }

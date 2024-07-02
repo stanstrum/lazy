@@ -7,11 +7,13 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  TokenEnum,
-  Keyword,
-  Punctuation,
   Grouping,
   GroupingType,
+  Keyword,
+  Punctuation,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
 use crate::asterizer::error::*;
@@ -20,19 +22,33 @@ use crate::asterizer::error::*;
 #[derive(Debug, TypeName)]
 pub(crate) struct StructMember {
   pub(crate) name: String,
-  pub(crate) ty: Type
+  pub(crate) ty: Type,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Struct {
   pub(crate) name: String,
-  pub(crate) members: Vec<StructMember>
+  pub(crate) members: Vec<StructMember>,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for StructMember {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for Struct {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for StructMember {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
+        let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
       return Ok(None);
     };
     let name = name.to_owned();
@@ -55,7 +71,11 @@ impl MakeAst for StructMember {
       }.fail();
     };
 
-    Ok(Some(Self { name, ty }))
+    Ok(Some(Self {
+      name,
+      ty,
+      span: stream.span_mark(),
+    }))
   }
 }
 
@@ -125,6 +145,10 @@ impl MakeAst for Struct {
       break;
     };
 
-    Ok(Some(Self { name, members }))
+    Ok(Some(Self {
+      name,
+      members,
+      span: stream.span_mark(),
+    }))
   }
 }

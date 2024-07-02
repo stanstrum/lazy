@@ -7,8 +7,10 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  TokenEnum,
   Punctuation,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
 use crate::asterizer::error::*;
@@ -18,6 +20,7 @@ use crate::asterizer::error::*;
 pub(crate) struct FunctionDeclarationArgument {
   pub(crate) name: String,
   pub(crate) ty: Type,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
@@ -26,9 +29,21 @@ pub(crate) struct FunctionDeclarationArguments {
   pub(crate) args: Vec<FunctionDeclarationArgument>,
 }
 
+impl GetSpan for FunctionDeclarationArgument {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
+impl GetSpan for FunctionDeclarationArguments {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+
 impl MakeAst for FunctionDeclarationArgument {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
+        let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
       return Ok(None);
     };
 
@@ -50,7 +65,9 @@ impl MakeAst for FunctionDeclarationArgument {
     };
 
     Ok(Some(Self {
-      name, ty,
+      name,
+      ty,
+      span: stream.span_mark(),
     }))
   }
 }

@@ -11,10 +11,12 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  TokenEnum,
-  Punctuation,
   Grouping,
   GroupingType,
+  Punctuation,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
 use crate::asterizer::error::*;
@@ -32,6 +34,19 @@ pub(crate) enum BlockChild {
 pub(crate) struct Block {
   pub(crate) children: Vec<BlockChild>,
   pub(crate) returns_last: bool,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for BlockChild {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
+}
+/*  */
+impl GetSpan for Block {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for BlockChild {
@@ -55,7 +70,7 @@ impl MakeAst for BlockChild {
 
 impl MakeAst for Block {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let Some(TokenEnum::Grouping(Grouping::Open(GroupingType::CurlyBrace))) = stream.next_variant() else {
+        let Some(TokenEnum::Grouping(Grouping::Open(GroupingType::CurlyBrace))) = stream.next_variant() else {
       return Ok(None);
     };
 
@@ -104,6 +119,10 @@ impl MakeAst for Block {
       break;
     };
 
-    Ok(Some(Self { children, returns_last }))
+    Ok(Some(Self {
+      children,
+      returns_last,
+      span: stream.span_mark(),
+    }))
   }
 }

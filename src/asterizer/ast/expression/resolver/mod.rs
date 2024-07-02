@@ -9,11 +9,26 @@ use crate::asterizer::ast::{
   NonOperatorExpression,
 };
 
+use crate::tokenizer::{
+  Span,
+  GetSpan,
+};
+
 #[derive(Debug)]
 pub(super) enum ExpressionPart {
   Unary(UnaryOperator),
   Binary(BinaryOperator),
   Operand(Expression),
+}
+
+impl GetSpan for ExpressionPart {
+  fn get_span(&self) -> &Span  {
+    match self {
+      ExpressionPart::Unary(unary) => unary.get_span(),
+      ExpressionPart::Binary(binary) => binary.get_span(),
+      ExpressionPart::Operand(operand) => operand.get_span(),
+    }
+  }
 }
 
 pub(super) struct ExpressionResolver<'a, 'b> {

@@ -8,19 +8,28 @@ use crate::asterizer::ast::{
 };
 
 use crate::tokenizer::{
-  TokenEnum,
   Keyword,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Return {
   pub(crate) expr: Option<Box<Expression>>,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for Return {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for Return {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let Some(TokenEnum::Keyword(Keyword::Return)) = stream.next_variant() else {
+        let Some(TokenEnum::Keyword(Keyword::Return)) = stream.next_variant() else {
       return Ok(None);
     };
 
@@ -35,6 +44,9 @@ impl MakeAst for Return {
       stream.pop_mark();
     };
 
-    Ok(Some(Self { expr }))
+    Ok(Some(Self {
+      expr,
+      span: stream.span_mark(),
+    }))
   }
 }

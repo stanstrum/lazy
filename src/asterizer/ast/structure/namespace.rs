@@ -1,11 +1,13 @@
 use typename::TypeName;
 
 use crate::tokenizer::{
-  TokenEnum,
-  Keyword,
-  Punctuation,
   Grouping,
   GroupingType,
+  Keyword,
+  Punctuation,
+  Span,
+  GetSpan,
+  TokenEnum,
 };
 
 use crate::asterizer::ast::{
@@ -22,11 +24,18 @@ use crate::asterizer::error::ExpectedSnafu;
 pub(crate) struct Namespace {
   pub(crate) name: String,
   pub(crate) children: Vec<Structure>,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for Namespace {
+  fn get_span(&self) -> &Span {
+    todo!()
+  }
 }
 
 impl MakeAst for Namespace {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let Some(TokenEnum::Keyword(Keyword::Namespace)) = stream.next_variant() else {
+        let Some(TokenEnum::Keyword(Keyword::Namespace)) = stream.next_variant() else {
       return Ok(None);
     };
 
@@ -77,6 +86,10 @@ impl MakeAst for Namespace {
       };
     };
 
-    Ok(Some(Self { name, children }))
+    Ok(Some(Self {
+      name,
+      children,
+      span: stream.span_mark(),
+    }))
   }
 }

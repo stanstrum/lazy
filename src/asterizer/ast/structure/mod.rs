@@ -97,13 +97,13 @@ impl GetSpan for TemplatableStructure {
 
 impl GetSpan for UnconstrainedTemplateConstraint {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for ConstrainedTemplateConstraint {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
@@ -121,13 +121,13 @@ impl GetSpan for Structure {
 
 impl GetSpan for TemplateScope {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for Exported {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 

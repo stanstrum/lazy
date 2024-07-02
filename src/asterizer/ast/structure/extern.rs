@@ -27,7 +27,7 @@ pub(crate) struct Extern {
 
 impl GetSpan for Extern {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 

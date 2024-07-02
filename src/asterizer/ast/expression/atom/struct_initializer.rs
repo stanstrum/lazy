@@ -37,13 +37,13 @@ pub(crate) struct StructInitializer {
 
 impl GetSpan for StructInitializerChild {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for StructInitializer {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 

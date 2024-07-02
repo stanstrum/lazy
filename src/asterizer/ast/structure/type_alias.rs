@@ -26,7 +26,7 @@ pub(crate) struct TypeAlias {
 
 impl GetSpan for TypeAlias {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 

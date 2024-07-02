@@ -22,6 +22,7 @@ use crate::tokenizer::{
 
 use crate::asterizer::error::ExpectedSnafu;
 
+#[allow(unused)]
 #[derive(Debug)]
 pub(crate) enum MemberVisibility {
   Private,
@@ -112,7 +113,7 @@ impl GetSpan for MemberVisibility {
 
 impl GetSpan for Field {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
@@ -124,7 +125,7 @@ impl GetSpan for MethodKind {
 
 impl GetSpan for MethodArgument {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
@@ -136,13 +137,13 @@ impl GetSpan for MethodBody {
 
 impl GetSpan for MethodArguments {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for Method {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
@@ -154,13 +155,13 @@ impl GetSpan for ClassMember {
 
 impl GetSpan for ClassChild {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for Class {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
@@ -380,7 +381,6 @@ impl MakeAst for Method {
 
 impl MakeAst for ClassChild {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let start = stream.span_start();
     let template = stream.make()?;
 
     if template.is_some() {

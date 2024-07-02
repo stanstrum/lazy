@@ -30,7 +30,7 @@ pub(crate) struct Binding {
 
 impl GetSpan for Binding {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 

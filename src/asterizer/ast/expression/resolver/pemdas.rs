@@ -4,7 +4,15 @@ use enum_iterator::{
 };
 
 use crate::asterizer::ast::{
-  AsterizerError, BinaryExpression, BinaryOperator, BinaryOperatorKind, Expression, UnaryExpression, UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator
+  AsterizerError,
+  BinaryExpression,
+  BinaryOperator,
+  BinaryOperatorKind,
+  Expression,
+  UnaryExpression,
+  UnaryOperator,
+  UnaryPrefixOperator,
+  UnarySuffixOperator,
 };
 
 use super::{

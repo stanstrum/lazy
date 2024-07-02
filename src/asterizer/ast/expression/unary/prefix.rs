@@ -40,7 +40,7 @@ impl GetSpan for UnaryPrefixOperator {
 
 impl GetSpan for UnaryPrefixExpression {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 

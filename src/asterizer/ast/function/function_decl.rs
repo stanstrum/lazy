@@ -28,7 +28,7 @@ pub(crate) struct FunctionDeclaration {
 
 impl GetSpan for FunctionDeclaration {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 

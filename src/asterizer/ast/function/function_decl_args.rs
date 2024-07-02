@@ -27,17 +27,18 @@ pub(crate) struct FunctionDeclarationArgument {
 #[derive(Debug, TypeName)]
 pub(crate) struct FunctionDeclarationArguments {
   pub(crate) args: Vec<FunctionDeclarationArgument>,
+  pub(crate) span: Span,
 }
 
 impl GetSpan for FunctionDeclarationArgument {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for FunctionDeclarationArguments {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
@@ -109,7 +110,8 @@ impl MakeAst for FunctionDeclarationArguments {
     };
 
     Ok(Some(Self {
-      args
+      args,
+      span: stream.span_mark(),
     }))
   }
 }

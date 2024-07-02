@@ -23,7 +23,7 @@ pub(crate) struct Return {
 
 impl GetSpan for Return {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 

@@ -41,13 +41,23 @@ pub(super) enum NonOperatorExpression {
 
 impl GetSpan for Expression {
   fn get_span(&self) -> &Span {
-    todo!()
+    match self {
+      Expression::Atom(atom) => atom.get_span(),
+      Expression::Block(block) => block.get_span(),
+      Expression::SubExpression(subexpression) => subexpression.get_span(),
+      Expression::Unary(unary) => unary.get_span(),
+      Expression::Binary(binary) => binary.get_span(),
+    }
   }
 }
 
 impl GetSpan for NonOperatorExpression {
   fn get_span(&self) -> &Span {
-    todo!()
+    match self {
+      NonOperatorExpression::Atom(atom) => atom.get_span(),
+      NonOperatorExpression::Block(block) => block.get_span(),
+      NonOperatorExpression::SubExpression(subexpression) => subexpression.get_span(),
+    }
   }
 }
 

@@ -18,7 +18,11 @@ use crate::tokenizer::{
 
 impl GetSpan for Atom {
   fn get_span(&self) -> &Span {
-    todo!()
+    match self {
+      Atom::Literal(literal) => literal.get_span(),
+      Atom::StructInitializer(structinitializer) => structinitializer.get_span(),
+      Atom::Variable(_variable) => todo!(),
+    }
   }
 }
 

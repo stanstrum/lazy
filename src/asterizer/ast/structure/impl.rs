@@ -57,13 +57,13 @@ impl GetSpan for ImplKind {
 
 impl GetSpan for ImplMethod {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for Impl {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 

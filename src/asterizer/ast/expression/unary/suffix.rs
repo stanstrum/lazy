@@ -46,7 +46,7 @@ impl GetSpan for UnarySuffixOperator {
 
 impl GetSpan for UnarySuffixExpression {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 

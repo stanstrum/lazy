@@ -26,7 +26,7 @@ pub(crate) struct GlobalNamespace {
 
 impl GetSpan for GlobalNamespace {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 

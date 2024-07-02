@@ -45,7 +45,7 @@ pub(crate) struct Interface {
 
 impl GetSpan for Method {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
@@ -57,7 +57,7 @@ impl GetSpan for InterfaceChild {
 
 impl GetSpan for Interface {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 

@@ -59,25 +59,25 @@ pub(crate) enum Type {
 
 impl GetSpan for QualifiedName {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for SizedArrayOf {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for UnsizedArrayOf {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for ImmutableReferenceTo {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
@@ -150,8 +150,6 @@ impl MakeAst for UnsizedArrayOf {
 
 impl MakeAst for ImmutableReferenceTo {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-    let start = stream.span_start();
-
     let Some(TokenEnum::Operator(Operator::SingleAnd)) = stream.next_variant() else {
       return Ok(None);
     };

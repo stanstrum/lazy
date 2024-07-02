@@ -94,55 +94,63 @@ pub(crate) enum ControlFlow {
 
 impl GetSpan for IfBranch {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for If {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for While {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for DoWhile {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for Until {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for DoUntil {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for For {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for Loop {
   fn get_span(&self) -> &Span {
-    todo!()
+    &self.span
   }
 }
 
 impl GetSpan for ControlFlow {
   fn get_span(&self) -> &Span {
-    todo!()
+    match self {
+      ControlFlow::If(r#if) => r#if.get_span(),
+      ControlFlow::While(r#while) => r#while.get_span(),
+      ControlFlow::DoWhile(r#dowhile) => r#dowhile.get_span(),
+      ControlFlow::Until(r#until) => r#until.get_span(),
+      ControlFlow::DoUntil(r#dountil) => r#dountil.get_span(),
+      ControlFlow::For(r#for) => r#for.get_span(),
+      ControlFlow::Loop(r#loop) => r#loop.get_span(),
+    }
   }
 }
 

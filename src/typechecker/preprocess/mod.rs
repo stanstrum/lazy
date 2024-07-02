@@ -20,6 +20,7 @@ use super::{
 };
 
 use crate::asterizer::ast;
+use crate::tokenizer::GetSpan;
 use crate::typechecker::lang::VariableReference;
 
 pub(super) trait Preprocess {
@@ -83,7 +84,8 @@ impl Preprocess for ast::Block {
               } else {
                 Type::Unknown
               }.into()
-            }
+            },
+            span: binding.span.to_owned(),
           });
         },
         _ => {},
@@ -95,15 +97,21 @@ impl Preprocess for ast::Block {
 
     let variable_scope =
       variable_map.into_iter().map(
-        |(name, id)|
+        |(name, id)| {
+          let owned_inner = inner.to_owned();
+          let span = {
+            owned_inner.borrow().get(id).unwrap().get_span().to_owned()
+          };
+
           (
             name.to_owned(),
             VariableReference {
               scope: inner.to_owned(),
               id,
+              span,
             }
           )
-        );
+        });
 
     preprocessor.scope_stack.push(variable_scope.collect());
 
@@ -148,6 +156,7 @@ impl Preprocess for ast::Block {
       // TODO: refactor here
       variables: scope,
       body,
+      span: self.span.to_owned(),
     })
   }
 }
@@ -163,6 +172,7 @@ impl Preprocess for ast::Function {
         arguments.push(Variable {
           kind: VariableKind::Argument,
           ty: arg.ty.preprocess(preprocessor)?.into(),
+          span: arg.span.to_owned(),
         });
       };
     };
@@ -171,6 +181,7 @@ impl Preprocess for ast::Function {
       arguments: VariableScope::from_vec(arguments),
       return_ty: self.decl.return_type.as_ref().preprocess(preprocessor)?.into(),
       body: self.body.preprocess(preprocessor)?,
+      span: self.span.to_owned(),
     })
   }
 }

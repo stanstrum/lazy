@@ -43,7 +43,7 @@ impl PrettyPrint for Type {
   fn pretty_print(&self) -> String {
     match self {
       Type::Intrinsic(intrinsic) => intrinsic.pretty_print(),
-      Type::Unresolved { implied, reference, template } => {
+      Type::Unresolved { implied, reference, template, .. } => {
         let mut out = "{unresolved: ".to_string();
 
         if *implied {
@@ -77,13 +77,13 @@ impl PrettyPrint for Type {
 
         out
       },
-      Type::UnsizedArrayOf(ty) => {
+      Type::UnsizedArrayOf { ty, .. } => {
         format!("[]{}", ty.pretty_print())
       },
-      Type::SizedArrayOf { count, ty } => {
+      Type::SizedArrayOf { count, ty, .. } => {
         format!("[{}]{}", count.pretty_print(), ty.pretty_print())
       },
-      Type::ReferenceTo { r#mut, ty } => {
+      Type::ReferenceTo { r#mut, ty, .. } => {
         if *r#mut {
           format!("&mut {}", ty.pretty_print())
         } else {
@@ -92,9 +92,9 @@ impl PrettyPrint for Type {
       },
       Type::Shared(_) => todo!(),
       Type::Function { .. } => todo!(),
-      Type::Struct(_) => todo!(),
-      Type::FuzzyInteger => todo!(),
-      Type::FuzzyString { size, element_ty } => format!("{{string: [{}]{}}}", *size, element_ty.pretty_print()),
+      Type::Struct { .. } => todo!(),
+      Type::FuzzyInteger { .. } => todo!(),
+      Type::FuzzyString { size, element_ty, .. } => format!("{{string: [{}]{}}}", *size, element_ty.pretty_print()),
       Type::Unknown => "{unknown}".to_string(),
     }
   }

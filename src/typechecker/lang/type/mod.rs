@@ -4,6 +4,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::asterizer::ast;
+use crate::tokenizer::Span;
 use crate::typechecker::{
   preprocess::Preprocess,
   Preprocessor,
@@ -24,26 +25,39 @@ pub(crate) enum Type {
     implied: bool,
     reference: DomainReference,
     template: Option<Vec<TypeCell>>,
+    span: Span,
   },
-  UnsizedArrayOf(TypeCell),
+  UnsizedArrayOf {
+    ty: TypeCell,
+    span: Span,
+  },
   SizedArrayOf {
     count: Value,
     ty: TypeCell,
+    span: Span,
   },
   ReferenceTo {
     r#mut: bool,
     ty: TypeCell,
+    span: Span,
   },
   Shared(TypeCell),
   Function {
     args: Vec<TypeCell>,
     return_ty: TypeCell,
+    span: Span,
   },
-  Struct(Vec<TypeCell>),
-  FuzzyInteger,
+  Struct {
+    members: Vec<TypeCell>,
+    span: Span,
+  },
+  FuzzyInteger {
+    span: Span,
+  },
   FuzzyString {
     size: usize,
     element_ty: Intrinsic,
+    span: Span,
   },
   Unknown,
 }
@@ -77,7 +91,7 @@ impl Preprocess for ast::Type {
           implied,
           parts,
           template,
-          ..
+          span,
         }) => {
           if !implied && parts.len() == 1 && template.is_none() {
             if let Ok(intrinsic) = intrinsics::Intrinsic::try_from(parts.first().unwrap().as_str()) {
@@ -101,24 +115,35 @@ impl Preprocess for ast::Type {
             implied: *implied,
             reference: preprocessor.reference.to_owned(),
             template: template_tys,
+            span: span.to_owned(),
           }
         },
-        ast::Type::SizedArrayOf(ast::SizedArrayOf { expr, ty, .. }) => {
+        ast::Type::SizedArrayOf(ast::SizedArrayOf {
+          expr,
+          ty,
+          span,
+        }) => {
           let count = Value::Instruction(Box::new(
             expr.preprocess(preprocessor)?
           ));
 
           let ty = ty.preprocess(preprocessor)?.into();
 
-          Type::SizedArrayOf { count, ty }
+          Type::SizedArrayOf {
+            count,
+            ty,
+            span: span.to_owned(),
+          }
         },
-        ast::Type::UnsizedArrayOf(ast::UnsizedArrayOf { ty, .. }) => Type::UnsizedArrayOf(
-          ty.preprocess(preprocessor)?.into()
-        ),
-        ast::Type::ImmutableReferenceTo(ast::ImmutableReferenceTo { ty, .. }) => {
+        ast::Type::UnsizedArrayOf(ast::UnsizedArrayOf { ty, span }) => Type::UnsizedArrayOf {
+          ty: ty.preprocess(preprocessor)?.into(),
+          span: span.to_owned(),
+        },
+        ast::Type::ImmutableReferenceTo(ast::ImmutableReferenceTo { ty, span }) => {
           Type::ReferenceTo {
             r#mut: false,
-            ty: ty.preprocess(preprocessor)?.into()
+            ty: ty.preprocess(preprocessor)?.into(),
+            span: span.to_owned(),
           }
         },
       }

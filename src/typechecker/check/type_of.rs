@@ -18,22 +18,22 @@ impl TypeOf for lang::TypeCell {
   fn is_resolved(&self) -> bool {
     match &*self.as_ref().borrow() {
       lang::Type::Intrinsic(_) => true,
-      | lang::Type::UnsizedArrayOf(ty)
+      | lang::Type::UnsizedArrayOf { ty, .. }
       | lang::Type::SizedArrayOf { ty, .. }
       | lang::Type::ReferenceTo { ty, .. }
       | lang::Type::Shared(ty) => ty.is_resolved(),
-      lang::Type::Function { args, return_ty } => {
+      lang::Type::Function { args, return_ty, .. } => {
         if args.iter().any(|arg| !arg.is_resolved()) {
           return false;
         };
 
         return_ty.is_resolved()
       },
-      lang::Type::Struct(tys) => tys.iter().all(|ty| ty.is_resolved()),
+      lang::Type::Struct { members: tys, .. } => tys.iter().all(|ty| ty.is_resolved()),
       | lang::Type::Unresolved { .. }
       // TODO: are these technically resolved?
       //       or should this be caught in a later stage
-      | lang::Type::FuzzyInteger
+      | lang::Type::FuzzyInteger { .. }
       | lang::Type::FuzzyString { .. }
       | lang::Type::Unknown => false,
     }
@@ -65,20 +65,23 @@ impl TypeOf for tokenizer::Literal {
   fn type_of(&self) -> Option<lang::Type> {
     Some({
       match self {
-        tokenizer::Literal::Integer(_) => lang::Type::FuzzyInteger,
+        tokenizer::Literal::Integer(_) => lang::Type::FuzzyInteger { span: todo!() },
         tokenizer::Literal::FloatingPoint(_) => todo!(),
         tokenizer::Literal::UnicodeString(content) => lang::Type::FuzzyString {
           size: content.len(),
           element_ty: lang::intrinsics::UNICODE_CHAR,
+          span: todo!(),
         },
         tokenizer::Literal::ByteString(content) => lang::Type::FuzzyString {
           size: content.len(),
           element_ty: lang::intrinsics::Intrinsic::U8,
+          span: todo!(),
         },
         tokenizer::Literal::CString(content) => lang::Type::FuzzyString {
           // the `+ 1` is for the null-delimiter
           size: content.len() + 1,
           element_ty: lang::intrinsics::C_CHAR,
+          span: todo!(),
         },
         tokenizer::Literal::UnicodeChar(_) => lang::Type::Intrinsic(lang::intrinsics::UNICODE_CHAR),
         // TODO: not sure if this should be signed or not

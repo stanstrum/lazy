@@ -4,6 +4,11 @@ pub(super) mod pretty_print;
 use std::rc::Rc;
 use std::cell::RefCell;
 
+use crate::tokenizer::{
+  Span,
+  GetSpan
+};
+
 pub(crate) use r#type::*;
 
 use crate::tokenizer;
@@ -13,6 +18,7 @@ use crate::tokenizer;
 pub(crate) struct VariableReference {
   pub(crate) scope: Rc<RefCell<Vec<Variable>>>,
   pub(crate) id: usize,
+  pub(crate) span: Span,
 }
 
 impl VariableReference {
@@ -48,6 +54,7 @@ pub(crate) enum Instruction {
 pub(crate) struct Block {
   pub(crate) variables: VariableScope,
   pub(crate) body: Vec<Instruction>,
+  pub(crate) span: Span,
 }
 
 impl Block {
@@ -71,12 +78,19 @@ pub(crate) enum VariableKind {
 pub(crate) struct Variable {
   pub(crate) kind: VariableKind,
   pub(crate) ty: TypeCell,
+  pub(crate) span: Span,
 }
 
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct VariableScope {
   pub(crate) inner: Rc<RefCell<Vec<Variable>>>,
+}
+
+impl GetSpan for Variable {
+  fn get_span(&self) -> &Span {
+    &self.span
+  }
 }
 
 impl VariableScope {
@@ -97,4 +111,11 @@ pub(crate) struct Function {
   pub(crate) arguments: VariableScope,
   pub(crate) return_ty: TypeCell,
   pub(crate) body: Block,
+  pub(crate) span: Span,
+}
+
+impl GetSpan for Function {
+  fn get_span(&self) -> &Span {
+    &self.span
+  }
 }

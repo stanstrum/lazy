@@ -78,14 +78,14 @@ impl Check for Type {
   fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
     Ok({
       match self {
-        | Type::FuzzyInteger
+        | Type::FuzzyInteger { .. }
         | Type::FuzzyString { .. }
         | Type::Unresolved { .. } => todo!(),
-        | Type::UnsizedArrayOf(ty)
+        | Type::UnsizedArrayOf { ty, .. }
         | Type::SizedArrayOf { ty, .. }
         | Type::ReferenceTo { ty, .. }
         | Type::Shared(ty) => ty.check(checker)?,
-        | Type::Function { args, return_ty } => {
+        | Type::Function { args, return_ty, .. } => {
           for arg in args.iter_mut() {
             if arg.check(checker)? {
               return Ok(true);
@@ -94,7 +94,7 @@ impl Check for Type {
 
           return_ty.check(checker)?
         },
-        Type::Struct(tys) => {
+        Type::Struct { members: tys, .. } => {
           for ty in tys.iter_mut() {
             if ty.check(checker)? {
               return Ok(true);

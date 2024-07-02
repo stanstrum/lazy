@@ -9,6 +9,8 @@ use crate::typechecker::{
   lang::TypeCell,
 };
 
+use crate::tokenizer::GetSpan;
+
 pub(super) enum TypeDomainMember {
   Domain(TypeDomain),
   Type(TypeCell),
@@ -34,6 +36,7 @@ impl TypeDomain {
                 TypeDomainMember::Type(Type::Function {
                   args: func.arguments.inner.borrow().iter().map(|variable| variable.ty.to_owned()).collect(),
                   return_ty: func.return_ty.to_owned(),
+                  span: func.get_span().to_owned(),
                 }.into())
               )),
               DomainMember::Type(ty) => Some((

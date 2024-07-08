@@ -14,6 +14,7 @@ use crate::compiler::{
   SourceFileData,
 };
 
+use crate::tokenizer::Span;
 use crate::CompilationError;
 
 use check::TypeChecker;
@@ -62,14 +63,14 @@ impl Preprocessor {
     })
   }
 
-  fn find_variable_by_name(&self, name: &str) -> Result<VariableReference, TypeCheckerError> {
+  fn find_variable_by_name(&self, name: &str, span: Span) -> Result<VariableReference, TypeCheckerError> {
     for scope in self.scope_stack.iter().rev() {
       if let Some(reference) = scope.get(name) {
         return Ok(reference.to_owned());
       };
     };
 
-    UnknownVariableSnafu { name }.fail()
+    UnknownVariableSnafu { name, span }.fail()
   }
 
   pub(crate) fn check(self, mut program: Program) -> Result<(), TypeCheckerError> {

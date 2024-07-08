@@ -66,32 +66,32 @@ pub(crate) struct Import {
 }
 
 impl GetSpan for Qualify {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 
 impl GetSpan for ImportPattern {
-  fn get_span(&self) -> &Span {
+  fn get_span(&self) -> Span {
     todo!()
   }
 }
 
 impl GetSpan for ImportBrace {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 
 impl GetSpan for TopLevelImportPattern {
-  fn get_span(&self) -> &Span {
+  fn get_span(&self) -> Span {
     todo!()
   }
 }
 
 impl GetSpan for Import {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 

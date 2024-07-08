@@ -29,8 +29,8 @@ pub(crate) struct Binding {
 }
 
 impl GetSpan for Binding {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 

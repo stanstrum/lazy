@@ -17,20 +17,24 @@ use crate::tokenizer::{
 };
 
 impl GetSpan for Atom {
-  fn get_span(&self) -> &Span {
+  fn get_span(&self) -> Span {
     match self {
       Atom::Literal(literal) => literal.get_span(),
       Atom::StructInitializer(structinitializer) => structinitializer.get_span(),
-      Atom::Variable(_variable) => todo!(),
+      Atom::Variable { span, .. } => *span,
     }
   }
 }
 
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) enum Atom {
   Literal(Literal),
   StructInitializer(StructInitializer),
-  Variable(String),
+  Variable {
+    name: String,
+    span: Span
+  },
 }
 
 impl MakeAst for Atom {
@@ -45,7 +49,10 @@ impl MakeAst for Atom {
 
         stream.seek();
 
-        Some(Self::Variable(name))
+        Some(Self::Variable {
+          name,
+          span: stream.span(),
+        })
       } else {
         None
       }

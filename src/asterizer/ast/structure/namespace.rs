@@ -28,8 +28,8 @@ pub(crate) struct Namespace {
 }
 
 impl GetSpan for Namespace {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 

@@ -11,7 +11,7 @@ pub(crate) struct Span {
 }
 
 pub(crate) trait GetSpan {
-  fn get_span(&self) -> &Span;
+  fn get_span(&self) -> Span;
 }
 
 #[derive(Debug)]
@@ -226,8 +226,8 @@ pub(crate) struct Literal {
 }
 
 impl GetSpan for Literal {
-  fn get_span(&self) -> &Span {
-    todo!()
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 

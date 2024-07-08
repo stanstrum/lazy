@@ -4,7 +4,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::asterizer::ast;
-use crate::tokenizer::Span;
+use crate::tokenizer::{GetSpan, Span};
 use crate::typechecker::{
   preprocess::Preprocess,
   Preprocessor,
@@ -20,7 +20,10 @@ use crate::typechecker::{
 #[allow(unused)]
 #[derive(Debug, Clone)]
 pub(crate) enum Type {
-  Intrinsic(Intrinsic),
+  Intrinsic {
+    kind: Intrinsic,
+    span: Span,
+  },
   Unresolved {
     implied: bool,
     reference: DomainReference,
@@ -59,7 +62,27 @@ pub(crate) enum Type {
     element_ty: Intrinsic,
     span: Span,
   },
-  Unknown,
+  Unknown {
+    span: Span,
+  },
+}
+
+impl GetSpan for Type {
+  fn get_span(&self) -> Span {
+    match self {
+      Type::Shared(_) => todo!(),
+      | Type::Intrinsic { span, .. }
+      | Type::Unresolved { span, .. }
+      | Type::UnsizedArrayOf { span, .. }
+      | Type::SizedArrayOf { span, .. }
+      | Type::ReferenceTo { span, .. }
+      | Type::Function { span, .. }
+      | Type::Struct { span, .. }
+      | Type::FuzzyInteger { span, .. }
+      | Type::FuzzyString { span, .. }
+      | Type::Unknown { span } => *span,
+    }
+  }
 }
 
 pub(crate) type TypeCell = Rc<RefCell<Type>>;
@@ -67,17 +90,6 @@ pub(crate) type TypeCell = Rc<RefCell<Type>>;
 impl From<Type> for TypeCell {
   fn from(value: Type) -> Self {
     Rc::new(RefCell::new(value))
-  }
-}
-
-impl Preprocess for Option<&ast::Type> {
-  type Out = Type;
-
-  fn preprocess(&self, preprocessor: &mut Preprocessor) -> Result<Self::Out, TypeCheckerError> {
-    match self {
-      Some(ast) => ast.preprocess(preprocessor),
-      None => Ok(Type::Intrinsic(intrinsics::Intrinsic::Void)),
-    }
   }
 }
 
@@ -94,8 +106,11 @@ impl Preprocess for ast::Type {
           span,
         }) => {
           if !implied && parts.len() == 1 && template.is_none() {
-            if let Ok(intrinsic) = intrinsics::Intrinsic::try_from(parts.first().unwrap().as_str()) {
-              return Ok(Type::Intrinsic(intrinsic));
+            if let Ok(kind) = intrinsics::Intrinsic::try_from(parts.first().unwrap().as_str()) {
+              return Ok(Type::Intrinsic {
+                kind,
+                span: self.get_span().to_owned(),
+              });
             };
           };
 

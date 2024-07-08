@@ -25,8 +25,8 @@ pub(crate) struct Function {
 }
 
 impl GetSpan for Function {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 

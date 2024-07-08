@@ -39,14 +39,14 @@ pub(crate) struct UnarySuffixExpression {
 }
 
 impl GetSpan for UnarySuffixOperator {
-  fn get_span(&self) -> &Span {
+  fn get_span(&self) -> Span {
     todo!()
   }
 }
 
 impl GetSpan for UnarySuffixExpression {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 

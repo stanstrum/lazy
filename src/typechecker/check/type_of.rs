@@ -1,5 +1,5 @@
 use crate::typechecker::lang;
-use crate::tokenizer;
+use crate::tokenizer::{self, GetSpan};
 
 pub(super) trait TypeOf {
   fn type_of(&self) -> Option<lang::Type>;
@@ -17,7 +17,7 @@ pub(super) trait TypeOf {
 impl TypeOf for lang::TypeCell {
   fn is_resolved(&self) -> bool {
     match &*self.as_ref().borrow() {
-      lang::Type::Intrinsic(_) => true,
+      lang::Type::Intrinsic { .. } => true,
       | lang::Type::UnsizedArrayOf { ty, .. }
       | lang::Type::SizedArrayOf { ty, .. }
       | lang::Type::ReferenceTo { ty, .. }
@@ -35,7 +35,7 @@ impl TypeOf for lang::TypeCell {
       //       or should this be caught in a later stage
       | lang::Type::FuzzyInteger { .. }
       | lang::Type::FuzzyString { .. }
-      | lang::Type::Unknown => false,
+      | lang::Type::Unknown { .. } => false,
     }
   }
 
@@ -83,9 +83,15 @@ impl TypeOf for tokenizer::Literal {
           element_ty: lang::intrinsics::C_CHAR,
           span: span.to_owned(),
         },
-        tokenizer::Literal { kind: tokenizer::LiteralKind::UnicodeChar(_), .. } => lang::Type::Intrinsic(lang::intrinsics::UNICODE_CHAR),
+        tokenizer::Literal { kind: tokenizer::LiteralKind::UnicodeChar(_), span } => lang::Type::Intrinsic {
+          kind: lang::intrinsics::UNICODE_CHAR,
+          span: span.to_owned()
+        },
         // TODO: not sure if this should be signed or not
-        tokenizer::Literal { kind: tokenizer::LiteralKind::ByteChar(_), .. } => lang::Type::Intrinsic(lang::intrinsics::Intrinsic::U8),
+        tokenizer::Literal { kind: tokenizer::LiteralKind::ByteChar(_), span } => lang::Type::Intrinsic {
+          kind: lang::intrinsics::Intrinsic::U8,
+          span: span.to_owned(),
+        },
       }
     })
   }
@@ -94,21 +100,24 @@ impl TypeOf for tokenizer::Literal {
 impl TypeOf for lang::Instruction {
   fn is_resolved(&self) -> bool {
     match self {
-      lang::Instruction::Assign { dest, value } => {
+      lang::Instruction::Assign { dest, value, .. } => {
         dest.is_resolved() && value.is_resolved()
       },
-      lang::Instruction::Call { func, args } => {
+      lang::Instruction::Call { func, args, .. } => {
         func.is_resolved() && args.iter().all(|arg| arg.is_resolved())
       },
       lang::Instruction::Literal(_) => true,
-      lang::Instruction::Return(value) => value.is_resolved(),
+      lang::Instruction::Return { value, .. } => value.is_resolved(),
     }
   }
 
   fn type_of(&self) -> Option<lang::Type> {
     match self {
-      | lang::Instruction::Return(_)
-      | lang::Instruction::Assign { .. } => Some(lang::Type::Intrinsic(lang::intrinsics::Intrinsic::Void)),
+      | lang::Instruction::Return { .. }
+      | lang::Instruction::Assign { .. } => Some(lang::Type::Intrinsic {
+        kind: lang::intrinsics::Intrinsic::Void,
+        span: self.get_span().to_owned(),
+      }),
       lang::Instruction::Call { .. } => todo!(),
       lang::Instruction::Literal(literal) => literal.type_of(),
     }

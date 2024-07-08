@@ -40,13 +40,18 @@ pub(crate) enum Instruction {
   Assign {
     dest: Value,
     value: Value,
+    span: Span,
   },
   Call {
     func: Value,
     args: Vec<Value>,
+    span: Span,
   },
   Literal(tokenizer::Literal),
-  Return(Value),
+  Return {
+    value: Value,
+    span: Span,
+  },
 }
 
 #[allow(unused)]
@@ -88,8 +93,19 @@ pub(crate) struct VariableScope {
 }
 
 impl GetSpan for Variable {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
+  }
+}
+
+impl GetSpan for Instruction {
+  fn get_span(&self) -> Span {
+    match self {
+      Instruction::Literal(literal) => literal.get_span(),
+      | Instruction::Assign { span, .. }
+      | Instruction::Call { span, .. }
+      | Instruction::Return { span, .. } => *span,
+    }
   }
 }
 
@@ -115,7 +131,7 @@ pub(crate) struct Function {
 }
 
 impl GetSpan for Function {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }

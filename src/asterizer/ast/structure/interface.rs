@@ -44,20 +44,23 @@ pub(crate) struct Interface {
 }
 
 impl GetSpan for Method {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 
 impl GetSpan for InterfaceChild {
-  fn get_span(&self) -> &Span {
-    todo!()
+  fn get_span(&self) -> Span {
+    match self {
+      InterfaceChild::TypeAlias(typealias) => typealias.get_span(),
+      InterfaceChild::Method(method) => method.get_span(),
+    }
   }
 }
 
 impl GetSpan for Interface {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 

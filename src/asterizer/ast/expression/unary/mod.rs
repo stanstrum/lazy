@@ -23,7 +23,7 @@ pub(crate) struct UnaryExpression {
 }
 
 impl GetSpan for UnaryOperator {
-  fn get_span(&self) -> &Span {
+  fn get_span(&self) -> Span {
     match self {
       UnaryOperator::Prefix(prefix) => prefix.get_span(),
       UnaryOperator::Suffix(suffix) => suffix.get_span(),
@@ -32,8 +32,8 @@ impl GetSpan for UnaryOperator {
 }
 
 impl GetSpan for UnaryExpression {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 

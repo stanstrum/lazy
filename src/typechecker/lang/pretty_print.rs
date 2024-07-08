@@ -42,7 +42,7 @@ impl PrettyPrint for TypeCell {
 impl PrettyPrint for Type {
   fn pretty_print(&self) -> String {
     match self {
-      Type::Intrinsic(intrinsic) => intrinsic.pretty_print(),
+      Type::Intrinsic { kind, .. } => kind.pretty_print(),
       Type::Unresolved { implied, reference, template, .. } => {
         let mut out = "{unresolved: ".to_string();
 
@@ -95,7 +95,7 @@ impl PrettyPrint for Type {
       Type::Struct { .. } => todo!(),
       Type::FuzzyInteger { .. } => todo!(),
       Type::FuzzyString { size, element_ty, .. } => format!("{{string: [{}]{}}}", *size, element_ty.pretty_print()),
-      Type::Unknown => "{unknown}".to_string(),
+      Type::Unknown { .. } => "{unknown}".to_string(),
     }
   }
 }

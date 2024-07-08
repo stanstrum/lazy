@@ -68,14 +68,14 @@ pub(crate) struct BinaryExpression {
 }
 
 impl GetSpan for BinaryOperator {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 
 impl GetSpan for BinaryExpression {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 

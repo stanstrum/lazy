@@ -9,6 +9,8 @@ use super::lang::{
   Variable,
   VariableKind,
   VariableScope,
+  VariableReference,
+  intrinsics::Intrinsic,
 };
 
 use super::{
@@ -21,7 +23,6 @@ use super::{
 
 use crate::asterizer::ast;
 use crate::tokenizer::GetSpan;
-use crate::typechecker::lang::VariableReference;
 
 pub(super) trait Preprocess {
   type Out;
@@ -39,7 +40,7 @@ impl Preprocess for ast::Atom {
           Instruction::Literal(literal.to_owned())
         },
         ast::Atom::StructInitializer(_) => todo!("preprocess structinitializer"),
-        ast::Atom::Variable(_) => todo!("preprocess variable"),
+        ast::Atom::Variable { .. } => todo!("preprocess variable"),
       }
     })
   }
@@ -82,7 +83,9 @@ impl Preprocess for ast::Block {
               if let Some(binding_type) = &binding.ty {
                 binding_type.preprocess(preprocessor)?
               } else {
-                Type::Unknown
+                Type::Unknown {
+                  span: self.get_span().to_owned(),
+                }
               }.into()
             },
             span: binding.span.to_owned(),
@@ -119,7 +122,7 @@ impl Preprocess for ast::Block {
       match child {
         ast::BlockChild::Binding(binding) => {
           if let Some(expr) = &binding.expr {
-            let reference = preprocessor.find_variable_by_name(&binding.name)?;
+            let reference = preprocessor.find_variable_by_name(&binding.name, binding.get_span())?;
 
             let value = Value::Instruction(Box::new(
               expr.preprocess(preprocessor)?
@@ -128,6 +131,7 @@ impl Preprocess for ast::Block {
             body.push(Instruction::Assign {
               dest: Value::Variable(reference),
               value,
+              span: expr.get_span().to_owned(),
             });
           };
         },
@@ -143,10 +147,15 @@ impl Preprocess for ast::Block {
       let last = body.pop()
         .expect("a block that returns last must have at least one instruction");
 
+      let span = last.get_span().to_owned();
+
       body.push(
-        Instruction::Return(Value::Instruction(
-          Box::new(last)
-        ))
+        Instruction::Return {
+          value: Value::Instruction(
+            Box::new(last)
+          ),
+          span,
+        }
       );
     };
 
@@ -177,9 +186,18 @@ impl Preprocess for ast::Function {
       };
     };
 
+    let return_ty = if let Some(ty) = &self.decl.return_type {
+      ty.preprocess(preprocessor)?
+    } else {
+      Type::Intrinsic {
+        kind: Intrinsic::Void,
+        span: self.decl.get_span().to_owned(),
+      }
+    }.into();
+
     Ok(Function {
       arguments: VariableScope::from_vec(arguments),
-      return_ty: self.decl.return_type.as_ref().preprocess(preprocessor)?.into(),
+      return_ty,
       body: self.body.preprocess(preprocessor)?,
       span: self.span.to_owned(),
     })

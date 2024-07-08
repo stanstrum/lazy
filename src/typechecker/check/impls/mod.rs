@@ -23,7 +23,7 @@ impl Check for Instruction {
   fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
     Ok({
       match self {
-        Instruction::Assign { dest, value } => {
+        Instruction::Assign { dest, value, .. } => {
           match (dest.type_of(), value.type_of()) {
             (None, Some(rhs)) => {
               dest.coerce(checker, &rhs)?
@@ -36,7 +36,7 @@ impl Check for Instruction {
         },
         Instruction::Call { .. } => todo!(),
         Instruction::Literal(_) => todo!(),
-        Instruction::Return(..) => {
+        Instruction::Return { .. } => {
           dbg!("nothing done for return");
 
           false
@@ -103,8 +103,8 @@ impl Check for Type {
 
           false
         },
-        | Type::Intrinsic(_)
-        | Type::Unknown => false,
+        | Type::Intrinsic { .. }
+        | Type::Unknown { .. } => false,
       }
     })
   }

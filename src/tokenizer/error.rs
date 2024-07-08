@@ -35,11 +35,11 @@ impl From<TokenizationError> for CompilationError {
 }
 
 impl GetSpan for TokenizationError {
-  fn get_span(&self) -> &Span {
+  fn get_span(&self) -> Span {
     let Self::InvalidSource { span, .. } = self else {
       panic!("attempted to get span of a non-logic-based tokenization error");
     };
 
-    span
+    *span
   }
 }

@@ -38,7 +38,7 @@ pub(crate) struct Block {
 }
 
 impl GetSpan for BlockChild {
-  fn get_span(&self) -> &Span {
+  fn get_span(&self) -> Span {
     match self {
       BlockChild::Expression(expression) => expression.get_span(),
       BlockChild::Binding(binding) => binding.get_span(),
@@ -49,8 +49,8 @@ impl GetSpan for BlockChild {
 }
 
 impl GetSpan for Block {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 

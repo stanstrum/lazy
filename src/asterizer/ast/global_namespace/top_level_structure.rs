@@ -20,8 +20,10 @@ pub(crate) enum TopLevelStructure {
 }
 
 impl GetSpan for TopLevelStructure {
-  fn get_span(&self) -> &Span {
-    todo!()
+  fn get_span(&self) -> Span {
+    match self {
+      TopLevelStructure::Structure(struc) => struc.get_span(),
+    }
   }
 }
 

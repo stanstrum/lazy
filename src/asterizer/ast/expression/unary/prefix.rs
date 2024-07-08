@@ -33,14 +33,14 @@ pub(crate) struct UnaryPrefixExpression {
 }
 
 impl GetSpan for UnaryPrefixOperator {
-  fn get_span(&self) -> &Span {
+  fn get_span(&self) -> Span {
     todo!()
   }
 }
 
 impl GetSpan for UnaryPrefixExpression {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 

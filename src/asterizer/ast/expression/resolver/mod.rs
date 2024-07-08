@@ -22,7 +22,7 @@ pub(super) enum ExpressionPart {
 }
 
 impl GetSpan for ExpressionPart {
-  fn get_span(&self) -> &Span  {
+  fn get_span(&self) -> Span {
     match self {
       ExpressionPart::Unary(unary) => unary.get_span(),
       ExpressionPart::Binary(binary) => binary.get_span(),

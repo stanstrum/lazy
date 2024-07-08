@@ -58,32 +58,37 @@ pub(crate) enum Type {
 }
 
 impl GetSpan for QualifiedName {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 
 impl GetSpan for SizedArrayOf {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 
 impl GetSpan for UnsizedArrayOf {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 
 impl GetSpan for ImmutableReferenceTo {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 
 impl GetSpan for Type {
-  fn get_span(&self) -> &Span {
-    todo!()
+  fn get_span(&self) -> Span {
+    match self {
+      Type::Qualified(qualified) => qualified.get_span(),
+      Type::SizedArrayOf(sizedarrayof) => sizedarrayof.get_span(),
+      Type::UnsizedArrayOf(unsizedarrayof) => unsizedarrayof.get_span(),
+      Type::ImmutableReferenceTo(immutablereferenceto) => immutablereferenceto.get_span(),
+    }
   }
 }
 

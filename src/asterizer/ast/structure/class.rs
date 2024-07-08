@@ -106,62 +106,65 @@ pub(crate) struct Class {
 }
 
 impl GetSpan for MemberVisibility {
-  fn get_span(&self) -> &Span {
+  fn get_span(&self) -> Span {
     todo!()
   }
 }
 
 impl GetSpan for Field {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 
 impl GetSpan for MethodKind {
-  fn get_span(&self) -> &Span {
+  fn get_span(&self) -> Span {
     todo!()
   }
 }
 
 impl GetSpan for MethodArgument {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 
 impl GetSpan for MethodBody {
-  fn get_span(&self) -> &Span {
+  fn get_span(&self) -> Span {
     todo!()
   }
 }
 
 impl GetSpan for MethodArguments {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 
 impl GetSpan for Method {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 
 impl GetSpan for ClassMember {
-  fn get_span(&self) -> &Span {
-    todo!()
+  fn get_span(&self) -> Span {
+    match self {
+      ClassMember::Field(field) => field.get_span(),
+      ClassMember::Method(method) => method.get_span(),
+    }
   }
 }
 
 impl GetSpan for ClassChild {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 
 impl GetSpan for Class {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 

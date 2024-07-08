@@ -90,44 +90,52 @@ pub(crate) struct Exported {
 }
 
 impl GetSpan for TemplatableStructure {
-  fn get_span(&self) -> &Span {
-    todo!()
+  fn get_span(&self) -> Span {
+    match self {
+      TemplatableStructure::Function(function) => function.get_span(),
+      TemplatableStructure::TypeAlias(typealias) => typealias.get_span(),
+      TemplatableStructure::Interface(interface) => interface.get_span(),
+      TemplatableStructure::Struct(r#struct) => r#struct.get_span(),
+      TemplatableStructure::Class(class) => class.get_span(),
+      TemplatableStructure::Exported(exported) => exported.get_span(),
+      TemplatableStructure::Impl(r#impl) => r#impl.get_span(),
+    }
   }
 }
 
 impl GetSpan for UnconstrainedTemplateConstraint {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 
 impl GetSpan for ConstrainedTemplateConstraint {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 
 impl GetSpan for TemplateConstraint {
-  fn get_span(&self) -> &Span {
+  fn get_span(&self) -> Span {
     todo!()
   }
 }
 
 impl GetSpan for Structure {
-  fn get_span(&self) -> &Span {
+  fn get_span(&self) -> Span {
     todo!()
   }
 }
 
 impl GetSpan for TemplateScope {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 
 impl GetSpan for Exported {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 

@@ -25,8 +25,8 @@ pub(crate) struct SubExpression {
 }
 
 impl GetSpan for SubExpression {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 

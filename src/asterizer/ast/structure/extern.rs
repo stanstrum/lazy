@@ -26,8 +26,8 @@ pub(crate) struct Extern {
 }
 
 impl GetSpan for Extern {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 

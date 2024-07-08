@@ -11,13 +11,17 @@ use crate::CompilationError;
 #[snafu(visibility(pub(crate)))]
 pub(crate) enum TypeCheckerError {
   #[snafu(display("unknown variable: \"{name}\""))]
-  UnknownVariable { name: String }
+  UnknownVariable { name: String, span: Span },
+
+  #[snafu(display("incompatible types: {lhs} and {rhs}"))]
+  IncompatibleTypes { lhs: String, rhs: String, span: Span },
 }
 
 impl GetSpan for TypeCheckerError {
-  fn get_span(&self) -> &Span {
+  fn get_span(&self) -> Span {
     match self {
-      _ => todo!("type check span: {self:?}")
+      | TypeCheckerError::UnknownVariable { span, .. }
+      | TypeCheckerError::IncompatibleTypes { span, .. } => *span,
     }
   }
 }

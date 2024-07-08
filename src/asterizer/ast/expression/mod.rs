@@ -40,7 +40,7 @@ pub(super) enum NonOperatorExpression {
 }
 
 impl GetSpan for Expression {
-  fn get_span(&self) -> &Span {
+  fn get_span(&self) -> Span {
     match self {
       Expression::Atom(atom) => atom.get_span(),
       Expression::Block(block) => block.get_span(),
@@ -52,7 +52,7 @@ impl GetSpan for Expression {
 }
 
 impl GetSpan for NonOperatorExpression {
-  fn get_span(&self) -> &Span {
+  fn get_span(&self) -> Span {
     match self {
       NonOperatorExpression::Atom(atom) => atom.get_span(),
       NonOperatorExpression::Block(block) => block.get_span(),

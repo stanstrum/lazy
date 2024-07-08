@@ -7,7 +7,7 @@ pub(crate) const C_CHAR: Intrinsic = Intrinsic::I8;
 // pub(crate) const DEFAULT_SIGNED_INTEGER: Intrinsic = Intrinsic::I32;
 
 #[allow(unused)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum Intrinsic {
   Void,
   U8,

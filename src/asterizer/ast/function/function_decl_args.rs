@@ -31,14 +31,14 @@ pub(crate) struct FunctionDeclarationArguments {
 }
 
 impl GetSpan for FunctionDeclarationArgument {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 
 impl GetSpan for FunctionDeclarationArguments {
-  fn get_span(&self) -> &Span {
-    &self.span
+  fn get_span(&self) -> Span {
+    self.span
   }
 }
 

@@ -1,4 +1,5 @@
 use crate::tokenizer::{GetSpan, Literal, LiteralKind};
+use crate::typechecker::lang::pretty_print::PrettyPrint;
 use crate::typechecker::{
   TypeChecker,
   error::*,
@@ -23,6 +24,7 @@ pub(crate) trait Extends where Self: std::fmt::Debug + crate::typechecker::lang:
       Ok(())
     } else {
       IncompatibleTypesSnafu {
+        message: "assertion failed",
         lhs: self.pretty_print(),
         rhs: other.pretty_print(),
         span: self.get_span().to_owned(),
@@ -111,7 +113,12 @@ impl Coerce for TypeCell {
 
         Ok(true)
       },
-      _ => panic!("not coercible:\n- {inner:#?}\n\n- {to:#?}")
+      _ => IncompatibleTypesSnafu {
+        message: "not coercible",
+        lhs: inner.pretty_print(),
+        rhs: to.pretty_print(),
+        span: inner.get_span(),
+      }.fail()
     }
   }
 }

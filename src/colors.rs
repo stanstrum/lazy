@@ -1,5 +1,5 @@
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) enum Color {
   Black,
   Red,

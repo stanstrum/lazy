@@ -13,8 +13,13 @@ pub(crate) enum TypeCheckerError {
   #[snafu(display("unknown variable: \"{name}\""))]
   UnknownVariable { name: String, span: Span },
 
-  #[snafu(display("incompatible types: {lhs} and {rhs}"))]
-  IncompatibleTypes { lhs: String, rhs: String, span: Span },
+  #[snafu(display("incompatible types: {message}: {lhs} and {rhs}"))]
+  IncompatibleTypes {
+    message: String,
+    lhs: String,
+    rhs: String,
+    span: Span,
+  },
 }
 
 impl GetSpan for TypeCheckerError {

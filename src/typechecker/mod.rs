@@ -27,6 +27,7 @@ use domain::*;
 pub(crate) use domain::{
   Domain,
   Program,
+  ProgramData,
 };
 
 #[allow(unused)]
@@ -73,12 +74,12 @@ impl Preprocessor {
     UnknownVariableSnafu { name, span }.fail()
   }
 
-  pub(crate) fn check(self, mut program: Program) -> Result<(), TypeCheckerError> {
+  pub(crate) fn check(self, program: &mut Program) -> Result<(), TypeCheckerError> {
     dbg!(&program);
 
-    let mut checker = TypeChecker::new(&program);
+    let mut checker = TypeChecker::new(program);
 
-    while checker.check(&mut program)? {};
+    while checker.check(program)? {};
 
     todo!()
   }

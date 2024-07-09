@@ -25,8 +25,8 @@ impl Check for Domain {
 
 impl Check for Program {
   fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
-    for domain in self.inner.values_mut() {
-      if domain.check(checker)? {
+    for data in self.inner.values_mut() {
+      if data.domain.check(checker)? {
         return Ok(true);
       };
     };

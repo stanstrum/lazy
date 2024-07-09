@@ -52,8 +52,8 @@ impl TypeDomain {
   pub(super) fn make_program_type_domain(program: &Program) -> HashMap<Handle, TypeDomain> {
     program.inner.iter()
       .map(
-        |(handle, domain)|
-          (*handle, Self::get_types_from_domain(domain))
+        |(handle, data)|
+          (*handle, Self::get_types_from_domain(&data.domain))
       )
       .collect()
   }

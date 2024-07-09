@@ -1,6 +1,7 @@
+use std::path::PathBuf;
 use std::collections::HashMap;
 
-use crate::compiler::Handle;
+use crate::compiler::{DebugInfo, Handle};
 use super::lang;
 
 #[allow(unused)]
@@ -31,10 +32,17 @@ pub(crate) struct DomainReference {
   pub(crate) inner: Vec<String>,
 }
 
+#[derive(Debug)]
+pub(crate) struct ProgramData {
+  pub(crate) domain: Domain,
+  pub(crate) debug_info: DebugInfo,
+  pub(crate) path: PathBuf,
+}
+
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Program {
-  pub(crate) inner: HashMap<Handle, Domain>,
+  pub(crate) inner: HashMap<Handle, ProgramData>,
 }
 
 impl DomainReference {
@@ -62,10 +70,8 @@ impl Program {
       inner: HashMap::new(),
     }
   }
-}
 
-impl From<HashMap<Handle, Domain>> for Program {
-  fn from(inner: HashMap<Handle, Domain>) -> Self {
+  pub(crate) fn from_map(inner: HashMap<Handle, ProgramData>) -> Self {
     Self { inner }
   }
 }

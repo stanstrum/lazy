@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 use asterizer::ast::GlobalNamespace;
-use tokenizer::Token;
+use tokenizer::{GetSpan, Token};
 
 use colors::Color;
 
@@ -11,11 +11,12 @@ use typechecker::{
   Preprocessor,
   Domain,
   Program,
+  ProgramData,
 };
 
 use crate::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct DebugInfo {
   source: String,
   color_stream: Vec<(usize, Color)>
@@ -143,18 +144,38 @@ impl Compiler {
       let SourceFile {
         path,
         data: SourceFileData::TypeChecked(domain),
-        debug_info,
+        debug_info: Some(debug_info),
       } = self.take_handle(handle.id) else {
         panic!("cannot typecheck: not all files preprocessed");
       };
 
       // TODO: preserve debug info here
-      program_map.insert(handle, domain);
+      program_map.insert(handle, ProgramData {
+        domain,
+        debug_info,
+        path: path.to_owned(),
+      });
     };
 
-    let program = Program::from(program_map);
+    let mut program = Program::from_map(program_map);
 
-    preprocessor.check(program).map_err(Into::into)
+    match preprocessor.check(&mut program) {
+      Ok(_) => todo!(),
+      Err(error) => {
+        let error_span = error.get_span();
+
+        let ProgramData {
+          debug_info,
+          path,
+          ..
+        } = program.inner.get(&error_span.handle).unwrap();
+
+        // TODO: remove this clone
+        crate::pretty_print_error(&error, &debug_info.source, debug_info.color_stream.clone(), &path);
+      },
+    };
+
+    todo!()
   }
 
   fn take_handle(&mut self, id: usize) -> SourceFile {

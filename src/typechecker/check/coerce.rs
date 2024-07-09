@@ -13,6 +13,8 @@ use crate::typechecker::lang::{
   TypeCell,
 };
 
+use super::type_of::TypeOf;
+
 pub(super) trait Coerce {
   fn coerce(&mut self, checker: &mut TypeChecker, to: &Type) -> Result<bool, TypeCheckerError>;
 }
@@ -45,6 +47,10 @@ impl Extends for Type {
           kind: element_ty.to_owned(),
           span: span.to_owned(),
         }.into();
+
+        if !ty.is_resolved() {
+          return true;
+        };
 
         if ty.extends(&Type::UnsizedArrayOf {
           ty: element_ty.to_owned(),
@@ -106,20 +112,22 @@ impl Coerce for TypeCell {
     let inner = &mut *self.borrow_mut();
 
     inner.assert_extends(to)?;
+    *inner = to.to_owned();
 
-    match (&inner, to) {
-      (Type::Unknown { .. }, _) => {
-        *inner = to.to_owned();
-
-        Ok(true)
-      },
-      _ => IncompatibleTypesSnafu {
-        message: "not coercible",
-        lhs: inner.pretty_print(),
-        rhs: to.pretty_print(),
-        span: inner.get_span(),
-      }.fail()
-    }
+    Ok({
+      match (&inner, to) {
+        (Type::Unknown { .. }, _) => true,
+        (lhs, rhs) if std::mem::discriminant(*lhs) == std::mem::discriminant(rhs) => false,
+        _ => {
+          return IncompatibleTypesSnafu {
+            message: "not coercible",
+            lhs: inner.pretty_print(),
+            rhs: to.pretty_print(),
+            span: inner.get_span(),
+          }.fail();
+        }
+      }
+    })
   }
 }
 

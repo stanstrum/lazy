@@ -31,18 +31,14 @@ pub(super) struct TypeChecker {
   types: HashMap<Handle, TypeDomain>,
 }
 
-trait Check {
+pub(super) trait Check {
   fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError>;
 }
 
 impl TypeChecker {
   pub(super) fn new(program: &Program) -> Self {
     Self {
-      types: TypeDomain::make_program_type_domain(&program),
+      types: TypeDomain::make_program_type_domain(program),
     }
-  }
-
-  pub(super) fn check(&mut self, program: &mut Program) -> Result<bool, TypeCheckerError> {
-    program.check(self)
   }
 }

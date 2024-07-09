@@ -17,7 +17,10 @@ use crate::compiler::{
 use crate::tokenizer::Span;
 use crate::CompilationError;
 
-use check::TypeChecker;
+use check::{
+  TypeChecker,
+  Check,
+};
 pub(crate) use error::*;
 
 use lang::VariableReference;
@@ -79,8 +82,8 @@ impl Preprocessor {
 
     let mut checker = TypeChecker::new(program);
 
-    while checker.check(program)? {};
+    while program.check(&mut checker)? {};
 
-    todo!()
+    Ok(())
   }
 }

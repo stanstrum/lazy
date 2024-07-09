@@ -1,0 +1,2136 @@
+    Finished test [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/lazy-bb7c435b77a393d7)
+
+running 1 test
+test tests::assn ... FAILED
+
+failures:
+
+---- tests::assn stdout ----
+[src/typechecker/mod.rs:78:5] &program = Program {
+    inner: {
+        Handle {
+            id: 0,
+        }: ProgramData {
+            domain: Domain {
+                inner: {
+                    "hello_explicit": Function(
+                        Function {
+                            arguments: VariableScope {
+                                inner: RefCell {
+                                    value: [],
+                                },
+                            },
+                            return_ty: RefCell {
+                                value: Intrinsic {
+                                    kind: Void,
+                                    span: Span {
+                                        start: 11,
+                                        end: 35,
+                                        handle: Handle {
+                                            id: 0,
+                                        },
+                                    },
+                                },
+                            },
+                            body: Block {
+                                variables: VariableScope {
+                                    inner: RefCell {
+                                        value: [
+                                            Variable {
+                                                kind: LocalVariable,
+                                                ty: RefCell {
+                                                    value: ReferenceTo {
+                                                        mut: false,
+                                                        ty: RefCell {
+                                                            value: Unresolved {
+                                                                implied: false,
+                                                                reference: DomainReference {
+                                                                    handle: Handle {
+                                                                        id: 0,
+                                                                    },
+                                                                    inner: [],
+                                                                },
+                                                                template: None,
+                                                                span: Span {
+                                                                    start: 19,
+                                                                    end: 51,
+                                                                    handle: Handle {
+                                                                        id: 0,
+                                                                    },
+                                                                },
+                                                            },
+                                                        },
+                                                        span: Span {
+                                                            start: 18,
+                                                            end: 51,
+                                                            handle: Handle {
+                                                                id: 0,
+                                                            },
+                                                        },
+                                                    },
+                                                },
+                                                span: Span {
+                                                    start: 15,
+                                                    end: 61,
+                                                    handle: Handle {
+                                                        id: 0,
+                                                    },
+                                                },
+                                            },
+                                            Variable {
+                                                kind: LocalVariable,
+                                                ty: RefCell {
+                                                    value: ReferenceTo {
+                                                        mut: false,
+                                                        ty: RefCell {
+                                                            value: SizedArrayOf {
+                                                                count: Instruction(
+                                                                    Literal(
+                                                                        Literal {
+                                                                            kind: Integer(
+                                                                                5,
+                                                                            ),
+                                                                            span: Span {
+                                                                                start: 80,
+                                                                                end: 81,
+                                                                                handle: Handle {
+                                                                                    id: 0,
+                                                                                },
+                                                                            },
+                                                                        },
+                                                                    ),
+                                                                ),
+                                                                ty: RefCell {
+                                                                    value: Intrinsic {
+                                                                        kind: U8,
+                                                                        span: Span {
+                                                                            start: 33,
+                                                                            end: 85,
+                                                                            handle: Handle {
+                                                                                id: 0,
+                                                                            },
+                                                                        },
+                                                                    },
+                                                                },
+                                                                span: Span {
+                                                                    start: 30,
+                                                                    end: 85,
+                                                                    handle: Handle {
+                                                                        id: 0,
+                                                                    },
+                                                                },
+                                                            },
+                                                        },
+                                                        span: Span {
+                                                            start: 29,
+                                                            end: 85,
+                                                            handle: Handle {
+                                                                id: 0,
+                                                            },
+                                                        },
+                                                    },
+                                                },
+                                                span: Span {
+                                                    start: 26,
+                                                    end: 96,
+                                                    handle: Handle {
+                                                        id: 0,
+                                                    },
+                                                },
+                                            },
+                                            Variable {
+                                                kind: LocalVariable,
+                                                ty: RefCell {
+                                                    value: Intrinsic {
+                                                        kind: U64,
+                                                        span: Span {
+                                                            start: 43,
+                                                            end: 114,
+                                                            handle: Handle {
+                                                                id: 0,
+                                                            },
+                                                        },
+                                                    },
+                                                },
+                                                span: Span {
+                                                    start: 40,
+                                                    end: 121,
+                                                    handle: Handle {
+                                                        id: 0,
+                                                    },
+                                                },
+                                            },
+                                            Variable {
+                                                kind: LocalVariable,
+                                                ty: RefCell {
+                                                    value: Intrinsic {
+                                                        kind: U64,
+                                                        span: Span {
+                                                            start: 53,
+                                                            end: 136,
+                                                            handle: Handle {
+                                                                id: 0,
+                                                            },
+                                                        },
+                                                    },
+                                                },
+                                                span: Span {
+                                                    start: 50,
+                                                    end: 143,
+                                                    handle: Handle {
+                                                        id: 0,
+                                                    },
+                                                },
+                                            },
+                                            Variable {
+                                                kind: LocalVariable,
+                                                ty: RefCell {
+                                                    value: Intrinsic {
+                                                        kind: U8,
+                                                        span: Span {
+                                                            start: 65,
+                                                            end: 174,
+                                                            handle: Handle {
+                                                                id: 0,
+                                                            },
+                                                        },
+                                                    },
+                                                },
+                                                span: Span {
+                                                    start: 62,
+                                                    end: 180,
+                                                    handle: Handle {
+                                                        id: 0,
+                                                    },
+                                                },
+                                            },
+                                        ],
+                                    },
+                                },
+                                body: [
+                                    Assign {
+                                        dest: Variable(
+                                            VariableReference {
+                                                scope: RefCell {
+                                                    value: [
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: ReferenceTo {
+                                                                    mut: false,
+                                                                    ty: RefCell {
+                                                                        value: Unresolved {
+                                                                            implied: false,
+                                                                            reference: DomainReference {
+                                                                                handle: Handle {
+                                                                                    id: 0,
+                                                                                },
+                                                                                inner: [],
+                                                                            },
+                                                                            template: None,
+                                                                            span: Span {
+                                                                                start: 19,
+                                                                                end: 51,
+                                                                                handle: Handle {
+                                                                                    id: 0,
+                                                                                },
+                                                                            },
+                                                                        },
+                                                                    },
+                                                                    span: Span {
+                                                                        start: 18,
+                                                                        end: 51,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 15,
+                                                                end: 61,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: ReferenceTo {
+                                                                    mut: false,
+                                                                    ty: RefCell {
+                                                                        value: SizedArrayOf {
+                                                                            count: Instruction(
+                                                                                Literal(
+                                                                                    Literal {
+                                                                                        kind: Integer(
+                                                                                            5,
+                                                                                        ),
+                                                                                        span: Span {
+                                                                                            start: 80,
+                                                                                            end: 81,
+                                                                                            handle: Handle {
+                                                                                                id: 0,
+                                                                                            },
+                                                                                        },
+                                                                                    },
+                                                                                ),
+                                                                            ),
+                                                                            ty: RefCell {
+                                                                                value: Intrinsic {
+                                                                                    kind: U8,
+                                                                                    span: Span {
+                                                                                        start: 33,
+                                                                                        end: 85,
+                                                                                        handle: Handle {
+                                                                                            id: 0,
+                                                                                        },
+                                                                                    },
+                                                                                },
+                                                                            },
+                                                                            span: Span {
+                                                                                start: 30,
+                                                                                end: 85,
+                                                                                handle: Handle {
+                                                                                    id: 0,
+                                                                                },
+                                                                            },
+                                                                        },
+                                                                    },
+                                                                    span: Span {
+                                                                        start: 29,
+                                                                        end: 85,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 26,
+                                                                end: 96,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Intrinsic {
+                                                                    kind: U64,
+                                                                    span: Span {
+                                                                        start: 43,
+                                                                        end: 114,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 40,
+                                                                end: 121,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Intrinsic {
+                                                                    kind: U64,
+                                                                    span: Span {
+                                                                        start: 53,
+                                                                        end: 136,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 50,
+                                                                end: 143,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Intrinsic {
+                                                                    kind: U8,
+                                                                    span: Span {
+                                                                        start: 65,
+                                                                        end: 174,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 62,
+                                                                end: 180,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                    ],
+                                                },
+                                                id: 0,
+                                                span: Span {
+                                                    start: 15,
+                                                    end: 61,
+                                                    handle: Handle {
+                                                        id: 0,
+                                                    },
+                                                },
+                                            },
+                                        ),
+                                        value: Instruction(
+                                            Literal(
+                                                Literal {
+                                                    kind: UnicodeString(
+                                                        "hello",
+                                                    ),
+                                                    span: Span {
+                                                        start: 54,
+                                                        end: 60,
+                                                        handle: Handle {
+                                                            id: 0,
+                                                        },
+                                                    },
+                                                },
+                                            ),
+                                        ),
+                                        span: Span {
+                                            start: 54,
+                                            end: 60,
+                                            handle: Handle {
+                                                id: 0,
+                                            },
+                                        },
+                                    },
+                                    Assign {
+                                        dest: Variable(
+                                            VariableReference {
+                                                scope: RefCell {
+                                                    value: [
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: ReferenceTo {
+                                                                    mut: false,
+                                                                    ty: RefCell {
+                                                                        value: Unresolved {
+                                                                            implied: false,
+                                                                            reference: DomainReference {
+                                                                                handle: Handle {
+                                                                                    id: 0,
+                                                                                },
+                                                                                inner: [],
+                                                                            },
+                                                                            template: None,
+                                                                            span: Span {
+                                                                                start: 19,
+                                                                                end: 51,
+                                                                                handle: Handle {
+                                                                                    id: 0,
+                                                                                },
+                                                                            },
+                                                                        },
+                                                                    },
+                                                                    span: Span {
+                                                                        start: 18,
+                                                                        end: 51,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 15,
+                                                                end: 61,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: ReferenceTo {
+                                                                    mut: false,
+                                                                    ty: RefCell {
+                                                                        value: SizedArrayOf {
+                                                                            count: Instruction(
+                                                                                Literal(
+                                                                                    Literal {
+                                                                                        kind: Integer(
+                                                                                            5,
+                                                                                        ),
+                                                                                        span: Span {
+                                                                                            start: 80,
+                                                                                            end: 81,
+                                                                                            handle: Handle {
+                                                                                                id: 0,
+                                                                                            },
+                                                                                        },
+                                                                                    },
+                                                                                ),
+                                                                            ),
+                                                                            ty: RefCell {
+                                                                                value: Intrinsic {
+                                                                                    kind: U8,
+                                                                                    span: Span {
+                                                                                        start: 33,
+                                                                                        end: 85,
+                                                                                        handle: Handle {
+                                                                                            id: 0,
+                                                                                        },
+                                                                                    },
+                                                                                },
+                                                                            },
+                                                                            span: Span {
+                                                                                start: 30,
+                                                                                end: 85,
+                                                                                handle: Handle {
+                                                                                    id: 0,
+                                                                                },
+                                                                            },
+                                                                        },
+                                                                    },
+                                                                    span: Span {
+                                                                        start: 29,
+                                                                        end: 85,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 26,
+                                                                end: 96,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Intrinsic {
+                                                                    kind: U64,
+                                                                    span: Span {
+                                                                        start: 43,
+                                                                        end: 114,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 40,
+                                                                end: 121,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Intrinsic {
+                                                                    kind: U64,
+                                                                    span: Span {
+                                                                        start: 53,
+                                                                        end: 136,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 50,
+                                                                end: 143,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Intrinsic {
+                                                                    kind: U8,
+                                                                    span: Span {
+                                                                        start: 65,
+                                                                        end: 174,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 62,
+                                                                end: 180,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                    ],
+                                                },
+                                                id: 1,
+                                                span: Span {
+                                                    start: 26,
+                                                    end: 96,
+                                                    handle: Handle {
+                                                        id: 0,
+                                                    },
+                                                },
+                                            },
+                                        ),
+                                        value: Instruction(
+                                            Literal(
+                                                Literal {
+                                                    kind: ByteString(
+                                                        "hello",
+                                                    ),
+                                                    span: Span {
+                                                        start: 88,
+                                                        end: 95,
+                                                        handle: Handle {
+                                                            id: 0,
+                                                        },
+                                                    },
+                                                },
+                                            ),
+                                        ),
+                                        span: Span {
+                                            start: 88,
+                                            end: 95,
+                                            handle: Handle {
+                                                id: 0,
+                                            },
+                                        },
+                                    },
+                                    Assign {
+                                        dest: Variable(
+                                            VariableReference {
+                                                scope: RefCell {
+                                                    value: [
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: ReferenceTo {
+                                                                    mut: false,
+                                                                    ty: RefCell {
+                                                                        value: Unresolved {
+                                                                            implied: false,
+                                                                            reference: DomainReference {
+                                                                                handle: Handle {
+                                                                                    id: 0,
+                                                                                },
+                                                                                inner: [],
+                                                                            },
+                                                                            template: None,
+                                                                            span: Span {
+                                                                                start: 19,
+                                                                                end: 51,
+                                                                                handle: Handle {
+                                                                                    id: 0,
+                                                                                },
+                                                                            },
+                                                                        },
+                                                                    },
+                                                                    span: Span {
+                                                                        start: 18,
+                                                                        end: 51,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 15,
+                                                                end: 61,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: ReferenceTo {
+                                                                    mut: false,
+                                                                    ty: RefCell {
+                                                                        value: SizedArrayOf {
+                                                                            count: Instruction(
+                                                                                Literal(
+                                                                                    Literal {
+                                                                                        kind: Integer(
+                                                                                            5,
+                                                                                        ),
+                                                                                        span: Span {
+                                                                                            start: 80,
+                                                                                            end: 81,
+                                                                                            handle: Handle {
+                                                                                                id: 0,
+                                                                                            },
+                                                                                        },
+                                                                                    },
+                                                                                ),
+                                                                            ),
+                                                                            ty: RefCell {
+                                                                                value: Intrinsic {
+                                                                                    kind: U8,
+                                                                                    span: Span {
+                                                                                        start: 33,
+                                                                                        end: 85,
+                                                                                        handle: Handle {
+                                                                                            id: 0,
+                                                                                        },
+                                                                                    },
+                                                                                },
+                                                                            },
+                                                                            span: Span {
+                                                                                start: 30,
+                                                                                end: 85,
+                                                                                handle: Handle {
+                                                                                    id: 0,
+                                                                                },
+                                                                            },
+                                                                        },
+                                                                    },
+                                                                    span: Span {
+                                                                        start: 29,
+                                                                        end: 85,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 26,
+                                                                end: 96,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Intrinsic {
+                                                                    kind: U64,
+                                                                    span: Span {
+                                                                        start: 43,
+                                                                        end: 114,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 40,
+                                                                end: 121,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Intrinsic {
+                                                                    kind: U64,
+                                                                    span: Span {
+                                                                        start: 53,
+                                                                        end: 136,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 50,
+                                                                end: 143,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Intrinsic {
+                                                                    kind: U8,
+                                                                    span: Span {
+                                                                        start: 65,
+                                                                        end: 174,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 62,
+                                                                end: 180,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                    ],
+                                                },
+                                                id: 2,
+                                                span: Span {
+                                                    start: 40,
+                                                    end: 121,
+                                                    handle: Handle {
+                                                        id: 0,
+                                                    },
+                                                },
+                                            },
+                                        ),
+                                        value: Instruction(
+                                            Literal(
+                                                Literal {
+                                                    kind: Integer(
+                                                        1234,
+                                                    ),
+                                                    span: Span {
+                                                        start: 117,
+                                                        end: 121,
+                                                        handle: Handle {
+                                                            id: 0,
+                                                        },
+                                                    },
+                                                },
+                                            ),
+                                        ),
+                                        span: Span {
+                                            start: 117,
+                                            end: 121,
+                                            handle: Handle {
+                                                id: 0,
+                                            },
+                                        },
+                                    },
+                                    Assign {
+                                        dest: Variable(
+                                            VariableReference {
+                                                scope: RefCell {
+                                                    value: [
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: ReferenceTo {
+                                                                    mut: false,
+                                                                    ty: RefCell {
+                                                                        value: Unresolved {
+                                                                            implied: false,
+                                                                            reference: DomainReference {
+                                                                                handle: Handle {
+                                                                                    id: 0,
+                                                                                },
+                                                                                inner: [],
+                                                                            },
+                                                                            template: None,
+                                                                            span: Span {
+                                                                                start: 19,
+                                                                                end: 51,
+                                                                                handle: Handle {
+                                                                                    id: 0,
+                                                                                },
+                                                                            },
+                                                                        },
+                                                                    },
+                                                                    span: Span {
+                                                                        start: 18,
+                                                                        end: 51,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 15,
+                                                                end: 61,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: ReferenceTo {
+                                                                    mut: false,
+                                                                    ty: RefCell {
+                                                                        value: SizedArrayOf {
+                                                                            count: Instruction(
+                                                                                Literal(
+                                                                                    Literal {
+                                                                                        kind: Integer(
+                                                                                            5,
+                                                                                        ),
+                                                                                        span: Span {
+                                                                                            start: 80,
+                                                                                            end: 81,
+                                                                                            handle: Handle {
+                                                                                                id: 0,
+                                                                                            },
+                                                                                        },
+                                                                                    },
+                                                                                ),
+                                                                            ),
+                                                                            ty: RefCell {
+                                                                                value: Intrinsic {
+                                                                                    kind: U8,
+                                                                                    span: Span {
+                                                                                        start: 33,
+                                                                                        end: 85,
+                                                                                        handle: Handle {
+                                                                                            id: 0,
+                                                                                        },
+                                                                                    },
+                                                                                },
+                                                                            },
+                                                                            span: Span {
+                                                                                start: 30,
+                                                                                end: 85,
+                                                                                handle: Handle {
+                                                                                    id: 0,
+                                                                                },
+                                                                            },
+                                                                        },
+                                                                    },
+                                                                    span: Span {
+                                                                        start: 29,
+                                                                        end: 85,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 26,
+                                                                end: 96,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Intrinsic {
+                                                                    kind: U64,
+                                                                    span: Span {
+                                                                        start: 43,
+                                                                        end: 114,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 40,
+                                                                end: 121,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Intrinsic {
+                                                                    kind: U64,
+                                                                    span: Span {
+                                                                        start: 53,
+                                                                        end: 136,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 50,
+                                                                end: 143,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Intrinsic {
+                                                                    kind: U8,
+                                                                    span: Span {
+                                                                        start: 65,
+                                                                        end: 174,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 62,
+                                                                end: 180,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                    ],
+                                                },
+                                                id: 3,
+                                                span: Span {
+                                                    start: 50,
+                                                    end: 143,
+                                                    handle: Handle {
+                                                        id: 0,
+                                                    },
+                                                },
+                                            },
+                                        ),
+                                        value: Instruction(
+                                            Literal(
+                                                Literal {
+                                                    kind: Integer(
+                                                        5678,
+                                                    ),
+                                                    span: Span {
+                                                        start: 139,
+                                                        end: 143,
+                                                        handle: Handle {
+                                                            id: 0,
+                                                        },
+                                                    },
+                                                },
+                                            ),
+                                        ),
+                                        span: Span {
+                                            start: 139,
+                                            end: 143,
+                                            handle: Handle {
+                                                id: 0,
+                                            },
+                                        },
+                                    },
+                                    Assign {
+                                        dest: Variable(
+                                            VariableReference {
+                                                scope: RefCell {
+                                                    value: [
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: ReferenceTo {
+                                                                    mut: false,
+                                                                    ty: RefCell {
+                                                                        value: Unresolved {
+                                                                            implied: false,
+                                                                            reference: DomainReference {
+                                                                                handle: Handle {
+                                                                                    id: 0,
+                                                                                },
+                                                                                inner: [],
+                                                                            },
+                                                                            template: None,
+                                                                            span: Span {
+                                                                                start: 19,
+                                                                                end: 51,
+                                                                                handle: Handle {
+                                                                                    id: 0,
+                                                                                },
+                                                                            },
+                                                                        },
+                                                                    },
+                                                                    span: Span {
+                                                                        start: 18,
+                                                                        end: 51,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 15,
+                                                                end: 61,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: ReferenceTo {
+                                                                    mut: false,
+                                                                    ty: RefCell {
+                                                                        value: SizedArrayOf {
+                                                                            count: Instruction(
+                                                                                Literal(
+                                                                                    Literal {
+                                                                                        kind: Integer(
+                                                                                            5,
+                                                                                        ),
+                                                                                        span: Span {
+                                                                                            start: 80,
+                                                                                            end: 81,
+                                                                                            handle: Handle {
+                                                                                                id: 0,
+                                                                                            },
+                                                                                        },
+                                                                                    },
+                                                                                ),
+                                                                            ),
+                                                                            ty: RefCell {
+                                                                                value: Intrinsic {
+                                                                                    kind: U8,
+                                                                                    span: Span {
+                                                                                        start: 33,
+                                                                                        end: 85,
+                                                                                        handle: Handle {
+                                                                                            id: 0,
+                                                                                        },
+                                                                                    },
+                                                                                },
+                                                                            },
+                                                                            span: Span {
+                                                                                start: 30,
+                                                                                end: 85,
+                                                                                handle: Handle {
+                                                                                    id: 0,
+                                                                                },
+                                                                            },
+                                                                        },
+                                                                    },
+                                                                    span: Span {
+                                                                        start: 29,
+                                                                        end: 85,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 26,
+                                                                end: 96,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Intrinsic {
+                                                                    kind: U64,
+                                                                    span: Span {
+                                                                        start: 43,
+                                                                        end: 114,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 40,
+                                                                end: 121,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Intrinsic {
+                                                                    kind: U64,
+                                                                    span: Span {
+                                                                        start: 53,
+                                                                        end: 136,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 50,
+                                                                end: 143,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Intrinsic {
+                                                                    kind: U8,
+                                                                    span: Span {
+                                                                        start: 65,
+                                                                        end: 174,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 62,
+                                                                end: 180,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                    ],
+                                                },
+                                                id: 4,
+                                                span: Span {
+                                                    start: 62,
+                                                    end: 180,
+                                                    handle: Handle {
+                                                        id: 0,
+                                                    },
+                                                },
+                                            },
+                                        ),
+                                        value: Instruction(
+                                            Literal(
+                                                Literal {
+                                                    kind: Integer(
+                                                        256,
+                                                    ),
+                                                    span: Span {
+                                                        start: 177,
+                                                        end: 180,
+                                                        handle: Handle {
+                                                            id: 0,
+                                                        },
+                                                    },
+                                                },
+                                            ),
+                                        ),
+                                        span: Span {
+                                            start: 177,
+                                            end: 180,
+                                            handle: Handle {
+                                                id: 0,
+                                            },
+                                        },
+                                    },
+                                ],
+                                span: Span {
+                                    start: 13,
+                                    end: 183,
+                                    handle: Handle {
+                                        id: 0,
+                                    },
+                                },
+                            },
+                            span: Span {
+                                start: 11,
+                                end: 183,
+                                handle: Handle {
+                                    id: 0,
+                                },
+                            },
+                        },
+                    ),
+                    "implicit": Function(
+                        Function {
+                            arguments: VariableScope {
+                                inner: RefCell {
+                                    value: [],
+                                },
+                            },
+                            return_ty: RefCell {
+                                value: Intrinsic {
+                                    kind: Void,
+                                    span: Span {
+                                        start: 75,
+                                        end: 195,
+                                        handle: Handle {
+                                            id: 0,
+                                        },
+                                    },
+                                },
+                            },
+                            body: Block {
+                                variables: VariableScope {
+                                    inner: RefCell {
+                                        value: [
+                                            Variable {
+                                                kind: LocalVariable,
+                                                ty: RefCell {
+                                                    value: Unknown {
+                                                        span: Span {
+                                                            start: 77,
+                                                            end: 422,
+                                                            handle: Handle {
+                                                                id: 0,
+                                                            },
+                                                        },
+                                                    },
+                                                },
+                                                span: Span {
+                                                    start: 81,
+                                                    end: 242,
+                                                    handle: Handle {
+                                                        id: 0,
+                                                    },
+                                                },
+                                            },
+                                            Variable {
+                                                kind: LocalVariable,
+                                                ty: RefCell {
+                                                    value: Unknown {
+                                                        span: Span {
+                                                            start: 77,
+                                                            end: 422,
+                                                            handle: Handle {
+                                                                id: 0,
+                                                            },
+                                                        },
+                                                    },
+                                                },
+                                                span: Span {
+                                                    start: 90,
+                                                    end: 291,
+                                                    handle: Handle {
+                                                        id: 0,
+                                                    },
+                                                },
+                                            },
+                                        ],
+                                    },
+                                },
+                                body: [
+                                    Assign {
+                                        dest: Variable(
+                                            VariableReference {
+                                                scope: RefCell {
+                                                    value: [
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Unknown {
+                                                                    span: Span {
+                                                                        start: 77,
+                                                                        end: 422,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 81,
+                                                                end: 242,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Unknown {
+                                                                    span: Span {
+                                                                        start: 77,
+                                                                        end: 422,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 90,
+                                                                end: 291,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                    ],
+                                                },
+                                                id: 0,
+                                                span: Span {
+                                                    start: 81,
+                                                    end: 242,
+                                                    handle: Handle {
+                                                        id: 0,
+                                                    },
+                                                },
+                                            },
+                                        ),
+                                        value: Instruction(
+                                            Literal(
+                                                Literal {
+                                                    kind: UnicodeString(
+                                                        "hello",
+                                                    ),
+                                                    span: Span {
+                                                        start: 235,
+                                                        end: 241,
+                                                        handle: Handle {
+                                                            id: 0,
+                                                        },
+                                                    },
+                                                },
+                                            ),
+                                        ),
+                                        span: Span {
+                                            start: 235,
+                                            end: 241,
+                                            handle: Handle {
+                                                id: 0,
+                                            },
+                                        },
+                                    },
+                                    Assign {
+                                        dest: Variable(
+                                            VariableReference {
+                                                scope: RefCell {
+                                                    value: [
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Unknown {
+                                                                    span: Span {
+                                                                        start: 77,
+                                                                        end: 422,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 81,
+                                                                end: 242,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                        Variable {
+                                                            kind: LocalVariable,
+                                                            ty: RefCell {
+                                                                value: Unknown {
+                                                                    span: Span {
+                                                                        start: 77,
+                                                                        end: 422,
+                                                                        handle: Handle {
+                                                                            id: 0,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                            span: Span {
+                                                                start: 90,
+                                                                end: 291,
+                                                                handle: Handle {
+                                                                    id: 0,
+                                                                },
+                                                            },
+                                                        },
+                                                    ],
+                                                },
+                                                id: 1,
+                                                span: Span {
+                                                    start: 90,
+                                                    end: 291,
+                                                    handle: Handle {
+                                                        id: 0,
+                                                    },
+                                                },
+                                            },
+                                        ),
+                                        value: Instruction(
+                                            Literal(
+                                                Literal {
+                                                    kind: ByteString(
+                                                        "hello",
+                                                    ),
+                                                    span: Span {
+                                                        start: 283,
+                                                        end: 290,
+                                                        handle: Handle {
+                                                            id: 0,
+                                                        },
+                                                    },
+                                                },
+                                            ),
+                                        ),
+                                        span: Span {
+                                            start: 283,
+                                            end: 290,
+                                            handle: Handle {
+                                                id: 0,
+                                            },
+                                        },
+                                    },
+                                ],
+                                span: Span {
+                                    start: 77,
+                                    end: 422,
+                                    handle: Handle {
+                                        id: 0,
+                                    },
+                                },
+                            },
+                            span: Span {
+                                start: 75,
+                                end: 422,
+                                handle: Handle {
+                                    id: 0,
+                                },
+                            },
+                        },
+                    ),
+                    "main": Function(
+                        Function {
+                            arguments: VariableScope {
+                                inner: RefCell {
+                                    value: [],
+                                },
+                            },
+                            return_ty: RefCell {
+                                value: Intrinsic {
+                                    kind: I32,
+                                    span: Span {
+                                        start: 115,
+                                        end: 437,
+                                        handle: Handle {
+                                            id: 0,
+                                        },
+                                    },
+                                },
+                            },
+                            body: Block {
+                                variables: VariableScope {
+                                    inner: RefCell {
+                                        value: [],
+                                    },
+                                },
+                                body: [
+                                    Return {
+                                        value: Instruction(
+                                            Literal(
+                                                Literal {
+                                                    kind: Integer(
+                                                        0,
+                                                    ),
+                                                    span: Span {
+                                                        start: 441,
+                                                        end: 442,
+                                                        handle: Handle {
+                                                            id: 0,
+                                                        },
+                                                    },
+                                                },
+                                            ),
+                                        ),
+                                        span: Span {
+                                            start: 441,
+                                            end: 442,
+                                            handle: Handle {
+                                                id: 0,
+                                            },
+                                        },
+                                    },
+                                ],
+                                span: Span {
+                                    start: 117,
+                                    end: 444,
+                                    handle: Handle {
+                                        id: 0,
+                                    },
+                                },
+                            },
+                            span: Span {
+                                start: 111,
+                                end: 444,
+                                handle: Handle {
+                                    id: 0,
+                                },
+                            },
+                        },
+                    ),
+                    "str": Type(
+                        RefCell {
+                            value: UnsizedArrayOf {
+                                ty: RefCell {
+                                    value: Intrinsic {
+                                        kind: U32,
+                                        span: Span {
+                                            start: 8,
+                                            end: 17,
+                                            handle: Handle {
+                                                id: 0,
+                                            },
+                                        },
+                                    },
+                                },
+                                span: Span {
+                                    start: 6,
+                                    end: 17,
+                                    handle: Handle {
+                                        id: 0,
+                                    },
+                                },
+                            },
+                        },
+                    ),
+                },
+            },
+            debug_info: DebugInfo {
+                source: "type str := []u32;\n\nhello_explicit {\n  hello: &str := \"hello\";\n  hello_bytes: &[5]u8 := b\"hello\";\n\n  n1234: usize := 1234;\n  n5678: u64 := 5678;\n\n  // should fail\n  n256: u8 := 256;\n};\n\nimplicit {\n  // should be Slice<char>\n  hello := \"hello\";\n\n  // should be [5]u8\n  hello_bytes := b\"hello\";\n\n  // should be usize\n  // n1234 := 1234usize;\n\n  // should be u64\n  // n5678 := 5678u64;\n\n  // should fail\n  // n256 := 256u8;\n};\n\nmain -> i32 {\n  0\n};\n",
+                color_stream: [
+                    (
+                        0,
+                        LightRed,
+                    ),
+                    (
+                        4,
+                        Clear,
+                    ),
+                    (
+                        5,
+                        Creme,
+                    ),
+                    (
+                        8,
+                        Clear,
+                    ),
+                    (
+                        9,
+                        LightBlue,
+                    ),
+                    (
+                        11,
+                        Clear,
+                    ),
+                    (
+                        12,
+                        Clear,
+                    ),
+                    (
+                        13,
+                        Clear,
+                    ),
+                    (
+                        14,
+                        Creme,
+                    ),
+                    (
+                        17,
+                        Clear,
+                    ),
+                    (
+                        18,
+                        Clear,
+                    ),
+                    (
+                        20,
+                        Creme,
+                    ),
+                    (
+                        34,
+                        Clear,
+                    ),
+                    (
+                        35,
+                        Clear,
+                    ),
+                    (
+                        36,
+                        Clear,
+                    ),
+                    (
+                        39,
+                        Creme,
+                    ),
+                    (
+                        44,
+                        Clear,
+                    ),
+                    (
+                        45,
+                        Clear,
+                    ),
+                    (
+                        46,
+                        LightBlue,
+                    ),
+                    (
+                        47,
+                        Creme,
+                    ),
+                    (
+                        50,
+                        Clear,
+                    ),
+                    (
+                        51,
+                        LightBlue,
+                    ),
+                    (
+                        53,
+                        Clear,
+                    ),
+                    (
+                        54,
+                        Mint,
+                    ),
+                    (
+                        61,
+                        Clear,
+                    ),
+                    (
+                        62,
+                        Clear,
+                    ),
+                    (
+                        65,
+                        Creme,
+                    ),
+                    (
+                        76,
+                        Clear,
+                    ),
+                    (
+                        77,
+                        Clear,
+                    ),
+                    (
+                        78,
+                        LightBlue,
+                    ),
+                    (
+                        79,
+                        Clear,
+                    ),
+                    (
+                        80,
+                        Mint,
+                    ),
+                    (
+                        81,
+                        Clear,
+                    ),
+                    (
+                        82,
+                        Creme,
+                    ),
+                    (
+                        84,
+                        Clear,
+                    ),
+                    (
+                        85,
+                        LightBlue,
+                    ),
+                    (
+                        87,
+                        Clear,
+                    ),
+                    (
+                        88,
+                        Mint,
+                    ),
+                    (
+                        96,
+                        Clear,
+                    ),
+                    (
+                        97,
+                        Clear,
+                    ),
+                    (
+                        101,
+                        Creme,
+                    ),
+                    (
+                        106,
+                        Clear,
+                    ),
+                    (
+                        107,
+                        Clear,
+                    ),
+                    (
+                        108,
+                        Creme,
+                    ),
+                    (
+                        113,
+                        Clear,
+                    ),
+                    (
+                        114,
+                        LightBlue,
+                    ),
+                    (
+                        116,
+                        Clear,
+                    ),
+                    (
+                        117,
+                        Mint,
+                    ),
+                    (
+                        121,
+                        Clear,
+                    ),
+                    (
+                        122,
+                        Clear,
+                    ),
+                    (
+                        125,
+                        Creme,
+                    ),
+                    (
+                        130,
+                        Clear,
+                    ),
+                    (
+                        131,
+                        Clear,
+                    ),
+                    (
+                        132,
+                        Creme,
+                    ),
+                    (
+                        135,
+                        Clear,
+                    ),
+                    (
+                        136,
+                        LightBlue,
+                    ),
+                    (
+                        138,
+                        Clear,
+                    ),
+                    (
+                        139,
+                        Mint,
+                    ),
+                    (
+                        143,
+                        Clear,
+                    ),
+                    (
+                        144,
+                        Clear,
+                    ),
+                    (
+                        148,
+                        DarkGrey,
+                    ),
+                    (
+                        163,
+                        Clear,
+                    ),
+                    (
+                        165,
+                        Creme,
+                    ),
+                    (
+                        169,
+                        Clear,
+                    ),
+                    (
+                        170,
+                        Clear,
+                    ),
+                    (
+                        171,
+                        Creme,
+                    ),
+                    (
+                        173,
+                        Clear,
+                    ),
+                    (
+                        174,
+                        LightBlue,
+                    ),
+                    (
+                        176,
+                        Clear,
+                    ),
+                    (
+                        177,
+                        Mint,
+                    ),
+                    (
+                        180,
+                        Clear,
+                    ),
+                    (
+                        181,
+                        Clear,
+                    ),
+                    (
+                        182,
+                        Clear,
+                    ),
+                    (
+                        183,
+                        Clear,
+                    ),
+                    (
+                        184,
+                        Clear,
+                    ),
+                    (
+                        186,
+                        Creme,
+                    ),
+                    (
+                        194,
+                        Clear,
+                    ),
+                    (
+                        195,
+                        Clear,
+                    ),
+                    (
+                        196,
+                        Clear,
+                    ),
+                    (
+                        199,
+                        DarkGrey,
+                    ),
+                    (
+                        224,
+                        Clear,
+                    ),
+                    (
+                        226,
+                        Creme,
+                    ),
+                    (
+                        231,
+                        Clear,
+                    ),
+                    (
+                        232,
+                        LightBlue,
+                    ),
+                    (
+                        234,
+                        Clear,
+                    ),
+                    (
+                        235,
+                        Mint,
+                    ),
+                    (
+                        242,
+                        Clear,
+                    ),
+                    (
+                        243,
+                        Clear,
+                    ),
+                    (
+                        247,
+                        DarkGrey,
+                    ),
+                    (
+                        266,
+                        Clear,
+                    ),
+                    (
+                        268,
+                        Creme,
+                    ),
+                    (
+                        279,
+                        Clear,
+                    ),
+                    (
+                        280,
+                        LightBlue,
+                    ),
+                    (
+                        282,
+                        Clear,
+                    ),
+                    (
+                        283,
+                        Mint,
+                    ),
+                    (
+                        291,
+                        Clear,
+                    ),
+                    (
+                        292,
+                        Clear,
+                    ),
+                    (
+                        296,
+                        DarkGrey,
+                    ),
+                    (
+                        315,
+                        Clear,
+                    ),
+                    (
+                        317,
+                        DarkGrey,
+                    ),
+                    (
+                        340,
+                        Clear,
+                    ),
+                    (
+                        343,
+                        DarkGrey,
+                    ),
+                    (
+                        360,
+                        Clear,
+                    ),
+                    (
+                        362,
+                        DarkGrey,
+                    ),
+                    (
+                        383,
+                        Clear,
+                    ),
+                    (
+                        386,
+                        DarkGrey,
+                    ),
+                    (
+                        401,
+                        Clear,
+                    ),
+                    (
+                        403,
+                        DarkGrey,
+                    ),
+                    (
+                        421,
+                        Clear,
+                    ),
+                    (
+                        422,
+                        Clear,
+                    ),
+                    (
+                        423,
+                        Clear,
+                    ),
+                    (
+                        425,
+                        Creme,
+                    ),
+                    (
+                        429,
+                        Clear,
+                    ),
+                    (
+                        430,
+                        LightBlue,
+                    ),
+                    (
+                        432,
+                        Clear,
+                    ),
+                    (
+                        433,
+                        Creme,
+                    ),
+                    (
+                        436,
+                        Clear,
+                    ),
+                    (
+                        437,
+                        Clear,
+                    ),
+                    (
+                        438,
+                        Clear,
+                    ),
+                    (
+                        441,
+                        Mint,
+                    ),
+                    (
+                        442,
+                        Clear,
+                    ),
+                    (
+                        443,
+                        Clear,
+                    ),
+                    (
+                        444,
+                        Clear,
+                    ),
+                ],
+            },
+            path: "snippets/01_assn.zy",
+        },
+    },
+}
+[src/typechecker/check/impls/mod.rs:40:11] "nothing done for return" = "nothing done for return"
+thread 'tests::assn' panicked at src/typechecker/mod.rs:84:5:
+not yet implemented
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::assn
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 23 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `--bin lazy`

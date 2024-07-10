@@ -1,9 +1,9 @@
 mod error;
-
-pub(crate) mod lang;
 mod domain;
 mod preprocess;
 mod check;
+
+pub(crate) mod lang;
 
 use std::collections::HashMap;
 
@@ -26,9 +26,8 @@ use lang::VariableReference;
 use preprocess::Preprocess;
 
 pub(crate) use check::TypeOf;
-
-pub(crate) use error::*;
 pub(crate) use domain::*;
+pub(crate) use error::*;
 
 #[allow(unused)]
 pub(crate) struct Preprocessor {

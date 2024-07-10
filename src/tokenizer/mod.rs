@@ -1,20 +1,19 @@
 mod structs;
+mod state;
 
 pub(crate) mod error;
-
-mod state;
-use state::*;
 
 use std::fs::File;
 use utf8_read::Reader;
 
+use crate::compiler::Handle;
+use crate::colors::Color;
+use error::InvalidSourceSnafu;
+
+use state::*;
+
 pub(crate) use structs::*;
 pub(crate) use error::TokenizationError;
-
-use crate::colors::Color;
-use crate::compiler::Handle;
-
-use self::error::InvalidSourceSnafu;
 
 pub(crate) fn create_color_stream(tokens: &[Token]) -> Vec<(usize, Color)> {
   let mut color_stream = vec![];

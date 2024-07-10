@@ -1,8 +1,6 @@
 pub(crate) mod error;
 pub(crate) mod ast;
 
-pub(crate) use error::AsterizerError;
-
 use std::fmt::Debug;
 use std::path::Path;
 
@@ -22,6 +20,8 @@ use crate::compiler::{
   Compiler,
   Handle,
 };
+
+pub(crate) use error::AsterizerError;
 
 pub(crate) struct TokenStream<'a> {
   position: usize,

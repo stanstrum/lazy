@@ -1,6 +1,17 @@
 use std::collections::HashMap;
 
-use super::lang::{
+use crate::tokenizer::GetSpan;
+use crate::asterizer::ast;
+
+use crate::typechecker::{
+  Domain,
+  DomainMember,
+  NamedDomainMember,
+  Preprocessor,
+  TypeCheckerError,
+};
+
+use crate::typechecker::lang::{
   Block,
   Function,
   Instruction,
@@ -12,17 +23,6 @@ use super::lang::{
   VariableReference,
   intrinsics::Intrinsic,
 };
-
-use super::{
-  Domain,
-  DomainMember,
-  NamedDomainMember,
-  Preprocessor,
-  TypeCheckerError,
-};
-
-use crate::asterizer::ast;
-use crate::tokenizer::GetSpan;
 
 pub(super) trait Preprocess {
   type Out;
@@ -72,27 +72,24 @@ impl Preprocess for ast::Block {
     let mut variable_map = HashMap::new();
 
     for child in self.children.iter() {
-      match child {
-        ast::BlockChild::Binding(binding) => {
-          let variable_id = variables.len();
+      if let ast::BlockChild::Binding(binding) = child {
+        let variable_id = variables.len();
 
-          variable_map.insert(&binding.name, variable_id);
-          variables.push(Variable {
-            name: binding.name.to_owned(),
-            kind: VariableKind::LocalVariable,
-            ty: {
-              if let Some(binding_type) = &binding.ty {
-                binding_type.preprocess(preprocessor)?
-              } else {
-                Type::Unknown {
-                  span: self.get_span().to_owned(),
-                }
-              }.into()
-            },
-            span: binding.span.to_owned(),
-          });
-        },
-        _ => {},
+        variable_map.insert(&binding.name, variable_id);
+        variables.push(Variable {
+          name: binding.name.to_owned(),
+          kind: VariableKind::LocalVariable,
+          ty: {
+            if let Some(binding_type) = &binding.ty {
+              binding_type.preprocess(preprocessor)?
+            } else {
+              Type::Unknown {
+                span: self.get_span().to_owned(),
+              }
+            }.into()
+          },
+          span: binding.span.to_owned(),
+        });
       };
     };
 

@@ -4,14 +4,13 @@ pub(super) mod pretty_print;
 use std::rc::Rc;
 use std::cell::RefCell;
 
+use crate::tokenizer;
 use crate::tokenizer::{
   Span,
   GetSpan
 };
 
 pub(crate) use r#type::*;
-
-use crate::tokenizer;
 
 #[allow(unused)]
 #[derive(Debug, Clone)]

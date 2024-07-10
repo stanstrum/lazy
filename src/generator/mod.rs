@@ -3,7 +3,10 @@ mod error;
 use inkwell::{
   builder::Builder,
   context::Context,
-  module::{Linkage, Module},
+  module::{
+    Linkage,
+    Module,
+  },
   types::{
     BasicMetadataTypeEnum,
     BasicType,
@@ -44,7 +47,7 @@ enum GeneratorType<'a> {
 }
 
 impl<'a> GeneratorType<'a> {
-  fn to_function(self) -> FunctionType<'a> {
+  fn into_function(self) -> FunctionType<'a> {
     let Self::Function(function) = self else {
       panic!("bad cast");
     };
@@ -52,7 +55,7 @@ impl<'a> GeneratorType<'a> {
     function
   }
 
-  fn to_basic(self) -> BasicTypeEnum<'a> {
+  fn into_basic(self) -> BasicTypeEnum<'a> {
     let Self::Basic(basic) = self else {
       panic!("bad cast");
     };
@@ -68,8 +71,8 @@ impl<'a> GeneratorType<'a> {
     }
   }
 
-  fn to_basic_metadata(self) -> BasicMetadataTypeEnum<'a> {
-    match self.to_basic() {
+  fn into_basic_metadata(self) -> BasicMetadataTypeEnum<'a> {
+    match self.into_basic() {
       BasicTypeEnum::ArrayType(ty) => BasicMetadataTypeEnum::ArrayType(ty),
       BasicTypeEnum::FloatType(ty) => BasicMetadataTypeEnum::FloatType(ty),
       BasicTypeEnum::IntType(ty) => BasicMetadataTypeEnum::IntType(ty),
@@ -90,7 +93,7 @@ impl<'a> Generate<'a> for lang::Type {
           .map(|ty| {
             Ok(
               ty.generate(generator)?
-                .to_basic_metadata()
+                .into_basic_metadata()
             )
           })
           .collect::<Result<Vec<_>, _>>()?;
@@ -144,7 +147,7 @@ impl<'a> Generator<'a> {
     let ty = func.type_of()
       .expect("couldn't get type of function")
       .generate(self)?
-      .to_function();
+      .into_function();
 
     Ok(
       self.module.add_function(&func.name, ty, Some(Linkage::Internal))
@@ -158,7 +161,7 @@ impl<'a> Generator<'a> {
     //   .iter()
     //   .map(|arg| Ok(
     //     arg.ty.generate(self)?
-    //       .to_basic()
+    //       .into_basic()
     //   ))
     //   .collect::<Result<Vec<_>, _>>()?;
 

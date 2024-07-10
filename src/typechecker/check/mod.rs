@@ -22,8 +22,9 @@ use crate::typechecker::lang::{
 };
 
 use type_domain::TypeDomain;
-pub(crate) use type_of::TypeOf;
 use coerce::Coerce;
+
+pub(crate) use type_of::TypeOf;
 
 #[allow(unused)]
 pub(super) struct TypeChecker {

@@ -1,8 +1,12 @@
 use std::path::PathBuf;
 use std::collections::HashMap;
 
-use crate::compiler::{DebugInfo, Handle};
-use super::lang;
+use crate::compiler::{
+  DebugInfo,
+  Handle,
+};
+
+use crate::typechecker::lang;
 
 #[allow(unused)]
 #[derive(Debug)]

@@ -22,27 +22,27 @@ impl TypeDomain {
   fn get_types_from_domain(domain: &Domain) -> Self {
     Self(
       domain.inner.iter()
-        .filter_map(
+        .map(
           |(name, member)|
             match member {
-              DomainMember::Domain(domain) => Some((
+              DomainMember::Domain(domain) => (
                 name.to_owned(),
                 TypeDomainMember::Domain(
                   Self::get_types_from_domain(domain)
                 )
-              )),
-              DomainMember::Function(func) => Some((
+              ),
+              DomainMember::Function(func) => (
                 name.to_owned(),
                 TypeDomainMember::Type(Type::Function {
                   args: func.arguments.inner.borrow().iter().map(|variable| variable.ty.to_owned()).collect(),
                   return_ty: func.return_ty.to_owned(),
                   span: func.get_span().to_owned(),
                 }.into())
-              )),
-              DomainMember::Type(ty) => Some((
+              ),
+              DomainMember::Type(ty) => (
                 name.to_owned(),
                 TypeDomainMember::Type(ty.to_owned())
-              )),
+              ),
             }
         )
         .collect()

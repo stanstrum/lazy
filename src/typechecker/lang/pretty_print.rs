@@ -1,5 +1,8 @@
 use super::{
-  intrinsics::Intrinsic, Type, TypeCell, Value
+  Type,
+  TypeCell,
+  Value,
+  intrinsics::Intrinsic,
 };
 
 pub(in crate::typechecker) trait PrettyPrint {

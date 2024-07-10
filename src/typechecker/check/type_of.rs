@@ -1,5 +1,7 @@
 use crate::typechecker::lang;
-use crate::tokenizer::{self, GetSpan};
+
+use crate::tokenizer;
+use crate::tokenizer::GetSpan;
 
 pub(crate) trait TypeOf {
   fn type_of(&self) -> Option<lang::Type>;

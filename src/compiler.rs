@@ -1,14 +1,14 @@
 use std::fs::File;
-use std::collections::HashMap;
 use std::path::PathBuf;
 
+use std::collections::HashMap;
+
+use tokenizer::{
+  GetSpan,
+  Token,
+};
+
 use asterizer::ast::GlobalNamespace;
-use generator::Generator;
-use inkwell::context::Context;
-use tokenizer::{GetSpan, Token};
-
-use colors::Color;
-
 use typechecker::{
   Preprocessor,
   Domain,
@@ -16,6 +16,10 @@ use typechecker::{
   ProgramData,
 };
 
+use generator::Generator;
+use inkwell::context::Context;
+
+use colors::Color;
 use crate::*;
 
 #[derive(Debug, Clone)]
@@ -171,7 +175,7 @@ impl Compiler {
       } = program.inner.get(&error_span.handle).unwrap();
 
       // TODO: remove this clone
-      crate::pretty_print_error(&error, &debug_info.source, debug_info.color_stream.clone(), &path);
+      crate::pretty_print_error(&error, &debug_info.source, debug_info.color_stream.clone(), path);
     };
 
     let context = Context::create();
@@ -179,7 +183,7 @@ impl Compiler {
 
     let mut generator = Generator::new(&context, &builder);
 
-    if let Err(error) = generator.generate(&mut program) {
+    if let Err(error) = generator.generate(&program) {
       let error_span = error.get_span();
 
       let ProgramData {
@@ -189,7 +193,7 @@ impl Compiler {
       } = program.inner.get(&error_span.handle).unwrap();
 
       // TODO: remove this clone
-      crate::pretty_print_error(&error, &debug_info.source, debug_info.color_stream.clone(), &path);
+      crate::pretty_print_error(&error, &debug_info.source, debug_info.color_stream.clone(), path);
     };
 
     todo!()

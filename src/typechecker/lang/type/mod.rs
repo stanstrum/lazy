@@ -4,14 +4,15 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::asterizer::ast;
-use crate::tokenizer::{GetSpan, Span};
+use crate::tokenizer::{
+  GetSpan,
+  Span
+};
+
 use crate::typechecker::{
   preprocess::Preprocess,
   Preprocessor,
   TypeCheckerError,
-};
-
-use crate::typechecker::{
   DomainReference,
   lang::Value,
   lang::intrinsics::Intrinsic,

@@ -1,12 +1,12 @@
 use snafu::prelude::*;
 
-use crate::CompilationError;
-
-use super::{
+use crate::tokenizer::{
   Span,
   GetSpan,
   Token,
 };
+
+use crate::CompilationError;
 
 #[derive(Snafu, Debug)]
 #[snafu(visibility(pub(crate)))]

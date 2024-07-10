@@ -1,6 +1,6 @@
-use std::path::Path;
-
 use snafu::prelude::*;
+
+use std::path::Path;
 
 use crate::asterizer::AsterizerError;
 use crate::tokenizer::{

@@ -17,7 +17,11 @@ use inkwell::{
     FunctionType,
     VoidType,
   },
-  values::{BasicValueEnum, FunctionValue, PointerValue}
+  values::{
+    BasicValueEnum,
+    FunctionValue,
+    PointerValue,
+  }
 };
 
 use crate::typechecker::{
@@ -239,7 +243,15 @@ impl<'a> Generator<'a> {
           self.builder.build_store(dest, value);
         },
         lang::Instruction::Call { .. } => todo!(),
-        lang::Instruction::Return { .. } => todo!(),
+        lang::Instruction::Return { value, .. } => {
+          if let Some(value) = &value {
+            self.builder.build_return(Some(
+              &self.resolve_value(value)?
+            ));
+          } else {
+            self.builder.build_return(None);
+          };
+        },
         lang::Instruction::Value(_) => todo!(),
       }
     };

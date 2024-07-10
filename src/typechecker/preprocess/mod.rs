@@ -141,7 +141,20 @@ impl Preprocess for ast::Block {
           body.push(expr.preprocess(preprocessor)?);
         },
         ast::BlockChild::ControlFlow(_) => todo!(),
-        ast::BlockChild::Return(_) => todo!(),
+        ast::BlockChild::Return(ast::Return { expr, span, .. }) => {
+          let value = if let Some(expr) = &expr {
+            Some(Value::Instruction(Box::new(
+              expr.preprocess(preprocessor)?
+            )))
+          } else {
+            None
+          };
+
+          body.push(Instruction::Return {
+            value,
+            span: span.to_owned(),
+          });
+        },
       };
     };
 
@@ -153,9 +166,9 @@ impl Preprocess for ast::Block {
 
       body.push(
         Instruction::Return {
-          value: Value::Instruction(
+          value: Some(Value::Instruction(
             Box::new(last)
-          ),
+          )),
           span,
         }
       );

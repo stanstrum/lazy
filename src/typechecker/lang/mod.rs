@@ -48,7 +48,7 @@ pub(crate) enum Instruction {
     span: Span,
   },
   Return {
-    value: Value,
+    value: Option<Value>,
     span: Span,
   },
   Value(Value),

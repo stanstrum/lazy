@@ -100,8 +100,8 @@ impl TypeOf for lang::Instruction {
       lang::Instruction::Call { func, args, .. } => {
         func.is_resolved() && args.iter().all(|arg| arg.is_resolved())
       },
-      | lang::Instruction::Return { value, .. }
-      | lang::Instruction::Value(value) => value.is_resolved(),
+      lang::Instruction::Return { value, .. } => value.as_ref().is_some_and(|value| value.is_resolved()),
+      lang::Instruction::Value(value) => value.is_resolved(),
     }
   }
 

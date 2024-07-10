@@ -65,15 +65,11 @@ impl Extends for Type {
 
         // TODO: FIXME: bad bad not good
         if ty.extends(&Type::SizedArrayOf {
-          count: Value::Instruction(
-            Box::new(
-              Instruction::Literal(
-                Literal {
-                  kind: LiteralKind::Integer(*size as u64),
-                  span: span.to_owned(),
-                }
-              )
-            )
+          count: Value::Literal(
+            Literal {
+              kind: LiteralKind::Integer(*size as u64),
+              span: span.to_owned(),
+            }
           ),
           ty: element_ty,
           span: span.to_owned(),
@@ -152,6 +148,7 @@ impl Coerce for Value {
     match self {
       Value::Variable(var) => var.coerce(checker, to),
       Value::Instruction(inst) => inst.coerce(checker, to),
+      Value::Literal(_) => todo!(),
     }
   }
 }

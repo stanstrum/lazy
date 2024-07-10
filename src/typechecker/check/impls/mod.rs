@@ -35,12 +35,12 @@ impl Check for Instruction {
           }
         },
         Instruction::Call { .. } => todo!(),
-        Instruction::Literal(_) => todo!(),
         Instruction::Return { .. } => {
           dbg!("nothing done for return");
 
           false
         },
+        Instruction::Value(_) => todo!(),
       }
     })
   }

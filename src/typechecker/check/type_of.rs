@@ -100,8 +100,8 @@ impl TypeOf for lang::Instruction {
       lang::Instruction::Call { func, args, .. } => {
         func.is_resolved() && args.iter().all(|arg| arg.is_resolved())
       },
-      lang::Instruction::Literal(_) => true,
-      lang::Instruction::Return { value, .. } => value.is_resolved(),
+      | lang::Instruction::Return { value, .. }
+      | lang::Instruction::Value(value) => value.is_resolved(),
     }
   }
 
@@ -113,7 +113,7 @@ impl TypeOf for lang::Instruction {
         span: self.get_span().to_owned(),
       }),
       lang::Instruction::Call { .. } => todo!(),
-      lang::Instruction::Literal(literal) => literal.type_of(),
+      lang::Instruction::Value(value) => value.type_of(),
     }
   }
 }
@@ -123,6 +123,7 @@ impl TypeOf for lang::Value {
     match self {
       lang::Value::Variable(var) => var.is_resolved(),
       lang::Value::Instruction(inst) => inst.is_resolved(),
+      lang::Value::Literal(lit) => lit.is_resolved(),
     }
   }
 
@@ -130,6 +131,7 @@ impl TypeOf for lang::Value {
     match self {
       lang::Value::Variable(var) => var.get().ty.type_of(),
       lang::Value::Instruction(inst) => inst.type_of(),
+      lang::Value::Literal(lit) => lit.type_of(),
     }
   }
 }

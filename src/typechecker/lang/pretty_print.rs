@@ -14,6 +14,7 @@ impl PrettyPrint for Value {
     match self {
       Value::Variable(_) => todo!(),
       Value::Instruction(_) => todo!(),
+      Value::Literal(_) => todo!(),
     }
   }
 }

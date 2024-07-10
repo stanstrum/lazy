@@ -37,7 +37,9 @@ impl Preprocess for ast::Atom {
     Ok({
       match self {
         ast::Atom::Literal(literal) => {
-          Instruction::Literal(literal.to_owned())
+          Instruction::Value(
+            Value::Literal(literal.to_owned())
+          )
         },
         ast::Atom::StructInitializer(_) => todo!("preprocess structinitializer"),
         ast::Atom::Variable { .. } => todo!("preprocess variable"),

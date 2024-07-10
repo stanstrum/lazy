@@ -199,8 +199,8 @@ impl<'a> Generator<'a> {
           self.builder.build_store(dest, value);
         },
         lang::Instruction::Call { .. } => todo!(),
-        lang::Instruction::Literal(_) => todo!(),
         lang::Instruction::Return { .. } => todo!(),
+        lang::Instruction::Value(_) => todo!(),
       }
     };
 

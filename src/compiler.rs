@@ -179,7 +179,7 @@ impl Compiler {
 
     let mut generator = Generator::new(&context, &builder);
 
-    if let Err(error) = generator.generate(&program) {
+    if let Err(error) = generator.generate(&mut program) {
       let error_span = error.get_span();
 
       let ProgramData {

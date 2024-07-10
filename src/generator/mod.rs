@@ -1,5 +1,8 @@
 mod error;
 
+use std::rc::Rc;
+use std::cell::RefCell;
+
 use inkwell::{
   builder::Builder,
   context::Context,
@@ -14,7 +17,7 @@ use inkwell::{
     FunctionType,
     VoidType,
   },
-  values::FunctionValue
+  values::{BasicValueEnum, FunctionValue, PointerValue}
 };
 
 use crate::typechecker::{
@@ -28,10 +31,16 @@ use crate::typechecker::{
 pub(crate) use error::*;
 
 #[allow(unused)]
+struct GeneratorScope {
+  scope: Rc<RefCell<Vec<lang::Variable>>>,
+}
+
+#[allow(unused)]
 pub(crate) struct Generator<'a> {
   context: &'a Context,
   module: Module<'a>,
   builder: &'a Builder<'a>,
+  scopes: Vec<GeneratorScope>,
 }
 
 trait Generate<'a> {
@@ -139,6 +148,7 @@ impl<'a> Generator<'a> {
       context,
       module: context.create_module("program"),
       builder,
+      scopes: vec![],
     }
   }
 
@@ -154,8 +164,52 @@ impl<'a> Generator<'a> {
     )
   }
 
-  fn generate_function(&mut self, _func: &lang::Function, _value: FunctionValue<'a>) -> Result<(), GeneratorError> {
-    // let block = self.context.append_basic_block(value, "entry");
+  fn register_scope(&mut self, scope: &mut lang::VariableScope) {
+    if scope.generator_id.is_none() {
+      let id = self.scopes.len();
+
+      self.scopes.push(GeneratorScope {
+        scope: scope.inner.to_owned(),
+      });
+
+      scope.generator_id = Some(id);
+    };
+  }
+
+  fn resolve_dest(&mut self, _value: &lang::Value) -> Result<PointerValue<'a>, GeneratorError> {
+    todo!()
+  }
+
+  fn resolve_value(&mut self, _value: &lang::Value) -> Result<BasicValueEnum<'a>, GeneratorError> {
+    todo!()
+  }
+
+  fn generate_block(&mut self, block: &mut lang::Block, function: FunctionValue<'a>) -> Result<(), GeneratorError> {
+    let basic = self.context.append_basic_block(function, "entry");
+    self.builder.position_at_end(basic);
+
+    self.register_scope(&mut block.variables);
+
+    for inst in block.body.iter() {
+      match inst {
+        lang::Instruction::Assign { dest, value, .. } => {
+          let dest = self.resolve_dest(dest)?;
+          let value = self.resolve_value(value)?;
+
+          self.builder.build_store(dest, value);
+        },
+        lang::Instruction::Call { .. } => todo!(),
+        lang::Instruction::Literal(_) => todo!(),
+        lang::Instruction::Return { .. } => todo!(),
+      }
+    };
+
+    Ok(())
+  }
+
+  fn generate_function(&mut self, func: &mut lang::Function, value: FunctionValue<'a>) -> Result<(), GeneratorError> {
+    let basic_block = self.context.append_basic_block(value, "entry");
+    self.builder.position_at_end(basic_block);
 
     // let arguments = func.arguments.inner.borrow()
     //   .iter()
@@ -165,13 +219,13 @@ impl<'a> Generator<'a> {
     //   ))
     //   .collect::<Result<Vec<_>, _>>()?;
 
-    todo!()
+    self.generate_block(&mut func.body, value)
   }
 
-  fn generate_domain(&mut self, domain: &Domain) -> Result<(), GeneratorError> {
+  fn generate_domain(&mut self, domain: &mut Domain) -> Result<(), GeneratorError> {
     let mut funcs = vec![];
 
-    for member in domain.inner.values() {
+    for member in domain.inner.values_mut() {
       match member {
         DomainMember::Domain(domain) => self.generate_domain(domain)?,
         DomainMember::Function(func) => {
@@ -185,7 +239,7 @@ impl<'a> Generator<'a> {
       };
     };
 
-    for (func, value) in domain.inner.values()
+    for (func, value) in domain.inner.values_mut()
       .filter_map(|member| {
         if let DomainMember::Function(func) = member {
           Some(func)
@@ -200,11 +254,11 @@ impl<'a> Generator<'a> {
     Ok(())
   }
 
-  pub(crate) fn generate(&mut self, program: &Program) -> Result<(), GeneratorError> {
-    for data in program.inner.values() {
+  pub(crate) fn generate(&mut self, program: &mut Program) -> Result<(), GeneratorError> {
+    for data in program.inner.values_mut() {
       println!("Generating {:?}", data.path.to_string_lossy());
 
-      self.generate_domain(&data.domain)?;
+      self.generate_domain(&mut data.domain)?;
     };
 
     Ok(())

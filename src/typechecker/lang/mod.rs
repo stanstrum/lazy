@@ -81,6 +81,7 @@ pub(crate) struct Variable {
 #[derive(Debug)]
 pub(crate) struct VariableScope {
   pub(crate) inner: Rc<RefCell<Vec<Variable>>>,
+  pub(crate) generator_id: Option<usize>,
 }
 
 impl GetSpan for Variable {
@@ -104,6 +105,7 @@ impl VariableScope {
   pub(crate) fn from_vec(v: Vec<Variable>) -> Self {
     Self {
       inner: Rc::new(RefCell::new(v)),
+      generator_id: None,
     }
   }
 }

@@ -22,7 +22,7 @@ use crate::typechecker::lang::{
 };
 
 use type_domain::TypeDomain;
-use type_of::TypeOf;
+pub(crate) use type_of::TypeOf;
 use coerce::Coerce;
 
 #[allow(unused)]

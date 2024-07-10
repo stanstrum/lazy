@@ -81,6 +81,7 @@ pub(crate) enum VariableKind {
 #[allow(unused)]
 #[derive(Debug, Clone)]
 pub(crate) struct Variable {
+  pub(crate) name: String,
   pub(crate) kind: VariableKind,
   pub(crate) ty: TypeCell,
   pub(crate) span: Span,
@@ -124,6 +125,7 @@ impl VariableScope {
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Function {
+  pub(crate) name: String,
   pub(crate) arguments: VariableScope,
   pub(crate) return_ty: TypeCell,
   pub(crate) body: Block,

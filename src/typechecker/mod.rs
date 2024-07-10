@@ -1,6 +1,6 @@
 mod error;
 
-mod lang;
+pub(crate) mod lang;
 mod domain;
 mod preprocess;
 mod check;
@@ -21,17 +21,14 @@ use check::{
   TypeChecker,
   Check,
 };
-pub(crate) use error::*;
 
 use lang::VariableReference;
 use preprocess::Preprocess;
-use domain::*;
 
-pub(crate) use domain::{
-  Domain,
-  Program,
-  ProgramData,
-};
+pub(crate) use check::TypeOf;
+
+pub(crate) use error::*;
+pub(crate) use domain::*;
 
 #[allow(unused)]
 pub(crate) struct Preprocessor {

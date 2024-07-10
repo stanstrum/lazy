@@ -78,6 +78,7 @@ impl Preprocess for ast::Block {
 
           variable_map.insert(&binding.name, variable_id);
           variables.push(Variable {
+            name: binding.name.to_owned(),
             kind: VariableKind::LocalVariable,
             ty: {
               if let Some(binding_type) = &binding.ty {
@@ -179,6 +180,7 @@ impl Preprocess for ast::Function {
     if let Some(decl_args) = &self.decl.args {
       for arg in decl_args.args.iter() {
         arguments.push(Variable {
+          name: arg.name.to_owned(),
           kind: VariableKind::Argument,
           ty: arg.ty.preprocess(preprocessor)?.into(),
           span: arg.span.to_owned(),
@@ -196,6 +198,7 @@ impl Preprocess for ast::Function {
     }.into();
 
     Ok(Function {
+      name: self.decl.name.to_owned(),
       arguments: VariableScope::from_vec(arguments),
       return_ty,
       body: self.body.preprocess(preprocessor)?,

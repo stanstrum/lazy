@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 use asterizer::ast::GlobalNamespace;
+use generator::Generator;
+use inkwell::context::Context;
 use tokenizer::{GetSpan, Token};
 
 use colors::Color;
@@ -159,20 +161,35 @@ impl Compiler {
 
     let mut program = Program::from_map(program_map);
 
-    match preprocessor.check(&mut program) {
-      Ok(_) => todo!(),
-      Err(error) => {
-        let error_span = error.get_span();
+    if let Err(error) = preprocessor.check(&mut program) {
+      let error_span = error.get_span();
 
-        let ProgramData {
-          debug_info,
-          path,
-          ..
-        } = program.inner.get(&error_span.handle).unwrap();
+      let ProgramData {
+        debug_info,
+        path,
+        ..
+      } = program.inner.get(&error_span.handle).unwrap();
 
-        // TODO: remove this clone
-        crate::pretty_print_error(&error, &debug_info.source, debug_info.color_stream.clone(), &path);
-      },
+      // TODO: remove this clone
+      crate::pretty_print_error(&error, &debug_info.source, debug_info.color_stream.clone(), &path);
+    };
+
+    let context = Context::create();
+    let builder = context.create_builder();
+
+    let mut generator = Generator::new(&context, &builder);
+
+    if let Err(error) = generator.generate(&mut program) {
+      let error_span = error.get_span();
+
+      let ProgramData {
+        debug_info,
+        path,
+        ..
+      } = program.inner.get(&error_span.handle).unwrap();
+
+      // TODO: remove this clone
+      crate::pretty_print_error(&error, &debug_info.source, debug_info.color_stream.clone(), &path);
     };
 
     todo!()

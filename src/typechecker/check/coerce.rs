@@ -1,7 +1,12 @@
-use crate::tokenizer::{GetSpan, Literal, LiteralKind};
-use crate::typechecker::lang::pretty_print::PrettyPrint;
+use crate::tokenizer::{
+  Literal,
+  LiteralKind,
+  GetSpan,
+};
+
 use crate::typechecker::{
   TypeChecker,
+  check::type_of::TypeOf,
   error::*,
 };
 
@@ -11,9 +16,8 @@ use crate::typechecker::lang::{
   Value,
   Type,
   TypeCell,
+  pretty_print::PrettyPrint,
 };
-
-use super::type_of::TypeOf;
 
 pub(super) trait Coerce {
   fn coerce(&mut self, checker: &mut TypeChecker, to: &Type) -> Result<bool, TypeCheckerError>;

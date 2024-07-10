@@ -1,7 +1,7 @@
 use crate::typechecker::lang;
 use crate::tokenizer::{self, GetSpan};
 
-pub(super) trait TypeOf {
+pub(crate) trait TypeOf {
   fn type_of(&self) -> Option<lang::Type>;
   fn is_resolved(&self) -> bool;
 
@@ -137,5 +137,31 @@ impl TypeOf for lang::Value {
       lang::Value::Variable(var) => var.get().ty.type_of(),
       lang::Value::Instruction(inst) => inst.type_of(),
     }
+  }
+}
+
+impl TypeOf for lang::Function {
+  fn type_of(&self) -> Option<lang::Type> {
+    if !self.return_ty.is_resolved() {
+      return None;
+    };
+
+    let arguments = self.arguments.inner.borrow();
+    if arguments.iter().any(|var| !var.ty.is_resolved()) {
+      return None;
+    };
+
+    let args = arguments.iter()
+      .map(|var| var.ty.to_owned())
+      .collect();
+
+    let return_ty = self.return_ty.to_owned();
+    let span = self.get_span();
+
+    Some(lang::Type::Function { args, return_ty, span })
+  }
+
+  fn is_resolved(&self) -> bool {
+    todo!()
   }
 }

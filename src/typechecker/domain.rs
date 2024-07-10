@@ -13,7 +13,7 @@ pub(super) struct NamedDomainMember {
 
 #[allow(unused)]
 #[derive(Debug)]
-pub(super) enum DomainMember {
+pub(crate) enum DomainMember {
   Domain(Domain),
   Function(lang::Function),
   Type(lang::TypeCell),
@@ -22,7 +22,7 @@ pub(super) enum DomainMember {
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Domain {
-  pub(super) inner: HashMap<String, DomainMember>,
+  pub(crate) inner: HashMap<String, DomainMember>,
 }
 
 #[allow(unused)]

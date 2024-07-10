@@ -11,17 +11,14 @@ use inkwell::{
     Module,
   },
   types::{
-    BasicMetadataTypeEnum,
-    BasicType,
-    BasicTypeEnum,
-    FunctionType,
-    VoidType,
+    ArrayType, BasicMetadataTypeEnum, BasicType, BasicTypeEnum, FunctionType, PointerType, VoidType
   },
   values::{
     BasicValueEnum,
     FunctionValue,
     PointerValue,
-  }
+  },
+  AddressSpace
 };
 
 use crate::typechecker::{
@@ -81,7 +78,14 @@ impl<'a> GeneratorType<'a> {
     match self {
       GeneratorType::Basic(basic) => basic.fn_type(param_types, is_var_args),
       GeneratorType::Void(void) => void.fn_type(param_types, is_var_args),
-      GeneratorType::Function(_) => panic!("bad cast"),
+      _ => panic!("bad cast"),
+    }
+  }
+
+  fn array_type(&self, size: u32) -> ArrayType<'a> {
+    match self {
+      GeneratorType::Basic(basic) => basic.array_type(size),
+      _ => panic!("bad cast"),
     }
   }
 
@@ -94,6 +98,26 @@ impl<'a> GeneratorType<'a> {
       BasicTypeEnum::StructType(ty) => BasicMetadataTypeEnum::StructType(ty),
       BasicTypeEnum::VectorType(ty) => BasicMetadataTypeEnum::VectorType(ty),
     }
+  }
+}
+
+impl<'a> Generate<'a> for lang::intrinsics::Intrinsic {
+  type Out = GeneratorType<'a>;
+
+  fn generate(&self, generator: &mut Generator<'a>) -> Result<Self::Out, GeneratorError> {
+    Ok(match self {
+      lang::intrinsics::Intrinsic::Void => GeneratorType::Void(generator.context.void_type()),
+      | lang::intrinsics::Intrinsic::U8
+      | lang::intrinsics::Intrinsic::I8 => GeneratorType::Basic(BasicTypeEnum::IntType(generator.context.i8_type())),
+      | lang::intrinsics::Intrinsic::U16
+      | lang::intrinsics::Intrinsic::I16 => GeneratorType::Basic(BasicTypeEnum::IntType(generator.context.i16_type())),
+      | lang::intrinsics::Intrinsic::U32
+      | lang::intrinsics::Intrinsic::I32 => GeneratorType::Basic(BasicTypeEnum::IntType(generator.context.i32_type())),
+      | lang::intrinsics::Intrinsic::U64
+      | lang::intrinsics::Intrinsic::I64 => GeneratorType::Basic(BasicTypeEnum::IntType(generator.context.i64_type())),
+      lang::intrinsics::Intrinsic::F32 => todo!(),
+      lang::intrinsics::Intrinsic::F64 => todo!(),
+    })
   }
 }
 
@@ -117,22 +141,15 @@ impl<'a> Generate<'a> for lang::Type {
             .fn_type(&args, false)
         ))
       },
-      Self::Intrinsic { kind, .. } => {
-        Ok(
-          match kind {
-            lang::intrinsics::Intrinsic::Void => GeneratorType::Void(generator.context.void_type()),
-            | lang::intrinsics::Intrinsic::U8
-            | lang::intrinsics::Intrinsic::I8 => GeneratorType::Basic(BasicTypeEnum::IntType(generator.context.i8_type())),
-            | lang::intrinsics::Intrinsic::U16
-            | lang::intrinsics::Intrinsic::I16 => GeneratorType::Basic(BasicTypeEnum::IntType(generator.context.i16_type())),
-            | lang::intrinsics::Intrinsic::U32
-            | lang::intrinsics::Intrinsic::I32 => GeneratorType::Basic(BasicTypeEnum::IntType(generator.context.i32_type())),
-            | lang::intrinsics::Intrinsic::U64
-            | lang::intrinsics::Intrinsic::I64 => GeneratorType::Basic(BasicTypeEnum::IntType(generator.context.i64_type())),
-            lang::intrinsics::Intrinsic::F32 => todo!(),
-            lang::intrinsics::Intrinsic::F64 => todo!(),
-          }
-        )
+      Self::Intrinsic { kind, .. } => kind.generate(generator),
+      Self::FuzzyString { size, element_ty, .. } => {
+        Ok(GeneratorType::Basic(
+          element_ty.generate(generator)?
+            .array_type(*size as u32)
+            .as_basic_type_enum()
+            .ptr_type(Default::default())
+            .as_basic_type_enum()
+        ))
       },
       _ => todo!("{self:?}")
     }

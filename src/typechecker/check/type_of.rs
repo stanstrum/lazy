@@ -142,7 +142,7 @@ impl TypeOf for lang::Function {
       return None;
     };
 
-    let arguments = self.arguments.inner.borrow();
+    let arguments = &self.arguments.inner;
     if arguments.iter().any(|var| !var.ty.is_resolved()) {
       return None;
     };

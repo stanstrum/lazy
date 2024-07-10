@@ -15,14 +15,14 @@ pub(crate) use r#type::*;
 #[allow(unused)]
 #[derive(Debug, Clone)]
 pub(crate) struct VariableReference {
-  pub(crate) scope: Rc<RefCell<Vec<Variable>>>,
+  pub(crate) scope: Rc<RefCell<VariableScope>>,
   pub(crate) id: usize,
   pub(crate) span: Span,
 }
 
 impl VariableReference {
   pub(crate) fn get(&self) -> Variable {
-    self.scope.borrow().get(self.id).unwrap().to_owned()
+    self.scope.borrow().inner.get(self.id).unwrap().to_owned()
   }
 }
 
@@ -57,7 +57,7 @@ pub(crate) enum Instruction {
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Block {
-  pub(crate) variables: VariableScope,
+  pub(crate) variables: Rc<RefCell<VariableScope>>,
   pub(crate) body: Vec<Instruction>,
   pub(crate) span: Span,
 }
@@ -81,7 +81,7 @@ pub(crate) struct Variable {
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct VariableScope {
-  pub(crate) inner: Rc<RefCell<Vec<Variable>>>,
+  pub(crate) inner: Vec<Variable>,
   pub(crate) generator_id: Option<usize>,
 }
 
@@ -103,9 +103,9 @@ impl GetSpan for Instruction {
 }
 
 impl VariableScope {
-  pub(crate) fn from_vec(v: Vec<Variable>) -> Self {
+  pub(crate) fn from_vec(inner: Vec<Variable>) -> Self {
     Self {
-      inner: Rc::new(RefCell::new(v)),
+      inner,
       generator_id: None,
     }
   }

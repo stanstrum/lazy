@@ -31,8 +31,9 @@ use crate::typechecker::{
 pub(crate) use error::*;
 
 #[allow(unused)]
-struct GeneratorScope {
-  scope: Rc<RefCell<Vec<lang::Variable>>>,
+struct GeneratorScope<'a> {
+  scope: Rc<RefCell<lang::VariableScope>>,
+  pointers: Option<Vec<PointerValue<'a>>>,
 }
 
 #[allow(unused)]
@@ -40,7 +41,7 @@ pub(crate) struct Generator<'a> {
   context: &'a Context,
   module: Module<'a>,
   builder: &'a Builder<'a>,
-  scopes: Vec<GeneratorScope>,
+  scopes: Vec<GeneratorScope<'a>>,
 }
 
 trait Generate<'a> {
@@ -129,6 +130,7 @@ impl<'a> Generate<'a> for lang::Type {
           }
         )
       },
+
       _ => todo!("{self:?}")
     }
   }
@@ -164,20 +166,48 @@ impl<'a> Generator<'a> {
     )
   }
 
-  fn register_scope(&mut self, scope: &mut lang::VariableScope) {
-    if scope.generator_id.is_none() {
+  fn register_scope(&mut self, scope: &Rc<RefCell<lang::VariableScope>>) -> usize {
+    let mut borrowed = scope.borrow_mut();
+
+    if borrowed.generator_id.is_none() {
       let id = self.scopes.len();
 
       self.scopes.push(GeneratorScope {
-        scope: scope.inner.to_owned(),
+        scope: scope.to_owned(),
+        pointers: None,
       });
 
-      scope.generator_id = Some(id);
+      borrowed.generator_id = Some(id);
     };
+
+    borrowed.generator_id.unwrap()
   }
 
-  fn resolve_dest(&mut self, _value: &lang::Value) -> Result<PointerValue<'a>, GeneratorError> {
-    todo!()
+  fn get_variable_reference(&mut self, reference: &lang::VariableReference) -> Result<PointerValue<'a>, GeneratorError> {
+    let id = reference.scope.borrow()
+      .generator_id
+      .expect("target scope has no generator id");
+
+    let scope = self.scopes.get(id).unwrap();
+
+    Ok(
+      scope.pointers
+        .as_ref()
+        .expect("target scope has no pointers")
+        .get(reference.id)
+        .unwrap()
+        .to_owned()
+    )
+  }
+
+  fn resolve_dest(&mut self, value: &lang::Value) -> Result<PointerValue<'a>, GeneratorError> {
+    match value {
+      lang::Value::Variable(var) => {
+        self.get_variable_reference(var)
+      },
+      lang::Value::Instruction(_) => todo!(),
+      lang::Value::Literal(_) => todo!(),
+    }
   }
 
   fn resolve_value(&mut self, _value: &lang::Value) -> Result<BasicValueEnum<'a>, GeneratorError> {
@@ -188,7 +218,17 @@ impl<'a> Generator<'a> {
     let basic = self.context.append_basic_block(function, "entry");
     self.builder.position_at_end(basic);
 
-    self.register_scope(&mut block.variables);
+    let scope_id = self.register_scope(&block.variables);
+
+    let mut pointers = vec![];
+    for variable in block.variables.borrow().inner.iter() {
+      let ty = variable.ty.generate(self)?.into_basic();
+      let pointer = self.builder.build_alloca(ty, &variable.name);
+
+      pointers.push(pointer);
+    };
+
+    self.scopes.get_mut(scope_id).unwrap().pointers = Some(pointers);
 
     for inst in block.body.iter() {
       match inst {

@@ -48,7 +48,7 @@ impl Check for Instruction {
 
 impl Check for Function {
   fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
-    for argument in self.arguments.inner.borrow_mut().iter_mut() {
+    for argument in self.arguments.inner.iter_mut() {
       if argument.check(checker)? {
         return Ok(true);
       };

@@ -1,5 +1,8 @@
 use std::collections::HashMap;
 
+use std::rc::Rc;
+use std::cell::RefCell;
+
 use crate::tokenizer::GetSpan;
 use crate::asterizer::ast;
 
@@ -95,21 +98,20 @@ impl Preprocess for ast::Block {
       };
     };
 
-    let scope = VariableScope::from_vec(variables);
-    let inner = &scope.inner;
+    let scope = Rc::new(RefCell::new(VariableScope::from_vec(variables)));
+    let inner = &scope.borrow().inner;
 
     let variable_scope =
       variable_map.into_iter().map(
         |(name, id)| {
-          let owned_inner = inner.to_owned();
           let span = {
-            owned_inner.borrow().get(id).unwrap().get_span().to_owned()
+            inner.get(id).unwrap().get_span().to_owned()
           };
 
           (
             name.to_owned(),
             VariableReference {
-              scope: inner.to_owned(),
+              scope: scope.to_owned(),
               id,
               span,
             }
@@ -163,7 +165,7 @@ impl Preprocess for ast::Block {
 
     Ok(Self::Out {
       // TODO: refactor here
-      variables: scope,
+      variables: scope.to_owned(),
       body,
       span: self.span.to_owned(),
     })

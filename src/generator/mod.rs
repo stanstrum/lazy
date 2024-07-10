@@ -134,7 +134,6 @@ impl<'a> Generate<'a> for lang::Type {
           }
         )
       },
-
       _ => todo!("{self:?}")
     }
   }

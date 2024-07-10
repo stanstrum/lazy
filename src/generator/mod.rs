@@ -11,9 +11,16 @@ use inkwell::{
     Module,
   },
   types::{
-    ArrayType, BasicMetadataTypeEnum, BasicType, BasicTypeEnum, FunctionType, PointerType, VoidType
+    ArrayType,
+    BasicMetadataTypeEnum,
+    BasicType,
+    BasicTypeEnum,
+    FunctionType,
+    PointerType,
+    VoidType,
   },
   values::{
+    BasicValue,
     BasicValueEnum,
     FunctionValue,
     PointerValue,
@@ -21,6 +28,7 @@ use inkwell::{
   AddressSpace
 };
 
+use crate::tokenizer;
 use crate::typechecker::{
   lang,
   Domain,
@@ -82,6 +90,14 @@ impl<'a> GeneratorType<'a> {
     }
   }
 
+  fn ptr_type(&self, address_space: AddressSpace) -> PointerType<'a> {
+    match self {
+      GeneratorType::Basic(basic) => basic.ptr_type(address_space),
+      GeneratorType::Function(func) => func.ptr_type(address_space),
+      _ => panic!("bad cast"),
+    }
+  }
+
   fn array_type(&self, size: u32) -> ArrayType<'a> {
     match self {
       GeneratorType::Basic(basic) => basic.array_type(size),
@@ -121,6 +137,34 @@ impl<'a> Generate<'a> for lang::intrinsics::Intrinsic {
   }
 }
 
+trait ResolveToU32 {
+  fn resolve_to_u32(&self) -> u32;
+}
+
+impl ResolveToU32 for tokenizer::Literal {
+  fn resolve_to_u32(&self) -> u32 {
+    match &self.kind {
+      tokenizer::LiteralKind::Integer(integer) => *integer as u32,
+      tokenizer::LiteralKind::FloatingPoint(_) => todo!(),
+      tokenizer::LiteralKind::UnicodeString(_) => todo!(),
+      tokenizer::LiteralKind::CString(_) => todo!(),
+      tokenizer::LiteralKind::ByteString(_) => todo!(),
+      tokenizer::LiteralKind::UnicodeChar(_) => todo!(),
+      tokenizer::LiteralKind::ByteChar(_) => todo!(),
+    }
+  }
+}
+
+impl ResolveToU32 for lang::Value {
+  fn resolve_to_u32(&self) -> u32 {
+    match self {
+      lang::Value::Variable(_) => todo!(),
+      lang::Value::Instruction(_) => todo!(),
+      lang::Value::Literal(literal) => literal.resolve_to_u32(),
+    }
+  }
+}
+
 impl<'a> Generate<'a> for lang::Type {
   type Out = GeneratorType<'a>;
 
@@ -151,6 +195,20 @@ impl<'a> Generate<'a> for lang::Type {
             .as_basic_type_enum()
         ))
       },
+      Self::ReferenceTo { ty, .. } => {
+        Ok(GeneratorType::Basic(
+          ty.generate(generator)?
+            .ptr_type(Default::default())
+            .as_basic_type_enum()
+        ))
+      },
+      Self::SizedArrayOf { count, ty, .. } => {
+        Ok(GeneratorType::Basic(
+          ty.generate(generator)?.array_type(
+            count.resolve_to_u32()
+          ).as_basic_type_enum()
+        ))
+      },
       _ => todo!("{self:?}")
     }
   }
@@ -161,6 +219,100 @@ impl<'a> Generate<'a> for lang::TypeCell {
 
   fn generate(&self, generator: &mut Generator<'a>) -> Result<Self::Out, GeneratorError> {
     self.borrow().generate(generator)
+  }
+}
+
+impl<'a> Generate<'a> for lang::VariableReference {
+  type Out = BasicValueEnum<'a>;
+
+  fn generate(&self, _generator: &mut Generator<'a>) -> Result<Self::Out, GeneratorError> {
+    todo!()
+  }
+}
+
+impl<'a> Generate<'a> for lang::Instruction {
+  type Out = Option<BasicValueEnum<'a>>;
+
+  fn generate(&self, generator: &mut Generator<'a>) -> Result<Self::Out, GeneratorError> {
+    Ok(match self {
+      lang::Instruction::Assign { .. } => None,
+      lang::Instruction::Call { .. } => todo!(),
+      lang::Instruction::Return { .. } => None,
+      lang::Instruction::Value(value) => value.generate(generator)?,
+    })
+  }
+}
+
+impl<'a> Generate<'a> for lang::Value {
+  type Out = Option<BasicValueEnum<'a>>;
+
+  fn generate(&self, generator: &mut Generator<'a>) -> Result<Self::Out, GeneratorError> {
+    Ok(match self {
+      lang::Value::Variable(variable) => Some(variable.generate(generator)?),
+      lang::Value::Instruction(instruction) => instruction.generate(generator)?,
+      lang::Value::Literal(literal) => {
+        match &literal.kind {
+          tokenizer::LiteralKind::Integer(integer) => Some(
+            literal.type_of()
+              .unwrap()
+              .generate(generator)?
+              .into_basic()
+              .into_int_type()
+              .const_int(*integer, false)
+              .as_basic_value_enum()
+          ),
+          tokenizer::LiteralKind::FloatingPoint(float) => Some(
+            literal.type_of()
+              .unwrap()
+              .generate(generator)?
+              .into_basic()
+              .into_float_type()
+              .const_float(*float)
+              .as_basic_value_enum()
+          ),
+          tokenizer::LiteralKind::UnicodeString(string) => match self.type_of().unwrap() {
+            lang::Type::SizedArrayOf { .. } => {
+              let char_ty = generator.context.i32_type();
+
+              let values = string.chars()
+                .map(|ch| {
+                  char_ty.const_int(ch as u64, false)
+                })
+                .collect::<Vec<_>>();
+
+              Some(char_ty.const_array(&values).as_basic_value_enum())
+            },
+            | lang::Type::FuzzyString { .. }
+            | lang::Type::ReferenceTo { .. } => {
+              let char_ty = generator.context.i32_type();
+
+              let values = string.chars()
+                .map(|ch| {
+                  char_ty.const_int(ch as u64, false)
+                })
+                .collect::<Vec<_>>();
+
+              let value = char_ty.const_array(&values).as_basic_value_enum();
+
+              let global = generator.module.add_global(
+                value.get_type().as_basic_type_enum(),
+                Default::default(),
+                "unicode_string"
+              );
+
+              global.set_initializer(&value);
+
+              Some(global.as_basic_value_enum())
+            },
+            a => unreachable!("{a:?}"),
+          },
+          tokenizer::LiteralKind::CString(_) => todo!(),
+          tokenizer::LiteralKind::ByteString(_) => todo!(),
+          tokenizer::LiteralKind::UnicodeChar(_) => todo!(),
+          tokenizer::LiteralKind::ByteChar(_) => todo!(),
+        }
+      },
+    })
   }
 }
 
@@ -230,10 +382,6 @@ impl<'a> Generator<'a> {
     }
   }
 
-  fn resolve_value(&mut self, _value: &lang::Value) -> Result<BasicValueEnum<'a>, GeneratorError> {
-    todo!()
-  }
-
   fn generate_block(&mut self, block: &mut lang::Block, function: FunctionValue<'a>) -> Result<(), GeneratorError> {
     let basic = self.context.append_basic_block(function, "entry");
     self.builder.position_at_end(basic);
@@ -254,16 +402,21 @@ impl<'a> Generator<'a> {
       match inst {
         lang::Instruction::Assign { dest, value, .. } => {
           let dest = self.resolve_dest(dest)?;
-          let value = self.resolve_value(value)?;
+          let value = value.generate(self)?
+            .unwrap();
 
           self.builder.build_store(dest, value);
         },
         lang::Instruction::Call { .. } => todo!(),
         lang::Instruction::Return { value, .. } => {
           if let Some(value) = &value {
-            self.builder.build_return(Some(
-              &self.resolve_value(value)?
-            ));
+            self.builder.build_return(
+              // intentional -- we should error here if there's no value
+              // generated, as we expect one
+              Some(
+                &value.generate(self)?.unwrap()
+              )
+            );
           } else {
             self.builder.build_return(None);
           };

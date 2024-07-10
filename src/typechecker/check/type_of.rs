@@ -6,14 +6,6 @@ use crate::tokenizer::GetSpan;
 pub(crate) trait TypeOf {
   fn type_of(&self) -> Option<lang::Type>;
   fn is_resolved(&self) -> bool;
-
-  // fn type_of_expect(&self) -> Result<Type, TypeCheckerError> {
-  //   let Some(ty) = self.type_of() else {
-  //     todo!()
-  //   };
-
-  //   Ok(ty)
-  // }
 }
 
 impl TypeOf for lang::TypeCell {

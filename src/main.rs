@@ -5,7 +5,6 @@ mod typechecker;
 mod generator;
 mod error;
 
-mod debug;
 mod colors;
 
 use error::*;

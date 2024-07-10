@@ -61,15 +61,6 @@ pub(crate) struct Block {
   pub(crate) span: Span,
 }
 
-impl Block {
-  // pub(crate) fn new() -> Self {
-  //   Self {
-  //     variables: VariableScope::new(),
-  //     body: vec![],
-  //   }
-  // }
-}
-
 #[allow(unused)]
 #[derive(Debug, Clone)]
 pub(crate) enum VariableKind {
@@ -110,10 +101,6 @@ impl GetSpan for Instruction {
 }
 
 impl VariableScope {
-  // pub(crate) fn new() -> Self {
-  //   Self::from_vec(vec![])
-  // }
-
   pub(crate) fn from_vec(v: Vec<Variable>) -> Self {
     Self {
       inner: Rc::new(RefCell::new(v)),

@@ -56,16 +56,6 @@ impl DomainReference {
       handle,
     }
   }
-
-  // fn push(&mut self, part: String) {
-  //   self.inner.push(part)
-  // }
-
-  // fn push_all<T: Iterator<Item = String>>(&mut self, parts: T) {
-  //   for part in parts {
-  //     self.push(part);
-  //   };
-  // }
 }
 
 impl Program {

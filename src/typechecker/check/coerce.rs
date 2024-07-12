@@ -23,6 +23,16 @@ pub(super) trait Coerce {
   fn coerce(&mut self, checker: &mut TypeChecker, to: &Type) -> Result<bool, TypeCheckerError>;
 }
 
+pub(super) trait CoerceCell {
+  fn coerce_cell(&mut self, checker: &mut TypeChecker, to: &TypeCell) -> Result<bool, TypeCheckerError>;
+}
+
+impl<T: Coerce> CoerceCell for T {
+  fn coerce_cell(&mut self, checker: &mut TypeChecker, to: &TypeCell) -> Result<bool, TypeCheckerError> {
+    self.coerce(checker, &*to.borrow())
+  }
+}
+
 pub(crate) trait Extends where Self: std::fmt::Debug + crate::typechecker::lang::pretty_print::PrettyPrint + GetSpan {
   fn extends(&self, other: &Self) -> bool;
   fn assert_extends(&self, other: &Self) -> Result<(), TypeCheckerError> {
@@ -138,8 +148,13 @@ impl Coerce for VariableReference {
 }
 
 impl Coerce for Instruction {
-  fn coerce(&mut self, _checker: &mut TypeChecker, _to: &Type) -> Result<bool, TypeCheckerError> {
-    todo!()
+  fn coerce(&mut self, checker: &mut TypeChecker, to: &Type) -> Result<bool, TypeCheckerError> {
+    match self {
+      Instruction::Assign { .. } => todo!(),
+      Instruction::Call { .. } => todo!(),
+      Instruction::Return { .. } => todo!(),
+      Instruction::Value(value) => value.coerce(checker, to),
+    }
   }
 }
 

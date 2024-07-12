@@ -19,6 +19,7 @@ use crate::typechecker::lang::{
   Function,
   Instruction,
   Type,
+  TypeCell,
   Value,
   Variable,
   VariableKind,
@@ -26,6 +27,12 @@ use crate::typechecker::lang::{
   VariableReference,
   intrinsics::Intrinsic,
 };
+
+pub(super) trait PreprocessExpression {
+  type Out;
+
+  fn preprocess(&self, preprocessor: &mut Preprocessor, return_ty: &TypeCell) -> Result<Self::Out, TypeCheckerError>;
+}
 
 pub(super) trait Preprocess {
   type Out;
@@ -67,10 +74,57 @@ impl Preprocess for ast::Expression {
   }
 }
 
-impl Preprocess for ast::Block {
+impl PreprocessExpression for ast::BlockChild {
+  type Out = Option<Instruction>;
+
+  fn preprocess(&self, preprocessor: &mut Preprocessor, return_ty: &TypeCell) -> Result<Self::Out, TypeCheckerError> {
+    Ok({
+      match self {
+        Self::Binding(binding) => {
+          if let Some(expr) = &binding.expr {
+            let reference = preprocessor.find_variable_by_name(&binding.name, binding.get_span())?;
+
+            let value = Value::Instruction(Box::new(
+              expr.preprocess(preprocessor)?
+            ));
+
+            Some(Instruction::Assign {
+              dest: Value::Variable(reference),
+              value,
+              span: expr.get_span().to_owned(),
+            })
+          } else {
+            None
+          }
+        },
+        Self::Expression(expr) => {
+          Some(expr.preprocess(preprocessor)?)
+        },
+        Self::ControlFlow(_) => todo!(),
+        Self::Return(ast::Return { expr, span, .. }) => {
+          let value = if let Some(expr) = &expr {
+            Some(Value::Instruction(Box::new(
+              expr.preprocess(preprocessor)?
+            )))
+          } else {
+            None
+          };
+
+          Some(Instruction::Return {
+            value,
+            span: span.to_owned(),
+            to: return_ty.to_owned(),
+          })
+        },
+      }
+    })
+  }
+}
+
+impl PreprocessExpression for ast::Block {
   type Out = Block;
 
-  fn preprocess(&self, preprocessor: &mut Preprocessor) -> Result<Self::Out, TypeCheckerError> {
+  fn preprocess(&self, preprocessor: &mut Preprocessor, return_ty: &TypeCell) -> Result<Self::Out, TypeCheckerError> {
     let mut variables = vec![];
     let mut body = vec![];
 
@@ -121,40 +175,8 @@ impl Preprocess for ast::Block {
     preprocessor.scope_stack.push(variable_scope.collect());
 
     for child in self.children.iter() {
-      match child {
-        ast::BlockChild::Binding(binding) => {
-          if let Some(expr) = &binding.expr {
-            let reference = preprocessor.find_variable_by_name(&binding.name, binding.get_span())?;
-
-            let value = Value::Instruction(Box::new(
-              expr.preprocess(preprocessor)?
-            ));
-
-            body.push(Instruction::Assign {
-              dest: Value::Variable(reference),
-              value,
-              span: expr.get_span().to_owned(),
-            });
-          };
-        },
-        ast::BlockChild::Expression(expr) => {
-          body.push(expr.preprocess(preprocessor)?);
-        },
-        ast::BlockChild::ControlFlow(_) => todo!(),
-        ast::BlockChild::Return(ast::Return { expr, span, .. }) => {
-          let value = if let Some(expr) = &expr {
-            Some(Value::Instruction(Box::new(
-              expr.preprocess(preprocessor)?
-            )))
-          } else {
-            None
-          };
-
-          body.push(Instruction::Return {
-            value,
-            span: span.to_owned(),
-          });
-        },
+      if let Some(instruction) = child.preprocess(preprocessor, return_ty)? {
+        body.push(instruction)
       };
     };
 
@@ -169,6 +191,7 @@ impl Preprocess for ast::Block {
           value: Some(Value::Instruction(
             Box::new(last)
           )),
+          to: return_ty.to_owned(),
           span,
         }
       );
@@ -211,11 +234,13 @@ impl Preprocess for ast::Function {
       }
     }.into();
 
+    let body = self.body.preprocess(preprocessor, &return_ty)?;
+
     Ok(Function {
       name: self.decl.name.to_owned(),
       arguments: VariableScope::from_vec(arguments),
       return_ty,
-      body: self.body.preprocess(preprocessor)?,
+      body,
       span: self.span.to_owned(),
     })
   }

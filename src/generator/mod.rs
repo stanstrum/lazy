@@ -394,6 +394,8 @@ impl<'a> Generator<'a> {
     if let Err(error) = self.module.verify() {
       println!("LLVM verification failed: {}", error.to_string_lossy());
       println!("Source:\n{}", self.module.print_to_string().to_string_lossy());
+
+      panic!("verification failed");
     };
 
     println!("Writing LLVM to a.ll ...");
@@ -518,9 +520,6 @@ impl<'a> Generator<'a> {
   }
 
   fn generate_block(&mut self, block: &mut lang::Block, function: FunctionValue<'a>) -> Result<(), GeneratorError> {
-    let basic = self.context.append_basic_block(function, "entry");
-    self.builder.position_at_end(basic);
-
     let scope_id = self.register_scope(&block.variables);
 
     let mut pointers = vec![];

@@ -49,6 +49,7 @@ pub(crate) enum Instruction {
   },
   Return {
     value: Option<Value>,
+    to: TypeCell,
     span: Span,
   },
   Value(Value),

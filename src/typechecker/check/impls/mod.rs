@@ -1,16 +1,19 @@
 mod domain;
 
+use crate::typechecker::lang::intrinsics::Intrinsic;
 use crate::typechecker::check::{
-  TypeChecker,
-  TypeCheckerError,
   Check,
-  TypeOf,
   Coerce,
-  Variable,
-  Instruction,
+  CoerceCell,
+  Extends,
   Function,
+  Instruction,
   Type,
   TypeCell,
+  TypeChecker,
+  TypeCheckerError,
+  TypeOf,
+  Variable,
 };
 
 impl Check for Variable {
@@ -35,10 +38,17 @@ impl Check for Instruction {
           }
         },
         Instruction::Call { .. } => todo!(),
-        Instruction::Return { .. } => {
-          dbg!("nothing done for return");
+        Instruction::Return { value, to, span } => {
+          if let Some(value) = value {
+            value.coerce_cell(checker, to)?
+          } else {
+            to.borrow().assert_extends(&Type::Intrinsic {
+              kind: Intrinsic::Void,
+              span: span.to_owned(),
+            })?;
 
-          false
+            false
+          }
         },
         Instruction::Value(_) => todo!(),
       }

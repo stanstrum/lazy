@@ -22,7 +22,11 @@ use crate::typechecker::lang::{
 };
 
 use type_domain::TypeDomain;
-use coerce::Coerce;
+use coerce::{
+  Coerce,
+  CoerceCell,
+  Extends,
+};
 
 pub(crate) use type_of::TypeOf;
 

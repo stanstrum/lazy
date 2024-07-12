@@ -31,6 +31,10 @@ use inkwell::{
 use crate::tokenizer;
 use crate::typechecker::{
   lang,
+  lang::intrinsics::{
+    self,
+    Intrinsic,
+  },
   Domain,
   DomainMember,
   Program,
@@ -117,22 +121,22 @@ impl<'a> GeneratorType<'a> {
   }
 }
 
-impl<'a> Generate<'a> for lang::intrinsics::Intrinsic {
+impl<'a> Generate<'a> for Intrinsic {
   type Out = GeneratorType<'a>;
 
   fn generate(&self, generator: &mut Generator<'a>) -> Result<Self::Out, GeneratorError> {
     Ok(match self {
-      lang::intrinsics::Intrinsic::Void => GeneratorType::Void(generator.context.void_type()),
-      | lang::intrinsics::Intrinsic::U8
-      | lang::intrinsics::Intrinsic::I8 => GeneratorType::Basic(BasicTypeEnum::IntType(generator.context.i8_type())),
-      | lang::intrinsics::Intrinsic::U16
-      | lang::intrinsics::Intrinsic::I16 => GeneratorType::Basic(BasicTypeEnum::IntType(generator.context.i16_type())),
-      | lang::intrinsics::Intrinsic::U32
-      | lang::intrinsics::Intrinsic::I32 => GeneratorType::Basic(BasicTypeEnum::IntType(generator.context.i32_type())),
-      | lang::intrinsics::Intrinsic::U64
-      | lang::intrinsics::Intrinsic::I64 => GeneratorType::Basic(BasicTypeEnum::IntType(generator.context.i64_type())),
-      lang::intrinsics::Intrinsic::F32 => todo!(),
-      lang::intrinsics::Intrinsic::F64 => todo!(),
+      Intrinsic::Void => GeneratorType::Void(generator.context.void_type()),
+      | Intrinsic::U8
+      | Intrinsic::I8 => GeneratorType::Basic(BasicTypeEnum::IntType(generator.context.i8_type())),
+      | Intrinsic::U16
+      | Intrinsic::I16 => GeneratorType::Basic(BasicTypeEnum::IntType(generator.context.i16_type())),
+      | Intrinsic::U32
+      | Intrinsic::I32 => GeneratorType::Basic(BasicTypeEnum::IntType(generator.context.i32_type())),
+      | Intrinsic::U64
+      | Intrinsic::I64 => GeneratorType::Basic(BasicTypeEnum::IntType(generator.context.i64_type())),
+      Intrinsic::F32 => todo!(),
+      Intrinsic::F64 => todo!(),
     })
   }
 }
@@ -155,11 +159,22 @@ impl ResolveToU32 for tokenizer::Literal {
   }
 }
 
+impl ResolveToU32 for lang::Instruction {
+  fn resolve_to_u32(&self) -> u32 {
+    match self {
+      | lang::Instruction::Assign { .. }
+      | lang::Instruction::Return { .. } => panic!("can't resolve to u32"),
+      lang::Instruction::Call { .. } => todo!(),
+      lang::Instruction::Value(value) => value.resolve_to_u32(),
+    }
+  }
+}
+
 impl ResolveToU32 for lang::Value {
   fn resolve_to_u32(&self) -> u32 {
     match self {
       lang::Value::Variable(_) => todo!(),
-      lang::Value::Instruction(_) => todo!(),
+      lang::Value::Instruction(instruction) => instruction.resolve_to_u32(),
       lang::Value::Literal(literal) => literal.resolve_to_u32(),
     }
   }
@@ -186,6 +201,7 @@ impl<'a> Generate<'a> for lang::Type {
         ))
       },
       Self::Intrinsic { kind, .. } => kind.generate(generator),
+      Self::FuzzyInteger { .. } => intrinsics::USIZE.generate(generator),
       Self::FuzzyString { size, element_ty, .. } => {
         Ok(GeneratorType::Basic(
           element_ty.generate(generator)?
@@ -243,6 +259,57 @@ impl<'a> Generate<'a> for lang::Instruction {
   }
 }
 
+enum StringGenerationKind {
+  GlobalReference,
+  StackAllocated,
+}
+
+fn determine_string_type(ty: lang::Type) -> StringGenerationKind {
+  match ty {
+    lang::Type::SizedArrayOf { .. } => {
+      StringGenerationKind::StackAllocated
+    },
+    | lang::Type::FuzzyString { .. }
+    | lang::Type::ReferenceTo { .. } => {
+      StringGenerationKind::GlobalReference
+    },
+    invalid => unreachable!("{invalid:?}"),
+  }
+}
+
+fn generate_string_literal<'a>(generator: &mut Generator<'a>, ty: lang::Type, element_ty: intrinsics::Intrinsic, null_terminator: bool, content: &str) -> BasicValueEnum<'a> {
+  let element_ty = element_ty.generate(generator).unwrap().into_basic().into_int_type();
+
+  let mut values = content.chars()
+    .map(|ch| {
+      element_ty.const_int(ch as u64, false)
+    })
+    .collect::<Vec<_>>();
+
+  if null_terminator {
+    values.push(element_ty.const_zero());
+  };
+
+  match determine_string_type(ty) {
+    StringGenerationKind::StackAllocated => {
+      element_ty.const_array(&values).as_basic_value_enum()
+    },
+    StringGenerationKind::GlobalReference => {
+      let value = element_ty.const_array(&values).as_basic_value_enum();
+
+      let global = generator.module.add_global(
+        value.get_type().as_basic_type_enum(),
+        Default::default(),
+        "unicode_string"
+      );
+
+      global.set_initializer(&value);
+
+      global.as_basic_value_enum()
+    },
+  }
+}
+
 impl<'a> Generate<'a> for lang::Value {
   type Out = Option<BasicValueEnum<'a>>;
 
@@ -270,46 +337,39 @@ impl<'a> Generate<'a> for lang::Value {
               .const_float(*float)
               .as_basic_value_enum()
           ),
-          tokenizer::LiteralKind::UnicodeString(string) => match self.type_of().unwrap() {
-            lang::Type::SizedArrayOf { .. } => {
-              let char_ty = generator.context.i32_type();
-
-              let values = string.chars()
-                .map(|ch| {
-                  char_ty.const_int(ch as u64, false)
-                })
-                .collect::<Vec<_>>();
-
-              Some(char_ty.const_array(&values).as_basic_value_enum())
-            },
-            | lang::Type::FuzzyString { .. }
-            | lang::Type::ReferenceTo { .. } => {
-              let char_ty = generator.context.i32_type();
-
-              let values = string.chars()
-                .map(|ch| {
-                  char_ty.const_int(ch as u64, false)
-                })
-                .collect::<Vec<_>>();
-
-              let value = char_ty.const_array(&values).as_basic_value_enum();
-
-              let global = generator.module.add_global(
-                value.get_type().as_basic_type_enum(),
-                Default::default(),
-                "unicode_string"
-              );
-
-              global.set_initializer(&value);
-
-              Some(global.as_basic_value_enum())
-            },
-            a => unreachable!("{a:?}"),
-          },
-          tokenizer::LiteralKind::CString(_) => todo!(),
-          tokenizer::LiteralKind::ByteString(_) => todo!(),
-          tokenizer::LiteralKind::UnicodeChar(_) => todo!(),
-          tokenizer::LiteralKind::ByteChar(_) => todo!(),
+          tokenizer::LiteralKind::UnicodeString(content) => Some(generate_string_literal(
+            generator,
+            self.type_of().unwrap(),
+            intrinsics::UNICODE_CHAR,
+            false,
+            content
+          )),
+          tokenizer::LiteralKind::CString(content) => Some(generate_string_literal(
+            generator,
+            self.type_of().unwrap(),
+            intrinsics::C_CHAR,
+            true,
+            content
+          )),
+          tokenizer::LiteralKind::ByteString(content) => Some(generate_string_literal(
+            generator,
+            self.type_of().unwrap(),
+            Intrinsic::U8,
+            false,
+            content
+          )),
+          tokenizer::LiteralKind::UnicodeChar(ch) => Some({
+            intrinsics::UNICODE_CHAR.generate(generator)?
+              .into_basic()
+              .into_int_type()
+              .const_int(*ch as u64, false)
+              .as_basic_value_enum()
+          }),
+          tokenizer::LiteralKind::ByteChar(ch) => Some({
+            generator.context.i8_type()
+              .const_int(*ch as u64, false)
+              .as_basic_value_enum()
+          }),
         }
       },
     })

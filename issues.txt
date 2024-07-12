@@ -1,0 +1,98 @@
+assn:
+thread 'tests::assn' panicked at src/generator/mod.rs:162:38:
+not yet implemented
+
+bare_bones:
+thread 'tests::bare_bones' panicked at src/compiler.rs:195:5:
+not yet implemented
+
+base_main:
+thread 'tests::base_main' panicked at src/typechecker/preprocess/mod.rs:61:38:
+not yet implemented: preprocess block
+
+class_methods:
+thread 'tests::class_methods' panicked at src/main.rs:95:3:
+compilation failed: expected an identifier
+
+codegen:
+thread 'tests::codegen' panicked at src/typechecker/preprocess/mod.rs:48:39:
+not yet implemented: preprocess variable
+
+control_flow:
+thread 'tests::control_flow' panicked at src/asterizer/ast/expression/unary/suffix.rs:43:5:
+not yet implemented
+
+counter:
+thread 'tests::counter' panicked at src/asterizer/ast/expression/unary/suffix.rs:43:5:
+not yet implemented
+
+thread 'tests::counter_ns' panicked at src/asterizer/ast/expression/unary/suffix.rs:43:5:
+not yet implemented
+
+counter_ns:
+thread 'tests::counter_ns' panicked at src/asterizer/ast/expression/unary/suffix.rs:43:5:
+not yet implemented
+
+extended_operators:
+thread 'tests::extended_operators' panicked at src/asterizer/ast/expression/unary/suffix.rs:43:5:
+not yet implemented
+
+hello_world:
+thread 'tests::hello_world' panicked at src/asterizer/ast/expression/unary/suffix.rs:43:5:
+not yet implemented
+
+import_std:
+thread 'tests::import_std' panicked at src/asterizer/ast/expression/unary/suffix.rs:43:5:
+not yet implemented
+
+message:
+thread 'tests::message' panicked at src/compiler.rs:195:5:
+not yet implemented
+
+namespace_module:
+thread 'tests::namespace_module' panicked at src/main.rs:93:3:
+compilation failed: expected an identifier
+
+namespaces:
+thread 'tests::namespaces' panicked at src/typechecker/preprocess/mod.rs:230:41:
+not yet implemented: preprocess namespace
+
+r#extern:
+thread 'tests::r#extern' panicked at src/asterizer/ast/expression/unary/suffix.rs:43:5:
+not yet implemented
+
+r#if:
+thread 'tests::r#if' panicked at src/typechecker/preprocess/mod.rs:143:44:
+not yet implemented
+
+read_source:
+thread 'tests::read_source' panicked at src/asterizer/ast/expression/unary/suffix.rs:43:5:
+not yet implemented
+
+slice:
+thread 'tests::slice' panicked at src/asterizer/ast/expression/unary/suffix.rs:43:5:
+not yet implemented
+
+string_escapes:
+thread 'tests::string_escapes' panicked at src/generator/mod.rs:212:12:
+not yet implemented: Unknown { span: Span { start: 2, end: 130, handle: Handle { id: 0 } } }
+
+struct_generic:
+thread 'tests::struct_generic' panicked at src/asterizer/ast/expression/unary/suffix.rs:43:5:
+not yet implemented
+
+struct_stuff:
+thread 'tests::struct_stuff' panicked at src/typechecker/preprocess/mod.rs:230:41:
+not yet implemented: preprocess namespace
+
+structs:
+thread 'tests::structs' panicked at src/asterizer/ast/expression/unary/suffix.rs:43:5:
+not yet implemented
+
+trait_imp:
+thread 'tests::trait_imp' panicked at src/main.rs:74:3:
+compilation failed: expected an identifier
+
+type_alias:
+thread 'tests::type_alias' panicked at src/compiler.rs:195:5:
+not yet implemented

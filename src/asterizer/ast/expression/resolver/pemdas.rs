@@ -12,7 +12,9 @@ use crate::asterizer::ast::{
   UnaryExpression,
   UnaryOperator,
   UnaryPrefixOperator,
+  UnaryPrefixOperatorKind,
   UnarySuffixOperator,
+  UnarySuffixOperatorKind,
 };
 
 use super::{
@@ -151,17 +153,26 @@ impl ExpressionResolver<'_, '_> {
           },
           | (Pemdas::IncrementDecrement, ExpressionPart::Unary(
             UnaryOperator::Prefix(
-              | UnaryPrefixOperator::PreIncrement
-              | UnaryPrefixOperator::PreDecrement
+              UnaryPrefixOperator {
+                kind: UnaryPrefixOperatorKind::PreIncrement
+                  | UnaryPrefixOperatorKind::PreDecrement,
+                ..
+              }
             )
           ))
           | (Pemdas::Dot, ExpressionPart::Unary(
-            UnaryOperator::Prefix(UnaryPrefixOperator::ImpliedSeparator)
+            UnaryOperator::Prefix(UnaryPrefixOperator {
+              kind: UnaryPrefixOperatorKind::ImpliedSeparator,
+              ..
+            })
           ))
           | (Pemdas::RefDeref, ExpressionPart::Unary(
             UnaryOperator::Prefix(
-              | UnaryPrefixOperator::Reference
-              | UnaryPrefixOperator::MutReference
+              UnaryPrefixOperator {
+                kind: UnaryPrefixOperatorKind::Reference
+                  | UnaryPrefixOperatorKind::MutReference,
+                ..
+              }
             )
           )) => {
             let ExpressionPart::Unary(op) = self.parts.remove(part_index) else {
@@ -197,19 +208,28 @@ impl ExpressionResolver<'_, '_> {
           },
           | (Pemdas::IncrementDecrement, ExpressionPart::Unary(
             UnaryOperator::Suffix(
-              | UnarySuffixOperator::PostIncrement
-              | UnarySuffixOperator::PostDecrement
-              | UnarySuffixOperator::Call { .. }
+              UnarySuffixOperator {
+                kind: UnarySuffixOperatorKind::PostIncrement
+                  | UnarySuffixOperatorKind::PostDecrement
+                  | UnarySuffixOperatorKind::Call { .. },
+                ..
+              },
             )
           ))
           | (Pemdas::Dot, ExpressionPart::Unary(
             UnaryOperator::Suffix(
-              UnarySuffixOperator::Subscript { .. }
+              UnarySuffixOperator {
+                kind: UnarySuffixOperatorKind::Subscript { .. },
+                ..
+              }
             )
           ))
           | (Pemdas::Cast, ExpressionPart::Unary(
             UnaryOperator::Suffix(
-              UnarySuffixOperator::Cast { .. }
+              UnarySuffixOperator {
+                kind: UnarySuffixOperatorKind::Cast { .. },
+                ..
+              }
             )
           )) => {
             let ExpressionPart::Unary(op) = self.parts.remove(part_index) else {

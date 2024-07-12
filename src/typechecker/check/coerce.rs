@@ -168,9 +168,13 @@ impl Coerce for VariableReference {
 impl Coerce for Instruction {
   fn coerce(&mut self, checker: &mut TypeChecker, to: &Type) -> Result<bool, TypeCheckerError> {
     match self {
-      Instruction::Assign { .. } => todo!(),
+      | Instruction::Return { .. }
+      | Instruction::Assign { .. } => {
+        to.assert_extends(&Type::Intrinsic { kind: Intrinsic::Void, span: self.get_span() })?;
+
+        Ok(false)
+      },
       Instruction::Call { .. } => todo!(),
-      Instruction::Return { .. } => todo!(),
       Instruction::Value(value) => value.coerce(checker, to),
     }
   }

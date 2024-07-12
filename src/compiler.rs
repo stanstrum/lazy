@@ -192,7 +192,12 @@ impl Compiler {
       crate::pretty_print_error(&error, &debug_info.source, debug_info.color_stream.clone(), path);
     };
 
-    todo!()
+    // TODO: better error handling
+    if let Err(error) = generator.create_binary_executable("path") {
+      panic!("creating binary executable failed: {error}");
+    };
+
+    Ok(())
   }
 
   fn take_handle(&mut self, id: usize) -> SourceFile {

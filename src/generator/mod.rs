@@ -1,5 +1,6 @@
 mod error;
 
+use std::process::Command;
 use std::rc::Rc;
 use std::cell::RefCell;
 
@@ -384,6 +385,80 @@ impl<'a> Generator<'a> {
       builder,
       scopes: vec![],
     }
+  }
+
+  // TODO: better error handling
+  pub(crate) fn create_binary_executable(&self, executable_path: &str) -> Result<(), GeneratorError> {
+    println!("Verifying ...");
+
+    if let Err(error) = self.module.verify() {
+      println!("LLVM verification failed: {}", error.to_string_lossy());
+      println!("Source:\n{}", self.module.print_to_string().to_string_lossy());
+    };
+
+    println!("Writing LLVM to a.ll ...");
+
+    let cwd = std::env::current_dir().expect("couldn't get working dir");
+    let out_file = cwd.join("a.ll");
+
+    self.module
+      .print_to_file(out_file.to_str().unwrap())
+      .expect("error printing to file");
+
+    // compile llvm code
+    let exit_status = {
+      println!("Running `llc` ...");
+      Command::new("llc")
+        // this argument is surprisingly important
+        .arg("--relocation-model=pic")
+        .args(["-o", "a.s"])
+        .arg("a.ll")
+        .stdout(std::process::Stdio::piped())
+        .spawn().unwrap()
+        .wait()
+        .expect("error compiling emitted llvm code")
+    };
+
+    if !exit_status.success() {
+      panic!("llc failed");
+    };
+
+    // assemble `llc` output
+    let exit_status = {
+      println!("Running `as` ...");
+
+      Command::new("as")
+        .args(["-o", "a.o"])
+        .arg("a.s")
+        .stdout(std::process::Stdio::piped())
+        .spawn().unwrap()
+        .wait()
+        .expect("error assembling emitted assembly code")
+    };
+
+    if !exit_status.success() {
+      panic!("as failed");
+    };
+
+    // link `as` output
+    let exit_status = {
+      println!("Running `cc` ...");
+      Command::new("cc")
+        .args(["-o", executable_path])
+        .arg("a.o")
+        .stdout(std::process::Stdio::piped())
+        .spawn().unwrap()
+        .wait()
+        .expect("error linking emitted object code")
+    };
+
+    if !exit_status.success() {
+      panic!("cc failed");
+    };
+
+    println!("Your shiny new Lazy program is located in `./program`.  Enjoy!");
+
+    Ok(())
   }
 
   fn declare_function(&mut self, func: &lang::Function) -> Result<FunctionValue<'a>, GeneratorError> {

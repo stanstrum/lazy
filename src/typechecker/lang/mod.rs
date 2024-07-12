@@ -31,7 +31,10 @@ impl VariableReference {
 pub(crate) enum Value {
   Variable(VariableReference),
   Instruction(Box<Instruction>),
-  Literal(tokenizer::Literal),
+  Literal {
+    literal: tokenizer::Literal,
+    ty: TypeCell,
+  },
 }
 
 #[allow(unused)]
@@ -127,12 +130,18 @@ impl GetSpan for Value {
     match self {
       Value::Variable(var) => var.get().get_span(),
       Value::Instruction(inst) => inst.get_span(),
-      Value::Literal(lit) => lit.get_span(),
+      Value::Literal { literal, .. } => literal.get_span(),
     }
   }
 }
 
 impl GetSpan for Function {
+  fn get_span(&self) -> Span {
+    self.span
+  }
+}
+
+impl GetSpan for VariableReference {
   fn get_span(&self) -> Span {
     self.span
   }

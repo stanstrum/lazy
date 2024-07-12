@@ -3,8 +3,11 @@ use crate::typechecker::lang;
 use crate::tokenizer;
 use crate::tokenizer::GetSpan;
 
-pub(crate) trait TypeOf {
+pub(crate) trait TypeOf where Self: GetSpan {
   fn type_of(&self) -> Option<lang::Type>;
+  fn type_of_or_unknown(&self) -> lang::Type {
+    self.type_of().unwrap_or(lang::Type::Unknown { span: self.get_span() })
+  }
   fn is_resolved(&self) -> bool;
 }
 
@@ -53,7 +56,7 @@ impl TypeOf for lang::VariableReference {
 
 impl TypeOf for tokenizer::Literal {
   fn is_resolved(&self) -> bool {
-    todo!()
+    true
   }
 
   fn type_of(&self) -> Option<lang::Type> {
@@ -123,7 +126,7 @@ impl TypeOf for lang::Value {
     match self {
       lang::Value::Variable(var) => var.is_resolved(),
       lang::Value::Instruction(inst) => inst.is_resolved(),
-      lang::Value::Literal(lit) => lit.is_resolved(),
+      lang::Value::Literal { literal, ty } => literal.is_resolved() && ty.is_resolved(),
     }
   }
 
@@ -131,7 +134,7 @@ impl TypeOf for lang::Value {
     match self {
       lang::Value::Variable(var) => var.get().ty.type_of(),
       lang::Value::Instruction(inst) => inst.type_of(),
-      lang::Value::Literal(lit) => lit.type_of(),
+      lang::Value::Literal { ty, .. } => ty.type_of(),
     }
   }
 }

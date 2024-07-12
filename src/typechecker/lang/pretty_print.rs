@@ -1,20 +1,44 @@
+use crate::tokenizer;
+
 use super::{
-  Type,
-  TypeCell,
-  Value,
-  intrinsics::Intrinsic,
+  intrinsics::Intrinsic, Instruction, Type, TypeCell, Value
 };
 
 pub(in crate::typechecker) trait PrettyPrint {
   fn pretty_print(&self) -> String;
 }
 
+impl PrettyPrint for Instruction {
+  fn pretty_print(&self) -> String {
+    match self {
+      Instruction::Assign { .. } => todo!(),
+      Instruction::Call { .. } => todo!(),
+      Instruction::Return { .. } => todo!(),
+      Instruction::Value(value) => value.pretty_print(),
+    }
+  }
+}
+
+impl PrettyPrint for tokenizer::Literal {
+  fn pretty_print(&self) -> String {
+    match &self.kind {
+      tokenizer::LiteralKind::Integer(integer) => format!("{integer}"),
+      tokenizer::LiteralKind::FloatingPoint(float) => format!("{float}"),
+      tokenizer::LiteralKind::UnicodeString(string) => format!("\"{string}\""),
+      tokenizer::LiteralKind::CString(string) => format!("c\"{string}\""),
+      tokenizer::LiteralKind::ByteString(string) => format!("b\"{string}\""),
+      tokenizer::LiteralKind::UnicodeChar(ch) => format!("'{ch}'"),
+      tokenizer::LiteralKind::ByteChar(ch) => format!("b'{ch}'"),
+    }
+  }
+}
+
 impl PrettyPrint for Value {
   fn pretty_print(&self) -> String {
     match self {
       Value::Variable(_) => todo!(),
-      Value::Instruction(_) => todo!(),
-      Value::Literal(_) => todo!(),
+      Value::Instruction(instruction) => instruction.pretty_print(),
+      Value::Literal { literal, .. } => literal.pretty_print(),
     }
   }
 }
@@ -94,10 +118,10 @@ impl PrettyPrint for Type {
           format!("&{}", ty.pretty_print())
         }
       },
-      Type::Shared(_) => todo!(),
+      Type::Shared(shared) => shared.pretty_print(),
       Type::Function { .. } => todo!(),
       Type::Struct { .. } => todo!(),
-      Type::FuzzyInteger { .. } => todo!(),
+      Type::FuzzyInteger { .. } => format!("{{integer}}"),
       Type::FuzzyString { size, element_ty, .. } => format!("{{string: [{}]{}}}", *size, element_ty.pretty_print()),
       Type::Unknown { .. } => "{unknown}".to_string(),
     }

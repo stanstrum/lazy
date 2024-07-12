@@ -8,6 +8,7 @@ use crate::tokenizer::{
   GetSpan
 };
 use crate::typechecker::TypeCheckerError;
+use crate::generator::GeneratorError;
 
 use crate::colors::Color;
 
@@ -28,6 +29,9 @@ pub(crate) enum CompilationError {
 
   #[snafu(display("{error}"))]
   TypeCheck { error: TypeCheckerError },
+
+  #[snafu(display("{error}"))]
+  Generation { error: GeneratorError },
 }
 
 // TODO: make this more efficient -- this can be called multiple times per

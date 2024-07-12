@@ -172,6 +172,8 @@ impl Compiler {
 
       // TODO: remove this clone
       crate::pretty_print_error(&error, &debug_info.source, debug_info.color_stream.clone(), path);
+
+      return Err(error.into());
     };
 
     let context = Context::create();
@@ -190,6 +192,8 @@ impl Compiler {
 
       // TODO: remove this clone
       crate::pretty_print_error(&error, &debug_info.source, debug_info.color_stream.clone(), path);
+
+      return Err(error.into());
     };
 
     // TODO: better error handling

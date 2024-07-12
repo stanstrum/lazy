@@ -29,7 +29,11 @@ use inkwell::{
   AddressSpace
 };
 
-use crate::tokenizer;
+use crate::tokenizer::{
+  self,
+  GetSpan
+};
+
 use crate::typechecker::{
   lang,
   lang::intrinsics::{
@@ -176,7 +180,7 @@ impl ResolveToU32 for lang::Value {
     match self {
       lang::Value::Variable(_) => todo!(),
       lang::Value::Instruction(instruction) => instruction.resolve_to_u32(),
-      lang::Value::Literal(literal) => literal.resolve_to_u32(),
+      lang::Value::Literal { literal, .. } => literal.resolve_to_u32(),
     }
   }
 }
@@ -226,7 +230,9 @@ impl<'a> Generate<'a> for lang::Type {
           ).as_basic_type_enum()
         ))
       },
-      _ => todo!("{self:?}")
+      _ => UnresolvedSnafu {
+        span: self.get_span(),
+      }.fail()
     }
   }
 }
@@ -318,11 +324,10 @@ impl<'a> Generate<'a> for lang::Value {
     Ok(match self {
       lang::Value::Variable(variable) => Some(variable.generate(generator)?),
       lang::Value::Instruction(instruction) => instruction.generate(generator)?,
-      lang::Value::Literal(literal) => {
+      lang::Value::Literal { literal, ty } => {
         match &literal.kind {
           tokenizer::LiteralKind::Integer(integer) => Some(
-            literal.type_of()
-              .unwrap()
+            ty
               .generate(generator)?
               .into_basic()
               .into_int_type()
@@ -330,8 +335,7 @@ impl<'a> Generate<'a> for lang::Value {
               .as_basic_value_enum()
           ),
           tokenizer::LiteralKind::FloatingPoint(float) => Some(
-            literal.type_of()
-              .unwrap()
+            ty
               .generate(generator)?
               .into_basic()
               .into_float_type()
@@ -515,11 +519,11 @@ impl<'a> Generator<'a> {
         self.get_variable_reference(var)
       },
       lang::Value::Instruction(_) => todo!(),
-      lang::Value::Literal(_) => todo!(),
+      lang::Value::Literal { .. } => todo!(),
     }
   }
 
-  fn generate_block(&mut self, block: &mut lang::Block, function: FunctionValue<'a>) -> Result<(), GeneratorError> {
+  fn generate_block(&mut self, block: &mut lang::Block, _function: FunctionValue<'a>) -> Result<(), GeneratorError> {
     let scope_id = self.register_scope(&block.variables);
 
     let mut pointers = vec![];

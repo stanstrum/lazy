@@ -28,6 +28,8 @@ use crate::typechecker::lang::{
   intrinsics::Intrinsic,
 };
 
+use super::TypeOf;
+
 pub(super) trait PreprocessExpression {
   type Out;
 
@@ -48,7 +50,10 @@ impl Preprocess for ast::Atom {
       match self {
         ast::Atom::Literal(literal) => {
           Instruction::Value(
-            Value::Literal(literal.to_owned())
+            Value::Literal {
+              literal: literal.to_owned(),
+              ty: literal.type_of_or_unknown().into(),
+            }
           )
         },
         ast::Atom::StructInitializer(_) => todo!("preprocess structinitializer"),

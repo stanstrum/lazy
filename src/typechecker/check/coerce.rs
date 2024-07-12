@@ -4,6 +4,7 @@ use crate::tokenizer::{
   GetSpan,
 };
 
+use crate::typechecker::lang::intrinsics::Intrinsic;
 use crate::typechecker::{
   TypeChecker,
   check::type_of::TypeOf,
@@ -75,12 +76,15 @@ impl Extends for Type {
 
         // TODO: FIXME: bad bad not good
         if ty.extends(&Type::SizedArrayOf {
-          count: Value::Literal(
-            Literal {
+          count: Value::Literal {
+            literal: Literal {
               kind: LiteralKind::Integer(*size as u64),
               span: span.to_owned(),
-            }
-          ),
+            },
+            ty: Type::FuzzyInteger {
+              span: span.to_owned()
+            }.into(),
+          },
           ty: element_ty,
           span: span.to_owned(),
         }.into()) {
@@ -100,6 +104,20 @@ impl Extends for Type {
 
         true
       },
+      (
+        Type::FuzzyInteger { .. },
+        Type::Intrinsic {
+          kind: Intrinsic::U8
+            | Intrinsic::I8
+            | Intrinsic::U16
+            | Intrinsic::I16
+            | Intrinsic::U32
+            | Intrinsic::I32
+            | Intrinsic::U64
+            | Intrinsic::I64,
+          ..
+        }
+      ) => true,
       _ => false,
     }
   }
@@ -163,7 +181,7 @@ impl Coerce for Value {
     match self {
       Value::Variable(var) => var.coerce(checker, to),
       Value::Instruction(inst) => inst.coerce(checker, to),
-      Value::Literal(_) => todo!(),
+      Value::Literal { ty, .. } => ty.coerce(checker, to),
     }
   }
 }

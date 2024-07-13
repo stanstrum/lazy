@@ -74,8 +74,6 @@ impl Preprocessor {
   }
 
   pub(crate) fn check(self, program: &mut Program) -> Result<(), TypeCheckerError> {
-    dbg!(&program);
-
     let mut checker = TypeChecker::new(program);
 
     while program.check(&mut checker)? {};

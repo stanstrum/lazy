@@ -123,7 +123,19 @@ impl GetSpan for TemplateConstraint {
 
 impl GetSpan for Structure {
   fn get_span(&self) -> Span {
-    todo!()
+    match self {
+      Structure::Namespace(namespace) => namespace.get_span(),
+      Structure::Function(function) => function.get_span(),
+      Structure::TypeAlias(typealias) => typealias.get_span(),
+      Structure::Interface(interface) => interface.get_span(),
+      Structure::Struct(r#struct) => r#struct.get_span(),
+      Structure::Class(class) => class.get_span(),
+      Structure::Impl(r#impl) => r#impl.get_span(),
+      Structure::Extern(r#extern) => r#extern.get_span(),
+      Structure::Import(import) => import.get_span(),
+      Structure::Exported(exported) => exported.get_span(),
+      Structure::TemplateScope(templatescope) => templatescope.get_span(),
+    }
   }
 }
 

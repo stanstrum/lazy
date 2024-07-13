@@ -148,11 +148,11 @@ impl PreprocessExpression for ast::Block {
               binding_type.preprocess(preprocessor)?
             } else {
               Type::Unknown {
-                span: self.get_span().to_owned(),
+                span: binding.span,
               }
             }.into()
           },
-          span: binding.span.to_owned(),
+          span: binding.span,
         });
       };
     };

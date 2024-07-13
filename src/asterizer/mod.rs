@@ -49,7 +49,7 @@ impl<'a> TokenStream<'a> {
   pub fn span_mark(&self) -> Span {
     Span {
       start: self.tokens[*self.marks.last().unwrap()].span.start,
-      end: self.tokens[self.position].span.end,
+      end: self.tokens[self.position].span.start,
       handle: self.handle.to_owned(),
     }
   }

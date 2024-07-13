@@ -12,8 +12,18 @@ pub(crate) trait TypeOf where Self: GetSpan {
 }
 
 impl TypeOf for lang::TypeCell {
+  fn type_of(&self) -> Option<lang::Type> {
+    self.borrow().type_of()
+  }
+
   fn is_resolved(&self) -> bool {
-    match &*self.as_ref().borrow() {
+    self.borrow().is_resolved()
+  }
+}
+
+impl TypeOf for lang::Type {
+  fn is_resolved(&self) -> bool {
+    match self {
       lang::Type::Intrinsic { .. } => true,
       | lang::Type::UnsizedArrayOf { ty, .. }
       | lang::Type::SizedArrayOf { ty, .. }
@@ -38,7 +48,7 @@ impl TypeOf for lang::TypeCell {
 
   fn type_of(&self) -> Option<lang::Type> {
     match self.is_resolved() {
-      true => Some(lang::Type::Shared(self.to_owned())),
+      true => Some(self.to_owned()),
       false => None,
     }
   }

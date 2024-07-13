@@ -146,7 +146,7 @@ impl<'a> Generate<'a> for Intrinsic {
   }
 }
 
-trait ResolveToU32 {
+pub(crate) trait ResolveToU32 {
   fn resolve_to_u32(&self) -> u32;
 }
 

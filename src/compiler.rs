@@ -197,7 +197,7 @@ impl Compiler {
     };
 
     // TODO: better error handling
-    if let Err(error) = generator.create_binary_executable("path") {
+    if let Err(error) = generator.create_binary_executable("program") {
       panic!("creating binary executable failed: {error}");
     };
 

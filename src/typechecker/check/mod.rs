@@ -28,7 +28,7 @@ use type_domain::{
   TypeDomainMember,
 };
 
-use coerce::{
+pub(in crate::typechecker) use coerce::{
   Coerce,
   CoerceCell,
   Extends,
@@ -37,6 +37,7 @@ use coerce::{
 pub(crate) use type_of::TypeOf;
 
 use super::lang::pretty_print::PrettyPrint;
+use super::postprocess::Postprocess;
 use super::DomainReference;
 
 #[allow(unused)]
@@ -54,6 +55,16 @@ impl TypeChecker {
     Self {
       types: TypeDomain::make_program_type_domain(program),
     }
+  }
+
+  pub(super) fn check_until_done(&mut self, program: &mut Program) -> Result<(), TypeCheckerError> {
+    while program.check(self)? {};
+
+    Ok(())
+  }
+
+  pub(super) fn postprocess(&mut self, program: &mut Program) -> Result<(), TypeCheckerError> {
+    program.postprocess(self)
   }
 
   fn resolve_type_reference(&self, reference: &DomainReference, span: &Span) -> Result<TypeCell, TypeCheckerError> {

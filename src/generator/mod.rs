@@ -7,11 +7,9 @@ use std::cell::RefCell;
 use inkwell::{
   builder::Builder,
   context::Context,
-  module::{
-    Linkage,
-    Module,
-  },
+  module::Module,
   types::{
+    AnyTypeEnum,
     ArrayType,
     BasicMetadataTypeEnum,
     BasicType,
@@ -26,12 +24,12 @@ use inkwell::{
     FunctionValue,
     PointerValue,
   },
-  AddressSpace
+  AddressSpace,
 };
 
 use crate::tokenizer::{
   self,
-  GetSpan
+  GetSpan,
 };
 
 use crate::typechecker::{
@@ -72,6 +70,21 @@ enum GeneratorType<'a> {
   Basic(BasicTypeEnum<'a>),
   Void(VoidType<'a>),
   Function(FunctionType<'a>),
+}
+
+impl<'a> From<AnyTypeEnum<'a>> for GeneratorType<'a> {
+  fn from(value: AnyTypeEnum<'a>) -> Self {
+    match value {
+      AnyTypeEnum::ArrayType(ty) => Self::Basic(BasicTypeEnum::ArrayType(ty)),
+      AnyTypeEnum::FloatType(ty) => Self::Basic(BasicTypeEnum::FloatType(ty)),
+      AnyTypeEnum::FunctionType(ty) => Self::Function(ty),
+      AnyTypeEnum::IntType(ty) => Self::Basic(BasicTypeEnum::IntType(ty)),
+      AnyTypeEnum::PointerType(ty) => Self::Basic(BasicTypeEnum::PointerType(ty)),
+      AnyTypeEnum::StructType(ty) => Self::Basic(BasicTypeEnum::StructType(ty)),
+      AnyTypeEnum::VectorType(ty) => Self::Basic(BasicTypeEnum::VectorType(ty)),
+      AnyTypeEnum::VoidType(ty) => Self::Void(ty),
+    }
+  }
 }
 
 impl<'a> GeneratorType<'a> {
@@ -482,7 +495,7 @@ impl<'a> Generator<'a> {
       .into_function();
 
     Ok(
-      self.module.add_function(&func.name, ty, Some(Linkage::Internal))
+      self.module.add_function(&func.name, ty, None)
     )
   }
 
@@ -550,7 +563,14 @@ impl<'a> Generator<'a> {
           let value = value.generate(self)?
             .unwrap();
 
-          self.builder.build_store(dest, value);
+          self.builder.build_store(
+            dest,
+            self.builder.build_bitcast(
+              value,
+              GeneratorType::from(dest.get_type().get_element_type()).into_basic(),
+              "store_bitcast"
+            )
+          );
         },
         lang::Instruction::Call { .. } => todo!(),
         lang::Instruction::Return { value, .. } => {

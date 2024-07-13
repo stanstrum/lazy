@@ -7,17 +7,20 @@ use crate::tokenizer::GetSpan;
 use crate::asterizer::ast;
 
 use crate::typechecker::{
+  check::Extends,
   Domain,
   DomainMember,
+  error::*,
   NamedDomainMember,
   Preprocessor,
-  TypeCheckerError,
+  TypeOf,
 };
 
 use crate::typechecker::lang::{
   Block,
   Function,
   Instruction,
+  pretty_print::PrettyPrint,
   Type,
   TypeCell,
   Value,
@@ -27,8 +30,6 @@ use crate::typechecker::lang::{
   VariableReference,
   intrinsics::Intrinsic,
 };
-
-use super::TypeOf;
 
 pub(super) trait PreprocessExpression {
   type Out;
@@ -185,23 +186,6 @@ impl PreprocessExpression for ast::Block {
       };
     };
 
-    if self.returns_last {
-      let last = body.pop()
-        .expect("a block that returns last must have at least one instruction");
-
-      let span = last.get_span().to_owned();
-
-      body.push(
-        Instruction::Return {
-          value: Some(Value::Instruction(
-            Box::new(last)
-          )),
-          to: return_ty.to_owned(),
-          span,
-        }
-      );
-    };
-
     preprocessor.scope_stack.pop();
 
     Ok(Self::Out {
@@ -239,7 +223,34 @@ impl Preprocess for ast::Function {
       }
     }.into();
 
-    let body = self.body.preprocess(preprocessor, &return_ty)?;
+    let mut body = self.body.preprocess(preprocessor, &return_ty)?;
+
+    if self.body.returns_last {
+      let Some(last) = body.body.pop() else {
+        return IncompatibleTypesSnafu {
+          message: "body returns last, but has no instructions",
+          lhs: return_ty.pretty_print(),
+          rhs: "(void)",
+          span: body.span,
+        }.fail();
+      };
+
+      body.body.push(Instruction::Return {
+        span: last.get_span(),
+        value: Some(Value::Instruction(Box::new(last))),
+        to: return_ty.to_owned(),
+      });
+    };
+
+    if return_ty.borrow().extends(&Type::Intrinsic { kind: Intrinsic::Void, span: self.span }) {
+      if !matches!(body.body.last(), Some(Instruction::Return { .. })) {
+        body.body.push(Instruction::Return {
+          value: None,
+          to: return_ty.to_owned(),
+          span: return_ty.get_span(),
+        });
+      };
+    };
 
     Ok(Function {
       name: self.decl.name.to_owned(),

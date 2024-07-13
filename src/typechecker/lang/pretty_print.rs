@@ -1,7 +1,11 @@
 use crate::tokenizer;
 
-use super::{
-  intrinsics::Intrinsic, Instruction, Type, TypeCell, Value
+use crate::typechecker::lang::{
+  intrinsics::Intrinsic,
+  Instruction,
+  Type,
+  TypeCell,
+  Value,
 };
 
 pub(in crate::typechecker) trait PrettyPrint {

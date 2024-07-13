@@ -22,11 +22,11 @@ use crate::typechecker::lang::{
 
 use crate::generator::ResolveToU32;
 
-pub(super) trait Coerce {
+pub(in crate::typechecker) trait Coerce {
   fn coerce(&mut self, checker: &mut TypeChecker, to: &Type) -> Result<bool, TypeCheckerError>;
 }
 
-pub(super) trait CoerceCell {
+pub(in crate::typechecker) trait CoerceCell {
   fn coerce_cell(&mut self, checker: &mut TypeChecker, to: &TypeCell) -> Result<bool, TypeCheckerError>;
 }
 

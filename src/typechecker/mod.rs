@@ -1,6 +1,7 @@
 mod error;
 mod domain;
 mod preprocess;
+mod postprocess;
 mod check;
 
 pub(crate) mod lang;
@@ -8,7 +9,6 @@ pub(crate) mod lang;
 use std::collections::HashMap;
 
 use crate::compiler::{
-  // Compiler,
   Handle,
   SourceFile,
   SourceFileData,
@@ -17,10 +17,7 @@ use crate::compiler::{
 use crate::tokenizer::Span;
 use crate::CompilationError;
 
-use check::{
-  TypeChecker,
-  Check,
-};
+use check::TypeChecker;
 
 use lang::VariableReference;
 use preprocess::Preprocess;
@@ -76,8 +73,8 @@ impl Preprocessor {
   pub(crate) fn check(self, program: &mut Program) -> Result<(), TypeCheckerError> {
     let mut checker = TypeChecker::new(program);
 
-    while program.check(&mut checker)? {};
-
-    Ok(())
+    checker.check_until_done(program)?;
+    checker.postprocess(program)?;
+    checker.check_until_done(program)
   }
 }

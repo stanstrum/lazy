@@ -301,9 +301,10 @@ impl MakeAst for MethodArguments {
 
 impl MakeAst for Method {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-        let visibility = match stream.peek_variant() {
+    let visibility = match stream.peek_variant() {
       Some(TokenEnum::Keyword(Keyword::Private)) => Some(MemberVisibility::Private),
-          _ => None
+      Some(TokenEnum::Keyword(Keyword::Protected)) => Some(MemberVisibility::Protected),
+      _ => None
     };
 
     if visibility.is_some() {
@@ -311,7 +312,7 @@ impl MakeAst for Method {
       stream.skip_whitespace_and_comments();
     };
 
-    let visibility = visibility.unwrap_or(MemberVisibility::Private);
+    let visibility = visibility.unwrap_or(MemberVisibility::Public);
 
     let r#abstract = {
       if let Some(TokenEnum::Keyword(Keyword::Abstract)) = stream.peek_variant() {
@@ -413,11 +414,13 @@ impl MakeAst for ClassChild {
 
 impl MakeAst for Class {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-        let Some(TokenEnum::Keyword(Keyword::Class)) = stream.next_variant() else {
+    let Some(TokenEnum::Keyword(Keyword::Class)) = stream.next_variant() else {
       return Ok(None);
     };
 
-        let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
+    stream.skip_whitespace_and_comments();
+
+    let Some(TokenEnum::Identifier(name)) = stream.next_variant() else {
       return ExpectedSnafu {
         what: "an identifier",
         span: stream.span(),

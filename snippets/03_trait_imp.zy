@@ -10,7 +10,7 @@ interface IAdd {
 };
 
 class i32 {
-  public new -> This {
+  new -> This {
     0
   };
 };

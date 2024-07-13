@@ -1,6 +1,6 @@
 class F {
   protected abstract something_abstract_and_protected -> bool: &this;
-  public something_static -> i32 { 1 };
+  something_static -> i32 { 1 };
   private internal_consumer -> This: this { this };
   private mut_internal_consumer -> This: mut this { this };
   private abstract modifier: &mut this;

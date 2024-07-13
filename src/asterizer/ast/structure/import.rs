@@ -97,7 +97,7 @@ impl GetSpan for Import {
 
 impl MakeAst for ImportPattern {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-        if let Some(TokenEnum::Identifier(name)) = stream.peek_variant() {
+    if let Some(TokenEnum::Identifier(name)) = stream.peek_variant() {
       let name = name.to_owned();
       stream.seek();
 
@@ -195,8 +195,9 @@ impl MakeAst for ImportBrace {
 
 impl MakeAst for TopLevelImportPattern {
   fn make(stream: &mut TokenStream) -> Result<Option<Self>, AsterizerError> {
-        if let Some(TokenEnum::Identifier(name)) = stream.peek_variant() {
+    if let Some(TokenEnum::Identifier(name)) = stream.peek_variant() {
       let name = name.to_owned();
+      stream.seek();
 
       Ok(Some(Self::All(name)))
     } else if let Some(brace) = stream.make()? {

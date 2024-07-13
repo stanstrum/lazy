@@ -127,9 +127,15 @@ impl Preprocess for ast::Type {
             None
           };
 
+          let mut reference = preprocessor.reference.to_owned();
+
+          if !*implied {
+            reference.inner.extend_from_slice(parts.clone().as_slice());
+          };
+
           Type::Unresolved {
             implied: *implied,
-            reference: preprocessor.reference.to_owned(),
+            reference,
             template: template_tys,
             span: span.to_owned(),
           }

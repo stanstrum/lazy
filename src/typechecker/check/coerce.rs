@@ -165,6 +165,9 @@ impl Extends for Type {
 
         ty_lhs.extends(ty_rhs)
       },
+      (Type::UnsizedArrayOf { ty: ty_lhs, .. }, Type::UnsizedArrayOf { ty: ty_rhs, .. }) => {
+        ty_lhs.extends(ty_rhs)
+      },
       (Type::Intrinsic { kind: lhs, .. }, Type::Intrinsic { kind: rhs, .. }) => dbg!(lhs == rhs),
       _ => dbg!(false),
     };

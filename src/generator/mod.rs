@@ -230,9 +230,16 @@ impl<'a> Generate<'a> for lang::Type {
           ).as_basic_type_enum()
         ))
       },
-      _ => UnresolvedSnafu {
-        span: self.get_span(),
-      }.fail()
+      Self::UnsizedArrayOf { ty, .. } => {
+        ty.generate(generator)
+      },
+      _ => {
+        dbg!(self);
+
+        UnresolvedSnafu {
+          span: self.get_span(),
+        }.fail()
+      },
     }
   }
 }

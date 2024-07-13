@@ -68,6 +68,12 @@ impl Check for Function {
       return Ok(true);
     };
 
+    for variable in self.body.variables.borrow_mut().inner.iter_mut() {
+      if variable.check(checker)? {
+        return Ok(true);
+      };
+    };
+
     for instruction in self.body.body.iter_mut() {
       if instruction.check(checker)? {
         return Ok(true);
@@ -89,8 +95,18 @@ impl Check for Type {
     Ok({
       match self {
         | Type::FuzzyInteger { .. }
-        | Type::FuzzyString { .. }
-        | Type::Unresolved { .. } => todo!(),
+        | Type::FuzzyString { .. } => todo!(),
+        Type::Unresolved { implied, .. } if *implied => todo!(),
+        Type::Unresolved { template, .. } if template.is_some() => todo!(),
+        Type::Unresolved { reference, span, .. } => {
+          if let Some(ty) = checker.resolve_type_reference(reference, span)?.type_of() {
+            *self = ty;
+
+            true
+          } else {
+            false
+          }
+        },
         | Type::UnsizedArrayOf { ty, .. }
         | Type::SizedArrayOf { ty, .. }
         | Type::ReferenceTo { ty, .. }

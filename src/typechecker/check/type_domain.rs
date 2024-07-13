@@ -16,7 +16,7 @@ pub(super) enum TypeDomainMember {
   Type(TypeCell),
 }
 
-pub(super) struct TypeDomain(HashMap<String, TypeDomainMember>);
+pub(super) struct TypeDomain(pub(super) HashMap<String, TypeDomainMember>);
 
 impl TypeDomain {
   fn get_types_from_domain(domain: &Domain) -> Self {

@@ -55,122 +55,124 @@ pub(crate) trait Extends where Self: std::fmt::Debug + crate::typechecker::lang:
 
 impl Extends for Type {
   fn extends(&self, other: &Self) -> bool {
-    let result = match (self, other) {
-      (Type::Shared(lhs), rhs) => lhs.borrow().extends(rhs),
-      (lhs, Type::Shared(rhs)) => lhs.extends(&*rhs.borrow()),
-      (Type::Unknown { .. }, _) => true,
-      (Type::FuzzyString { size: lhs_size, element_ty: lhs_ty, .. }, Type::FuzzyString { size: rhs_size, element_ty: rhs_ty, .. }) => {
-        if *lhs_size != *rhs_size {
-          return false;
-        };
+    let result = 'result: {
+      match (self, other) {
+        (Type::Shared(lhs), rhs) => lhs.borrow().extends(rhs),
+        (lhs, Type::Shared(rhs)) => lhs.extends(&*rhs.borrow()),
+        (Type::Unknown { .. }, _) => true,
+        (Type::FuzzyString { size: lhs_size, element_ty: lhs_ty, .. }, Type::FuzzyString { size: rhs_size, element_ty: rhs_ty, .. }) => {
+          if *lhs_size != *rhs_size {
+            break 'result false;
+          };
 
-        if lhs_ty != rhs_ty {
-          return false;
-        };
+          if lhs_ty != rhs_ty {
+            break 'result false;
+          };
 
-        true
-      },
-      (Type::FuzzyString { size, element_ty, span }, rhs) => {
-        if !rhs.is_resolved() {
-          return false;
-        };
+          true
+        },
+        (Type::FuzzyString { size, element_ty, span }, rhs) => {
+          if !rhs.is_resolved() {
+            break 'result false;
+          };
 
-        let span = span.to_owned();
-        let element_ty: TypeCell = Type::Intrinsic {
-          kind: element_ty.to_owned(),
-          span,
-        }.into();
+          let span = span.to_owned();
+          let element_ty: TypeCell = Type::Intrinsic {
+            kind: element_ty.to_owned(),
+            span,
+          }.into();
 
-        let sized_array_of = Type::SizedArrayOf {
-          count: Value::Literal {
-            literal: Literal {
-              kind: LiteralKind::Integer(*size as u64),
-              span,
+          let sized_array_of = Type::SizedArrayOf {
+            count: Value::Literal {
+              literal: Literal {
+                kind: LiteralKind::Integer(*size as u64),
+                span,
+              },
+              ty: Type::FuzzyInteger { span }.into(),
             },
-            ty: Type::FuzzyInteger { span }.into(),
-          },
-          ty: element_ty.to_owned(),
-          span,
-        };
-
-        if rhs.extends(&sized_array_of) {
-          return true;
-        };
-
-        if rhs.extends(&Type::ReferenceTo {
-          r#mut: false,
-          ty: sized_array_of.into(),
-          span,
-        }) {
-          return true;
-        };
-
-        if rhs.extends(&Type::ReferenceTo {
-          r#mut: false,
-          ty: Type::UnsizedArrayOf {
             ty: element_ty.to_owned(),
             span,
-          }.into(),
-          span,
-        }) {
-          return true;
-        };
+          };
 
-        false
-      },
-      (
-        Type::FuzzyInteger { .. },
-        Type::Intrinsic {
-          kind: Intrinsic::U8
-            | Intrinsic::I8
-            | Intrinsic::U16
-            | Intrinsic::I16
-            | Intrinsic::U32
-            | Intrinsic::I32
-            | Intrinsic::U64
-            | Intrinsic::I64,
-          ..
-        }
-      ) => true,
-      (Type::ReferenceTo {
-        r#mut: mut_lhs,
-        ty: ty_lhs,
-        ..
-      },
-      Type::ReferenceTo {
-        r#mut: mut_rhs,
-        ty: ty_rhs,
-        ..
-      }) => {
-        if *mut_lhs && !*mut_rhs {
-          return false;
-        };
+          if rhs.extends(&sized_array_of) {
+            break 'result true;
+          };
 
-        ty_lhs.extends(ty_rhs)
-      },
-      (
-        Type::SizedArrayOf {
-          count: count_lhs,
+          if rhs.extends(&Type::ReferenceTo {
+            r#mut: false,
+            ty: sized_array_of.into(),
+            span,
+          }) {
+            break 'result true;
+          };
+
+          if rhs.extends(&Type::ReferenceTo {
+            r#mut: false,
+            ty: Type::UnsizedArrayOf {
+              ty: element_ty.to_owned(),
+              span,
+            }.into(),
+            span,
+          }) {
+            break 'result true;
+          };
+
+          false
+        },
+        (
+          Type::FuzzyInteger { .. },
+          Type::Intrinsic {
+            kind: Intrinsic::U8
+              | Intrinsic::I8
+              | Intrinsic::U16
+              | Intrinsic::I16
+              | Intrinsic::U32
+              | Intrinsic::I32
+              | Intrinsic::U64
+              | Intrinsic::I64,
+            ..
+          }
+        ) => true,
+        (Type::ReferenceTo {
+          r#mut: mut_lhs,
           ty: ty_lhs,
           ..
         },
-        Type::SizedArrayOf {
-          count: count_rhs,
+        Type::ReferenceTo {
+          r#mut: mut_rhs,
           ty: ty_rhs,
           ..
-        },
-      ) => {
-        if count_lhs.resolve_to_u32() != count_rhs.resolve_to_u32() {
-          return false;
-        };
+        }) => {
+          if *mut_lhs && !*mut_rhs {
+            break 'result false;
+          };
 
-        ty_lhs.extends(ty_rhs)
-      },
-      (Type::UnsizedArrayOf { ty: ty_lhs, .. }, Type::UnsizedArrayOf { ty: ty_rhs, .. }) => {
-        ty_lhs.extends(ty_rhs)
-      },
-      (Type::Intrinsic { kind: lhs, .. }, Type::Intrinsic { kind: rhs, .. }) => lhs == rhs,
-      _ => false,
+          ty_lhs.extends(ty_rhs)
+        },
+        (
+          Type::SizedArrayOf {
+            count: count_lhs,
+            ty: ty_lhs,
+            ..
+          },
+          Type::SizedArrayOf {
+            count: count_rhs,
+            ty: ty_rhs,
+            ..
+          },
+        ) => {
+          if count_lhs.resolve_to_u32() != count_rhs.resolve_to_u32() {
+            break 'result false;
+          };
+
+          ty_lhs.extends(ty_rhs)
+        },
+        (Type::UnsizedArrayOf { ty: ty_lhs, .. }, Type::UnsizedArrayOf { ty: ty_rhs, .. }) => {
+          ty_lhs.extends(ty_rhs)
+        },
+        (Type::Intrinsic { kind: lhs, .. }, Type::Intrinsic { kind: rhs, .. }) => lhs == rhs,
+        _ => false,
+      }
     };
 
     println!("{} == {} = {result}", self.pretty_print(), other.pretty_print());

@@ -134,8 +134,26 @@ impl Compiler {
     for id in 0..self.files.len() {
       let handle = Handle { id };
 
-      let borrowed_file = self.take_handle(id);
-      let result = preprocessor.preprocess(borrowed_file, &handle)?;
+      let mut borrowed_file = self.take_handle(id);
+      // TODO: remove these clones
+      let debug_info = borrowed_file.debug_info.clone();
+      let path = borrowed_file.path.to_owned();
+
+      let result = match preprocessor.preprocess(borrowed_file, &handle) {
+        Ok(result) => result,
+        Err(error) => {
+          if let Some(debug_info) = debug_info {
+            crate::pretty_print_error(
+              &error,
+              &debug_info.source,
+              debug_info.color_stream,
+              &path,
+            );
+          };
+
+          return Err(error.into());
+        },
+      };
 
       self.replace_handle(id, result);
     };

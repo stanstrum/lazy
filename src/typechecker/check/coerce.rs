@@ -195,22 +195,12 @@ impl Coerce for TypeCell {
     let inner = &mut *self.borrow_mut();
 
     inner.assert_extends(to)?;
+
+    let result = std::mem::discriminant(inner) != std::mem::discriminant(to);
+
     *inner = to.to_owned();
 
-    Ok({
-      match (&inner, to) {
-        (Type::Unknown { .. }, _) => true,
-        (lhs, rhs) if std::mem::discriminant(*lhs) == std::mem::discriminant(rhs) => false,
-        _ => {
-          return IncompatibleTypesSnafu {
-            message: "not coercible",
-            lhs: inner.pretty_print(),
-            rhs: to.pretty_print(),
-            span: inner.get_span(),
-          }.fail();
-        }
-      }
-    })
+    Ok(result)
   }
 }
 

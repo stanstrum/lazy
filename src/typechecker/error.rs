@@ -20,13 +20,20 @@ pub(crate) enum TypeCheckerError {
     rhs: String,
     span: Span,
   },
+
+  #[snafu(display("{message}"))]
+  Invalid {
+    message: String,
+    span: Span,
+  }
 }
 
 impl GetSpan for TypeCheckerError {
   fn get_span(&self) -> Span {
     match self {
       | TypeCheckerError::UnknownVariable { span, .. }
-      | TypeCheckerError::IncompatibleTypes { span, .. } => *span,
+      | TypeCheckerError::IncompatibleTypes { span, .. }
+      | TypeCheckerError::Invalid { span, .. } => *span,
     }
   }
 }

@@ -1,6 +1,10 @@
 mod domain;
 
-use crate::typechecker::lang::intrinsics::Intrinsic;
+use crate::typechecker::lang::{
+  self,
+  intrinsics::Intrinsic,
+};
+
 use crate::typechecker::check::{
   Check,
   Coerce,
@@ -22,6 +26,16 @@ impl Check for Variable {
   }
 }
 
+impl Check for lang::Value {
+  fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
+    match self {
+      lang::Value::Variable(variable) => variable.get().check(checker),
+      lang::Value::Instruction(instruction) => instruction.check(checker),
+      lang::Value::Literal { ty, .. } => ty.check(checker),
+    }
+  }
+}
+
 impl Check for Instruction {
   fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
     Ok({
@@ -40,6 +54,7 @@ impl Check for Instruction {
         Instruction::Call { .. } => todo!(),
         Instruction::Return { value, to, span } => {
           if let Some(value) = value {
+            // value.ch
             value.coerce_cell(checker, to)?
           } else {
             to.borrow().assert_extends(&Type::Intrinsic {
@@ -50,7 +65,7 @@ impl Check for Instruction {
             false
           }
         },
-        Instruction::Value(_) => todo!(),
+        Instruction::Value(value) => value.check(checker)?,
       }
     })
   }

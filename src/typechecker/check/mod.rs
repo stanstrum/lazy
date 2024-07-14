@@ -58,7 +58,13 @@ impl TypeChecker {
   }
 
   pub(super) fn check_until_done(&mut self, program: &mut Program) -> Result<(), TypeCheckerError> {
-    while program.check(self)? {};
+    for pass in 1.. {
+      println!("Pass {pass} ...");
+
+      if !dbg!(program.check(self)?) {
+        break;
+      };
+    };
 
     Ok(())
   }

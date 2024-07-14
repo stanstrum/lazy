@@ -136,6 +136,20 @@ impl PreprocessExpression for ast::Block {
 
     let mut variable_map = HashMap::new();
 
+    if self.returns_last {
+      match self.children.last() {
+        Some(ast::BlockChild::Binding(last_binding)) => return InvalidSnafu {
+          message: "a block returning the last statement may not end with an assignment",
+          span: last_binding.get_span(),
+        }.fail(),
+        None => return InvalidSnafu {
+          message: "a block returning the last statement must have at least one instruction",
+          span: self.span,
+        }.fail(),
+        _ => {},
+      };
+    };
+
     for child in self.children.iter() {
       if let ast::BlockChild::Binding(binding) = child {
         let variable_id = variables.len();

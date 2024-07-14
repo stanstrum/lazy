@@ -15,7 +15,6 @@ use crate::compiler::{
 };
 
 use crate::tokenizer::Span;
-use crate::CompilationError;
 
 use check::TypeChecker;
 
@@ -42,7 +41,7 @@ impl Preprocessor {
     }
   }
 
-  pub(crate) fn preprocess(&mut self, file: SourceFile, _handle: &Handle) -> Result<SourceFile, CompilationError> {
+  pub(crate) fn preprocess(&mut self, file: SourceFile, _handle: &Handle) -> Result<SourceFile, TypeCheckerError> {
     let SourceFile {
       path,
       data: SourceFileData::Asterized(ast),

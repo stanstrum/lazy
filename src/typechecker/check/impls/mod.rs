@@ -4,6 +4,11 @@ use crate::typechecker::lang::Block;
 use crate::typechecker::lang::{
   self,
   intrinsics::Intrinsic,
+  ExternFunction,
+  Function,
+  Instruction,
+  Type,
+  TypeCell,
 };
 
 use crate::typechecker::check::{
@@ -11,10 +16,6 @@ use crate::typechecker::check::{
   Coerce,
   CoerceCell,
   Extends,
-  Function,
-  Instruction,
-  Type,
-  TypeCell,
   TypeChecker,
   TypeCheckerError,
   TypeOf,
@@ -79,6 +80,10 @@ impl Check for Block {
   fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
     let mut did_work = false;
 
+    for variable in self.variables.borrow_mut().inner.iter_mut() {
+      did_work |= variable.check(checker)?;
+    };
+
     for instruction in self.body.iter_mut() {
       did_work |= instruction.check(checker)?;
     };
@@ -97,11 +102,21 @@ impl Check for Function {
 
     did_work |= self.return_ty.check(checker)?;
 
-    for variable in self.body.variables.borrow_mut().inner.iter_mut() {
-      did_work |= variable.check(checker)?;
+    did_work |= self.body.check(checker)?;
+
+    Ok(did_work)
+  }
+}
+
+impl Check for ExternFunction {
+  fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
+    let mut did_work = false;
+
+    for argument in self.arguments.inner.iter_mut() {
+      did_work |= argument.check(checker)?;
     };
 
-    did_work |= self.body.check(checker)?;
+    did_work |= self.return_ty.check(checker)?;
 
     Ok(did_work)
   }

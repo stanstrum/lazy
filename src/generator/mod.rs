@@ -7,7 +7,10 @@ use std::cell::RefCell;
 use inkwell::{
   builder::Builder,
   context::Context,
-  module::Module,
+  module::{
+    Linkage,
+    Module,
+  },
   types::{
     AnyTypeEnum,
     ArrayType,
@@ -470,6 +473,24 @@ impl<'a> Generate<'a> for lang::Block {
   }
 }
 
+impl<'a> Generate<'a> for lang::ExternFunction {
+  type Out = FunctionValue<'a>;
+
+  fn generate(&self, generator: &mut Generator<'a>) -> Result<Self::Out, GeneratorError> {
+    let param_types = self.arguments.inner.iter()
+      .map(|argument| Ok(
+        argument.ty.generate(generator)?
+          .into_basic_metadata()
+      ))
+      .collect::<Result<Vec<_>, _>>()?;
+
+    let ty = self.return_ty.generate(generator)?
+      .fn_type(&param_types, self.variadic);
+
+    Ok(generator.module.add_function(&self.name, ty, Some(Linkage::External)))
+  }
+}
+
 impl<'a> Generator<'a> {
   pub(crate) fn new(context: &'a Context, builder: &'a Builder<'a>) -> Self {
     Self {
@@ -643,6 +664,9 @@ impl<'a> Generator<'a> {
           funcs.push(
             self.declare_function(func)?
           );
+        },
+        DomainMember::ExternFunction(r#extern) => {
+          funcs.push(r#extern.generate(self)?)
         },
         DomainMember::Type(_) => {
           dbg!("type ignored");

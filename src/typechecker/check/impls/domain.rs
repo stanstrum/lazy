@@ -9,17 +9,18 @@ use crate::typechecker::check::{
 
 impl Check for Domain {
   fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
+    let mut did_work = false;
+
     for member in self.inner.values_mut() {
-      if match member {
+      did_work |= match member {
         DomainMember::Domain(domain) => domain.check(checker)?,
         DomainMember::Function(func) => func.check(checker)?,
         DomainMember::Type(ty) => ty.check(checker)?,
-      } {
-        return Ok(true);
+        DomainMember::ExternFunction(r#extern) => r#extern.check(checker)?,
       };
     };
 
-    Ok(false)
+    Ok(did_work)
   }
 }
 

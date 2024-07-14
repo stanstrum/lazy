@@ -18,6 +18,7 @@ use crate::typechecker::{
 
 use crate::typechecker::lang::{
   Block,
+  ExternFunction,
   Function,
   Instruction,
   pretty_print::PrettyPrint,
@@ -278,6 +279,41 @@ impl Preprocess for ast::Function {
   }
 }
 
+impl Preprocess for ast::Extern {
+  type Out = ExternFunction;
+
+  fn preprocess(&self, preprocessor: &mut Preprocessor) -> Result<Self::Out, TypeCheckerError> {
+    let arguments = if let Some(args) = &self.decl.args {
+      args.args.iter()
+        .map(|arg| Ok(Variable {
+          name: arg.name.to_owned(),
+          kind: VariableKind::Argument,
+          ty: arg.ty.preprocess(preprocessor)?.into(),
+          span: arg.get_span(),
+        })).collect::<Result<Vec<_>, _>>()?
+    } else {
+      vec![]
+    };
+
+    let return_ty = if let Some(return_ty) = &self.decl.return_type {
+      return_ty.preprocess(preprocessor)?
+    } else {
+      Type::Intrinsic {
+        kind: Intrinsic::Void,
+        span: self.decl.get_span(),
+      }
+    }.into();
+
+    Ok(ExternFunction {
+      name: self.decl.name.to_owned(),
+      arguments: VariableScope::from_vec(arguments),
+      return_ty,
+      span: self.span,
+      variadic: self.c_variadic,
+    })
+  }
+}
+
 impl Preprocess for ast::Structure {
   type Out = Option<NamedDomainMember>;
 
@@ -302,7 +338,12 @@ impl Preprocess for ast::Structure {
         ast::Structure::Interface(_) => todo!("preprocess interface"),
         ast::Structure::Struct(_) => todo!("preprocess struct"),
         ast::Structure::Class(_) => todo!("preprocess class"),
-        ast::Structure::Extern(_) => todo!("preprocess extern"),
+        ast::Structure::Extern(r#extern) => {
+          Some(NamedDomainMember {
+            name: r#extern.decl.name.to_owned(),
+            member: DomainMember::ExternFunction(r#extern.preprocess(preprocessor)?)
+          })
+        },
         ast::Structure::Exported(_) => todo!("preprocess exported"),
         ast::Structure::TemplateScope(_) => todo!("preprocess templatescope"),
         _ => None,

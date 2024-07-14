@@ -88,6 +88,18 @@ impl Postprocess for lang::Function {
   }
 }
 
+impl Postprocess for lang::ExternFunction {
+  fn postprocess(&mut self, checker: &mut TypeChecker) -> Result<(), TypeCheckerError> {
+    self.return_ty.postprocess(checker)?;
+
+    for argument in self.arguments.inner.iter_mut() {
+      argument.postprocess(checker)?;
+    };
+
+    Ok(())
+  }
+}
+
 impl Postprocess for lang::Type {
   fn postprocess(&mut self, checker: &mut TypeChecker) -> Result<(), TypeCheckerError> {
     match self {
@@ -166,6 +178,7 @@ impl Postprocess for DomainMember {
       DomainMember::Domain(domain) => domain.postprocess(checker),
       DomainMember::Function(function) => function.postprocess(checker),
       DomainMember::Type(r#type) => r#type.postprocess(checker),
+      DomainMember::ExternFunction(r#extern) => r#extern.postprocess(checker),
     }
   }
 }

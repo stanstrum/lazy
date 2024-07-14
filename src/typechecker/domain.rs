@@ -20,6 +20,7 @@ pub(super) struct NamedDomainMember {
 pub(crate) enum DomainMember {
   Domain(Domain),
   Function(lang::Function),
+  ExternFunction(lang::ExternFunction),
   Type(lang::TypeCell),
 }
 

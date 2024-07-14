@@ -128,6 +128,16 @@ pub(crate) struct Function {
   pub(crate) span: Span,
 }
 
+#[allow(unused)]
+#[derive(Debug)]
+pub(crate) struct ExternFunction {
+  pub(crate) name: String,
+  pub(crate) arguments: VariableScope,
+  pub(crate) return_ty: TypeCell,
+  pub(crate) span: Span,
+  pub(crate) variadic: bool,
+}
+
 impl GetSpan for Block {
   fn get_span(&self) -> Span {
     self.span
@@ -145,6 +155,12 @@ impl GetSpan for Value {
 }
 
 impl GetSpan for Function {
+  fn get_span(&self) -> Span {
+    self.span
+  }
+}
+
+impl GetSpan for ExternFunction {
   fn get_span(&self) -> Span {
     self.span
   }

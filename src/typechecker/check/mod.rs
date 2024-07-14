@@ -15,8 +15,6 @@ use crate::typechecker::{
 };
 
 use crate::typechecker::lang::{
-  Function,
-  Instruction,
   Variable,
   Type,
   TypeCell,

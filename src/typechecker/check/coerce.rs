@@ -32,7 +32,7 @@ pub(in crate::typechecker) trait CoerceCell {
 
 impl<T: Coerce> CoerceCell for T {
   fn coerce_cell(&mut self, checker: &mut TypeChecker, to: &TypeCell) -> Result<bool, TypeCheckerError> {
-    self.coerce(checker, &*to.borrow())
+    self.coerce(checker, &to.borrow())
   }
 }
 

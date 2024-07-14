@@ -256,14 +256,15 @@ impl Preprocess for ast::Function {
       });
     };
 
-    if return_ty.borrow().extends(&Type::Intrinsic { kind: Intrinsic::Void, span: self.span }) {
-      if !matches!(body.body.last(), Some(Instruction::Return { .. })) {
-        body.body.push(Instruction::Return {
-          value: None,
-          to: return_ty.to_owned(),
-          span: return_ty.get_span(),
-        });
-      };
+    if
+      return_ty.borrow().extends(&Type::Intrinsic { kind: Intrinsic::Void, span: self.span }) &&
+      !matches!(body.body.last(), Some(Instruction::Return { .. }))
+    {
+      body.body.push(Instruction::Return {
+        value: None,
+        to: return_ty.to_owned(),
+        span: return_ty.get_span(),
+      });
     };
 
     Ok(Function {

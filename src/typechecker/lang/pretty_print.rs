@@ -125,7 +125,7 @@ impl PrettyPrint for Type {
       Type::Shared(shared) => shared.pretty_print(),
       Type::Function { .. } => todo!(),
       Type::Struct { .. } => todo!(),
-      Type::FuzzyInteger { .. } => format!("{{integer}}"),
+      Type::FuzzyInteger { .. } => "{integer}".to_string(),
       Type::FuzzyString { size, element_ty, .. } => format!("{{string: [{}]{}}}", *size, element_ty.pretty_print()),
       Type::Unknown { .. } => "{unknown}".to_string(),
     }

@@ -3,3 +3,7 @@ namespace something {
     0
   };
 };
+
+main -> i32 {
+  0
+};

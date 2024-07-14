@@ -18,3 +18,7 @@ other_function -> bool:
     /* and this should be skipped */
   }
 };
+
+main -> i32 {
+  0
+};

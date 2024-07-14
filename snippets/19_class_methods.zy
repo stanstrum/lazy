@@ -18,3 +18,7 @@ class F {
     value: &str
   {};
 };
+
+main -> i32 {
+  0
+};

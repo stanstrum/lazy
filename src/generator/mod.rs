@@ -491,6 +491,10 @@ impl<'a> Generator<'a> {
       panic!("verification failed");
     };
 
+    if self.module.get_function("main").is_none() {
+      panic!("no main function");
+    };
+
     println!("Writing LLVM to a.ll ...");
 
     let cwd = std::env::current_dir().expect("couldn't get working dir");

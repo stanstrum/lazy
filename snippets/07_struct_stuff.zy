@@ -11,3 +11,7 @@ namespace Something {
     b: u8
   };
 };
+
+main -> i32 {
+  0
+};

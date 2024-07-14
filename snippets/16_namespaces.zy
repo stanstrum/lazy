@@ -19,3 +19,7 @@ namespace Whatever {
     };
   };
 };
+
+main -> i32 {
+  0
+};

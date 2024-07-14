@@ -1,5 +1,6 @@
 mod domain;
 
+use crate::typechecker::lang::Block;
 use crate::typechecker::lang::{
   self,
   intrinsics::Intrinsic,
@@ -54,8 +55,10 @@ impl Check for Instruction {
         Instruction::Call { .. } => todo!(),
         Instruction::Return { value, to, span } => {
           if let Some(value) = value {
-            // value.ch
-            value.coerce_cell(checker, to)?
+            let check = value.check(checker)?;
+            let coerce = value.coerce_cell(checker, to)?;
+
+            check || coerce
           } else {
             to.borrow().assert_extends(&Type::Intrinsic {
               kind: Intrinsic::Void,
@@ -65,38 +68,42 @@ impl Check for Instruction {
             false
           }
         },
-        Instruction::Block(_) => todo!(),
+        Instruction::Block(block) => block.check(checker)?,
         Instruction::Value(value) => value.check(checker)?,
       }
     })
   }
 }
 
+impl Check for Block {
+  fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
+    let mut did_work = false;
+
+    for instruction in self.body.iter_mut() {
+      did_work |= instruction.check(checker)?;
+    };
+
+    Ok(did_work)
+  }
+}
+
 impl Check for Function {
   fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
+    let mut did_work = false;
+
     for argument in self.arguments.inner.iter_mut() {
-      if argument.check(checker)? {
-        return Ok(true);
-      };
+      did_work |= argument.check(checker)?;
     };
 
-    if self.return_ty.check(checker)? {
-      return Ok(true);
-    };
+    did_work |= self.return_ty.check(checker)?;
 
     for variable in self.body.variables.borrow_mut().inner.iter_mut() {
-      if variable.check(checker)? {
-        return Ok(true);
-      };
+      did_work |= variable.check(checker)?;
     };
 
-    for instruction in self.body.body.iter_mut() {
-      if instruction.check(checker)? {
-        return Ok(true);
-      };
-    };
+    did_work |= self.body.check(checker)?;
 
-    Ok(false)
+    Ok(did_work)
   }
 }
 
@@ -108,46 +115,48 @@ impl Check for TypeCell {
 
 impl Check for Type {
   fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
-    Ok({
-      match self {
-        | Type::FuzzyInteger { .. }
-        | Type::FuzzyString { .. } => todo!(),
-        Type::Unresolved { implied, .. } if *implied => todo!(),
-        Type::Unresolved { template, .. } if template.is_some() => todo!(),
-        Type::Unresolved { reference, span, .. } => {
-          if let Some(ty) = checker.resolve_type_reference(reference, span)?.type_of() {
-            *self = ty;
+    let mut did_work = false;
 
-            true
-          } else {
-            false
-          }
-        },
-        | Type::UnsizedArrayOf { ty, .. }
-        | Type::SizedArrayOf { ty, .. }
-        | Type::ReferenceTo { ty, .. }
-        | Type::Shared(ty) => ty.check(checker)?,
-        | Type::Function { args, return_ty, .. } => {
-          for arg in args.iter_mut() {
-            if arg.check(checker)? {
-              return Ok(true);
-            };
-          };
+    did_work |= match self {
+      | Type::FuzzyInteger { .. }
+      | Type::FuzzyString { .. } => false,
+      Type::Unresolved { implied, .. } if *implied => todo!(),
+      Type::Unresolved { template, .. } if template.is_some() => todo!(),
+      Type::Unresolved { reference, span, .. } => {
+        if let Some(ty) = checker.resolve_type_reference(reference, span)?.type_of() {
+          *self = ty;
 
-          return_ty.check(checker)?
-        },
-        Type::Struct { members: tys, .. } => {
-          for ty in tys.iter_mut() {
-            if ty.check(checker)? {
-              return Ok(true);
-            };
-          };
-
+          true
+        } else {
           false
-        },
-        | Type::Intrinsic { .. }
-        | Type::Unknown { .. } => false,
-      }
-    })
+        }
+      },
+      | Type::UnsizedArrayOf { ty, .. }
+      | Type::SizedArrayOf { ty, .. }
+      | Type::ReferenceTo { ty, .. }
+      | Type::Shared(ty) => ty.check(checker)?,
+      | Type::Function { args, return_ty, .. } => {
+        for arg in args.iter_mut() {
+          if arg.check(checker)? {
+            did_work = true;
+          };
+        };
+
+        return_ty.check(checker)?
+      },
+      Type::Struct { members: tys, .. } => {
+        for ty in tys.iter_mut() {
+          if ty.check(checker)? {
+            did_work = true;
+          };
+        };
+
+        false
+      },
+      | Type::Intrinsic { .. }
+      | Type::Unknown { .. } => false,
+    };
+
+    Ok(did_work)
   }
 }

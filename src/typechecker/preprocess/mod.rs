@@ -207,6 +207,7 @@ impl PreprocessExpression for ast::Block {
       variables: scope.to_owned(),
       body,
       span: self.span.to_owned(),
+      returns_last: self.returns_last,
     })
   }
 }

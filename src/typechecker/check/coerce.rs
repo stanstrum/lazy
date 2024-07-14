@@ -14,6 +14,7 @@ use crate::typechecker::lang::{
   Instruction,
   VariableReference,
   Value,
+  Block,
   Type,
   TypeCell,
   pretty_print::PrettyPrint,
@@ -210,6 +211,18 @@ impl Coerce for VariableReference {
   }
 }
 
+impl Coerce for Block {
+  fn coerce(&mut self, checker: &mut TypeChecker, to: &Type) -> Result<bool, TypeCheckerError> {
+    if self.returns_last {
+      self.body.last_mut().unwrap().coerce(checker, to)
+    } else {
+      to.assert_extends(&Type::Intrinsic { kind: Intrinsic::Void, span: self.span })?;
+
+      Ok(false)
+    }
+  }
+}
+
 impl Coerce for Instruction {
   fn coerce(&mut self, checker: &mut TypeChecker, to: &Type) -> Result<bool, TypeCheckerError> {
     match self {
@@ -221,7 +234,7 @@ impl Coerce for Instruction {
       },
       Instruction::Call { .. } => todo!(),
       Instruction::Value(value) => value.coerce(checker, to),
-      Instruction::Block(_) => todo!(),
+      Instruction::Block(block) => block.coerce(checker, to),
     }
   }
 }

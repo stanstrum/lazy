@@ -65,6 +65,7 @@ pub(crate) struct Block {
   pub(crate) variables: Rc<RefCell<VariableScope>>,
   pub(crate) body: Vec<Instruction>,
   pub(crate) span: Span,
+  pub(crate) returns_last: bool,
 }
 
 #[allow(unused)]

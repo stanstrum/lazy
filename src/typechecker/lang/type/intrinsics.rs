@@ -2,6 +2,7 @@ pub(crate) const USIZE: Intrinsic = Intrinsic::U64;
 pub(crate) const ISIZE: Intrinsic = Intrinsic::I64;
 pub(crate) const UNICODE_CHAR: Intrinsic = Intrinsic::U32;
 pub(crate) const C_CHAR: Intrinsic = Intrinsic::I8;
+pub(crate) const BOOL: Intrinsic = Intrinsic::U8;
 
 // pub(crate) const DEFAULT_UNSIGNED_INTEGER: Intrinsic = Intrinsic::U32;
 // pub(crate) const DEFAULT_SIGNED_INTEGER: Intrinsic = Intrinsic::I32;
@@ -41,6 +42,7 @@ impl TryFrom<&str> for Intrinsic {
       "f32" => Ok(Self::F32),
       "f64" => Ok(Self::F64),
       "char" => Ok(UNICODE_CHAR),
+      "bool" => Ok(BOOL),
       _ => Err(()),
     }
   }

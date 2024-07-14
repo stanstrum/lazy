@@ -278,12 +278,43 @@ impl<'a> Generate<'a> for lang::Instruction {
   type Out = Option<BasicValueEnum<'a>>;
 
   fn generate(&self, generator: &mut Generator<'a>) -> Result<Self::Out, GeneratorError> {
-    Ok(match self {
-      lang::Instruction::Assign { .. } => None,
-      lang::Instruction::Call { .. } => todo!(),
-      lang::Instruction::Return { .. } => None,
-      lang::Instruction::Block(_) => todo!(),
-      lang::Instruction::Value(value) => value.generate(generator)?,
+    Ok({
+      match self {
+        lang::Instruction::Assign { dest, value, .. } => {
+          let dest = generator.resolve_dest(dest)?;
+          let value = value.generate(generator)?
+            .unwrap();
+
+          generator.builder.build_store(
+            dest,
+            generator.builder.build_bitcast(
+              value,
+              GeneratorType::from(dest.get_type().get_element_type()).into_basic(),
+              "store_bitcast"
+            )
+          );
+
+          None
+        },
+        lang::Instruction::Call { .. } => todo!(),
+        lang::Instruction::Return { value, .. } => {
+          if let Some(value) = &value {
+            generator.builder.build_return(
+              // intentional -- we should error here if there's no value
+              // generated, as we expect one
+              Some(
+                &value.generate(generator)?.unwrap()
+              )
+            );
+          } else {
+            generator.builder.build_return(None);
+          };
+
+          None
+        },
+        lang::Instruction::Value(value) => value.generate(generator)?,
+        lang::Instruction::Block(block) => block.generate(generator)?
+      }
     })
   }
 }
@@ -400,6 +431,42 @@ impl<'a> Generate<'a> for lang::Value {
         }
       },
     })
+  }
+}
+
+impl<'a> Generate<'a> for lang::Block {
+  type Out = Option<BasicValueEnum<'a>>;
+
+  fn generate(&self, generator: &mut Generator<'a>) -> Result<Self::Out, GeneratorError> {
+    let scope_id = generator.register_scope(&self.variables);
+
+    let mut pointers = vec![];
+    for variable in self.variables.borrow().inner.iter() {
+      let ty = variable.ty.generate(generator)?.into_basic();
+      let pointer = generator.builder.build_alloca(ty, &variable.name);
+
+      pointers.push(pointer);
+    };
+
+    generator.scopes.get_mut(scope_id).unwrap().pointers = Some(pointers);
+
+    let (last, instructions) = if self.returns_last {
+      let (last, instructions) = self.body.split_last().unwrap();
+
+      (Some(last), instructions)
+    } else {
+      (None, self.body.as_slice())
+    };
+
+    for inst in instructions {
+      inst.generate(generator)?;
+    };
+
+    if let Some(last) = last {
+      last.generate(generator)
+    } else {
+      Ok(None)
+    }
   }
 }
 
@@ -545,57 +612,6 @@ impl<'a> Generator<'a> {
     }
   }
 
-  fn generate_block(&mut self, block: &mut lang::Block, _function: FunctionValue<'a>) -> Result<(), GeneratorError> {
-    let scope_id = self.register_scope(&block.variables);
-
-    let mut pointers = vec![];
-    for variable in block.variables.borrow().inner.iter() {
-      let ty = variable.ty.generate(self)?.into_basic();
-      let pointer = self.builder.build_alloca(ty, &variable.name);
-
-      pointers.push(pointer);
-    };
-
-    self.scopes.get_mut(scope_id).unwrap().pointers = Some(pointers);
-
-    for inst in block.body.iter() {
-      match inst {
-        lang::Instruction::Assign { dest, value, .. } => {
-          let dest = self.resolve_dest(dest)?;
-          let value = value.generate(self)?
-            .unwrap();
-
-          self.builder.build_store(
-            dest,
-            self.builder.build_bitcast(
-              value,
-              GeneratorType::from(dest.get_type().get_element_type()).into_basic(),
-              "store_bitcast"
-            )
-          );
-        },
-        lang::Instruction::Call { .. } => todo!(),
-        lang::Instruction::Return { value, .. } => {
-          if let Some(value) = &value {
-            self.builder.build_return(
-              // intentional -- we should error here if there's no value
-              // generated, as we expect one
-              Some(
-                &value.generate(self)?.unwrap()
-              )
-            );
-          } else {
-            self.builder.build_return(None);
-          };
-        },
-        lang::Instruction::Value(_) => todo!(),
-        lang::Instruction::Block(_) => todo!(),
-      }
-    };
-
-    Ok(())
-  }
-
   fn generate_function(&mut self, func: &mut lang::Function, value: FunctionValue<'a>) -> Result<(), GeneratorError> {
     let basic_block = self.context.append_basic_block(value, "entry");
     self.builder.position_at_end(basic_block);
@@ -608,7 +624,9 @@ impl<'a> Generator<'a> {
     //   ))
     //   .collect::<Result<Vec<_>, _>>()?;
 
-    self.generate_block(&mut func.body, value)
+    func.body.generate(self)?;
+
+    Ok(())
   }
 
   fn generate_domain(&mut self, domain: &mut Domain) -> Result<(), GeneratorError> {

@@ -55,6 +55,7 @@ impl Postprocess for lang::Instruction {
         Ok(())
       },
       lang::Instruction::Value(value) => value.postprocess(checker),
+      lang::Instruction::Block(_) => todo!(),
     }
   }
 }

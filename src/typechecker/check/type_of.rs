@@ -117,6 +117,7 @@ impl TypeOf for lang::Instruction {
       },
       lang::Instruction::Return { value, .. } => value.as_ref().is_some_and(|value| value.is_resolved()),
       lang::Instruction::Value(value) => value.is_resolved(),
+      lang::Instruction::Block(_) => todo!(),
     }
   }
 
@@ -129,6 +130,7 @@ impl TypeOf for lang::Instruction {
       }),
       lang::Instruction::Call { .. } => todo!(),
       lang::Instruction::Value(value) => value.type_of(),
+      lang::Instruction::Block(_) => todo!(),
     }
   }
 }

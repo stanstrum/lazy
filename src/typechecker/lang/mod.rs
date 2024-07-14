@@ -56,10 +56,11 @@ pub(crate) enum Instruction {
     span: Span,
   },
   Value(Value),
+  Block(Block),
 }
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct Block {
   pub(crate) variables: Rc<RefCell<VariableScope>>,
   pub(crate) body: Vec<Instruction>,
@@ -102,6 +103,7 @@ impl GetSpan for Instruction {
       | Instruction::Assign { span, .. }
       | Instruction::Call { span, .. }
       | Instruction::Return { span, .. } => *span,
+      Instruction::Block(block) => block.get_span(),
     }
   }
 }
@@ -123,6 +125,12 @@ pub(crate) struct Function {
   pub(crate) return_ty: TypeCell,
   pub(crate) body: Block,
   pub(crate) span: Span,
+}
+
+impl GetSpan for Block {
+  fn get_span(&self) -> Span {
+    self.span
+  }
 }
 
 impl GetSpan for Value {

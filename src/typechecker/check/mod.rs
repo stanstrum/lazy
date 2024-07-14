@@ -12,7 +12,6 @@ use crate::typechecker::{
   Handle,
   Program,
   TypeCheckerError,
-  UnknownVariableSnafu,
 };
 
 use crate::typechecker::lang::{
@@ -38,7 +37,7 @@ pub(crate) use type_of::TypeOf;
 
 use super::lang::pretty_print::PrettyPrint;
 use super::postprocess::Postprocess;
-use super::DomainReference;
+use super::{DomainReference, InvalidSnafu};
 
 #[allow(unused)]
 pub(super) struct TypeChecker {
@@ -77,16 +76,22 @@ impl TypeChecker {
     let mut map = &self.types.get(&reference.handle).unwrap().0;
 
     let Some((last, parts)) = reference.inner.split_last() else {
-      return UnknownVariableSnafu {
-        name: Type::Unresolved { implied: false, reference: reference.to_owned(), template: None, span: *span }.pretty_print(),
+      return InvalidSnafu {
+        message: format!(
+          "not found: {}",
+          Type::Unresolved { implied: false, reference: reference.to_owned(), template: None, span: *span }.pretty_print(),
+        ),
         span: *span,
       }.fail();
     };
 
     for part in parts {
       let Some(TypeDomainMember::Domain(next)) = map.get(part) else {
-        return UnknownVariableSnafu {
-          name: part.to_owned(),
+        return InvalidSnafu {
+          message: format!(
+            "not found: {}",
+            part.to_owned(),
+          ),
           span: *span,
         }.fail();
       };
@@ -96,8 +101,8 @@ impl TypeChecker {
 
     match map.get(last) {
       Some(TypeDomainMember::Type(ty)) => Ok(ty.to_owned()),
-      _ => UnknownVariableSnafu {
-        name: last.to_owned(),
+      _ => InvalidSnafu {
+        message: format!("not found: {}", last.to_owned()),
         span: span.to_owned(),
       }.fail(),
     }

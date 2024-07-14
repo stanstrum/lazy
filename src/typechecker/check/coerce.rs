@@ -57,21 +57,21 @@ impl Extends for Type {
     let result = match (self, other) {
       (Type::Shared(lhs), rhs) => lhs.borrow().extends(rhs),
       (lhs, Type::Shared(rhs)) => lhs.extends(&*rhs.borrow()),
-      (Type::Unknown { .. }, _) => dbg!(true),
+      (Type::Unknown { .. }, _) => true,
       (Type::FuzzyString { size: lhs_size, element_ty: lhs_ty, .. }, Type::FuzzyString { size: rhs_size, element_ty: rhs_ty, .. }) => {
         if *lhs_size != *rhs_size {
-          return dbg!(false);
+          return false;
         };
 
         if lhs_ty != rhs_ty {
-          return dbg!(false);
+          return false;
         };
 
-        dbg!(true)
+        true
       },
       (Type::FuzzyString { size, element_ty, span }, rhs) => {
         if !rhs.is_resolved() {
-          return dbg!(false);
+          return false;
         };
 
         let span = span.to_owned();
@@ -93,7 +93,7 @@ impl Extends for Type {
         };
 
         if rhs.extends(&sized_array_of) {
-          return dbg!(true);
+          return true;
         };
 
         if rhs.extends(&Type::ReferenceTo {
@@ -101,7 +101,7 @@ impl Extends for Type {
           ty: sized_array_of.into(),
           span,
         }) {
-          return dbg!(true);
+          return true;
         };
 
         if rhs.extends(&Type::ReferenceTo {
@@ -112,10 +112,10 @@ impl Extends for Type {
           }.into(),
           span,
         }) {
-          return dbg!(true);
+          return true;
         };
 
-        dbg!(false)
+        false
       },
       (
         Type::FuzzyInteger { .. },
@@ -130,7 +130,7 @@ impl Extends for Type {
             | Intrinsic::I64,
           ..
         }
-      ) => dbg!(true),
+      ) => true,
       (Type::ReferenceTo {
         r#mut: mut_lhs,
         ty: ty_lhs,
@@ -142,7 +142,7 @@ impl Extends for Type {
         ..
       }) => {
         if *mut_lhs && !*mut_rhs {
-          return dbg!(false);
+          return false;
         };
 
         ty_lhs.extends(ty_rhs)
@@ -168,8 +168,8 @@ impl Extends for Type {
       (Type::UnsizedArrayOf { ty: ty_lhs, .. }, Type::UnsizedArrayOf { ty: ty_rhs, .. }) => {
         ty_lhs.extends(ty_rhs)
       },
-      (Type::Intrinsic { kind: lhs, .. }, Type::Intrinsic { kind: rhs, .. }) => dbg!(lhs == rhs),
-      _ => dbg!(false),
+      (Type::Intrinsic { kind: lhs, .. }, Type::Intrinsic { kind: rhs, .. }) => lhs == rhs,
+      _ => false,
     };
 
     println!("{} == {} = {result}", self.pretty_print(), other.pretty_print());
@@ -221,6 +221,7 @@ impl Coerce for Instruction {
       },
       Instruction::Call { .. } => todo!(),
       Instruction::Value(value) => value.coerce(checker, to),
+      Instruction::Block(_) => todo!(),
     }
   }
 }

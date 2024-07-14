@@ -64,14 +64,14 @@ impl Preprocess for ast::Atom {
   }
 }
 
-impl Preprocess for ast::Expression {
+impl PreprocessExpression for ast::Expression {
   type Out = Instruction;
 
-  fn preprocess(&self, preprocessor: &mut Preprocessor) -> Result<Self::Out, TypeCheckerError> {
+  fn preprocess(&self, preprocessor: &mut Preprocessor, return_ty: &TypeCell) -> Result<Self::Out, TypeCheckerError> {
     Ok({
       match self {
         ast::Expression::Atom(atom) => atom.preprocess(preprocessor)?,
-        ast::Expression::Block(_) => todo!("preprocess block"),
+        ast::Expression::Block(block) => Instruction::Block(block.preprocess(preprocessor, return_ty)?),
         ast::Expression::SubExpression(_) => todo!("preprocess subexpression"),
         ast::Expression::Unary(_) => todo!("preprocess unary"),
         ast::Expression::Binary(_) => todo!("preprocess binary"),
@@ -91,7 +91,7 @@ impl PreprocessExpression for ast::BlockChild {
             let reference = preprocessor.find_variable_by_name(&binding.name, binding.get_span())?;
 
             let value = Value::Instruction(Box::new(
-              expr.preprocess(preprocessor)?
+              expr.preprocess(preprocessor, return_ty)?
             ));
 
             Some(Instruction::Assign {
@@ -104,13 +104,13 @@ impl PreprocessExpression for ast::BlockChild {
           }
         },
         Self::Expression(expr) => {
-          Some(expr.preprocess(preprocessor)?)
+          Some(expr.preprocess(preprocessor, return_ty)?)
         },
         Self::ControlFlow(_) => todo!(),
         Self::Return(ast::Return { expr, span, .. }) => {
           let value = if let Some(expr) = &expr {
             Some(Value::Instruction(Box::new(
-              expr.preprocess(preprocessor)?
+              expr.preprocess(preprocessor, return_ty)?
             )))
           } else {
             None

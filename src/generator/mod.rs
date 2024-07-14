@@ -183,6 +183,7 @@ impl ResolveToU32 for lang::Instruction {
       | lang::Instruction::Assign { .. }
       | lang::Instruction::Return { .. } => panic!("can't resolve to u32"),
       lang::Instruction::Call { .. } => todo!(),
+      lang::Instruction::Block(_) => todo!(),
       lang::Instruction::Value(value) => value.resolve_to_u32(),
     }
   }
@@ -281,6 +282,7 @@ impl<'a> Generate<'a> for lang::Instruction {
       lang::Instruction::Assign { .. } => None,
       lang::Instruction::Call { .. } => todo!(),
       lang::Instruction::Return { .. } => None,
+      lang::Instruction::Block(_) => todo!(),
       lang::Instruction::Value(value) => value.generate(generator)?,
     })
   }
@@ -587,6 +589,7 @@ impl<'a> Generator<'a> {
           };
         },
         lang::Instruction::Value(_) => todo!(),
+        lang::Instruction::Block(_) => todo!(),
       }
     };
 

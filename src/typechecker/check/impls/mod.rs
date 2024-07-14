@@ -65,6 +65,7 @@ impl Check for Instruction {
             false
           }
         },
+        Instruction::Block(_) => todo!(),
         Instruction::Value(value) => value.check(checker)?,
       }
     })

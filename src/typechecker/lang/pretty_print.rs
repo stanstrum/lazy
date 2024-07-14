@@ -19,6 +19,7 @@ impl PrettyPrint for Instruction {
       Instruction::Call { .. } => todo!(),
       Instruction::Return { .. } => todo!(),
       Instruction::Value(value) => value.pretty_print(),
+      Instruction::Block(_) => todo!(),
     }
   }
 }

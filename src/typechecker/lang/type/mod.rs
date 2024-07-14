@@ -10,7 +10,10 @@ use crate::tokenizer::{
 };
 
 use crate::typechecker::{
-  preprocess::Preprocess,
+  preprocess::{
+    Preprocess,
+    PreprocessExpression,
+  },
   Preprocessor,
   TypeCheckerError,
   DomainReference,
@@ -146,7 +149,7 @@ impl Preprocess for ast::Type {
           span,
         }) => {
           let count = Value::Instruction(Box::new(
-            expr.preprocess(preprocessor)?
+            expr.preprocess(preprocessor, &Type::Unknown { span: *span }.into())?
           ));
 
           let ty = ty.preprocess(preprocessor)?.into();

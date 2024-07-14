@@ -52,7 +52,7 @@ pub(crate) use error::*;
 #[allow(unused)]
 struct GeneratorScope<'a> {
   scope: Rc<RefCell<lang::VariableScope>>,
-  pointers: Option<Vec<PointerValue<'a>>>,
+  pointers: Option<Vec<BasicValueEnum<'a>>>,
 }
 
 #[allow(unused)]
@@ -269,14 +269,6 @@ impl<'a> Generate<'a> for lang::TypeCell {
   }
 }
 
-impl<'a> Generate<'a> for lang::VariableReference {
-  type Out = BasicValueEnum<'a>;
-
-  fn generate(&self, _generator: &mut Generator<'a>) -> Result<Self::Out, GeneratorError> {
-    todo!()
-  }
-}
-
 impl<'a> Generate<'a> for lang::Instruction {
   type Out = Option<BasicValueEnum<'a>>;
 
@@ -378,7 +370,7 @@ impl<'a> Generate<'a> for lang::Value {
 
   fn generate(&self, generator: &mut Generator<'a>) -> Result<Self::Out, GeneratorError> {
     Ok(match self {
-      lang::Value::Variable(variable) => Some(variable.generate(generator)?),
+      lang::Value::Variable(reference) => Some(generator.load_variable_reference(reference)?),
       lang::Value::Instruction(instruction) => instruction.generate(generator)?,
       lang::Value::Literal { literal, ty } => {
         match &literal.kind {
@@ -448,7 +440,7 @@ impl<'a> Generate<'a> for lang::Block {
       let ty = variable.ty.generate(generator)?.into_basic();
       let pointer = generator.builder.build_alloca(ty, &variable.name);
 
-      pointers.push(pointer);
+      pointers.push(pointer.as_basic_value_enum());
     };
 
     generator.scopes.get_mut(scope_id).unwrap().pointers = Some(pointers);
@@ -477,7 +469,7 @@ impl<'a> Generate<'a> for lang::ExternFunction {
   type Out = FunctionValue<'a>;
 
   fn generate(&self, generator: &mut Generator<'a>) -> Result<Self::Out, GeneratorError> {
-    let param_types = self.arguments.inner.iter()
+    let param_types = self.arguments.borrow().inner.iter()
       .map(|argument| Ok(
         argument.ty.generate(generator)?
           .into_basic_metadata()
@@ -610,7 +602,32 @@ impl<'a> Generator<'a> {
     borrowed.generator_id.unwrap()
   }
 
-  fn get_variable_reference(&mut self, reference: &lang::VariableReference) -> Result<PointerValue<'a>, GeneratorError> {
+  fn load_variable_reference(&mut self, reference: &lang::VariableReference) -> Result<BasicValueEnum<'a>, GeneratorError> {
+    let kind = { reference.get().kind };
+
+    Ok(match kind {
+      lang::VariableKind::LocalVariable => {
+        self.builder.build_load(
+          self.get_variable_reference_pointer(reference)?,
+          &format!("load_{}", &reference.get().name)
+        )
+      },
+      lang::VariableKind::Argument => {
+        let id = reference.scope.borrow()
+          .generator_id
+          .expect("target scope has no generator id");
+
+        self.scopes[id].pointers
+          .as_ref()
+          .expect("target scope has no pointers")
+          .get(reference.id)
+          .unwrap()
+          .as_basic_value_enum()
+      },
+    })
+  }
+
+  fn get_variable_reference_pointer(&mut self, reference: &lang::VariableReference) -> Result<PointerValue<'a>, GeneratorError> {
     let id = reference.scope.borrow()
       .generator_id
       .expect("target scope has no generator id");
@@ -618,19 +635,25 @@ impl<'a> Generator<'a> {
     let scope = self.scopes.get(id).unwrap();
 
     Ok(
-      scope.pointers
-        .as_ref()
-        .expect("target scope has no pointers")
-        .get(reference.id)
-        .unwrap()
-        .to_owned()
+      match &reference.get().kind {
+        lang::VariableKind::LocalVariable => {
+          scope.pointers
+          .as_ref()
+          .expect("target scope has no pointers")
+          .get(reference.id)
+          .unwrap()
+          .into_pointer_value()
+          .to_owned()
+        },
+        lang::VariableKind::Argument => panic!("can't assign to a parameter"),
+      }
     )
   }
 
   fn resolve_dest(&mut self, value: &lang::Value) -> Result<PointerValue<'a>, GeneratorError> {
     match value {
       lang::Value::Variable(var) => {
-        self.get_variable_reference(var)
+        self.get_variable_reference_pointer(var)
       },
       lang::Value::Instruction(_) => todo!(),
       lang::Value::Literal { .. } => todo!(),
@@ -641,13 +664,9 @@ impl<'a> Generator<'a> {
     let basic_block = self.context.append_basic_block(value, "entry");
     self.builder.position_at_end(basic_block);
 
-    // let arguments = func.arguments.inner.borrow()
-    //   .iter()
-    //   .map(|arg| Ok(
-    //     arg.ty.generate(self)?
-    //       .into_basic()
-    //   ))
-    //   .collect::<Result<Vec<_>, _>>()?;
+    let scope_id = self.register_scope(&func.arguments);
+
+    self.scopes[scope_id].pointers = Some(value.get_params());
 
     func.body.generate(self)?;
 

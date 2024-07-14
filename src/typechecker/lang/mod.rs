@@ -69,7 +69,7 @@ pub(crate) struct Block {
 }
 
 #[allow(unused)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) enum VariableKind {
   LocalVariable,
   Argument,
@@ -122,7 +122,7 @@ impl VariableScope {
 #[derive(Debug)]
 pub(crate) struct Function {
   pub(crate) name: String,
-  pub(crate) arguments: VariableScope,
+  pub(crate) arguments: Rc<RefCell<VariableScope>>,
   pub(crate) return_ty: TypeCell,
   pub(crate) body: Block,
   pub(crate) span: Span,
@@ -132,7 +132,7 @@ pub(crate) struct Function {
 #[derive(Debug)]
 pub(crate) struct ExternFunction {
   pub(crate) name: String,
-  pub(crate) arguments: VariableScope,
+  pub(crate) arguments: Rc<RefCell<VariableScope>>,
   pub(crate) return_ty: TypeCell,
   pub(crate) span: Span,
   pub(crate) variadic: bool,

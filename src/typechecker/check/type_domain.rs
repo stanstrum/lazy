@@ -34,7 +34,7 @@ impl TypeDomain {
               DomainMember::Function(func) => (
                 name.to_owned(),
                 TypeDomainMember::Type(Type::Function {
-                  args: func.arguments.inner.iter().map(|variable| variable.ty.to_owned()).collect(),
+                  args: func.arguments.borrow().inner.iter().map(|variable| variable.ty.to_owned()).collect(),
                   return_ty: func.return_ty.to_owned(),
                   span: func.get_span(),
                 }.into())
@@ -46,7 +46,7 @@ impl TypeDomain {
               DomainMember::ExternFunction(r#extern) => (
                 name.to_owned(),
                 TypeDomainMember::Type(Type::Function {
-                  args: r#extern.arguments.inner.iter().map(|variable| variable.ty.to_owned()).collect(),
+                  args: r#extern.arguments.borrow().inner.iter().map(|variable| variable.ty.to_owned()).collect(),
                   return_ty: r#extern.return_ty.to_owned(),
                   span: r#extern.get_span(),
                 }.into())

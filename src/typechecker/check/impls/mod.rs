@@ -96,7 +96,7 @@ impl Check for Function {
   fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
     let mut did_work = false;
 
-    for argument in self.arguments.inner.iter_mut() {
+    for argument in self.arguments.borrow_mut().inner.iter_mut() {
       did_work |= argument.check(checker)?;
     };
 
@@ -112,7 +112,7 @@ impl Check for ExternFunction {
   fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
     let mut did_work = false;
 
-    for argument in self.arguments.inner.iter_mut() {
+    for argument in self.arguments.borrow_mut().inner.iter_mut() {
       did_work |= argument.check(checker)?;
     };
 

@@ -47,7 +47,7 @@ pub(super) trait Preprocess {
 impl Preprocess for ast::Atom {
   type Out = Instruction;
 
-  fn preprocess(&self, _preprocessor: &mut Preprocessor) -> Result<Self::Out, TypeCheckerError> {
+  fn preprocess(&self, preprocessor: &mut Preprocessor) -> Result<Self::Out, TypeCheckerError> {
     Ok({
       match self {
         ast::Atom::Literal(literal) => {
@@ -59,7 +59,11 @@ impl Preprocess for ast::Atom {
           )
         },
         ast::Atom::StructInitializer(_) => todo!("preprocess structinitializer"),
-        ast::Atom::Variable { .. } => todo!("preprocess variable"),
+        ast::Atom::Variable { name, span } => {
+          Instruction::Value(Value::Variable(
+            preprocessor.find_variable_by_name(&name, *span)?
+          ))
+        },
       }
     })
   }
@@ -230,6 +234,19 @@ impl Preprocess for ast::Function {
       };
     };
 
+    let arguments = Rc::new(RefCell::new(VariableScope::from_vec(arguments)));
+
+    preprocessor.scope_stack.push(
+      arguments.borrow().inner.iter().enumerate().map(|(id, var)| (
+        var.name.to_owned(),
+        VariableReference {
+          scope: arguments.to_owned(),
+          id,
+          span: var.get_span(),
+        }
+      )).collect()
+    );
+
     let return_ty = if let Some(ty) = &self.decl.return_type {
       ty.preprocess(preprocessor)?
     } else {
@@ -271,7 +288,7 @@ impl Preprocess for ast::Function {
 
     Ok(Function {
       name: self.decl.name.to_owned(),
-      arguments: VariableScope::from_vec(arguments),
+      arguments,
       return_ty,
       body,
       span: self.span.to_owned(),
@@ -306,7 +323,7 @@ impl Preprocess for ast::Extern {
 
     Ok(ExternFunction {
       name: self.decl.name.to_owned(),
-      arguments: VariableScope::from_vec(arguments),
+      arguments: Rc::new(RefCell::new(VariableScope::from_vec(arguments))),
       return_ty,
       span: self.span,
       variadic: self.c_variadic,

@@ -78,7 +78,7 @@ impl Postprocess for lang::Function {
   fn postprocess(&mut self, checker: &mut TypeChecker) -> Result<(), TypeCheckerError> {
     self.return_ty.postprocess(checker)?;
 
-    for argument in self.arguments.inner.iter_mut() {
+    for argument in self.arguments.borrow_mut().inner.iter_mut() {
       argument.postprocess(checker)?;
     };
 
@@ -92,7 +92,7 @@ impl Postprocess for lang::ExternFunction {
   fn postprocess(&mut self, checker: &mut TypeChecker) -> Result<(), TypeCheckerError> {
     self.return_ty.postprocess(checker)?;
 
-    for argument in self.arguments.inner.iter_mut() {
+    for argument in self.arguments.borrow_mut().inner.iter_mut() {
       argument.postprocess(checker)?;
     };
 

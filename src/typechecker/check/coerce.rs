@@ -237,6 +237,7 @@ impl Coerce for Instruction {
       Instruction::Call { .. } => todo!(),
       Instruction::Value(value) => value.coerce(checker, to),
       Instruction::Block(block) => block.coerce(checker, to),
+      Instruction::ControlFlow(_) => todo!(),
     }
   }
 }

@@ -217,6 +217,7 @@ pub(crate) enum LiteralKind {
   ByteString(String),
   UnicodeChar(char),
   ByteChar(u8),
+  Boolean(bool),
 }
 
 #[derive(Debug, TypeName, Clone)]

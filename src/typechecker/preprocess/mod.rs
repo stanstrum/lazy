@@ -18,6 +18,7 @@ use crate::typechecker::{
 
 use crate::typechecker::lang::{
   Block,
+  ControlFlow,
   ExternFunction,
   Function,
   Instruction,
@@ -85,6 +86,102 @@ impl PreprocessExpression for ast::Expression {
   }
 }
 
+impl PreprocessExpression for ast::If {
+  type Out = Instruction;
+
+  fn preprocess(&self, _preprocessor: &mut Preprocessor, _return_ty: &TypeCell) -> Result<Self::Out, TypeCheckerError> {
+    todo!()
+  }
+}
+
+impl PreprocessExpression for ast::While {
+  type Out = Instruction;
+
+  fn preprocess(&self, preprocessor: &mut Preprocessor, return_ty: &TypeCell) -> Result<Self::Out, TypeCheckerError> {
+    Ok(Instruction::ControlFlow(ControlFlow::While {
+      condition: Value::Instruction(Box::new(
+        self.clause.preprocess(preprocessor, return_ty)?
+      )),
+      body: self.body.preprocess(preprocessor, return_ty)?,
+      span: self.span,
+    }))
+  }
+}
+
+impl PreprocessExpression for ast::DoWhile {
+  type Out = Instruction;
+
+  fn preprocess(&self, preprocessor: &mut Preprocessor, return_ty: &TypeCell) -> Result<Self::Out, TypeCheckerError> {
+    Ok(Instruction::ControlFlow(ControlFlow::DoWhile {
+      condition: Value::Instruction(Box::new(
+        self.clause.preprocess(preprocessor, return_ty)?
+      )),
+      body: self.body.preprocess(preprocessor, return_ty)?,
+      span: self.span,
+    }))
+  }
+}
+
+impl PreprocessExpression for ast::Until {
+  type Out = Instruction;
+
+  fn preprocess(&self, preprocessor: &mut Preprocessor, return_ty: &TypeCell) -> Result<Self::Out, TypeCheckerError> {
+    Ok(Instruction::ControlFlow(ControlFlow::Until {
+      condition: Value::Instruction(Box::new(
+        self.clause.preprocess(preprocessor, return_ty)?
+      )),
+      body: self.body.preprocess(preprocessor, return_ty)?,
+      span: self.span,
+    }))
+  }
+}
+
+impl PreprocessExpression for ast::DoUntil {
+  type Out = Instruction;
+
+  fn preprocess(&self, preprocessor: &mut Preprocessor, return_ty: &TypeCell) -> Result<Self::Out, TypeCheckerError> {
+    Ok(Instruction::ControlFlow(ControlFlow::Until {
+      condition: Value::Instruction(Box::new(
+        self.clause.preprocess(preprocessor, return_ty)?
+      )),
+      body: self.body.preprocess(preprocessor, return_ty)?,
+      span: self.span,
+    }))
+  }
+}
+
+impl PreprocessExpression for ast::For {
+  type Out = Instruction;
+
+  fn preprocess(&self, _preprocessor: &mut Preprocessor, _return_ty: &TypeCell) -> Result<Self::Out, TypeCheckerError> {
+    todo!()
+  }
+}
+
+impl PreprocessExpression for ast::Loop {
+  type Out = Instruction;
+
+  fn preprocess(&self, _preprocessor: &mut Preprocessor, _return_ty: &TypeCell) -> Result<Self::Out, TypeCheckerError> {
+    todo!()
+  }
+}
+
+impl PreprocessExpression for ast::ControlFlow {
+  type Out = Instruction;
+
+  fn preprocess(&self, preprocessor: &mut Preprocessor, return_ty: &TypeCell) -> Result<Self::Out, TypeCheckerError> {
+    match self {
+      ast::ControlFlow::If(r#if) => r#if.preprocess(preprocessor, return_ty),
+      ast::ControlFlow::While(r#while) => r#while.preprocess(preprocessor, return_ty),
+      ast::ControlFlow::DoWhile(dowhile) => dowhile.preprocess(preprocessor, return_ty),
+      ast::ControlFlow::Until(until) => until.preprocess(preprocessor, return_ty),
+      ast::ControlFlow::DoUntil(dountil) => dountil.preprocess(preprocessor, return_ty),
+      ast::ControlFlow::For(r#for) => r#for.preprocess(preprocessor, return_ty),
+      ast::ControlFlow::Loop(r#loop) => r#loop.preprocess(preprocessor, return_ty),
+    }
+  }
+}
+
 impl PreprocessExpression for ast::BlockChild {
   type Out = Option<Instruction>;
 
@@ -111,7 +208,7 @@ impl PreprocessExpression for ast::BlockChild {
         Self::Expression(expr) => {
           Some(expr.preprocess(preprocessor, return_ty)?)
         },
-        Self::ControlFlow(_) => todo!(),
+        Self::ControlFlow(ctrl_flow) => Some(ctrl_flow.preprocess(preprocessor, return_ty)?),
         Self::Return(ast::Return { expr, span, .. }) => {
           let value = if let Some(expr) = &expr {
             Some(Value::Instruction(Box::new(

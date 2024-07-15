@@ -29,6 +29,23 @@ impl Postprocess for lang::Value {
   }
 }
 
+impl Postprocess for lang::ControlFlow {
+  fn postprocess(&mut self, checker: &mut TypeChecker) -> Result<(), TypeCheckerError> {
+    match self {
+      | lang::ControlFlow::While { condition, body, .. }
+      | lang::ControlFlow::DoWhile { condition, body, .. }
+      | lang::ControlFlow::Until { condition, body, .. }
+      | lang::ControlFlow::DoUntil { condition, body, .. } => {
+        condition.postprocess(checker)?;
+        body.postprocess(checker)
+      },
+      | lang::ControlFlow::If { .. }
+      | lang::ControlFlow::For { .. }
+      | lang::ControlFlow::Loop { .. } => todo!(),
+    }
+  }
+}
+
 impl Postprocess for lang::Instruction {
   fn postprocess(&mut self, checker: &mut TypeChecker) -> Result<(), TypeCheckerError> {
     match self {
@@ -56,6 +73,7 @@ impl Postprocess for lang::Instruction {
       },
       lang::Instruction::Value(value) => value.postprocess(checker),
       lang::Instruction::Block(block) => block.postprocess(checker),
+      lang::Instruction::ControlFlow(ctrl_flow) => ctrl_flow.postprocess(checker),
     }
   }
 }

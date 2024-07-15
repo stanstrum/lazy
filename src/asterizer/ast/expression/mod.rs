@@ -110,16 +110,12 @@ impl MakeAst for Expression {
       resolver.stream.skip_whitespace_and_comments();
 
       if resolver.make_binary_part()?.is_none() {
-        // dbg!(&resolver.parts);
-
         return ExpectedSnafu {
           what: "an expression",
           span: stream.span()
         }.fail();
       };
     };
-
-    // dbg!(&resolver.parts);
 
     let combined_expr = resolver.resolve()?;
 

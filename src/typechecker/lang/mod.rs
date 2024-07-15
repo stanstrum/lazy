@@ -39,6 +39,40 @@ pub(crate) enum Value {
 
 #[allow(unused)]
 #[derive(Debug, Clone)]
+pub(crate) enum ControlFlow {
+  If {
+    span: Span,
+  },
+  While {
+    condition: Value,
+    body: Block,
+    span: Span,
+  },
+  DoWhile {
+    condition: Value,
+    body: Block,
+    span: Span,
+  },
+  Until {
+    condition: Value,
+    body: Block,
+    span: Span,
+  },
+  DoUntil {
+    condition: Value,
+    body: Block,
+    span: Span,
+  },
+  For {
+    span: Span,
+  },
+  Loop {
+    span: Span,
+  },
+}
+
+#[allow(unused)]
+#[derive(Debug, Clone)]
 pub(crate) enum Instruction {
   Assign {
     dest: Value,
@@ -57,6 +91,7 @@ pub(crate) enum Instruction {
   },
   Value(Value),
   Block(Block),
+  ControlFlow(ControlFlow),
 }
 
 #[allow(unused)]
@@ -97,6 +132,20 @@ impl GetSpan for Variable {
   }
 }
 
+impl GetSpan for ControlFlow {
+  fn get_span(&self) -> Span {
+    match self {
+      | ControlFlow::If { span }
+      | ControlFlow::While { span, .. }
+      | ControlFlow::DoWhile { span, ..  }
+      | ControlFlow::Until { span, .. }
+      | ControlFlow::DoUntil { span, .. }
+      | ControlFlow::For { span }
+      | ControlFlow::Loop { span } => *span,
+    }
+  }
+}
+
 impl GetSpan for Instruction {
   fn get_span(&self) -> Span {
     match self {
@@ -105,6 +154,7 @@ impl GetSpan for Instruction {
       | Instruction::Call { span, .. }
       | Instruction::Return { span, .. } => *span,
       Instruction::Block(block) => block.get_span(),
+      Instruction::ControlFlow(ctrl_flow) => ctrl_flow.get_span(),
     }
   }
 }

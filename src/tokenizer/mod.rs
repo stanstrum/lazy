@@ -166,6 +166,24 @@ pub(crate) fn tokenize(handle: &Handle, reader: &mut Reader<File>) -> Result<(St
           let tok = {
             if let Ok(keyword) = Keyword::try_from(content) {
               TokenEnum::Keyword(keyword)
+            } else if content == "true" {
+              TokenEnum::Literal(Literal {
+                kind: LiteralKind::Boolean(true),
+                span: Span {
+                  start: *start,
+                  end: i,
+                  handle: *handle
+                },
+              })
+            } else if content == "false" {
+              TokenEnum::Literal(Literal {
+                kind: LiteralKind::Boolean(false),
+                span: Span {
+                  start: *start,
+                  end: i,
+                  handle: *handle
+                },
+              })
             } else {
               TokenEnum::Identifier(content.to_owned())
             }

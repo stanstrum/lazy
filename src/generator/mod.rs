@@ -61,6 +61,7 @@ pub(crate) struct Generator<'a> {
   module: Module<'a>,
   builder: &'a Builder<'a>,
   scopes: Vec<GeneratorScope<'a>>,
+  current_function: Option<FunctionValue<'a>>,
 }
 
 trait Generate<'a> {
@@ -148,6 +149,7 @@ impl<'a> Generate<'a> for Intrinsic {
   fn generate(&self, generator: &mut Generator<'a>) -> Result<Self::Out, GeneratorError> {
     Ok(match self {
       Intrinsic::Void => GeneratorType::Void(generator.context.void_type()),
+      Intrinsic::Bool => GeneratorType::Basic(BasicTypeEnum::IntType(generator.context.bool_type())),
       | Intrinsic::U8
       | Intrinsic::I8 => GeneratorType::Basic(BasicTypeEnum::IntType(generator.context.i8_type())),
       | Intrinsic::U16
@@ -170,12 +172,13 @@ impl ResolveToU32 for tokenizer::Literal {
   fn resolve_to_u32(&self) -> u32 {
     match &self.kind {
       tokenizer::LiteralKind::Integer(integer) => *integer as u32,
-      tokenizer::LiteralKind::FloatingPoint(_) => todo!(),
-      tokenizer::LiteralKind::UnicodeString(_) => todo!(),
-      tokenizer::LiteralKind::CString(_) => todo!(),
-      tokenizer::LiteralKind::ByteString(_) => todo!(),
-      tokenizer::LiteralKind::UnicodeChar(_) => todo!(),
-      tokenizer::LiteralKind::ByteChar(_) => todo!(),
+      | tokenizer::LiteralKind::FloatingPoint(_)
+      | tokenizer::LiteralKind::UnicodeString(_)
+      | tokenizer::LiteralKind::CString(_)
+      | tokenizer::LiteralKind::ByteString(_)
+      | tokenizer::LiteralKind::UnicodeChar(_)
+      | tokenizer::LiteralKind::ByteChar(_)
+      | tokenizer::LiteralKind::Boolean(_) => todo!(),
     }
   }
 }
@@ -188,6 +191,7 @@ impl ResolveToU32 for lang::Instruction {
       lang::Instruction::Call { .. } => todo!(),
       lang::Instruction::Block(_) => todo!(),
       lang::Instruction::Value(value) => value.resolve_to_u32(),
+      lang::Instruction::ControlFlow(_) => todo!(),
     }
   }
 }
@@ -269,6 +273,130 @@ impl<'a> Generate<'a> for lang::TypeCell {
   }
 }
 
+impl<'a> Generate<'a> for lang::ControlFlow {
+  type Out = Option<BasicValueEnum<'a>>;
+
+  fn generate(&self, generator: &mut Generator<'a>) -> Result<Self::Out, GeneratorError> {
+    match self {
+      lang::ControlFlow::While { condition, body, .. } => {
+        let while_outer_block = generator.context.append_basic_block(
+          generator.current_function.unwrap(),
+          "while_body_outer"
+        );
+
+        let while_inner_block = generator.context.append_basic_block(
+          generator.current_function.unwrap(),
+          "while_body_inner"
+        );
+
+        let while_break_block = generator.context.append_basic_block(
+          generator.current_function.unwrap(),
+          "while_break"
+        );
+
+        generator.builder.build_unconditional_branch(while_outer_block);
+        generator.builder.position_at_end(while_outer_block);
+
+        let condition = condition.generate(generator)?
+          .expect("comparison condition must yield a value")
+          .as_basic_value_enum()
+          .into_int_value();
+
+        generator.builder.build_conditional_branch(
+          condition,
+          while_inner_block,
+          while_break_block
+        );
+
+        generator.builder.position_at_end(while_inner_block);
+
+        body.generate(generator)?;
+
+        generator.builder.build_unconditional_branch(while_outer_block);
+        generator.builder.position_at_end(while_break_block);
+
+        // TODO: figure out how to return a value using a break
+        Ok(None)
+      },
+      lang::ControlFlow::DoWhile { condition, body, .. } => {
+        let do_while_inner = generator.context.append_basic_block(
+          generator.current_function.unwrap(),
+          "do_while_inner"
+        );
+
+        let do_while_break = generator.context.append_basic_block(
+          generator.current_function.unwrap(),
+          "do_while_break"
+        );
+
+        generator.builder.build_unconditional_branch(do_while_inner);
+        generator.builder.position_at_end(do_while_inner);
+
+        body.generate(generator)?;
+
+        let condition = condition.generate(generator)?
+          .expect("comparison condition must yield a value")
+          .as_basic_value_enum()
+          .into_int_value();
+
+        generator.builder.build_conditional_branch(condition, do_while_inner, do_while_break);
+
+        generator.builder.position_at_end(do_while_break);
+
+        // TODO: figure out how to return a value using a break
+        Ok(None)
+      },
+      lang::ControlFlow::Until { condition, body, .. } => {
+        let until_outer_block = generator.context.append_basic_block(
+          generator.current_function.unwrap(),
+          "until_body_outer"
+        );
+
+        let until_inner_block = generator.context.append_basic_block(
+          generator.current_function.unwrap(),
+          "until_body_inner"
+        );
+
+        let until_break_block = generator.context.append_basic_block(
+          generator.current_function.unwrap(),
+          "until_break"
+        );
+
+        generator.builder.build_unconditional_branch(until_outer_block);
+        generator.builder.position_at_end(until_outer_block);
+
+        let not_condition = condition.generate(generator)?
+          .expect("comparison condition must yield a value")
+          .as_basic_value_enum()
+          .into_int_value();
+
+        let condition = generator.builder.build_not(not_condition, "until_not_condition");
+
+        generator.builder.build_conditional_branch(
+          condition,
+          until_inner_block,
+          until_break_block
+        );
+
+        generator.builder.position_at_end(until_inner_block);
+
+        body.generate(generator)?;
+
+        generator.builder.build_unconditional_branch(until_outer_block);
+        generator.builder.position_at_end(until_break_block);
+
+        // TODO: figure out how to return a value using a break
+        Ok(None)
+      },
+      lang::ControlFlow::DoUntil { .. } => todo!(),
+      | lang::ControlFlow::If { .. }
+      | lang::ControlFlow::For { .. }
+      | lang::ControlFlow::Loop { .. } => todo!(),
+    }
+  }
+}
+
+
 impl<'a> Generate<'a> for lang::Instruction {
   type Out = Option<BasicValueEnum<'a>>;
 
@@ -308,7 +436,8 @@ impl<'a> Generate<'a> for lang::Instruction {
           None
         },
         lang::Instruction::Value(value) => value.generate(generator)?,
-        lang::Instruction::Block(block) => block.generate(generator)?
+        lang::Instruction::Block(block) => block.generate(generator)?,
+        lang::Instruction::ControlFlow(ctrl_flow) => ctrl_flow.generate(generator)?,
       }
     })
   }
@@ -423,6 +552,11 @@ impl<'a> Generate<'a> for lang::Value {
               .const_int(*ch as u64, false)
               .as_basic_value_enum()
           }),
+          tokenizer::LiteralKind::Boolean(boolean) => Some({
+            generator.context.bool_type()
+              .const_int(*boolean as u64, false)
+              .as_basic_value_enum()
+          })
         }
       },
     })
@@ -490,6 +624,7 @@ impl<'a> Generator<'a> {
       module: context.create_module("program"),
       builder,
       scopes: vec![],
+      current_function: None,
     }
   }
 
@@ -501,7 +636,7 @@ impl<'a> Generator<'a> {
       println!("LLVM verification failed: {}", error.to_string_lossy());
       println!("Source:\n{}", self.module.print_to_string().to_string_lossy());
 
-      panic!("verification failed");
+      println!("verification failed");
     };
 
     if self.module.get_function("main").is_none() {
@@ -668,6 +803,7 @@ impl<'a> Generator<'a> {
 
     self.scopes[scope_id].pointers = Some(value.get_params());
 
+    self.current_function = Some(value.to_owned());
     func.body.generate(self)?;
 
     Ok(())

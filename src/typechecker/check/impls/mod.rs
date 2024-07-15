@@ -1,9 +1,11 @@
 mod domain;
 
+use crate::tokenizer::GetSpan;
 use crate::typechecker::lang::Block;
 use crate::typechecker::lang::{
   self,
   intrinsics::Intrinsic,
+  ControlFlow,
   ExternFunction,
   Function,
   Instruction,
@@ -34,6 +36,32 @@ impl Check for lang::Value {
       lang::Value::Variable(variable) => variable.get().check(checker),
       lang::Value::Instruction(instruction) => instruction.check(checker),
       lang::Value::Literal { ty, .. } => ty.check(checker),
+    }
+  }
+}
+
+impl Check for ControlFlow {
+  fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
+    match self {
+      ControlFlow::If { .. } => todo!(),
+      | ControlFlow::While { condition, body, .. }
+      | ControlFlow::DoWhile { condition, body, .. }
+      | ControlFlow::Until { condition, body, .. }
+      | ControlFlow::DoUntil { condition, body, .. } => {
+        let mut did_work = false;
+
+        did_work |= condition.check(checker)?;
+        did_work |= condition.coerce(checker, &Type::Intrinsic {
+          kind: Intrinsic::Bool,
+          span: condition.get_span(),
+        })?;
+
+        did_work |= body.check(checker)?;
+
+        Ok(did_work)
+      },
+      ControlFlow::For { .. } => todo!(),
+      ControlFlow::Loop { .. } => todo!(),
     }
   }
 }
@@ -71,7 +99,8 @@ impl Check for Instruction {
         },
         Instruction::Block(block) => block.check(checker)?,
         Instruction::Value(value) => value.check(checker)?,
-      }
+        Instruction::ControlFlow(ctrl_flow) => ctrl_flow.check(checker)?,
+    }
     })
   }
 }

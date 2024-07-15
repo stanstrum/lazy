@@ -15,11 +15,12 @@ pub(in crate::typechecker) trait PrettyPrint {
 impl PrettyPrint for Instruction {
   fn pretty_print(&self) -> String {
     match self {
-      Instruction::Assign { .. } => todo!(),
-      Instruction::Call { .. } => todo!(),
-      Instruction::Return { .. } => todo!(),
       Instruction::Value(value) => value.pretty_print(),
-      Instruction::Block(_) => todo!(),
+      | Instruction::Assign { .. }
+      | Instruction::Call { .. }
+      | Instruction::Return { .. }
+      | Instruction::Block(_)
+      | Instruction::ControlFlow(_) => todo!()
     }
   }
 }
@@ -27,13 +28,14 @@ impl PrettyPrint for Instruction {
 impl PrettyPrint for tokenizer::Literal {
   fn pretty_print(&self) -> String {
     match &self.kind {
-      tokenizer::LiteralKind::Integer(integer) => format!("{integer}"),
-      tokenizer::LiteralKind::FloatingPoint(float) => format!("{float}"),
+      tokenizer::LiteralKind::Integer(integer) => integer.to_string(),
+      tokenizer::LiteralKind::FloatingPoint(float) => float.to_string(),
       tokenizer::LiteralKind::UnicodeString(string) => format!("\"{string}\""),
       tokenizer::LiteralKind::CString(string) => format!("c\"{string}\""),
       tokenizer::LiteralKind::ByteString(string) => format!("b\"{string}\""),
       tokenizer::LiteralKind::UnicodeChar(ch) => format!("'{ch}'"),
       tokenizer::LiteralKind::ByteChar(ch) => format!("b'{ch}'"),
+      tokenizer::LiteralKind::Boolean(boolean) => boolean.to_string(),
     }
   }
 }
@@ -52,6 +54,7 @@ impl PrettyPrint for Intrinsic {
   fn pretty_print(&self) -> String {
     match self {
       Intrinsic::Void => "void",
+      Intrinsic::Bool => "bool",
       Intrinsic::U8 => "u8",
       Intrinsic::I8 => "i8",
       Intrinsic::U16 => "u16",

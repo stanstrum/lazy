@@ -132,6 +132,7 @@ impl PrettyPrint for Type {
       Type::FuzzyInteger { .. } => "{integer}".to_string(),
       Type::FuzzyString { size, element_ty, .. } => format!("{{string: [{}]{}}}", *size, element_ty.pretty_print()),
       Type::Unknown { .. } => "{unknown}".to_string(),
+      Type::Generic { .. } => todo!(),
     }
   }
 }

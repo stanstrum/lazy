@@ -42,7 +42,7 @@ use crate::typechecker::{
     Intrinsic,
   },
   Domain,
-  DomainMember,
+  DomainMemberKind,
   Program,
   TypeOf,
 };
@@ -813,25 +813,28 @@ impl<'a> Generator<'a> {
     let mut funcs = vec![];
 
     for member in domain.inner.values_mut() {
-      match member {
-        DomainMember::Domain(domain) => self.generate_domain(domain)?,
-        DomainMember::Function(func) => {
+      match &mut member.kind {
+        DomainMemberKind::Domain(domain) => self.generate_domain(domain)?,
+        DomainMemberKind::Function(func) => {
           funcs.push(
             self.declare_function(func)?
           );
         },
-        DomainMember::ExternFunction(r#extern) => {
-          funcs.push(r#extern.generate(self)?)
+        DomainMemberKind::ExternFunction(r#extern) => {
+          r#extern.generate(self)?;
         },
-        DomainMember::Type(_) => {
+        DomainMemberKind::Type(_) => {
           dbg!("type ignored");
         },
+        DomainMemberKind::Struct(_) => {
+          dbg!("struct ignored");
+        }
       };
     };
 
     for (func, value) in domain.inner.values_mut()
       .filter_map(|member| {
-        if let DomainMember::Function(func) = member {
+        if let DomainMemberKind::Function(func) = &mut member.kind {
           Some(func)
         } else {
           None

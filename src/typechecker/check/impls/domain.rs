@@ -3,7 +3,7 @@ use crate::typechecker::check::{
   TypeCheckerError,
   Check,
   Domain,
-  DomainMember,
+  DomainMemberKind,
   Program,
 };
 
@@ -12,11 +12,20 @@ impl Check for Domain {
     let mut did_work = false;
 
     for member in self.inner.values_mut() {
-      did_work |= match member {
-        DomainMember::Domain(domain) => domain.check(checker)?,
-        DomainMember::Function(func) => func.check(checker)?,
-        DomainMember::Type(ty) => ty.check(checker)?,
-        DomainMember::ExternFunction(r#extern) => r#extern.check(checker)?,
+      if let Some(template_scope) = member.template_scope.as_ref() {
+        checker.template_stack.push(dbg!(template_scope.to_owned()));
+      };
+
+      did_work |= match &mut member.kind {
+        DomainMemberKind::Domain(domain) => domain.check(checker)?,
+        DomainMemberKind::Function(func) => func.check(checker)?,
+        DomainMemberKind::Type(ty) => ty.check(checker)?,
+        DomainMemberKind::ExternFunction(r#extern) => r#extern.check(checker)?,
+        DomainMemberKind::Struct(r#struct) => r#struct.check(checker)?,
+      };
+
+      if member.template_scope.is_some() {
+        checker.template_stack.pop();
       };
     };
 

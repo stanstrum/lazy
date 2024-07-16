@@ -8,7 +8,10 @@ use crate::typechecker::lang::{
   ControlFlow,
   ExternFunction,
   Function,
+  GenericConstraint,
+  GenericConstraints,
   Instruction,
+  Struct,
   Type,
   TypeCell,
 };
@@ -151,6 +154,33 @@ impl Check for ExternFunction {
   }
 }
 
+impl Check for GenericConstraint {
+  fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
+    let mut did_work = false;
+
+    match self {
+      GenericConstraint::Extends { lhs, rhs, .. } => {
+        did_work |= lhs.check(checker)?;
+        did_work |= rhs.check(checker)?;
+      },
+    };
+
+    Ok(did_work)
+  }
+}
+
+impl Check for GenericConstraints {
+  fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
+    let mut did_work = false;
+
+    for constraint in self.0.iter_mut() {
+      did_work |= constraint.check(checker)?;
+    };
+
+    Ok(did_work)
+  }
+}
+
 impl Check for TypeCell {
   fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
     self.borrow_mut().check(checker)
@@ -189,7 +219,7 @@ impl Check for Type {
         return_ty.check(checker)?
       },
       Type::Struct { members: tys, .. } => {
-        for ty in tys.iter_mut() {
+        for ty in tys.borrow_mut().iter_mut() {
           if ty.check(checker)? {
             did_work = true;
           };
@@ -199,6 +229,20 @@ impl Check for Type {
       },
       | Type::Intrinsic { .. }
       | Type::Unknown { .. } => false,
+
+      Type::Generic { constraints, .. } => constraints.check(checker)?,
+    };
+
+    Ok(did_work)
+  }
+}
+
+impl Check for Struct {
+  fn check(&mut self, checker: &mut TypeChecker) -> Result<bool, TypeCheckerError> {
+    let mut did_work = false;
+
+    for member in self.members.borrow_mut().iter_mut() {
+      did_work |= member.check(checker)?;
     };
 
     Ok(did_work)

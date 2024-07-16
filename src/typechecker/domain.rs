@@ -1,4 +1,6 @@
 use std::path::PathBuf;
+use std::rc::Rc;
+use std::cell::RefCell;
 use std::collections::HashMap;
 
 use crate::compiler::{
@@ -17,11 +19,18 @@ pub(super) struct NamedDomainMember {
 
 #[allow(unused)]
 #[derive(Debug)]
-pub(crate) enum DomainMember {
+pub(crate) enum DomainMemberKind {
   Domain(Domain),
   Function(lang::Function),
   ExternFunction(lang::ExternFunction),
   Type(lang::TypeCell),
+  Struct(lang::Struct),
+}
+
+#[derive(Debug)]
+pub(crate) struct DomainMember {
+  pub(crate) kind: DomainMemberKind,
+  pub(crate) template_scope: Option<Rc<RefCell<Vec<(String, lang::TypeCell)>>>>,
 }
 
 #[allow(unused)]

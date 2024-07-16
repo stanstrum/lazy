@@ -117,7 +117,10 @@ impl GetSpan for ConstrainedTemplateConstraint {
 
 impl GetSpan for TemplateConstraint {
   fn get_span(&self) -> Span {
-    todo!()
+    match self {
+      TemplateConstraint::Unconstrained(constraint) => constraint.span,
+      TemplateConstraint::Extends(constraint) => constraint.span,
+    }
   }
 }
 

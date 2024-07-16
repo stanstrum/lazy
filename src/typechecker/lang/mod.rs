@@ -188,6 +188,12 @@ pub(crate) struct ExternFunction {
   pub(crate) variadic: bool,
 }
 
+#[derive(Debug)]
+pub(crate) struct Struct {
+  pub(crate) members: Rc<RefCell<Vec<TypeCell>>>,
+  pub(crate) span: Span,
+}
+
 impl GetSpan for Block {
   fn get_span(&self) -> Span {
     self.span
@@ -217,6 +223,12 @@ impl GetSpan for ExternFunction {
 }
 
 impl GetSpan for VariableReference {
+  fn get_span(&self) -> Span {
+    self.span
+  }
+}
+
+impl GetSpan for Struct {
   fn get_span(&self) -> Span {
     self.span
   }

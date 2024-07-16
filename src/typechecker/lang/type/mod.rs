@@ -21,6 +21,18 @@ use crate::typechecker::{
   lang::intrinsics::Intrinsic,
 };
 
+#[derive(Debug, Clone)]
+pub(crate) enum GenericConstraint {
+  Extends {
+    lhs: TypeCell,
+    rhs: TypeCell,
+    span: Span,
+  },
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct GenericConstraints(pub(crate) Vec<GenericConstraint>);
+
 #[allow(unused)]
 #[derive(Debug, Clone)]
 pub(crate) enum Type {
@@ -55,7 +67,7 @@ pub(crate) enum Type {
     span: Span,
   },
   Struct {
-    members: Vec<TypeCell>,
+    members: Rc<RefCell<Vec<TypeCell>>>,
     span: Span,
   },
   FuzzyInteger {
@@ -67,6 +79,10 @@ pub(crate) enum Type {
     span: Span,
   },
   Unknown {
+    span: Span,
+  },
+  Generic {
+    constraints: GenericConstraints,
     span: Span,
   },
 }
@@ -84,7 +100,8 @@ impl GetSpan for Type {
       | Type::Struct { span, .. }
       | Type::FuzzyInteger { span, .. }
       | Type::FuzzyString { span, .. }
-      | Type::Unknown { span } => *span,
+      | Type::Unknown { span }
+      | Type::Generic { span, .. } => *span,
     }
   }
 }
@@ -173,5 +190,13 @@ impl Preprocess for ast::Type {
         },
       }
     })
+  }
+}
+
+impl GetSpan for GenericConstraint {
+  fn get_span(&self) -> Span {
+    match self {
+      GenericConstraint::Extends { span, .. } => *span,
+    }
   }
 }

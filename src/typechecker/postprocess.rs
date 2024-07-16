@@ -4,6 +4,7 @@ use crate::typechecker::{
   lang::intrinsics::Intrinsic,
   Domain,
   DomainMember,
+  DomainMemberKind,
   Program,
   TypeChecker,
   TypeCheckerError,
@@ -118,6 +119,29 @@ impl Postprocess for lang::ExternFunction {
   }
 }
 
+impl Postprocess for lang::GenericConstraint {
+  fn postprocess(&mut self, checker: &mut TypeChecker) -> Result<(), TypeCheckerError> {
+    match self {
+      lang::GenericConstraint::Extends { lhs, rhs, .. } => {
+        lhs.postprocess(checker)?;
+        rhs.postprocess(checker)?;
+      },
+    };
+
+    Ok(())
+  }
+}
+
+impl Postprocess for lang::GenericConstraints {
+  fn postprocess(&mut self, checker: &mut TypeChecker) -> Result<(), TypeCheckerError> {
+    for constraint in self.0.iter_mut() {
+      constraint.postprocess(checker)?;
+    };
+
+    Ok(())
+  }
+}
+
 impl Postprocess for lang::Type {
   fn postprocess(&mut self, checker: &mut TypeChecker) -> Result<(), TypeCheckerError> {
     match self {
@@ -138,7 +162,7 @@ impl Postprocess for lang::Type {
         return_ty.postprocess(checker)
       },
       lang::Type::Struct { members, .. } => {
-        for member in members.iter_mut() {
+        for member in members.borrow_mut().iter_mut() {
           member.postprocess(checker)?;
         };
 
@@ -180,6 +204,7 @@ impl Postprocess for lang::Type {
 
         Ok(())
       },
+      lang::Type::Generic { constraints, .. } => constraints.postprocess(checker),
     }
   }
 }
@@ -190,13 +215,31 @@ impl Postprocess for lang::TypeCell {
   }
 }
 
+impl Postprocess for lang::Struct {
+  fn postprocess(&mut self, checker: &mut TypeChecker) -> Result<(), TypeCheckerError> {
+    for ty in self.members.borrow_mut().iter_mut() {
+      ty.borrow_mut().postprocess(checker)?;
+    };
+
+    Ok(())
+  }
+}
+
 impl Postprocess for DomainMember {
   fn postprocess(&mut self, checker: &mut TypeChecker) -> Result<(), TypeCheckerError> {
-    match self {
-      DomainMember::Domain(domain) => domain.postprocess(checker),
-      DomainMember::Function(function) => function.postprocess(checker),
-      DomainMember::Type(r#type) => r#type.postprocess(checker),
-      DomainMember::ExternFunction(r#extern) => r#extern.postprocess(checker),
+    if let Some(ref mut template_scope) = self.template_scope {
+      for (_, ty) in template_scope.borrow_mut().iter_mut() {
+        ty.postprocess(checker)?;
+      };
+    };
+
+    match &mut self.kind {
+      DomainMemberKind::Domain(domain) => domain.postprocess(checker),
+      DomainMemberKind::Function(function) => function.postprocess(checker),
+      DomainMemberKind::Type(r#type) => r#type.postprocess(checker),
+      DomainMemberKind::ExternFunction(r#extern) => r#extern.postprocess(checker),
+      DomainMemberKind::Struct(r#struct) => r#struct.postprocess(checker),
+      // _ => todo!("{self:?}"),
     }
   }
 }

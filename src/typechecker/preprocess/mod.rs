@@ -3,13 +3,15 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use crate::tokenizer::GetSpan;
+use crate::tokenizer::{GetSpan, Span};
 use crate::asterizer::ast;
 
+use crate::typechecker::lang::GenericConstraints;
 use crate::typechecker::{
   check::Extends,
   Domain,
   DomainMember,
+  DomainMemberKind,
   error::*,
   NamedDomainMember,
   Preprocessor,
@@ -32,6 +34,8 @@ use crate::typechecker::lang::{
   VariableReference,
   intrinsics::Intrinsic,
 };
+
+use super::lang::{GenericConstraint, Struct};
 
 pub(super) trait PreprocessExpression {
   type Out;
@@ -428,6 +432,142 @@ impl Preprocess for ast::Extern {
   }
 }
 
+impl Preprocess for ast::Struct {
+  type Out = NamedDomainMember;
+
+  fn preprocess(&self, preprocessor: &mut Preprocessor) -> Result<Self::Out, TypeCheckerError> {
+    Ok(NamedDomainMember {
+      name: self.name.to_owned(),
+      member: DomainMember {
+        kind: DomainMemberKind::Struct(Struct {
+          members: Rc::new(RefCell::new(
+            self.members.iter()
+              .map(|memb| {
+                Ok(memb.ty.preprocess(preprocessor)?.into())
+              })
+              .collect::<Result<Vec<_>, _>>()?
+          )),
+          span: self.get_span(),
+        }),
+        template_scope: None,
+      },
+    })
+  }
+}
+
+impl Preprocess for ast::TemplateConstraint {
+  type Out = (String, Vec<GenericConstraint>);
+
+  fn preprocess(&self, preprocessor: &mut Preprocessor) -> Result<Self::Out, TypeCheckerError> {
+    match self {
+      ast::TemplateConstraint::Unconstrained(unconstrained) => Ok((
+        unconstrained.name.to_owned(),
+        vec![],
+      )),
+      ast::TemplateConstraint::Extends(extends) => {
+        let lhs = extends.ty.preprocess(preprocessor)?;
+        let rhs = extends.ty.preprocess(preprocessor)?;
+
+        let Type::Unresolved { reference, implied: false, .. } = &lhs else {
+          panic!("invalid template type");
+        };
+
+        let Some(name) = reference.inner.first().map(Clone::clone) else {
+          panic!("invalid template type");
+        };
+
+        Ok((
+          name,
+          vec![
+            GenericConstraint::Extends {
+              lhs: lhs.into(),
+              rhs: rhs.into(),
+              span: self.get_span(),
+            }
+          ]
+        ))
+      },
+    }
+  }
+}
+
+impl Preprocess for Vec<ast::TemplateConstraint> {
+  type Out = Rc<RefCell<Vec<(String, TypeCell)>>>;
+
+  // TODO: refactor this entirely
+  fn preprocess(&self, preprocessor: &mut Preprocessor) -> Result<Self::Out, TypeCheckerError> {
+    self.iter()
+      .map(|constraint| {
+        let (name, constraints) = constraint.preprocess(preprocessor)?;
+
+        Ok((
+          name,
+          Type::Generic {
+            constraints: GenericConstraints(constraints),
+            span: constraint.get_span(),
+          }.into(),
+        ))
+      })
+      .collect::<Result<Vec<_>, _>>()
+      .map(|result| Rc::new(RefCell::new(result)))
+  }
+}
+
+impl Preprocess for ast::TemplateScope {
+  type Out = Option<NamedDomainMember>;
+
+  fn preprocess(&self, preprocessor: &mut Preprocessor) -> Result<Self::Out, TypeCheckerError> {
+    let mut named_constraints: Vec<(String, Vec<GenericConstraint>, Span)> = vec![];
+
+    for constraint in self.constraints.iter() {
+      let (name, constraints) = constraint.preprocess(preprocessor)?;
+
+      // TODO: there must be a better way to do this, preserving order
+      if let Some(index) = 'index: {
+        for (index, (existing_name, ..)) in named_constraints.iter().enumerate() {
+          if name == **existing_name {
+            break 'index Some(index);
+          };
+        };
+
+        None
+      } {
+        let (_, existing_constraints, ..) = &mut named_constraints[index];
+
+        existing_constraints.extend(constraints);
+      } else {
+        named_constraints.push((name, constraints, constraint.get_span()));
+      };
+    };
+
+    preprocessor.template_scopes.push(
+      named_constraints.into_iter().map(|(name, constraints, span)| (
+        name,
+        Type::Generic {
+          constraints: GenericConstraints(constraints),
+          span,
+        }
+      )).collect()
+    );
+
+    let mut named_domain_member = match &self.structure {
+      ast::TemplatableStructure::Function(_) => todo!(),
+      ast::TemplatableStructure::TypeAlias(_) => todo!(),
+      ast::TemplatableStructure::Interface(_) => todo!(),
+      ast::TemplatableStructure::Struct(r#struct) => {
+        r#struct.preprocess(preprocessor)?
+      },
+      ast::TemplatableStructure::Class(_) => todo!(),
+      ast::TemplatableStructure::Exported(_) => todo!(),
+      ast::TemplatableStructure::Impl(_) => todo!(),
+    };
+
+    named_domain_member.member.template_scope = Some(self.constraints.preprocess(preprocessor)?);
+
+    Ok(Some(named_domain_member))
+  }
+}
+
 impl Preprocess for ast::Structure {
   type Out = Option<NamedDomainMember>;
 
@@ -438,15 +578,21 @@ impl Preprocess for ast::Structure {
         ast::Structure::Function(func) => {
           Some(NamedDomainMember {
             name: func.decl.name.to_owned(),
-            member: DomainMember::Function(
-              func.preprocess(preprocessor)?
-            ),
+            member: DomainMember {
+              kind: DomainMemberKind::Function(
+                func.preprocess(preprocessor)?
+              ),
+              template_scope: None,
+            }
           })
         },
         ast::Structure::TypeAlias(alias) => {
           Some(NamedDomainMember {
             name: alias.name.to_owned(),
-            member: DomainMember::Type(alias.ty.preprocess(preprocessor)?.into())
+            member: DomainMember {
+              kind: DomainMemberKind::Type(alias.ty.preprocess(preprocessor)?.into()),
+              template_scope: None,
+            },
           })
         },
         ast::Structure::Interface(_) => todo!("preprocess interface"),
@@ -455,11 +601,14 @@ impl Preprocess for ast::Structure {
         ast::Structure::Extern(r#extern) => {
           Some(NamedDomainMember {
             name: r#extern.decl.name.to_owned(),
-            member: DomainMember::ExternFunction(r#extern.preprocess(preprocessor)?)
+            member: DomainMember {
+              kind: DomainMemberKind::ExternFunction(r#extern.preprocess(preprocessor)?),
+              template_scope: None,
+            },
           })
         },
         ast::Structure::Exported(_) => todo!("preprocess exported"),
-        ast::Structure::TemplateScope(_) => todo!("preprocess templatescope"),
+        ast::Structure::TemplateScope(scope) => scope.preprocess(preprocessor)?,
         _ => None,
       }
     })

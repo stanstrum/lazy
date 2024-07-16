@@ -18,7 +18,6 @@ use crate::tokenizer::Span;
 
 use check::TypeChecker;
 
-use lang::VariableReference;
 use preprocess::Preprocess;
 
 pub(crate) use check::TypeOf;
@@ -29,7 +28,8 @@ pub(crate) use error::*;
 pub(crate) struct Preprocessor {
   reference: DomainReference,
   modules: Program,
-  scope_stack: Vec<HashMap<String, VariableReference>>,
+  scope_stack: Vec<HashMap<String, lang::VariableReference>>,
+  template_scopes: Vec<Vec<(String, lang::Type)>>,
 }
 
 impl Preprocessor {
@@ -38,6 +38,7 @@ impl Preprocessor {
       reference: DomainReference::new(handle),
       modules: Program::new(),
       scope_stack: vec![],
+      template_scopes: vec![],
     }
   }
 
@@ -59,7 +60,7 @@ impl Preprocessor {
     })
   }
 
-  fn find_variable_by_name(&self, name: &str, span: Span) -> Result<VariableReference, TypeCheckerError> {
+  fn find_variable_by_name(&self, name: &str, span: Span) -> Result<lang::VariableReference, TypeCheckerError> {
     for scope in self.scope_stack.iter().rev() {
       if let Some(reference) = scope.get(name) {
         return Ok(reference.to_owned());

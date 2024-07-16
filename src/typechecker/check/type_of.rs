@@ -36,10 +36,17 @@ impl TypeOf for lang::Type {
 
         return_ty.is_resolved()
       },
-      lang::Type::Struct { members: tys, .. } => tys.iter().all(|ty| ty.is_resolved()),
+      lang::Type::Struct { members: tys, .. } => tys.borrow().iter().all(|ty| ty.is_resolved()),
       lang::Type::Unresolved { implied, .. } if *implied => todo!(),
       lang::Type::Unresolved { template, .. } if template.is_some() => todo!(),
       lang::Type::Unresolved { .. } => todo!(),
+
+      lang::Type::Generic { constraints, .. } => {
+        let lang::GenericConstraints(ref constraints) = constraints;
+
+        constraints.iter().all(TypeOf::is_resolved)
+      },
+
       // TODO: are these technically resolved?
       //       or should this be caught in a later stage
       | lang::Type::FuzzyInteger { .. }
@@ -182,5 +189,17 @@ impl TypeOf for lang::Function {
 
   fn is_resolved(&self) -> bool {
     todo!()
+  }
+}
+
+impl TypeOf for lang::GenericConstraint {
+  fn type_of(&self) -> Option<lang::Type> {
+    todo!()
+  }
+
+  fn is_resolved(&self) -> bool {
+    match self {
+      lang::GenericConstraint::Extends { lhs, rhs, .. } => lhs.is_resolved() && rhs.is_resolved(),
+    }
   }
 }

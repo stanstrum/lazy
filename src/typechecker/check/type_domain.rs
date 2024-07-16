@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::typechecker::{
   Domain,
-  DomainMember,
+  DomainMemberKind,
   Program,
   Handle,
   lang::Type,
@@ -24,14 +24,14 @@ impl TypeDomain {
       domain.inner.iter()
         .map(
           |(name, member)|
-            match member {
-              DomainMember::Domain(domain) => (
+            match &member.kind {
+              DomainMemberKind::Domain(domain) => (
                 name.to_owned(),
                 TypeDomainMember::Domain(
                   Self::get_types_from_domain(domain)
                 )
               ),
-              DomainMember::Function(func) => (
+              DomainMemberKind::Function(func) => (
                 name.to_owned(),
                 TypeDomainMember::Type(Type::Function {
                   args: func.arguments.borrow().inner.iter().map(|variable| variable.ty.to_owned()).collect(),
@@ -39,11 +39,11 @@ impl TypeDomain {
                   span: func.get_span(),
                 }.into())
               ),
-              DomainMember::Type(ty) => (
+              DomainMemberKind::Type(ty) => (
                 name.to_owned(),
                 TypeDomainMember::Type(ty.to_owned())
               ),
-              DomainMember::ExternFunction(r#extern) => (
+              DomainMemberKind::ExternFunction(r#extern) => (
                 name.to_owned(),
                 TypeDomainMember::Type(Type::Function {
                   args: r#extern.arguments.borrow().inner.iter().map(|variable| variable.ty.to_owned()).collect(),
@@ -51,6 +51,13 @@ impl TypeDomain {
                   span: r#extern.get_span(),
                 }.into())
               ),
+              DomainMemberKind::Struct(r#struct) => (
+                name.to_owned(),
+                TypeDomainMember::Type(Type::Struct {
+                  members: r#struct.members.to_owned(),
+                  span: r#struct.get_span(),
+                }.into())
+              )
             }
         )
         .collect()

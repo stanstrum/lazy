@@ -8,7 +8,7 @@ use crate::typechecker::lang::{
   Value,
 };
 
-pub(in crate::typechecker) trait PrettyPrint {
+pub(crate) trait PrettyPrint {
   fn pretty_print(&self) -> String;
 }
 

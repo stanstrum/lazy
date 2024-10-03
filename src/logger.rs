@@ -45,5 +45,5 @@ pub(super) fn init() {
   builder.format(colog::formatter(Logger));
   builder.init();
 
-  info!("Initialized logger");
+  trace!("Initialized logger");
 }

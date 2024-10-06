@@ -3,14 +3,19 @@
 mod arg_parser;
 mod logger;
 mod compiler;
+mod todo;
+
+mod tokenizer;
+mod workflow;
 
 use std::process::exit;
 
 use arg_parser::CompilerOptions;
 use compiler::{
+  CompilerSettings,
   Compiler,
-  CompilerSettings, EntryModule,
 };
+use workflow::DefaultWorkflow;
 
 const HELP_TEXT: fn(executable: &str) -> String = |executable| format!("\
   Usage: {executable} [OPTION]... [INPUT]\n\
@@ -41,8 +46,6 @@ fn parse_compiler_settings() -> Result<CompilerSettings, String> {
     return Err("no input file provided".into());
   };
 
-  let input_file = EntryModule::try_from(input_file.as_path())?;
-
   Ok(CompilerSettings {
     input_file,
     output_file,
@@ -55,27 +58,18 @@ fn error_harness() -> Result<(), String> {
   logger::init();
 
   let settings = parse_compiler_settings()?;
-
-  let mut compiler = Compiler::<(), (), (), (), (), ()>::new(
-    settings,
-    |_, _| todo!("tokenize"),
-    |_, _| todo!("asterize"),
-    |_, _| todo!("translate"),
-    |_, _| todo!("check"),
-    |_, _| todo!("generate"),
-    |_, _| todo!("output"),
-  );
+  let mut compiler = Compiler::<DefaultWorkflow>::new(settings);
 
   compiler.compile()?;
 
-  Ok(())
+  todo!()
 }
 
 fn main() {
   let result = error_harness();
 
   if let Err(error) = &result {
-    error!("error: {error}");
+    error!("{error}");
   };
 
   exit(result.is_err() as i32)

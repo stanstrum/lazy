@@ -1,152 +1,241 @@
-use std::path::{
-  Path,
-  PathBuf,
-};
+mod module;
+mod traits;
 
-#[derive(Clone)]
-pub(crate) struct EntryModule {
-  path: PathBuf,
+pub(crate) use module::CompilerModule;
+pub(crate) use traits::*;
+
+use std::path::PathBuf;
+use std::marker::PhantomData;
+
+pub(crate) type CompilerResult<T> = Result<T, String>;
+
+#[allow(unused)]
+pub(crate) enum CompilerJob<W: CompilerWorkflow> {
+  Taken,
+  Unprocessed,
+  Tokenized(<W::Tokenizer as Tokenize<W>>::Out),
+  Asterized(<W::Asterizer as Asterize<W>>::Out),
+  Translated(<W::Translator as Translate<W>>::Out),
+  Checked(<W::Checker as Check<W>>::Out),
+  Generated(<W::Generator as Generate<W>>::Out),
 }
 
-impl EntryModule {
-  pub(super) fn read(self) -> Result<std::io::BufReader<std::fs::File>, String> {
-    Ok(
-      std::io::BufReader::new(
-        std::fs::File::open(self.path)
-          .map_err(|err| err.to_string())?
-      )
-    )
-  }
+pub(crate) struct CompilerStore<W: CompilerWorkflow> {
+  modules: Vec<CompilerModule<W>>,
+  marker: PhantomData<W>,
 }
 
-impl TryFrom<&Path> for EntryModule {
-  type Error = String;
-
-  fn try_from(path: &Path) -> Result<Self, Self::Error> {
-    if !path.exists() {
-      Err(format!("input file does not exist: {}", path.to_string_lossy()))
-    } else if path.is_dir() {
-      let mut path = path.to_owned();
-      path.push("index.zy");
-
-      if path.is_dir() {
-        return Err(format!("input file may not be a directory: {}", path.to_string_lossy()));
-      };
-
-      EntryModule::try_from(path.as_path())
-    } else {
-      Ok(Self {
-        path: path.to_path_buf(),
-      })
-    }
-  }
+#[derive(Clone, Copy)]
+pub(crate) struct CompilerStoreHandle<W: CompilerWorkflow> {
+  index: usize,
+  marker: PhantomData<CompilerModule<W>>,
 }
 
+#[allow(unused)]
 pub(super) struct CompilerSettings {
-  pub(super) input_file: EntryModule,
+  pub(super) input_file: PathBuf,
   pub(super) output_file: PathBuf,
   pub(super) llc: PathBuf,
   pub(super) cc: PathBuf,
 }
 
-type TokenizerIn = EntryModule;
-pub(super) struct Compiler<
-  'a,
-  TokenizerOut,
-  AsterizerOut,
-  TranslatorOut,
-  CheckerOut,
-  GeneratorOut,
-  OutputterOut,
-> {
-  settings: CompilerSettings,
-  tokenizer: WorkflowStep<'a, TokenizerIn, Self>,
-  asterizer: WorkflowStep<'a, TokenizerOut, Self>,
-  translator: WorkflowStep<'a, AsterizerOut, Self>,
-  checker: WorkflowStep<'a, TranslatorOut, Self>,
-  generator: WorkflowStep<'a, CheckerOut, Self>,
-  outputter: WorkflowStep<'a, GeneratorOut, Self>,
-  jobs: Vec<CompilerJob<
-    TokenizerOut,
-    AsterizerOut,
-    TranslatorOut,
-    CheckerOut,
-    GeneratorOut,
-  >>,
+pub(super) struct Compiler<W: CompilerWorkflow> {
+  pub(crate) settings: CompilerSettings,
+  pub(crate) store: CompilerStore<W>,
 }
 
-type WorkflowStep<'a, In, Compiler> = fn(compiler: &'a mut Compiler, value: In) -> Result<&'a mut Compiler, String>;
-
-enum CompilerJob<
-  TokenizerOut,
-  AsterizerOut,
-  TranslatorOut,
-  CheckerOut,
-  GeneratorOut,
-> {
-  Unprocessed(TokenizerIn),
-  Tokenized(TokenizerOut),
-  Asterized(AsterizerOut),
-  Translated(TranslatorOut),
-  Checked(CheckerOut),
-  Generated(GeneratorOut),
+impl<W: CompilerWorkflow> CompilerJob<W> {
+  fn stage(&self) -> Option<CompilationStage> {
+    match self {
+      CompilerJob::Taken => None,
+      CompilerJob::Unprocessed => Some(CompilationStage::Tokenize),
+      CompilerJob::Tokenized(_) => Some(CompilationStage::Asterize),
+      CompilerJob::Asterized(_) => Some(CompilationStage::Translate),
+      CompilerJob::Translated(_) => Some(CompilationStage::Check),
+      CompilerJob::Checked(_) => Some(CompilationStage::Generate),
+      CompilerJob::Generated(_) => Some(CompilationStage::Output),
+    }
+  }
 }
 
-impl<
-  'a,
-  TokenizerOut,
-  AsterizerOut,
-  TranslatorOut,
-  CheckerOut,
-  GeneratorOut,
-  OutputterOut,
-> Compiler<
-  'a,
-  TokenizerOut,
-  AsterizerOut,
-  TranslatorOut,
-  CheckerOut,
-  GeneratorOut,
-  OutputterOut,
-> {
-  pub(crate) fn new(
-    settings: CompilerSettings,
-    tokenizer: WorkflowStep<'a, TokenizerIn, Self>,
-    asterizer: WorkflowStep<'a, TokenizerOut, Self>,
-    translator: WorkflowStep<'a, AsterizerOut, Self>,
-    checker: WorkflowStep<'a, TranslatorOut, Self>,
-    generator: WorkflowStep<'a, CheckerOut, Self>,
-    outputter: WorkflowStep<'a, GeneratorOut, Self>,
-  ) -> Self {
+#[derive(PartialEq, PartialOrd)]
+enum CompilationStage {
+  Tokenize,
+  Asterize,
+  Translate,
+  Check,
+  Generate,
+  Output,
+  Done,
+}
+
+pub(crate) struct TakenCompilerModule<W: CompilerWorkflow> {
+  pub(crate) handle: CompilerStoreHandle<W>,
+  pub(crate) data: CompilerJob<W>,
+}
+
+trait JobStore<W: CompilerWorkflow> where Self: Sized {
+  fn store_by_handle(self, store: &mut CompilerStore<W>, handle: CompilerStoreHandle<W>) -> CompilerStoreHandle<W>;
+  fn store(self, store: &mut CompilerStore<W>) -> CompilerStoreHandle<W>;
+}
+
+impl<W: CompilerWorkflow> JobStore<W> for CompilerModule<W> {
+  fn store_by_handle(self, store: &mut CompilerStore<W>, handle: CompilerStoreHandle<W>) -> CompilerStoreHandle<W> {
+    store.modules.insert(handle.index, self);
+    handle
+  }
+
+  fn store(self, store: &mut CompilerStore<W>) -> CompilerStoreHandle<W> {
+    let handle = store.register_module(&self);
+    self.store_by_handle(store, handle)
+  }
+}
+
+impl<W: CompilerWorkflow> JobStore<W> for TakenCompilerModule<W> {
+  fn store_by_handle(self, store: &mut CompilerStore<W>, handle: CompilerStoreHandle<W>) -> CompilerStoreHandle<W> {
+    store.modules[handle.index].data = self.data;
+    handle
+  }
+
+  fn store(self, store: &mut CompilerStore<W>) -> CompilerStoreHandle<W> {
+    let handle = self.handle;
+    self.store_by_handle(store, handle)
+  }
+}
+
+impl<W: CompilerWorkflow> CompilerStore<W> {
+  fn new() -> Self {
     Self {
-      settings,
-      tokenizer,
-      asterizer,
-      translator,
-      checker,
-      generator,
-      outputter,
-      jobs: vec![],
+      modules: vec![],
+      marker: Default::default(),
     }
   }
 
-  pub(crate) fn compile(&'a mut self) -> Result<OutputterOut, String> {
-    let entry_point = self.settings.input_file.to_owned();
-    self.jobs.push(CompilerJob::Unprocessed(entry_point));
+  fn add_module(&mut self, module: CompilerModule<W>) -> CompilerStoreHandle<W> {
+    let index = self.modules.len();
 
-    let mut compiler = self;
+    self.modules.push(module);
 
-    while let Some(job) = compiler.jobs.pop() {
-      compiler = match job {
-        CompilerJob::Unprocessed(path_buf) => (compiler.tokenizer)(compiler, path_buf)?,
-        CompilerJob::Tokenized(tokenized) => (compiler.asterizer)(compiler, tokenized)?,
-        CompilerJob::Asterized(asterized) => (compiler.translator)(compiler, asterized)?,
-        CompilerJob::Translated(translated) => (compiler.checker)(compiler, translated)?,
-        CompilerJob::Checked(checked) => (compiler.generator)(compiler, checked)?,
-        CompilerJob::Generated(generated) => (compiler.outputter)(compiler, generated)?,
+    CompilerStoreHandle {
+      index,
+      marker: Default::default(),
+    }
+  }
+
+  fn find_module(&self, module: &CompilerModule<W>) -> Option<CompilerStoreHandle<W>> {
+    for (index, curr) in self.modules.iter().enumerate() {
+      if module.is_same_path(curr) {
+        return Some(CompilerStoreHandle {
+          index,
+          marker: Default::default(),
+        });
       };
     };
 
-    unreachable!("ran out of compile jobs!");
+    None
+  }
+
+  fn register_module(&mut self, module: &CompilerModule<W>) -> CompilerStoreHandle<W> {
+    if let Some(handle) = self.find_module(module) {
+      return handle;
+    };
+
+    self.add_module(CompilerModule {
+      path: module.path.to_owned(),
+      data: CompilerJob::Taken,
+    })
+  }
+
+  fn store_module<T: JobStore<W>>(&mut self, module: T) -> CompilerStoreHandle<W> {
+    module.store(self)
+  }
+
+  pub(crate) fn get_module(&self, handle: &CompilerStoreHandle<W>) -> &CompilerModule<W> {
+    &self.modules[handle.index]
+  }
+
+  fn get_module_mut(&mut self, handle: &CompilerStoreHandle<W>) -> &mut CompilerModule<W> {
+    &mut self.modules[handle.index]
+  }
+
+  fn take_module(&mut self, handle: &CompilerStoreHandle<W>) -> TakenCompilerModule<W>  {
+    let module = self.get_module_mut(handle);
+
+    let mut taken = TakenCompilerModule::<W> {
+      handle: <CompilerStoreHandle<W> as Clone>::clone(handle),
+      data: CompilerJob::Taken::<W>,
+    };
+
+    std::mem::swap(&mut module.data, &mut taken.data);
+
+    taken
+  }
+}
+
+impl<W: CompilerWorkflow> Compiler<W> {
+  pub(crate) fn new(settings: CompilerSettings) -> Self {
+    Self {
+      settings,
+      store: CompilerStore::new(),
+    }
+  }
+
+  fn bring_to_stage(&mut self, handle: &CompilerStoreHandle<W>, stage: CompilationStage) -> CompilerResult<()> {
+    while {
+      let module = self.store.get_module(handle);
+
+      let Some(module_stage) = module.data.stage() else {
+        warn!("module {} (id {}): no stage", module.path.to_string_lossy(), handle.index);
+        return Ok(());
+      };
+
+      assert!(module_stage <= stage);
+      module_stage < stage
+    } {
+      let module = self.store.take_module(handle);
+      let log_prefix = || format!("module {:?} (id #{})", &self.store.get_module(handle).path, handle.index);
+
+      match module.data {
+        CompilerJob::Taken => {
+          warn!("{}: taken", log_prefix());
+          return Ok(());
+        },
+        CompilerJob::Unprocessed => {
+          trace!("{}: tokenize", log_prefix());
+          W::Tokenizer::tokenize(self, module)?;
+        },
+        CompilerJob::Tokenized(input) => {
+          trace!("{}: asterize", log_prefix());
+          W::Asterizer::asterize(self, input)?;
+        },
+        CompilerJob::Asterized(input) => {
+          trace!("{}: translate", log_prefix());
+          W::Translator::translate(self, input)?;
+        },
+        CompilerJob::Translated(input) => {
+          trace!("{}: check", log_prefix());
+          W::Checker::check(self, input)?;
+        },
+        CompilerJob::Checked(input) => {
+          trace!("{}: generate", log_prefix());
+          W::Generator::generate(self, input)?;
+        },
+        CompilerJob::Generated(input) => {
+          trace!("{}: output", log_prefix());
+          W::Outputter::output(self, input)?;
+        },
+      }
+    };
+
+    todo!()
+  }
+
+  pub(crate) fn compile(&mut self) -> CompilerResult<<W::Generator as Generate<W>>::Out> {
+    let module: CompilerModule<W> = self.settings.input_file.as_path().try_into()?;
+    let handle = self.store.store_module(module);
+
+    self.bring_to_stage(&handle, CompilationStage::Done)?;
+
+    todo!()
   }
 }

@@ -106,7 +106,7 @@ impl TryFrom<CompilerParser> for CompilerOptions {
         Ok(x) => Some(x),
         Err(err) => return Err(
           format!(
-            "{}: could not locate: {err}",
+            "{err}: {}",
             input_file.to_string_lossy()
           )
         ),

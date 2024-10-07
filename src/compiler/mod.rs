@@ -192,7 +192,7 @@ impl<W: CompilerWorkflow> Compiler<W> {
       assert!(module_stage <= stage);
       module_stage < stage
     } {
-      let module = self.store.take_module(handle);
+      let mut module = self.store.take_module(handle);
       let log_prefix = || format!("module {:?} (id #{})", &self.store.get_module(handle).path, handle.index);
 
       match module.data {
@@ -202,29 +202,41 @@ impl<W: CompilerWorkflow> Compiler<W> {
         },
         CompilerJob::Unprocessed => {
           trace!("{}: tokenize", log_prefix());
-          W::Tokenizer::tokenize(self, module)?;
+          let tokenized = W::Tokenizer::new().tokenize(self, TakenCompilerModule {
+            handle: *handle,
+            data: module.data,
+          })?;
+          module.data = CompilerJob::Tokenized(tokenized);
         },
         CompilerJob::Tokenized(input) => {
           trace!("{}: asterize", log_prefix());
-          W::Asterizer::asterize(self, input)?;
+          let asterized = W::Asterizer::new().asterize(self, input)?;
+          module.data = CompilerJob::Asterized(asterized);
         },
         CompilerJob::Asterized(input) => {
           trace!("{}: translate", log_prefix());
-          W::Translator::translate(self, input)?;
+          let translated = W::Translator::new().translate(self, input)?;
+          module.data = CompilerJob::Translated(translated);
         },
         CompilerJob::Translated(input) => {
           trace!("{}: check", log_prefix());
-          W::Checker::check(self, input)?;
+          let checked = W::Checker::new().check(self, input)?;
+          module.data = CompilerJob::Checked(checked);
         },
         CompilerJob::Checked(input) => {
           trace!("{}: generate", log_prefix());
-          W::Generator::generate(self, input)?;
+          let generated = W::Generator::new().generate(self, input)?;
+          module.data = CompilerJob::Generated(generated);
         },
         CompilerJob::Generated(input) => {
           trace!("{}: output", log_prefix());
-          W::Outputter::output(self, input)?;
+          W::Outputter::new().output(self, input)?;
+
+          return Ok(());
         },
-      }
+      };
+
+      self.store.store_module(module);
     };
 
     todo!()

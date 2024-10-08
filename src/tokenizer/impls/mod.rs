@@ -1,0 +1,37 @@
+mod whitespace;
+mod comment;
+mod ident;
+mod operator;
+
+use crate::compiler::CompilerResult;
+use crate::tokenizer::{
+  PeekReader,
+  TokenKind,
+  Grouping,
+};
+
+impl crate::tokenizer::Tokenizer {
+  pub(in crate::tokenizer) fn base(&mut self, reader: &mut PeekReader) -> CompilerResult<()> {
+    trace!("Tokenizer::base");
+    let start = reader.span_start();
+
+    let Some(item) = reader.peek()? else {
+      return Ok(());
+    };
+
+    if let Some(grouping) = Grouping::from_str(&String::from(item.ch)) {
+      reader.seek();
+      self.push_tok(TokenKind::Grouping(grouping), start, reader.position);
+      return Ok(());
+    };
+
+    match item.ch {
+      whitespace!() => self.whitespace(reader)?,
+      ident!() => self.identifier(reader)?,
+      operator!() => self.operator(reader)?,
+      _ => todo!("{:?}", item.ch),
+    };
+
+    Ok(())
+  }
+}

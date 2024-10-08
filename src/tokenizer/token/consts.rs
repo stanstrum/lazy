@@ -10,7 +10,9 @@ macro_rules! enum_map {
       $($ident,)+
     }
 
+    #[allow(unused)]
     impl $name {
+      #[allow(non_upper_case_globals)]
       pub(crate) fn from_str(text: &str) -> Option<Self> {
         match text {
           $($ident => Some(Self::$ident),)+

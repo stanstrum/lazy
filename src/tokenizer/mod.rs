@@ -8,8 +8,12 @@ pub(self) use peek_reader::PeekReader;
 use peek_reader::ReaderItem;
 pub(crate) use token::*;
 
+use crate::Result;
 use crate::compiler::{
-  error::IOSnafu, Compiler, Result, CompilerWorkflow, TakenCompilerModule
+  Compiler,
+  CompilerWorkflow,
+  TakenCompilerModule,
+  error::IOSnafu,
 };
 
 pub(super) struct Tokenizer {

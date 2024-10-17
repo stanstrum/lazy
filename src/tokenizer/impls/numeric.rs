@@ -1,4 +1,4 @@
-use crate::compiler::Result;
+use crate::{Result, ok};
 use crate::tokenizer::{
   PeekReader,
   Tokenizer,
@@ -67,6 +67,6 @@ impl Tokenizer {
 
     self.push_tok(TokenKind::Numeric(kind), start, reader.position);
 
-    Ok(())
+    ok
   }
 }

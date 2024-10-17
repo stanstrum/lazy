@@ -1,4 +1,4 @@
-use crate::compiler::Result;
+use crate::{Result, ok};
 use crate::tokenizer::{
   PeekReader,
   Tokenizer,
@@ -61,7 +61,7 @@ impl Tokenizer {
         => {},
         ("//", _) => {
           self.line_comment(reader)?;
-          return Ok(());
+          return ok;
         },
         ("/*", _) => todo!("multiline comment"),
         _ => break,
@@ -81,6 +81,6 @@ impl Tokenizer {
 
     self.push_tok(kind, start, end);
 
-    Ok(())
+    ok
   }
 }

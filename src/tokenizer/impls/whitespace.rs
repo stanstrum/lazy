@@ -1,4 +1,4 @@
-use crate::compiler::Result;
+use crate::{Result, ok};
 use crate::tokenizer::{
   PeekReader,
   Tokenizer,
@@ -11,7 +11,7 @@ impl Tokenizer {
     trace!("Tokenizer::whitespace");
 
     let Some(item) = reader.next() else {
-      return Ok(());
+      return ok;
     };
 
     let item = item?;
@@ -30,6 +30,6 @@ impl Tokenizer {
 
     self.push_tok(TokenKind::Whitespace, start, end);
 
-    Ok(())
+    ok
   }
 }

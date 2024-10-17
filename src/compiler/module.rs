@@ -3,10 +3,10 @@ use std::path::{
   PathBuf,
 };
 
-use super::{
+use crate::Result;
+use crate::compiler::{
   CompilerJob,
   CompilerWorkflow,
-  Result,
   error::*,
 };
 

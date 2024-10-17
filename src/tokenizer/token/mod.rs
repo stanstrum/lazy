@@ -5,7 +5,7 @@ pub(crate) mod error;
 pub(crate) use consts::*;
 pub(crate) use span::*;
 
-use crate::compiler::Result;
+use crate::Result;
 use error::*;
 
 use crate::tokenizer::impls::numeric::NumericState;

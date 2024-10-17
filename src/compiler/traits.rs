@@ -1,6 +1,6 @@
-use super::{
+use crate::Result;
+use crate::compiler::{
   Compiler,
-  Result,
   TakenCompilerModule,
 };
 

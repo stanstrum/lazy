@@ -1,14 +1,12 @@
 pub(crate) mod error;
 
+use crate::{Result, ok};
 use which::which;
 
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use crate::compiler::{
-  Result,
-  error::*,
-};
+use crate::compiler::error::*;
 
 use error::*;
 
@@ -134,9 +132,6 @@ impl TryFrom<CompilerParser> for CompilerOptions {
     })
   }
 }
-
-#[allow(non_upper_case_globals)]
-const ok: Result = Ok(());
 
 impl CompilerParser {
   fn new() -> Self {

@@ -4,7 +4,7 @@ pub(crate) mod ident;
 pub(crate) mod operator;
 pub(crate) mod numeric;
 
-use crate::compiler::Result;
+use crate::{Result, ok};
 use crate::tokenizer::{
   PeekReader,
   TokenKind,
@@ -17,13 +17,13 @@ impl crate::tokenizer::Tokenizer {
     let start = reader.span_start();
 
     let Some(item) = reader.peek()? else {
-      return Ok(());
+      return ok;
     };
 
     if let Some(grouping) = Grouping::from_str(&String::from(item.ch)) {
       reader.seek();
       self.push_tok(TokenKind::Grouping(grouping), start, reader.position);
-      return Ok(());
+      return ok;
     };
 
     match item.ch {

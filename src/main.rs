@@ -20,10 +20,15 @@ use arg_parser::{
 use compiler::{
   Compiler,
   CompilerSettings,
-  Result,
+  error::CompilerError,
 };
 
 use workflow::DefaultWorkflow;
+
+pub(crate) type Result<T = ()> = std::result::Result<T, CompilerError>;
+
+#[allow(non_upper_case_globals)]
+pub(crate) const ok: Result = Ok(());
 
 pub(crate) trait LazyHelp {
   fn should_print_message(&self) -> bool {

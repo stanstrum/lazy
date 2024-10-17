@@ -1,3 +1,4 @@
+use crate::Result;
 use crate::compiler::*;
 use crate::tokenizer::Token;
 

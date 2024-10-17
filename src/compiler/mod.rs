@@ -4,12 +4,10 @@ pub(crate) mod error;
 
 pub(crate) use module::CompilerModule;
 pub(crate) use traits::*;
-use error::*;
 
+use crate::{Result, ok};
 use std::path::PathBuf;
 use std::marker::PhantomData;
-
-pub(crate) type Result<T = ()> = std::result::Result<T, CompilerError>;
 
 #[allow(unused)]
 pub(crate) enum CompilerJob<W: CompilerWorkflow> {
@@ -188,7 +186,7 @@ impl<W: CompilerWorkflow> Compiler<W> {
 
       let Some(module_stage) = module.data.stage() else {
         warn!("module {} (id {}): no stage", module.path.to_string_lossy(), handle.index);
-        return Ok(());
+        return ok;
       };
 
       assert!(module_stage <= stage);
@@ -200,7 +198,7 @@ impl<W: CompilerWorkflow> Compiler<W> {
       match module.data {
         CompilerJob::Taken => {
           warn!("{}: taken", log_prefix());
-          return Ok(());
+          return ok;
         },
         CompilerJob::Unprocessed => {
           trace!("{}: tokenize", log_prefix());
@@ -234,7 +232,7 @@ impl<W: CompilerWorkflow> Compiler<W> {
           trace!("{}: output", log_prefix());
           W::Outputter::new().output(self, input)?;
 
-          return Ok(());
+          return ok;
         },
       };
 

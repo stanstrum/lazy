@@ -1,4 +1,4 @@
-use crate::compiler::Result;
+use crate::Result;
 use crate::tokenizer::SpanStart;
 
 #[derive(Debug, Clone, Copy)]

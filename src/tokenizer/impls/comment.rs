@@ -1,4 +1,6 @@
-use crate::compiler::Result;
+use crate::ok;
+
+use crate::Result;
 use crate::tokenizer::{
   PeekReader,
   Tokenizer,
@@ -23,6 +25,6 @@ impl Tokenizer {
 
     self.push_tok(TokenKind::Comment(message.trim().into()), start, reader.position);
 
-    Ok(())
+    ok
   }
 }

@@ -9,7 +9,7 @@ use peek_reader::ReaderItem;
 pub(crate) use token::*;
 
 use crate::compiler::{
-  error::IOSnafu, Compiler, CompilerResult, CompilerWorkflow, TakenCompilerModule
+  error::IOSnafu, Compiler, Result, CompilerWorkflow, TakenCompilerModule
 };
 
 pub(super) struct Tokenizer {
@@ -38,7 +38,7 @@ impl<W: CompilerWorkflow> crate::compiler::Tokenize<W> for Tokenizer {
     }
   }
 
-  fn tokenize(mut self, compiler: &mut Compiler<W>, module: TakenCompilerModule<W>) -> CompilerResult<Self::Out> {
+  fn tokenize(mut self, compiler: &mut Compiler<W>, module: TakenCompilerModule<W>) -> Result<Self::Out> {
     let path = compiler.store.get_module(&module.handle).path.as_path();
     let file = match std::fs::File::open(path) {
       Ok(x) => x,

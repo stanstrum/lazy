@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 use crate::compiler::{
-  CompilerResult,
+  Result,
   error::*,
 };
 
@@ -84,7 +84,7 @@ impl CompilerParserArgument {
   }
 }
 
-fn default_option_resolve_path_strerror(path: Option<String>, default: &'static str) -> CompilerResult<PathBuf>  {
+fn default_option_resolve_path_strerror(path: Option<String>, default: &'static str) -> Result<PathBuf>  {
   let path = path.as_ref()
     .map(|path| path.as_str())
     .unwrap_or(default);
@@ -98,7 +98,7 @@ fn default_option_resolve_path_strerror(path: Option<String>, default: &'static 
 impl TryFrom<CompilerParser> for CompilerOptions {
   type Error = CompilerError;
 
-  fn try_from(parser: CompilerParser) -> CompilerResult<Self> {
+  fn try_from(parser: CompilerParser) -> Result<Self> {
     let CompilerParser {
       help,
       input_file,
@@ -136,7 +136,7 @@ impl TryFrom<CompilerParser> for CompilerOptions {
 }
 
 #[allow(non_upper_case_globals)]
-const ok: CompilerResult<()> = Ok(());
+const ok: Result = Ok(());
 
 impl CompilerParser {
   fn new() -> Self {
@@ -159,7 +159,7 @@ impl CompilerParser {
     }
   }
 
-  fn set_option_string_value(&mut self, kind: CompilerParserArgument, argument: String) -> CompilerResult<()> {
+  fn set_option_string_value(&mut self, kind: CompilerParserArgument, argument: String) -> Result {
     let option = self.string_pointer(kind);
 
     if let Some(original) = option {
@@ -179,7 +179,7 @@ impl CompilerParser {
     ok
   }
 
-  fn first(&mut self, argument: String) -> CompilerResult<()> {
+  fn first(&mut self, argument: String) -> Result {
     if let Some(flag) = CompilerParserFlag::from_argument(&argument) {
       match flag {
         CompilerParserFlag::Help => self.help = true,
@@ -213,14 +213,14 @@ impl CompilerParser {
     UnknownFlagSnafu { flag: argument }.fail()?
   }
 
-  fn argument_flag(&mut self, kind: CompilerParserArgument, argument: String) -> CompilerResult<()> {
+  fn argument_flag(&mut self, kind: CompilerParserArgument, argument: String) -> Result {
     self.set_option_string_value(kind, argument)?;
     self.state = CompilerParserState::First;
 
     ok
   }
 
-  fn parse_argument(&mut self, argument: String) -> CompilerResult<()> {
+  fn parse_argument(&mut self, argument: String) -> Result {
     match self.state {
       CompilerParserState::First => self.first(argument),
       CompilerParserState::ArgumentFlag(kind) => self.argument_flag(kind, argument),
@@ -228,7 +228,7 @@ impl CompilerParser {
   }
 }
 
-pub(crate) fn parse() -> CompilerResult<CompilerOptions> {
+pub(crate) fn parse() -> Result<CompilerOptions> {
   let mut parser = CompilerParser::new();
 
   for argument in std::env::args().skip(1) {

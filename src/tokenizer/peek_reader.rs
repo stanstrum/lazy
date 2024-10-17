@@ -1,4 +1,4 @@
-use crate::compiler::CompilerResult;
+use crate::compiler::Result;
 use crate::tokenizer::SpanStart;
 
 #[derive(Debug, Clone, Copy)]
@@ -8,13 +8,13 @@ pub(super) struct ReaderItem {
 }
 
 pub(super) struct PeekReader<'a> {
-  reader: &'a mut dyn Iterator<Item = CompilerResult<ReaderItem>>,
+  reader: &'a mut dyn Iterator<Item = Result<ReaderItem>>,
   peek_buffer: Option<ReaderItem>,
   pub position: usize,
 }
 
 impl<'a> PeekReader<'a> {
-  pub(super) fn new(reader: &'a mut dyn Iterator<Item = CompilerResult<ReaderItem>>) -> Self {
+  pub(super) fn new(reader: &'a mut dyn Iterator<Item = Result<ReaderItem>>) -> Self {
     Self {
       reader,
       peek_buffer: None,
@@ -30,7 +30,7 @@ impl<'a> PeekReader<'a> {
     };
   }
 
-  pub(super) fn peek(&mut self) -> CompilerResult<Option<ReaderItem>> {
+  pub(super) fn peek(&mut self) -> Result<Option<ReaderItem>> {
     if let Some(buffered) = self.peek_buffer {
       return Ok(Some(buffered));
     };
@@ -51,7 +51,7 @@ impl<'a> PeekReader<'a> {
 }
 
 impl Iterator for PeekReader<'_> {
-  type Item = CompilerResult<ReaderItem>;
+  type Item = Result<ReaderItem>;
 
   fn next(&mut self) -> Option<Self::Item> {
     let (message, result) = {

@@ -1,4 +1,4 @@
-use crate::compiler::CompilerResult;
+use crate::compiler::Result;
 use crate::tokenizer::{
   PeekReader,
   Tokenizer,
@@ -9,7 +9,7 @@ use crate::tokenizer::{
 };
 
 impl Tokenizer {
-  pub(in crate::tokenizer) fn identifier(&mut self, reader: &mut PeekReader) -> CompilerResult<()> {
+  pub(in crate::tokenizer) fn identifier(&mut self, reader: &mut PeekReader) -> Result {
     trace!("Tokenizer::identifier");
 
     let Some(item) = reader.next() else {

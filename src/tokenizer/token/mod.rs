@@ -5,7 +5,7 @@ pub(crate) mod error;
 pub(crate) use consts::*;
 pub(crate) use span::*;
 
-use crate::compiler::CompilerResult;
+use crate::compiler::Result;
 use error::*;
 
 use crate::tokenizer::impls::numeric::NumericState;
@@ -41,7 +41,7 @@ pub(crate) struct Token {
 }
 
 impl NumericKind {
-  pub fn from_state_and_content(state: super::impls::numeric::NumericState, content: &str) -> CompilerResult<Self> {
+  pub fn from_state_and_content(state: super::impls::numeric::NumericState, content: &str) -> Result<Self> {
     let base = match state {
       NumericState::Binary => 2,
       NumericState::Octal => 8,

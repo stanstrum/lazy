@@ -1,6 +1,6 @@
 use super::{
   Compiler,
-  CompilerResult,
+  Result,
   TakenCompilerModule,
 };
 
@@ -8,7 +8,7 @@ pub(crate) trait Tokenize<W: CompilerWorkflow> {
   type Out;
 
   fn new() -> Self;
-  fn tokenize(self, compiler: &mut Compiler<W>, input: TakenCompilerModule<W>) -> CompilerResult<Self::Out>;
+  fn tokenize(self, compiler: &mut Compiler<W>, input: TakenCompilerModule<W>) -> Result<Self::Out>;
 }
 
 pub(crate) trait Asterize<W: CompilerWorkflow> {
@@ -16,7 +16,7 @@ pub(crate) trait Asterize<W: CompilerWorkflow> {
   type Out;
 
   fn new() -> Self;
-  fn asterize(self, compiler: &mut Compiler<W>, input: Self::In) -> CompilerResult<Self::Out>;
+  fn asterize(self, compiler: &mut Compiler<W>, input: Self::In) -> Result<Self::Out>;
 }
 
 pub(crate) trait Translate<W: CompilerWorkflow> {
@@ -24,7 +24,7 @@ pub(crate) trait Translate<W: CompilerWorkflow> {
   type Out;
 
   fn new() -> Self;
-  fn translate(self, compiler: &mut Compiler<W>, input: Self::In) -> CompilerResult<Self::Out>;
+  fn translate(self, compiler: &mut Compiler<W>, input: Self::In) -> Result<Self::Out>;
 }
 
 pub(crate) trait Check<W: CompilerWorkflow> {
@@ -32,7 +32,7 @@ pub(crate) trait Check<W: CompilerWorkflow> {
   type Out;
 
   fn new() -> Self;
-  fn check(self, compiler: &mut Compiler<W>, input: Self::In) -> CompilerResult<Self::Out>;
+  fn check(self, compiler: &mut Compiler<W>, input: Self::In) -> Result<Self::Out>;
 }
 
 pub(crate) trait Generate<W: CompilerWorkflow> {
@@ -40,14 +40,14 @@ pub(crate) trait Generate<W: CompilerWorkflow> {
   type Out;
 
   fn new() -> Self;
-  fn generate(self, compiler: &mut Compiler<W>, input: Self::In) -> CompilerResult<Self::Out>;
+  fn generate(self, compiler: &mut Compiler<W>, input: Self::In) -> Result<Self::Out>;
 }
 
 pub(crate) trait Output<W: CompilerWorkflow> {
   type In;
 
   fn new() -> Self;
-  fn output(self, compiler: &mut Compiler<W>, input: Self::In) -> CompilerResult<()>;
+  fn output(self, compiler: &mut Compiler<W>, input: Self::In) -> Result;
 }
 
 pub(crate) trait CompilerWorkflow

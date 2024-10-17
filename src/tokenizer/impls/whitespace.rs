@@ -1,4 +1,4 @@
-use crate::compiler::CompilerResult;
+use crate::compiler::Result;
 use crate::tokenizer::{
   PeekReader,
   Tokenizer,
@@ -7,7 +7,7 @@ use crate::tokenizer::{
 };
 
 impl Tokenizer {
-  pub(in crate::tokenizer) fn whitespace(&mut self, reader: &mut PeekReader) -> CompilerResult<()> {
+  pub(in crate::tokenizer) fn whitespace(&mut self, reader: &mut PeekReader) -> Result {
     trace!("Tokenizer::whitespace");
 
     let Some(item) = reader.next() else {

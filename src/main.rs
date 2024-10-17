@@ -20,7 +20,7 @@ use arg_parser::{
 use compiler::{
   Compiler,
   CompilerSettings,
-  CompilerResult,
+  Result,
 };
 
 use workflow::DefaultWorkflow;
@@ -35,7 +35,7 @@ pub(crate) trait LazyHelp {
   }
 }
 
-fn parse_compiler_settings() -> CompilerResult<CompilerSettings> {
+fn parse_compiler_settings() -> Result<CompilerSettings> {
   let CompilerOptions {
     help,
     input_file,
@@ -60,7 +60,7 @@ fn parse_compiler_settings() -> CompilerResult<CompilerSettings> {
   })
 }
 
-fn error_harness() -> CompilerResult<()> {
+fn error_harness() -> Result {
   logger::init();
 
   let settings = parse_compiler_settings()?;

@@ -1,4 +1,4 @@
-use crate::compiler::CompilerResult;
+use crate::compiler::Result;
 use crate::tokenizer::{
   PeekReader,
   Tokenizer,
@@ -16,7 +16,7 @@ pub(crate) enum NumericState {
 }
 
 impl Tokenizer {
-  pub(in crate::tokenizer) fn numeric(&mut self, reader: &mut PeekReader) -> CompilerResult<()> {
+  pub(in crate::tokenizer) fn numeric(&mut self, reader: &mut PeekReader) -> Result {
     let mut content = String::new();
     let mut state = None;
 

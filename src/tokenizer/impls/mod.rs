@@ -4,7 +4,7 @@ pub(crate) mod ident;
 pub(crate) mod operator;
 pub(crate) mod numeric;
 
-use crate::compiler::CompilerResult;
+use crate::compiler::Result;
 use crate::tokenizer::{
   PeekReader,
   TokenKind,
@@ -12,7 +12,7 @@ use crate::tokenizer::{
 };
 
 impl crate::tokenizer::Tokenizer {
-  pub(in crate::tokenizer) fn base(&mut self, reader: &mut PeekReader) -> CompilerResult<()> {
+  pub(in crate::tokenizer) fn base(&mut self, reader: &mut PeekReader) -> Result {
     trace!("Tokenizer::base");
     let start = reader.span_start();
 

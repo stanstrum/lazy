@@ -6,7 +6,7 @@ use std::path::{
 use super::{
   CompilerJob,
   CompilerWorkflow,
-  CompilerResult,
+  Result,
   error::*,
 };
 
@@ -24,7 +24,7 @@ impl<W: CompilerWorkflow> CompilerModule<W> {
 impl<W: CompilerWorkflow> TryFrom<&Path> for CompilerModule<W> {
   type Error = CompilerError;
 
-  fn try_from(path: &Path) -> CompilerResult<Self> {
+  fn try_from(path: &Path) -> Result<Self> {
     if !path.exists() {
       return PathNotExistsSnafu { path }.fail();
     };

@@ -9,7 +9,7 @@ use error::*;
 use std::path::PathBuf;
 use std::marker::PhantomData;
 
-pub(crate) type CompilerResult<T = ()> = Result<T, CompilerError>;
+pub(crate) type Result<T = ()> = std::result::Result<T, CompilerError>;
 
 #[allow(unused)]
 pub(crate) enum CompilerJob<W: CompilerWorkflow> {
@@ -182,7 +182,7 @@ impl<W: CompilerWorkflow> Compiler<W> {
     }
   }
 
-  fn bring_to_stage(&mut self, handle: &CompilerStoreHandle<W>, stage: CompilationStage) -> CompilerResult<()> {
+  fn bring_to_stage(&mut self, handle: &CompilerStoreHandle<W>, stage: CompilationStage) -> Result {
     while {
       let module = self.store.get_module(handle);
 
@@ -244,7 +244,7 @@ impl<W: CompilerWorkflow> Compiler<W> {
     todo!()
   }
 
-  pub(crate) fn compile(&mut self) -> CompilerResult<<W::Generator as Generate<W>>::Out> {
+  pub(crate) fn compile(&mut self) -> Result<<W::Generator as Generate<W>>::Out> {
     let module: CompilerModule<W> = self.settings.input_file.as_path().try_into()?;
     let handle = self.store.store_module(module);
 

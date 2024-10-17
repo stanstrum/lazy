@@ -15,7 +15,7 @@ impl<W: CompilerWorkflow> Asterize<W> for Asterizer {
     todo!()
   }
 
-  fn asterize(self, _compiler: &mut Compiler<W>, _: Self::In) -> CompilerResult<Self::Out> {
+  fn asterize(self, _compiler: &mut Compiler<W>, _: Self::In) -> Result<Self::Out> {
     todo!()
   }
 }
@@ -28,7 +28,7 @@ impl<W: CompilerWorkflow> Translate<W> for Translator {
     todo!()
   }
 
-  fn translate(self, _compiler: &mut Compiler<W>, _: Self::In) -> CompilerResult<Self::Out> {
+  fn translate(self, _compiler: &mut Compiler<W>, _: Self::In) -> Result<Self::Out> {
     todo!()
   }
 }
@@ -41,7 +41,7 @@ impl<W: CompilerWorkflow> Check<W> for Checker {
     todo!()
   }
 
-  fn check(self, _compiler: &mut Compiler<W>, _: Self::In) -> CompilerResult<Self::Out> {
+  fn check(self, _compiler: &mut Compiler<W>, _: Self::In) -> Result<Self::Out> {
     todo!()
   }
 }
@@ -54,7 +54,7 @@ impl<W: CompilerWorkflow> Generate<W> for Generator {
     todo!()
   }
 
-  fn generate(self, _compiler: &mut Compiler<W>, _: Self::In) -> CompilerResult<Self::Out> {
+  fn generate(self, _compiler: &mut Compiler<W>, _: Self::In) -> Result<Self::Out> {
     todo!()
   }
 }
@@ -66,7 +66,7 @@ impl<W: CompilerWorkflow> Output<W> for Outputter {
     todo!()
   }
 
-  fn output(self, _compiler: &mut Compiler<W>, _: Self::In) -> CompilerResult<()> {
+  fn output(self, _compiler: &mut Compiler<W>, _: Self::In) -> Result {
     todo!()
   }
 }

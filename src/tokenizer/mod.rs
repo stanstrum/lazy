@@ -9,10 +9,7 @@ use peek_reader::ReaderItem;
 pub(crate) use token::*;
 
 use crate::compiler::{
-  Compiler,
-  TakenCompilerModule,
-  CompilerResult,
-  CompilerWorkflow,
+  error::IOSnafu, Compiler, CompilerResult, CompilerWorkflow, TakenCompilerModule
 };
 
 pub(super) struct Tokenizer {
@@ -43,11 +40,12 @@ impl<W: CompilerWorkflow> crate::compiler::Tokenize<W> for Tokenizer {
 
   fn tokenize(mut self, compiler: &mut Compiler<W>, module: TakenCompilerModule<W>) -> CompilerResult<Self::Out> {
     let path = compiler.store.get_module(&module.handle).path.as_path();
+    let file = match std::fs::File::open(path) {
+      Ok(x) => x,
+      Err(err) => return IOSnafu { err: err.to_string() }.fail()?,
+    };
 
-    let buf_reader = std::io::BufReader::new(
-      std::fs::File::open(path)
-        .map_err(|err| err.to_string())?
-    );
+    let buf_reader = std::io::BufReader::new(file);
 
     let mut reader = utf8_read::Reader::new(buf_reader);
     let mut reader = reader
@@ -55,7 +53,7 @@ impl<W: CompilerWorkflow> crate::compiler::Tokenize<W> for Tokenizer {
       .enumerate()
       .map(|(position, ch)| match ch {
         Ok(ch) => Ok(ReaderItem { position, ch, }),
-        Err(err) => Err(err.to_string()),
+        Err(err) => IOSnafu { err: err.to_string() }.fail()?,
       });
 
     let mut reader = PeekReader::new(&mut reader);

@@ -1,13 +1,15 @@
 mod module;
 mod traits;
+pub(crate) mod error;
 
 pub(crate) use module::CompilerModule;
 pub(crate) use traits::*;
+use error::*;
 
 use std::path::PathBuf;
 use std::marker::PhantomData;
 
-pub(crate) type CompilerResult<T> = Result<T, String>;
+pub(crate) type CompilerResult<T = ()> = Result<T, CompilerError>;
 
 #[allow(unused)]
 pub(crate) enum CompilerJob<W: CompilerWorkflow> {

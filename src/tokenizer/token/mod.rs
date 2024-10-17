@@ -1,10 +1,13 @@
 mod span;
 mod consts;
+pub(crate) mod error;
 
 pub(crate) use consts::*;
 pub(crate) use span::*;
 
 use crate::compiler::CompilerResult;
+use error::*;
+
 use crate::tokenizer::impls::numeric::NumericState;
 
 #[allow(unused)]
@@ -49,13 +52,13 @@ impl NumericKind {
     Ok({
       if content.find('.').is_some() {
         let Ok(value) = content.parse() else {
-          return Err("couldn't parse float".into());
+          return InvalidSnafu { what: What::Float, content }.fail()?;
         };
 
         Self::Float(value)
       } else {
         let Ok(value) = u64::from_str_radix(content, base) else {
-          return Err("couldn't parse integer".into());
+          return InvalidSnafu { what: What::Integer, content }.fail()?;
         };
 
         Self::Integer(value)

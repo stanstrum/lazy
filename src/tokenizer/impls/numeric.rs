@@ -4,6 +4,7 @@ use crate::tokenizer::{
   Tokenizer,
   TokenKind,
   NumericKind,
+  error::*
 };
 
 #[derive(Debug)]
@@ -58,7 +59,7 @@ impl Tokenizer {
     };
 
     if content.is_empty() {
-      return Err("expected a numeric".into());
+      return ExpectedSnafu { what: What::Numeric }.fail()?;
     };
 
     let state = state.unwrap_or(NumericState::Decimal);

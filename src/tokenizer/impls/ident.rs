@@ -5,6 +5,7 @@ use crate::tokenizer::{
   TokenKind,
   Keyword,
   SpanStart,
+  error::*,
 };
 
 impl Tokenizer {
@@ -12,12 +13,12 @@ impl Tokenizer {
     trace!("Tokenizer::identifier");
 
     let Some(item) = reader.next() else {
-      return Err("expected an identifier".into());
+      return ExpectedSnafu { what: What::Identifier }.fail()?;
     };
     let item = item?;
 
     let ident!() = item.ch else {
-      return Err(format!("expected an identifier: {:?}", item.ch))
+      return ExpectedSnafu { what: What::Identifier }.fail()?;
     };
 
     let start = SpanStart(item.position);

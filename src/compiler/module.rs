@@ -6,6 +6,8 @@ use std::path::{
 use super::{
   CompilerJob,
   CompilerWorkflow,
+  CompilerResult,
+  error::*,
 };
 
 pub(crate) struct CompilerModule<W: CompilerWorkflow> {
@@ -20,25 +22,26 @@ impl<W: CompilerWorkflow> CompilerModule<W> {
 }
 
 impl<W: CompilerWorkflow> TryFrom<&Path> for CompilerModule<W> {
-  type Error = String;
+  type Error = CompilerError;
 
-  fn try_from(path: &Path) -> Result<Self, Self::Error> {
+  fn try_from(path: &Path) -> CompilerResult<Self> {
     if !path.exists() {
-      Err(format!("input file does not exist: {}", path.to_string_lossy()))
-    } else if path.is_dir() {
-      let mut path = path.to_owned();
-      path.push("index.zy");
+      return PathNotExistsSnafu { path }.fail();
+    };
+
+    if path.is_dir() {
+      let path = path.join("index.zy");
 
       if path.is_dir() {
-        return Err(format!("input file may not be a directory: {}", path.to_string_lossy()));
+        return PathIsDirectorySnafu { path }.fail();
       };
 
-      CompilerModule::try_from(path.as_path())
-    } else {
-      Ok(Self {
-        data: CompilerJob::Unprocessed,
-        path: path.to_path_buf(),
-      })
+      return path.as_path().try_into();
     }
+
+    Ok(Self {
+      data: CompilerJob::Unprocessed,
+      path: path.to_path_buf(),
+    })
   }
 }

@@ -1,7 +1,16 @@
+pub(crate) mod error;
+
+use which::which;
+
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use which::which;
+use crate::compiler::{
+  CompilerResult,
+  error::*,
+};
+
+use error::*;
 
 enum CompilerParserFlag {
   Help,
@@ -34,7 +43,7 @@ pub(crate) struct CompilerOptions {
   pub(crate) cc: PathBuf,
 }
 
-pub(crate) struct CompilerParser {
+struct CompilerParser {
   state: CompilerParserState,
   help: bool,
   input_file: Option<String>,
@@ -75,21 +84,21 @@ impl CompilerParserArgument {
   }
 }
 
-fn default_option_resolve_path_strerror(path: Option<String>, default: &'static str) -> Result<PathBuf, String>  {
+fn default_option_resolve_path_strerror(path: Option<String>, default: &'static str) -> CompilerResult<PathBuf>  {
   let path = path.as_ref()
     .map(|path| path.as_str())
     .unwrap_or(default);
 
-  which(path)
-    .map_err(|err| format!(
-      "{path}: failed to locate ({err})"
-    ))
+  match which(path) {
+    Ok(x) => Ok(x),
+    Err(err) => ExecNotFoundSnafu { path, err }.fail()?
+  }
 }
 
 impl TryFrom<CompilerParser> for CompilerOptions {
-  type Error = String;
+  type Error = CompilerError;
 
-  fn try_from(parser: CompilerParser) -> Result<Self, Self::Error> {
+  fn try_from(parser: CompilerParser) -> CompilerResult<Self> {
     let CompilerParser {
       help,
       input_file,
@@ -104,12 +113,7 @@ impl TryFrom<CompilerParser> for CompilerOptions {
 
       match std::fs::canonicalize(&input_file) {
         Ok(x) => Some(x),
-        Err(err) => return Err(
-          format!(
-            "{err}: {}",
-            input_file.to_string_lossy()
-          )
-        ),
+        Err(err) => return IOSnafu { err: err.to_string() }.fail(),
       }
     } else {
       None
@@ -132,7 +136,7 @@ impl TryFrom<CompilerParser> for CompilerOptions {
 }
 
 #[allow(non_upper_case_globals)]
-const ok: Result<(), String> = Ok(());
+const ok: CompilerResult<()> = Ok(());
 
 impl CompilerParser {
   fn new() -> Self {
@@ -155,7 +159,9 @@ impl CompilerParser {
     }
   }
 
-  fn set_option_string_value_or_strerror(option: &mut Option<String>, kind: CompilerParserArgument, argument: String) -> Result<(), String> {
+  fn set_option_string_value(&mut self, kind: CompilerParserArgument, argument: String) -> CompilerResult<()> {
+    let option = self.string_pointer(kind);
+
     if let Some(original) = option {
       let long_name = kind.long_name();
 
@@ -165,7 +171,7 @@ impl CompilerParser {
           {long_name}={argument:?}\
       ");
 
-      return Err(format!("already received argument: {long_name}"));
+      return DuplicateSnafu { long_name }.fail()?;
     };
 
     *option = Some(argument);
@@ -173,53 +179,48 @@ impl CompilerParser {
     ok
   }
 
-  fn first(&mut self, argument: String) -> Result<(), String> {
+  fn first(&mut self, argument: String) -> CompilerResult<()> {
     if let Some(flag) = CompilerParserFlag::from_argument(&argument) {
       match flag {
         CompilerParserFlag::Help => self.help = true,
       };
-    } else {
-      let (key, value) = match argument.split_once("=") {
-        Some((key, value)) => (key, Some(value)),
-        None => (argument.as_str(), None),
-      };
 
-      if let Some(kind) = CompilerParserArgument::from_argument(key) {
-        match value {
-          Some(value) => {
-            Self::set_option_string_value_or_strerror(
-              self.string_pointer(kind),
-              kind,
-              value.into()
-            )?;
-          },
-          None => {
-            self.state = CompilerParserState::ArgumentFlag(kind);
-          },
-        };
-      } else if self.input_file.is_none() {
-        self.input_file = Some(argument);
-      } else  {
-        return Err(format!("unrecognized flag: {argument:?}"));
-      }
+      return ok;
     };
 
-    ok
+    let (key, value) = match argument.split_once("=") {
+      Some((key, value)) => (key, Some(value)),
+      None => (argument.as_str(), None),
+    };
+
+    if let Some(kind) = CompilerParserArgument::from_argument(key) {
+      return if let Some(value) = value {
+        self.set_option_string_value(kind, value.into())
+      } else {
+        self.state = CompilerParserState::ArgumentFlag(kind);
+
+        ok
+      };
+    };
+
+    // input file is the implicit first argument
+    if self.input_file.is_none() {
+      self.input_file = Some(argument);
+
+      return ok;
+    };
+
+    UnknownFlagSnafu { flag: argument }.fail()?
   }
 
-  fn argument_flag(&mut self, kind: CompilerParserArgument, argument: String) -> Result<(), String> {
-    Self::set_option_string_value_or_strerror(
-      self.string_pointer(kind),
-      kind,
-      argument,
-    )?;
-
+  fn argument_flag(&mut self, kind: CompilerParserArgument, argument: String) -> CompilerResult<()> {
+    self.set_option_string_value(kind, argument)?;
     self.state = CompilerParserState::First;
 
     ok
   }
 
-  fn parse_argument(&mut self, argument: String) -> Result<(), String> {
+  fn parse_argument(&mut self, argument: String) -> CompilerResult<()> {
     match self.state {
       CompilerParserState::First => self.first(argument),
       CompilerParserState::ArgumentFlag(kind) => self.argument_flag(kind, argument),
@@ -227,12 +228,12 @@ impl CompilerParser {
   }
 }
 
-pub(crate) fn parse() -> Result<CompilerOptions, String> {
+pub(crate) fn parse() -> CompilerResult<CompilerOptions> {
   let mut parser = CompilerParser::new();
 
   for argument in std::env::args().skip(1) {
     parser.parse_argument(argument)?;
   };
 
-  CompilerOptions::try_from(parser)
+  parser.try_into()
 }

@@ -1,3 +1,4 @@
+use crate::compiler::CompilerResult;
 use crate::tokenizer::{
   PeekReader,
   Tokenizer,
@@ -5,14 +6,15 @@ use crate::tokenizer::{
   Operator,
   Punctuation,
   SpanStart,
+  error::*,
 };
-use crate::compiler::CompilerResult;
 
 impl Tokenizer {
   pub(in crate::tokenizer) fn operator(&mut self, reader: &mut PeekReader) -> CompilerResult<()> {
     trace!("Tokenizer::operator");
+
     let Some(item) = reader.peek()? else {
-      return Err("expected an operator".into());
+      return ExpectedSnafu { what: What::Operator }.fail()?;
     };
 
     let start = SpanStart(item.position);
@@ -71,7 +73,10 @@ impl Tokenizer {
     } else if let Some(punct) = Punctuation::from_str(&content) {
       TokenKind::Punctuation(punct)
     } else {
-      return Err(format!("unrecognized operator: {content:?}"));
+      // TODO: `unrecognized` isn't strictly the same as `expected`
+
+      return ExpectedSnafu { what: What::Operator }.fail()?;
+      // return OtherSnafu { err: format!("unrecognized operator: {content:?}") }.fail()?;
     };
 
     self.push_tok(kind, start, end);

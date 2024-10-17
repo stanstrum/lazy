@@ -9,6 +9,11 @@ macro_rules! ident {
 }
 
 #[macro_export]
+macro_rules! binary {
+  () => { '0' | '1' };
+}
+
+#[macro_export]
 macro_rules! octal {
   () => { '0'..='7' };
 }
@@ -20,7 +25,7 @@ macro_rules! decimal {
 
 #[macro_export]
 macro_rules! hexademical {
-  () => { decimal!() | 'a'..='f' | 'A'..='F' };
+  () => { '0'..='9' | 'a'..='f' | 'A'..='F' };
 }
 
 #[macro_export]

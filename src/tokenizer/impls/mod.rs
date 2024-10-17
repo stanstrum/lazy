@@ -1,7 +1,8 @@
-mod whitespace;
-mod comment;
-mod ident;
-mod operator;
+pub(crate) mod whitespace;
+pub(crate) mod comment;
+pub(crate) mod ident;
+pub(crate) mod operator;
+pub(crate) mod numeric;
 
 use crate::compiler::CompilerResult;
 use crate::tokenizer::{
@@ -26,12 +27,11 @@ impl crate::tokenizer::Tokenizer {
     };
 
     match item.ch {
-      whitespace!() => self.whitespace(reader)?,
-      ident!() => self.identifier(reader)?,
-      operator!() => self.operator(reader)?,
+      whitespace!() => self.whitespace(reader),
+      ident!() => self.identifier(reader),
+      operator!() => self.operator(reader),
+      decimal!() => self.numeric(reader),
       _ => todo!("{:?}", item.ch),
-    };
-
-    Ok(())
+    }
   }
 }

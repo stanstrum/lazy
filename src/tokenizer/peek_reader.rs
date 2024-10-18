@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use crate::Result;
 use crate::tokenizer::SpanStart;
 
@@ -9,68 +11,111 @@ pub(super) struct ReaderItem {
 
 pub(super) struct PeekReader<'a> {
   reader: &'a mut dyn Iterator<Item = Result<ReaderItem>>,
-  peek_buffer: Option<ReaderItem>,
+  buffer: VecDeque<ReaderItem>,
   pub position: usize,
+}
+
+impl<'a> Iterator for PeekReader<'a> {
+  type Item = Result<ReaderItem>;
+
+  fn next(&mut self) -> Option<Self::Item> {
+    self.position += 1;
+
+    if let Some(buffered) = self.buffer.pop_front() {
+      return Some(Ok(buffered));
+    };
+
+    self.reader.next()
+  }
 }
 
 impl<'a> PeekReader<'a> {
   pub(super) fn new(reader: &'a mut dyn Iterator<Item = Result<ReaderItem>>) -> Self {
     Self {
       reader,
-      peek_buffer: None,
+      buffer: VecDeque::new(),
       position: 0,
     }
   }
 
+  pub(super) fn span_start(&mut self) -> SpanStart {
+    SpanStart(self.position)
+  }
+
   pub(super) fn seek(&mut self) {
-    if self.peek_buffer.is_some() {
-      self.peek_buffer = None;
-    } else {
-      self.next();
+    if self.buffer.pop_front().is_some() {
+      return;
+    };
+
+    self.next();
+  }
+
+  // TODO: i don't like this
+  pub(super) fn seek_n(&mut self, count: usize) {
+    for _ in 0..count {
+      self.seek();
     };
   }
 
   pub(super) fn peek(&mut self) -> Result<Option<ReaderItem>> {
-    if let Some(buffered) = self.peek_buffer {
-      return Ok(Some(buffered));
+    if let Some(item) = self.buffer.front().cloned() {
+      return Ok(Some(item));
     };
 
-    let Some(item) = self.next() else {
+    let Some(item) = self.reader.next() else {
       return Ok(None);
     };
 
     let item = item?;
-    self.peek_buffer = Some(item);
+    self.buffer.push_back(item);
 
     Ok(Some(item))
   }
 
-  pub(super) fn span_start(&self) -> SpanStart {
-    SpanStart(self.position)
-  }
-}
+  fn peek_take(&mut self, count: usize) -> Result<Option<impl Iterator<Item = char> + '_>> {
+    assert!(count != 0, "peek must be of non-zero length (for span data)");
 
-impl Iterator for PeekReader<'_> {
-  type Item = Result<ReaderItem>;
+    if self.buffer.len() < count {
+      let needed = count - self.buffer.len();
 
-  fn next(&mut self) -> Option<Self::Item> {
-    let (message, result) = {
-      if let Some(buffered) = self.peek_buffer {
-        self.peek_buffer = None;
-
-        ("buffered", Some(Ok(buffered)))
-      } else {
-        let next = self.reader.next();
-
-        if next.as_ref().is_some_and(|next| next.is_ok()) {
-          self.position += 1;
+      for _ in 0..needed {
+        let Some(item) = self.reader.next() else {
+          return Ok(None);
         };
 
-        ("read", next)
-      }
+        self.buffer.push_back(item?);
+      };
     };
 
-    trace!("PeekReader::next {message}   \t-> {result:?}");
-    result
+    let iter = self.buffer
+      .iter()
+      .take(count)
+      .map(|item| item.ch);
+
+    Ok(Some(iter))
+  }
+
+  pub(super) fn starts_with(&mut self, text: &str) -> Result<bool> {
+    let Some(peek) = self.peek_take(text.len())? else {
+      return Ok(false);
+    };
+
+    for (a, b) in peek.zip(text.chars()) {
+      if a != b {
+        return Ok(false);
+      };
+    };
+
+    Ok(true)
+  }
+
+  pub(super) fn starts_with_seek(&mut self, text: &str) -> Result<bool> {
+    let result = self.starts_with(text)?;
+
+    if result {
+      self.seek_n(text.len());
+    };
+
+    Ok(result)
   }
 }

@@ -7,6 +7,7 @@ pub(crate) enum What {
   Float,
   Integer,
   Operator,
+  MultilineComment,
 }
 
 #[derive(Debug, Snafu)]
@@ -30,6 +31,7 @@ impl What {
       What::Operator => (AN, "operator"),
       What::Float => (A, "float"),
       What::Integer => (AN, "integer"),
+      What::MultilineComment => (A, "multiline comment"),
     }
   }
 

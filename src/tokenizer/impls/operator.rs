@@ -59,11 +59,8 @@ impl Tokenizer {
         | (".", '.')
         | ("..", '.')
         => {},
-        ("//", _) => {
-          self.line_comment(reader)?;
-          return ok;
-        },
-        ("/*", _) => todo!("multiline comment"),
+        ("//", _) => return self.line_comment(reader),
+        ("/*", _) => return self.multiline_comment(reader),
         _ => break,
       };
     };

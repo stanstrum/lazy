@@ -1,8 +1,9 @@
-pub(crate) mod whitespace;
-pub(crate) mod comment;
-pub(crate) mod ident;
-pub(crate) mod operator;
+mod whitespace;
+mod comment;
+mod ident;
+mod operator;
 pub(crate) mod numeric;
+mod string;
 
 use crate::{Result, ok};
 use crate::tokenizer::{
@@ -20,7 +21,7 @@ impl crate::tokenizer::Tokenizer {
       return ok;
     };
 
-    if let Some(grouping) = Grouping::from_str(&String::from(item.ch)) {
+    if let Some(grouping) = Grouping::from_str(String::from(item.ch).as_str()) {
       reader.seek();
       self.push_tok(TokenKind::Grouping(grouping), start, reader.position);
       return ok;

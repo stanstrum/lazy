@@ -5,11 +5,13 @@ use crate::tokenizer::{
   PeekReader,
   Tokenizer,
   TokenKind,
+  error::*,
 };
 
 impl Tokenizer {
   pub(in crate::tokenizer) fn line_comment(&mut self, reader: &mut PeekReader) -> Result {
     trace!("Tokenizer::line_comment");
+
     let mut message = String::new();
     let start = reader.span_start();
 
@@ -23,7 +25,57 @@ impl Tokenizer {
       message.push(item.ch);
     };
 
-    self.push_tok(TokenKind::Comment(message.trim().into()), start, reader.position);
+    let kind = TokenKind::Comment(message.trim().into());
+
+    self.push_tok(kind, start, reader.position);
+
+    ok
+  }
+
+  pub(in crate::tokenizer) fn multiline_comment(&mut self, reader: &mut PeekReader) -> Result {
+    trace!("Tokenizer::line_comment");
+
+    const COMMENT_OPEN: &str = "/*";
+    const COMMENT_CLOSE: &str = "*/";
+
+    let mut level = 1;
+    let start = reader.span_start();
+
+    let mut content = String::new();
+
+    loop {
+      if reader.starts_with_seek(COMMENT_OPEN)? {
+        level += 1;
+
+        if level != 0 {
+          content.push_str(COMMENT_OPEN);
+        };
+
+        continue;
+      };
+
+      if reader.starts_with_seek(COMMENT_CLOSE)? {
+        level -= 1;
+
+        if level == 0 {
+          break;
+        };
+
+        content.push_str(COMMENT_CLOSE);
+        continue;
+      };
+
+      let Some(item) = reader.next() else {
+        return InvalidSnafu {
+          what: What::MultilineComment,
+          content,
+        }.fail()?;
+      };
+
+      content.push(item?.ch);
+    };
+
+    self.push_tok(TokenKind::Comment(content), start, reader.position);
 
     ok
   }

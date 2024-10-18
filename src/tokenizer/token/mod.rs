@@ -31,6 +31,8 @@ pub(crate) enum TokenKind {
   Punctuation(Punctuation),
   Grouping(Grouping),
   Numeric(NumericKind),
+  String(String),
+  Char(String),
 }
 
 #[allow(unused)]

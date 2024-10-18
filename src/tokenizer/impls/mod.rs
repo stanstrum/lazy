@@ -32,6 +32,8 @@ impl crate::tokenizer::Tokenizer {
       ident!() => self.identifier(reader),
       operator!() => self.operator(reader),
       decimal!() => self.numeric(reader),
+      '"' => self.string(reader),
+      '\'' => self.char(reader),
       _ => todo!("{:?}", item.ch),
     }
   }

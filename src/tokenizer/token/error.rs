@@ -8,6 +8,9 @@ pub(crate) enum What {
   Integer,
   Operator,
   MultilineComment,
+  String,
+  StringEscapeSequence,
+  Char,
 }
 
 #[derive(Debug, Snafu)]
@@ -32,6 +35,9 @@ impl What {
       What::Float => (A, "float"),
       What::Integer => (AN, "integer"),
       What::MultilineComment => (A, "multiline comment"),
+      What::String => (A, "string literal"),
+      What::StringEscapeSequence => (A, "string escape sequence"),
+      What::Char => (A, "char literal"),
     }
   }
 

@@ -1,5 +1,6 @@
 mod module;
 mod traits;
+pub(crate) mod workflow;
 pub(crate) mod error;
 
 pub(crate) use module::CompilerModule;

@@ -9,7 +9,6 @@ mod todo;
 
 mod tokenizer;
 mod asterizer;
-mod workflow;
 
 use std::process::ExitCode;
 
@@ -21,10 +20,10 @@ use arg_parser::{
 use compiler::{
   Compiler,
   CompilerSettings,
+  workflow::DefaultWorkflow,
   error::CompilerError,
 };
 
-use workflow::DefaultWorkflow;
 use crate::help::LazyHelp;
 
 pub(crate) type Result<T = ()> = std::result::Result<T, CompilerError>;

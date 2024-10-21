@@ -29,7 +29,7 @@ impl Tokenizer {
 
     let mut text = String::new();
 
-    for _ in 0..=4 {
+    loop {
       let Some(item) = reader.next() else {
         return ExpectedSnafu {
           what: What::StringEscapeSequence,

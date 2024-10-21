@@ -1,12 +1,15 @@
-use crate::tokenizer;
-use crate::todo;
+use crate::{
+  tokenizer,
+  asterizer,
+  todo,
+};
 
 #[derive(Clone, Copy)]
 pub(crate) struct DefaultWorkflow;
 
 impl crate::compiler::CompilerWorkflow for DefaultWorkflow {
   type Tokenizer = tokenizer::Tokenizer;
-  type Asterizer = todo::Asterizer;
+  type Asterizer = asterizer::Asterizer;
   type Translator = todo::Translator;
   type Checker = todo::Checker;
   type Generator = todo::Generator;

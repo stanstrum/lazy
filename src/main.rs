@@ -8,6 +8,7 @@ mod compiler;
 mod todo;
 
 mod tokenizer;
+mod asterizer;
 mod workflow;
 
 use std::process::ExitCode;

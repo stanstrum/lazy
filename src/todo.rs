@@ -1,73 +1,30 @@
 use crate::Result;
 use crate::compiler::*;
-use crate::tokenizer::Token;
 
-pub(super) struct Asterizer;
-pub(super) struct Translator;
-pub(super) struct Checker;
-pub(super) struct Generator;
-pub(super) struct Outputter;
+macro_rules! make_todo_stage {
+  ($name:ident: $trait:ident::<In = $in:ty>::$method:ident) => {
+    make_todo_stage!(@inner: $name, $trait, $method, In = $in);
+  };
 
-impl<W: CompilerWorkflow> Asterize<W> for Asterizer {
-  type In = Vec<Token>;
-  type Out = ();
+  ($name:ident: $trait:ident::<In = $in:ty, Out = $out:ty>::$method:ident) => {
+    make_todo_stage!(@inner: $name, $trait, $method, In = $in, Out = $out);
+  };
 
-  fn new() -> Self {
-    todo!()
-  }
+  (@inner: $name:ident, $trait:ident, $method:ident, $($assoc:ident = $ty:ty),+) => {
+    pub(super) struct $name;
 
-  fn asterize(self, _compiler: &mut Compiler<W>, _: Self::In) -> Result<Self::Out> {
-    todo!()
-  }
+    impl<W: CompilerWorkflow> $trait<W> for $name {
+      $(type $assoc = $ty;)+
+
+      fn new() -> Self { Self }
+      fn $method(self, _: &mut Compiler<W>, _: Self::In) -> Result  {
+        todo!()
+      }
+    }
+  };
 }
 
-impl<W: CompilerWorkflow> Translate<W> for Translator {
-  type In = ();
-  type Out = ();
-
-  fn new() -> Self {
-    todo!()
-  }
-
-  fn translate(self, _compiler: &mut Compiler<W>, _: Self::In) -> Result<Self::Out> {
-    todo!()
-  }
-}
-
-impl<W: CompilerWorkflow> Check<W> for Checker {
-  type In = ();
-  type Out = ();
-
-  fn new() -> Self {
-    todo!()
-  }
-
-  fn check(self, _compiler: &mut Compiler<W>, _: Self::In) -> Result<Self::Out> {
-    todo!()
-  }
-}
-
-impl<W: CompilerWorkflow> Generate<W> for Generator {
-  type In = ();
-  type Out = ();
-
-  fn new() -> Self {
-    todo!()
-  }
-
-  fn generate(self, _compiler: &mut Compiler<W>, _: Self::In) -> Result<Self::Out> {
-    todo!()
-  }
-}
-
-impl<W: CompilerWorkflow> Output<W> for Outputter {
-  type In = ();
-
-  fn new() -> Self {
-    todo!()
-  }
-
-  fn output(self, _compiler: &mut Compiler<W>, _: Self::In) -> Result {
-    todo!()
-  }
-}
+make_todo_stage! { Translator: Translate::<In = (), Out = ()>::translate }
+make_todo_stage! { Checker: Check::<In = (), Out = ()>::check }
+make_todo_stage! { Generator: Generate::<In = (), Out = ()>::generate }
+make_todo_stage! { Outputter: Output::<In = ()>::output }

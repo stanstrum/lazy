@@ -1,3 +1,13 @@
+pub(crate) trait LazyHelp {
+  fn should_print_message(&self) -> bool {
+    true
+  }
+
+  fn should_print_help_text(&self) -> bool {
+    false
+  }
+}
+
 pub(super) fn print_help_text() {
   let full_executable_path = std::env::current_exe().unwrap();
   let executable = full_executable_path.file_name().unwrap().to_string_lossy();

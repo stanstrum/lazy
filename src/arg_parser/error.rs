@@ -18,7 +18,7 @@ pub(crate) enum ArgumentError {
   NoInput,
 }
 
-impl crate::LazyHelp for ArgumentError {
+impl crate::help::LazyHelp for ArgumentError {
   fn should_print_message(&self) -> bool {
     !matches!(self, ArgumentError::Help)
   }

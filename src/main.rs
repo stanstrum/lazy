@@ -25,21 +25,12 @@ use compiler::{
 };
 
 use workflow::DefaultWorkflow;
+use crate::help::LazyHelp;
 
 pub(crate) type Result<T = ()> = std::result::Result<T, CompilerError>;
 
 #[allow(non_upper_case_globals)]
 pub(crate) const ok: Result = Ok(());
-
-pub(crate) trait LazyHelp {
-  fn should_print_message(&self) -> bool {
-    true
-  }
-
-  fn should_print_help_text(&self) -> bool {
-    false
-  }
-}
 
 fn parse_compiler_settings() -> Result<CompilerSettings> {
   let CompilerOptions {
@@ -74,7 +65,7 @@ fn error_harness() -> Result {
 
   compiler.compile()?;
 
-  todo!()
+  ok
 }
 
 fn main() -> ExitCode {

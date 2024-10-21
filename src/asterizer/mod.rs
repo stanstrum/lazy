@@ -16,7 +16,7 @@ impl<W: CompilerWorkflow> Asterize<W> for Asterizer {
     Self
   }
 
-  fn asterize(self, compiler: &mut Compiler<W>, input: Self::In) -> Result<Self::Out> {
+  fn asterize(self, _compiler: &mut Compiler<W>, _input: Self::In) -> Result<Self::Out> {
     todo!()
   }
 }

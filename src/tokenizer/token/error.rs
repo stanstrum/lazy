@@ -10,7 +10,6 @@ pub(crate) enum What {
   MultilineComment,
   String,
   StringEscapeSequence,
-  Char,
 }
 
 #[derive(Debug, Snafu)]
@@ -37,7 +36,6 @@ impl What {
       What::MultilineComment => (A, "multiline comment"),
       What::String => (A, "string literal"),
       What::StringEscapeSequence => (A, "string escape sequence"),
-      What::Char => (A, "char literal"),
     }
   }
 

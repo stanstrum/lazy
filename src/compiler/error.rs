@@ -36,7 +36,7 @@ impl From<ArgumentError> for CompilerError {
   }
 }
 
-impl crate::LazyHelp for CompilerError {
+impl crate::help::LazyHelp for CompilerError {
   fn should_print_message(&self) -> bool {
     match self {
       CompilerError::Argument { err } => err.should_print_message(),

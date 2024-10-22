@@ -10,12 +10,16 @@ use crate::compiler::{
   error::*,
 };
 
+/// The stored representation of a module in a CompilerStor
 pub(crate) struct CompilerModule<W: CompilerWorkflow> {
+  /// The path to this module's source file
   pub(crate) path: PathBuf,
+  /// The current state of this module's data
   pub(crate) data: CompilerJob<W>,
 }
 
 impl<W: CompilerWorkflow> CompilerModule<W> {
+  /// Compares the path of the provided module to that of this one
   pub(crate) fn is_same_path(&self, other: &CompilerModule<W>) -> bool {
     self.path == other.path
   }

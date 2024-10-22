@@ -12,17 +12,25 @@ use crate::compiler::error::*;
 use parser::*;
 use error::*;
 
+/// Parsed compiler options; paths have parsed & validated
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct CompilerOptions {
+  /// Whether to show help text and exit early
   pub(crate) help: bool,
+  /// Program entry point
   pub(crate) input_file: Option<PathBuf>,
+  /// Output location for executable
   pub(crate) output_file: PathBuf,
+  /// Path to LLC executable
   pub(crate) llc: PathBuf,
+  /// Path to CC executable
   pub(crate) cc: PathBuf,
 }
 
-fn default_option_resolve_path(path: Option<String>, default: &'static str) -> Result<PathBuf>  {
+/// Resolves a provided optional String into a path (with a provided default)
+/// and maps the error into a CompilerError
+fn default_option_resolve_path(path: Option<String>, default: &'static str) -> Result<PathBuf> {
   let path = path.as_ref()
     .map(|path| path.as_str())
     .unwrap_or(default);
@@ -33,6 +41,7 @@ fn default_option_resolve_path(path: Option<String>, default: &'static str) -> R
   }
 }
 
+/// Parses command-line arguments into CompilerOptions, or returns an error
 pub(crate) fn parse() -> Result<CompilerOptions> {
   let mut parser = CompilerParser::new();
 

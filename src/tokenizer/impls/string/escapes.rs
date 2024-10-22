@@ -8,6 +8,7 @@ use crate::tokenizer::{
 };
 
 impl Tokenizer {
+  /// Reads the escape code of a hexadecimal escape inside of a string
   pub(super) fn hexadecimal_escape(&mut self, reader: &mut PeekReader) -> Result<char> {
     let text = reader
       .take(2)
@@ -24,6 +25,7 @@ impl Tokenizer {
     Ok(value as char)
   }
 
+  /// Reads the escape code of a unicode escape inside of a string
   pub(super) fn unicode_escape(&mut self, reader: &mut PeekReader) -> Result<char> {
     reader.starts_with_seek("{")?;
 

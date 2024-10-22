@@ -32,6 +32,7 @@ enum EscapedCharacter {
 }
 
 impl EscapedCharacter {
+  /// Returns a variant of Self if ch is recognized as an escape code
   fn from_char(ch: char) -> Option<Self> {
     match ch {
       '0' => Some(Self::Null),
@@ -53,6 +54,7 @@ impl EscapedCharacter {
     }
   }
 
+  /// Returns a string representation of this escaped value if possible
   fn as_escaped_value(&self) -> Option<char> {
     match self {
       Self::Null => Some('\0'),

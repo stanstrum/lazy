@@ -1,7 +1,10 @@
+/// A command line flag; may be true or false
 pub(super) enum Flag {
   Help,
 }
 
+/// A command line argument; holds a string value which is later validated.
+/// Values are not checked until after each argument has been parsed.
 #[derive(Clone, Copy)]
 pub(super) enum Argument {
   InputFile,
@@ -10,7 +13,9 @@ pub(super) enum Argument {
   LLC,
 }
 
+/// Method for resolving an argument
 pub(super) trait Process: Sized {
+  /// Returns a variant of Self if argument represents Self
   fn from_argument(argument: &str) -> Option<Self>;
 }
 
@@ -36,6 +41,8 @@ impl Process for Argument {
 }
 
 impl Argument {
+  /// Used for printing errors: returns a string representation of this
+  /// Argument
   pub(super) fn long_name(&self) -> &'static str {
     match self {
       Argument::InputFile => "--input",

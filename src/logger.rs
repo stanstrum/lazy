@@ -39,11 +39,11 @@ impl colog::format::CologStyle for Logger {
 pub(super) fn init() {
   let mut builder = colog::basic_builder();
 
-  builder.filter_level(log::LevelFilter::Error);
+  builder.filter_level(log::LevelFilter::Info);
   builder.parse_default_env();
 
   builder.format(colog::formatter(Logger));
   builder.init();
 
-  trace!("Initialized logger");
+  debug!("Initialized logger");
 }

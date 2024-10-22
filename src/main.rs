@@ -1,12 +1,14 @@
+// For logging macros
 #[macro_use] extern crate log;
 
-mod help;
+mod logger;
 
 mod arg_parser;
-mod logger;
-mod compiler;
-mod todo;
+mod help;
 
+mod compiler;
+
+mod todo;
 mod tokenizer;
 mod asterizer;
 
@@ -31,6 +33,7 @@ pub(crate) type Result<T = ()> = std::result::Result<T, CompilerError>;
 #[allow(non_upper_case_globals)]
 pub(crate) const ok: Result = Ok(());
 
+/// Processes the parsed command-line arguments
 fn parse_compiler_settings() -> Result<CompilerSettings> {
   let CompilerOptions {
     help,
@@ -56,6 +59,8 @@ fn parse_compiler_settings() -> Result<CompilerSettings> {
   })
 }
 
+/// Catch errors in a block so we can deal with them in one place in the main
+/// function
 fn error_harness() -> Result {
   logger::init();
 
@@ -68,16 +73,21 @@ fn error_harness() -> Result {
 }
 
 fn main() -> ExitCode {
+  // If an error occurs at any point in the compilation, it bubbles up here
   let Err(err) = error_harness() else {
+    // ... if there was none, just exit now
     return ExitCode::SUCCESS;
   };
 
+  // Decide how to present the error to the user; e.g.:
+  // the help flag should print the help text
   let should_print_help_text = err.should_print_help_text();
   let should_print_message = err.should_print_message();
 
   if should_print_help_text {
     help::print_help_text();
 
+    // Put a space between the help text and the error message for clarity
     if should_print_message {
       eprintln!();
     };
@@ -87,5 +97,6 @@ fn main() -> ExitCode {
     error!("{err}");
   };
 
+  // Since we have an error, return an error code so the caller is aware
   ExitCode::FAILURE
 }

@@ -4,6 +4,7 @@ use crate::{
   todo,
 };
 
+/// The default workflow for compiling Lazy code
 #[derive(Clone, Copy)]
 pub(crate) struct DefaultWorkflow;
 

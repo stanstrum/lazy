@@ -110,4 +110,11 @@ impl TokenReader {
       self.seek();
     };
   }
+
+  /// Returns the amount of marks stored in the reader for asserting that we
+  /// have cleaned them up properly.  This is a rather simple heuristic but
+  /// it catches small mistakes
+  pub(super) fn marks_len(&self) -> usize {
+    self.marks.len()
+  }
 }

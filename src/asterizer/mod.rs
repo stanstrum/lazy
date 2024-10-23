@@ -44,6 +44,7 @@ impl<W: CompilerWorkflow> Asterizer<W> {
   fn make<T: Ast<W>>(&mut self, compiler: &mut Compiler<W>) -> Result<Option<T>> {
     trace!("{}: Ast::make", T::type_name());
 
+    let marks_len_before = self.reader.marks_len();
     let start = self.reader.get_start();
 
     // Push a mark in case this operation fails
@@ -61,6 +62,9 @@ impl<W: CompilerWorkflow> Asterizer<W> {
     };
 
     debug!("{}: Ast::make: {result:#?}", T::type_name());
+
+    let marks_len_after = self.reader.marks_len();
+    assert!(marks_len_before == marks_len_after, "mark length mismatch!");
 
     Ok(result)
   }

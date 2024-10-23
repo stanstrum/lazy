@@ -1,14 +1,17 @@
 mod impls;
 
+use typename::TypeName;
 use crate::tokenizer::Span;
 
 /// A simple type, i.e. non-arithmetic
+#[derive(Debug, TypeName)]
 pub(crate) enum Type {
   /// A type that is only referred to by name
   Identifier(Identifier),
 }
 
 /// A simple name, this is equivalent to a String but associated with a Span
+#[derive(Debug, TypeName)]
 pub(crate) struct Identifier {
   /// The text of this identifier
   pub(crate) name: String,
@@ -16,6 +19,7 @@ pub(crate) struct Identifier {
 }
 
 /// A standard function argument, i.e. an identifier and a simple type
+#[derive(Debug, TypeName)]
 pub(crate) struct FunctionArgument {
   /// The name of the argument
   pub(crate) identifier: Identifier,
@@ -25,6 +29,7 @@ pub(crate) struct FunctionArgument {
 }
 
 /// The arguments to a function
+#[derive(Debug, TypeName)]
 pub(crate) struct FunctionArguments {
   /// The arguments of this function
   pub(crate) arguments: Vec<FunctionArgument>,
@@ -32,6 +37,7 @@ pub(crate) struct FunctionArguments {
 
 /// A simple function, i.e. not a class method, meaning no "this" reference can
 /// be held here
+#[derive(Debug, TypeName)]
 pub(crate) struct Function {
   /// The name of this function
   pub(crate) identifier: Identifier,
@@ -45,6 +51,7 @@ pub(crate) struct Function {
 }
 
 /// A structure that can appear inside of a namespace
+#[derive(Debug, TypeName)]
 pub(crate) enum NamespaceChild {
   Namespace(Box<Namespace>),
   Function(Function),
@@ -53,6 +60,7 @@ pub(crate) enum NamespaceChild {
 /// A namespace, akin to a module, however modules can only be used to organize
 /// code inside of a file.  Inside of a file, namespaces are used to accomplish
 /// this.
+#[derive(Debug, TypeName)]
 pub(crate) struct Namespace {
   /// The name of this namespace
   pub(crate) identifier: Identifier,
@@ -63,6 +71,7 @@ pub(crate) struct Namespace {
 
 /// The top-level namespace of the module.  Import statements can only appear
 /// here and exports allow visibility outside of the module.
+#[derive(Debug, TypeName)]
 pub(crate) struct TopLevelNamespace {
   /// The structures in this file
   pub(crate) children: Vec<NamespaceChild>,
@@ -70,6 +79,7 @@ pub(crate) struct TopLevelNamespace {
 }
 
 /// An expression of any kind
+#[derive(Debug, TypeName)]
 pub(crate) enum Expression {
   Block(Box<BlockExpression>),
 }
@@ -97,6 +107,7 @@ pub(crate) enum Expression {
 /// ```
 /// bad_variable;
 /// ```
+#[derive(Debug, TypeName)]
 pub(crate) enum BindingKind {
   OnlyType(Type),
   OnlyExpression(Expression),
@@ -107,6 +118,7 @@ pub(crate) enum BindingKind {
 }
 
 /// A variable binding with the identifier
+#[derive(Debug, TypeName)]
 pub(crate) struct Binding {
   /// The name of this variable
   pub(crate) identifier: Identifier,
@@ -115,11 +127,13 @@ pub(crate) struct Binding {
 }
 
 /// A child of a function block
+#[derive(Debug, TypeName)]
 pub(crate) enum BlockChild {
   Binding(Binding),
 }
 
 /// A function block, with curly braces at the beginning and end
+#[derive(Debug, TypeName)]
 pub(crate) struct BlockExpression {
   /// The expressions inside of this block
   pub(crate) children: Vec<BlockChild>,

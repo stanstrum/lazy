@@ -44,7 +44,7 @@ impl<W: CompilerWorkflow> Ast<W> for Identifier {
 
 impl<W: CompilerWorkflow> Ast<W> for Namespace {
   fn make(_: &mut Compiler<W>, _: &mut Asterizer<W>, _: SpanStart) -> Result<Option<Self>> {
-    trace!("Namespace Ast::make stub");
+    warn!("Namespace Ast::make stub");
 
     Ok(None)
   }

@@ -2,6 +2,8 @@ pub mod ast;
 mod reader;
 pub(crate) mod errors;
 
+use typename::TypeName;
+use std::fmt::Debug;
 use std::marker::PhantomData;
 
 use crate::Result;
@@ -26,7 +28,7 @@ pub(super) struct Asterizer<W: CompilerWorkflow> {
 }
 
 /// The interface through which AST objects are created and identified by Span
-trait Ast<W: CompilerWorkflow>: Sized {
+trait Ast<W: CompilerWorkflow>: TypeName + Debug + Sized {
   /// Attempts to parse tokens from TokenReader into Self if possible.  Errors
   /// are only emitted if input is absolutely unparseable, otherwise Ok(None) is
   /// returned.
@@ -40,6 +42,8 @@ impl<W: CompilerWorkflow> Asterizer<W> {
   /// additional information to the associated Ast::make methods so debug
   /// information may be preserved.
   fn make<T: Ast<W>>(&mut self, compiler: &mut Compiler<W>) -> Result<Option<T>> {
+    trace!("{}: Ast::make", T::type_name());
+
     let start = self.reader.get_start();
 
     // Push a mark in case this operation fails
@@ -55,6 +59,8 @@ impl<W: CompilerWorkflow> Asterizer<W> {
       // The object failed to parse, so pop the mark
       self.reader.pop_mark();
     };
+
+    debug!("{}: Ast::make: {result:#?}", T::type_name());
 
     Ok(result)
   }

@@ -222,6 +222,20 @@ impl<W: CompilerWorkflow> CompilerStore<W> {
 impl<W: CompilerWorkflow> Compiler<W> {
   /// Creates a new Compiler
   pub(crate) fn new(settings: CompilerSettings) -> Self {
+    info!(
+      "\
+        Compiler initialized:\n  \
+          Input path: {:?}\n  \
+          Output path: {:?}\n  \
+          LLC path: {:?}\n  \
+          CC path: {:?}\
+      ",
+      &settings.input_file,
+      &settings.output_file,
+      &settings.llc,
+      &settings.cc,
+    );
+
     Self {
       settings,
       store: CompilerStore::new(),
@@ -251,7 +265,7 @@ impl<W: CompilerWorkflow> Compiler<W> {
           return ok;
         },
         CompilerJob::Unprocessed => {
-          trace!("{}: tokenize", log_prefix());
+          info!("{}: tokenize", log_prefix());
           let input = TakenCompilerModule {
             handle: *handle,
             data: module.data,
@@ -262,31 +276,31 @@ impl<W: CompilerWorkflow> Compiler<W> {
           module.data = CompilerJob::Tokenized(tokenized);
         },
         CompilerJob::Tokenized(input) => {
-          trace!("{}: asterize", log_prefix());
+          info!("{}: asterize", log_prefix());
           let asterizer = W::Asterizer::new(input);
           let asterized = asterizer.asterize(self)?;
           module.data = CompilerJob::Asterized(asterized);
         },
         CompilerJob::Asterized(input) => {
-          trace!("{}: translate", log_prefix());
+          info!("{}: translate", log_prefix());
           let translator = W::Translator::new(input);
           let translated = translator.translate(self)?;
           module.data = CompilerJob::Translated(translated);
         },
         CompilerJob::Translated(input) => {
-          trace!("{}: check", log_prefix());
+          info!("{}: check", log_prefix());
           let checker = W::Checker::new(input);
           let checked = checker.check(self)?;
           module.data = CompilerJob::Checked(checked);
         },
         CompilerJob::Checked(input) => {
-          trace!("{}: generate", log_prefix());
+          info!("{}: generate", log_prefix());
           let generator = W::Generator::new(input);
           let generated = generator.generate(self)?;
           module.data = CompilerJob::Generated(generated);
         },
         CompilerJob::Generated(input) => {
-          trace!("{}: output", log_prefix());
+          info!("{}: output", log_prefix());
           let outputter = W::Outputter::new(input);
           return outputter.output(self);
         },

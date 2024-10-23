@@ -1,6 +1,8 @@
-use crate::tokenizer::{
-  SpanStart, Token, TokenKind
-};
+use crate::{tokenizer::{
+  SpanStart,
+  Token,
+  TokenKind,
+}, whitespace_or_comment};
 
 /// A reader for Tokens that allows for peeking, reading, setting, and resetting
 /// the internal reader position at will
@@ -104,14 +106,8 @@ impl TokenReader {
 
   /// Seeks past whitespace and comments
   pub(super) fn seek_whitespace_and_comments(&mut self) {
-    loop {
-      match self.peek().map(|tok| &tok.kind) {
-        Some(
-          | TokenKind::Comment(_)
-          | TokenKind::Whitespace
-        ) => self.seek(),
-        _ => break,
-      };
+    while let Some(whitespace_or_comment!()) = self.peek_kind() {
+      self.seek();
     };
   }
 }

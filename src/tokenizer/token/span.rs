@@ -13,14 +13,14 @@ pub(crate) struct SpanStart(pub usize);
 impl Span {
   /// Makes a SpanStart from the data in Self
   #[allow(unused)]
-  pub(crate) fn into_start(&self) -> SpanStart {
+  pub(crate) fn as_start(&self) -> SpanStart {
     SpanStart(self.start)
   }
 }
 
 impl SpanStart {
   /// Make a Span from Self and end
-  pub(crate) fn into_span(&self, end: usize) -> Span {
+  pub(crate) fn into_span(self, end: usize) -> Span {
     Span {
       start: self.0,
       end,

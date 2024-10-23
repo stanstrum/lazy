@@ -5,6 +5,7 @@ pub(super) enum Flag {
 
 /// A command line argument; holds a string value which is later validated.
 /// Values are not checked until after each argument has been parsed.
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Clone, Copy)]
 pub(super) enum Argument {
   InputFile,

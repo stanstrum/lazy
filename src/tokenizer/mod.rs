@@ -6,8 +6,10 @@ mod impls;
 
 use std::marker::PhantomData;
 
-pub(self) use peek_reader::PeekReader;
-use peek_reader::ReaderItem;
+use peek_reader::{
+  PeekReader,
+  ReaderItem,
+};
 pub(crate) use token::*;
 
 use crate::Result;
@@ -27,12 +29,12 @@ pub(super) struct Tokenizer<W: CompilerWorkflow> {
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
   fn push_tok(&mut self, kind: TokenKind, start: SpanStart, end: usize) {
+    debug!("Tokenizer::push_tok: {kind:?}");
+
     let token = Token {
       kind,
       span: start.into_span(end),
     };
-
-    debug!("Tokenizer::push_tok {token:?}");
 
     self.tokens.push(token);
   }

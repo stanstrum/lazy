@@ -31,8 +31,7 @@ pub(crate) struct CompilerOptions {
 /// Resolves a provided optional String into a path (with a provided default)
 /// and maps the error into a CompilerError
 fn default_option_resolve_path(path: Option<String>, default: &'static str) -> Result<PathBuf> {
-  let path = path.as_ref()
-    .map(|path| path.as_str())
+  let path = path.as_deref()
     .unwrap_or(default);
 
   match which(path) {
@@ -50,7 +49,7 @@ pub(crate) fn parse() -> Result<CompilerOptions> {
   };
 
   let input_file = if let Some(input_file) = &parser.input_file {
-    let input_file = PathBuf::from_str(&input_file).unwrap();
+    let input_file = PathBuf::from_str(input_file).unwrap();
 
     match std::fs::canonicalize(&input_file) {
       Ok(x) => Some(x),

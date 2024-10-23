@@ -51,6 +51,7 @@ impl<W: CompilerWorkflow> Ast<W> for Namespace {
 }
 
 impl<W: CompilerWorkflow> Ast<W> for NamespaceChild {
+  #[allow(clippy::manual_map)]
   fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, _: SpanStart) -> Result<Option<Self>> {
     Ok({
       if let Some(namespace) = aster.make(compiler)? {

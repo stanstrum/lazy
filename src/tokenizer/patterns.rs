@@ -32,3 +32,10 @@ macro_rules! hexademical {
 macro_rules! operator {
   () => { '~' | '!' | '%' | '^' | '&' | '-' | '+' | '=' | '|' | '<' | '>' | '/' | '*' | '?' | ':' | ';' | ',' | '.' };
 }
+
+#[macro_export]
+macro_rules! whitespace_or_comment {
+  () => {
+    TokenKind::Whitespace | TokenKind::Comment(_)
+  };
+}

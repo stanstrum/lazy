@@ -19,7 +19,7 @@ use crate::tokenizer::{
 };
 
 use ast::TopLevelNamespace;
-pub(self) use reader::TokenReader;
+use reader::TokenReader;
 
 pub(super) struct Asterizer<W: CompilerWorkflow> {
   /// The reader through which Tokens can be read programmatically

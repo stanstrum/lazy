@@ -4,6 +4,8 @@ mod peek_reader;
 
 mod impls;
 
+use std::marker::PhantomData;
+
 pub(self) use peek_reader::PeekReader;
 use peek_reader::ReaderItem;
 pub(crate) use token::*;
@@ -16,11 +18,13 @@ use crate::compiler::{
   error::IOSnafu,
 };
 
-pub(super) struct Tokenizer {
+pub(super) struct Tokenizer<W: CompilerWorkflow> {
+  module: TakenCompilerModule<W>,
   tokens: Vec<Token>,
+  marker: PhantomData<W>,
 }
 
-impl Tokenizer {
+impl<W: CompilerWorkflow> Tokenizer<W> {
   fn push_tok(&mut self, kind: TokenKind, start: SpanStart, end: usize) {
     let token = Token {
       kind,
@@ -33,17 +37,19 @@ impl Tokenizer {
   }
 }
 
-impl<W: CompilerWorkflow> crate::compiler::Tokenize<W> for Tokenizer {
+impl<W: CompilerWorkflow> crate::compiler::Tokenize<W> for Tokenizer<W> {
   type Out = Vec<Token>;
 
-  fn new() -> Self {
+  fn new(module: TakenCompilerModule<W>) -> Self {
     Self {
+      module,
       tokens: vec![],
+      marker: Default::default(),
     }
   }
 
-  fn tokenize(mut self, compiler: &mut Compiler<W>, module: TakenCompilerModule<W>) -> Result<Self::Out> {
-    let path = compiler.store.get_module(&module.handle).path.as_path();
+  fn tokenize(mut self, compiler: &mut Compiler<W>) -> Result<Self::Out> {
+    let path = compiler.store.get_module(&self.module.handle).path.as_path();
     let file = match std::fs::File::open(path) {
       Ok(x) => x,
       Err(err) => return IOSnafu { err: err.to_string() }.fail()?,

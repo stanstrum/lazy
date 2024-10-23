@@ -1,5 +1,6 @@
 use crate::Result;
 use crate::compiler::*;
+use std::marker::PhantomData;
 
 macro_rules! make_todo_stage {
   ($name:ident: $trait:ident::<In = $in:ty>::$method:ident) => {
@@ -11,13 +12,20 @@ macro_rules! make_todo_stage {
   };
 
   (@inner: $name:ident, $trait:ident, $method:ident, $($assoc:ident = $ty:ty),+) => {
-    pub(super) struct $name;
+    pub(super) struct $name<W: CompilerWorkflow> {
+      marker: PhantomData<W>,
+    }
 
-    impl<W: CompilerWorkflow> $trait<W> for $name {
+    impl<W: CompilerWorkflow> $trait<W> for $name<W> {
       $(type $assoc = $ty;)+
 
-      fn new() -> Self { Self }
-      fn $method(self, _: &mut Compiler<W>, _: Self::In) -> Result  {
+      fn new(_: Self::In) -> Self {
+        Self {
+          marker: Default::default(),
+        }
+      }
+
+      fn $method(self, _: &mut Compiler<W>) -> Result {
         todo!()
       }
     }

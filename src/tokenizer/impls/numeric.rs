@@ -6,6 +6,7 @@ use crate::tokenizer::{
   NumericKind,
   error::*
 };
+use crate::compiler::CompilerWorkflow;
 
 #[derive(Debug)]
 pub(crate) enum NumericState {
@@ -15,7 +16,7 @@ pub(crate) enum NumericState {
   Hexadecimal,
 }
 
-impl Tokenizer {
+impl<W: CompilerWorkflow> Tokenizer<W> {
   pub(in crate::tokenizer) fn numeric(&mut self, reader: &mut PeekReader) -> Result {
     let mut content = String::new();
     let mut state = None;

@@ -8,8 +8,9 @@ use crate::tokenizer::{
   SpanStart,
   error::*,
 };
+use crate::compiler::CompilerWorkflow;
 
-impl Tokenizer {
+impl<W: CompilerWorkflow> Tokenizer<W> {
   pub(in crate::tokenizer) fn operator(&mut self, reader: &mut PeekReader) -> Result {
     trace!("Tokenizer::operator");
 

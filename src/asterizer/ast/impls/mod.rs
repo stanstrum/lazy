@@ -5,8 +5,8 @@ use crate::compiler::{
 };
 
 use crate::asterizer::{
-  TokenReader,
   Ast,
+  Asterizer,
   ast::TopLevelNamespace,
 };
 use crate::tokenizer::{
@@ -25,7 +25,7 @@ impl TopLevelNamespace {
 }
 
 impl<W: CompilerWorkflow> Ast<W> for TopLevelNamespace {
-  fn make(compiler: &mut Compiler<W>, reader: &mut TokenReader, start: SpanStart) -> Result<Option<Self>> {
+  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart) -> Result<Option<Self>> {
     todo!()
   }
 

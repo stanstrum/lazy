@@ -9,10 +9,10 @@ use crate::{
 pub(crate) struct DefaultWorkflow;
 
 impl crate::compiler::CompilerWorkflow for DefaultWorkflow {
-  type Tokenizer = tokenizer::Tokenizer;
-  type Asterizer = asterizer::Asterizer;
-  type Translator = todo::Translator;
-  type Checker = todo::Checker;
-  type Generator = todo::Generator;
-  type Outputter = todo::Outputter;
+  type Tokenizer = tokenizer::Tokenizer<Self>;
+  type Asterizer = asterizer::Asterizer<Self>;
+  type Translator = todo::Translator<Self>;
+  type Checker = todo::Checker<Self>;
+  type Generator = todo::Generator<Self>;
+  type Outputter = todo::Outputter<Self>;
 }

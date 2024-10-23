@@ -7,6 +7,7 @@ use crate::tokenizer::{
   Tokenizer,
   error::*,
 };
+use crate::compiler::CompilerWorkflow;
 
 #[derive(Debug)]
 enum NumericEscape {
@@ -75,7 +76,7 @@ impl EscapedCharacter {
   }
 }
 
-impl Tokenizer {
+impl<W: CompilerWorkflow> Tokenizer<W> {
   fn numeric_escape(&mut self, reader: &mut PeekReader, escape: NumericEscape) -> Result<char> {
     match escape {
       NumericEscape::HexadecimalEscape => self.hexadecimal_escape(reader),

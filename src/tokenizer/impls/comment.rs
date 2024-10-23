@@ -7,8 +7,9 @@ use crate::tokenizer::{
   TokenKind,
   error::*,
 };
+use crate::compiler::CompilerWorkflow;
 
-impl Tokenizer {
+impl<W: CompilerWorkflow> Tokenizer<W> {
   pub(in crate::tokenizer) fn line_comment(&mut self, reader: &mut PeekReader) -> Result {
     trace!("Tokenizer::line_comment");
 

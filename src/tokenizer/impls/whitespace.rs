@@ -1,3 +1,4 @@
+use crate::compiler::CompilerWorkflow;
 use crate::{Result, ok};
 use crate::tokenizer::{
   PeekReader,
@@ -6,7 +7,7 @@ use crate::tokenizer::{
   SpanStart,
 };
 
-impl Tokenizer {
+impl<W: CompilerWorkflow> Tokenizer<W> {
   pub(in crate::tokenizer) fn whitespace(&mut self, reader: &mut PeekReader) -> Result {
     trace!("Tokenizer::whitespace");
 

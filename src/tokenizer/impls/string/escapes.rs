@@ -1,13 +1,14 @@
 use std::char;
 
+use crate::Result;
 use crate::tokenizer::{
   Tokenizer,
   PeekReader,
-  Result,
   error::*,
 };
+use crate::compiler::CompilerWorkflow;
 
-impl Tokenizer {
+impl<W: CompilerWorkflow> Tokenizer<W> {
   /// Reads the escape code of a hexadecimal escape inside of a string
   pub(super) fn hexadecimal_escape(&mut self, reader: &mut PeekReader) -> Result<char> {
     let text = reader

@@ -2,8 +2,8 @@
 #[allow(unused)]
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Span {
-  start: usize,
-  end: usize,
+  pub start: usize,
+  pub end: usize,
 }
 
 /// The beginning of a Span

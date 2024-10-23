@@ -23,7 +23,7 @@ pub(crate) enum TokenError {
 }
 
 impl What {
-  fn as_strs(&self) -> (&str, &str) {
+  pub fn as_strs(&self) -> (&str, &str) {
     const A: &str = "a";
     const AN: &str = "an";
 
@@ -39,13 +39,13 @@ impl What {
     }
   }
 
-  fn as_definite(&self) -> String {
+  pub fn as_definite(&self) -> String {
     let (a_or_an, name) = self.as_strs();
 
     format!("{a_or_an} {name}")
   }
 
-  fn as_name(&self) -> &str {
+  pub fn as_name(&self) -> &str {
     let (_, name) = self.as_strs();
 
     name

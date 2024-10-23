@@ -1,6 +1,5 @@
 use crate::tokenizer::{
-  Token,
-  SpanStart,
+  SpanStart, Token, TokenKind
 };
 
 /// A reader for Tokens that allows for peeking, reading, setting, and resetting
@@ -49,12 +48,22 @@ impl TokenReader {
     };
   }
 
-  /// Peeks the next token without advancing the reader position
+  /// Advances the reader position
+  pub(super) fn seek(&mut self) {
+    self.position += 1;
+  }
+
+  /// Peeks the next Token without advancing the reader position
   pub(super) fn peek(&self) -> Option<&Token> {
     self.tokens.get(self.position)
   }
 
-  /// Reads the next token and advances the reader position
+  /// Peeks the next TokenKind without advancing the reader position
+  pub(super) fn peek_kind(&self) -> Option<&TokenKind> {
+    self.peek().map(|tok| &tok.kind)
+  }
+
+  /// Reads the next Token and advances the reader position
   pub(super) fn next(&mut self) -> Option<&Token> {
     let tok = self.tokens.get(self.position);
     self.position += 1;
@@ -62,18 +71,46 @@ impl TokenReader {
     tok
   }
 
-  /// Computes a SpanStart that refers to the next token to be read
-  pub(super) fn get_start(&self) -> SpanStart {
+  /// Reads the next TokenKind and advances the reader position
+  pub(super) fn next_kind(&mut self) -> Option<&TokenKind> {
+    self.next().map(|tok| &tok.kind)
+  }
+
+  /// Gets the current position in the source code
+  pub(super) fn get_position(&self) -> usize {
     if let Some(peek) = self.peek() {
-      // Either the next token, ...
-      peek.span.into_start()
+      // Either the next Token, ...
+      peek.span.start
     } else if let Some(last) = self.tokens.last() {
-      // Last token, ...
-      last.span.into_start()
+      // Last Token, ...
+      last.span.start
     } else {
-      // Or a SpanStart representing the beginning of an empty file, since
-      // there is no last Token
-      SpanStart(0)
+      // Or just 0, representing the beginning of an empty file since there is
+      // no last Token
+      0
     }
+  }
+
+  /// Computes a SpanStart that refers to the next Token to be read
+  pub(super) fn get_start(&self) -> SpanStart {
+    SpanStart(self.get_position())
+  }
+
+  /// Whether all the Tokens have been read
+  pub(super) fn is_empty(&self) -> bool {
+    self.peek().is_none()
+  }
+
+  /// Seeks past whitespace and comments
+  pub(super) fn seek_whitespace_and_comments(&mut self) {
+    loop {
+      match self.peek().map(|tok| &tok.kind) {
+        Some(
+          | TokenKind::Comment(_)
+          | TokenKind::Whitespace
+        ) => self.seek(),
+        _ => break,
+      };
+    };
   }
 }

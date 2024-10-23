@@ -11,28 +11,28 @@ use crate::compiler::{
   Compiler,
 };
 use crate::tokenizer::{
+  Token,
   Span,
   SpanStart,
-  Token,
 };
 
 use ast::TopLevelNamespace;
 pub(self) use reader::TokenReader;
-use errors::*;
 
 pub(super) struct Asterizer<W: CompilerWorkflow> {
+  /// The reader through which Tokens can be read programmatically
   reader: TokenReader,
   marker: PhantomData<W>,
 }
 
 /// The interface through which AST objects are created and identified by Span
-trait Ast<W: CompilerWorkflow> where Self: Sized {
+trait Ast<W: CompilerWorkflow>: Sized {
   /// Attempts to parse tokens from TokenReader into Self if possible.  Errors
   /// are only emitted if input is absolutely unparseable, otherwise Ok(None) is
   /// returned.
   fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart) -> Result<Option<Self>>;
-  /// Returns the Span pertaining to Self, for error message purposes
-  fn get_span(&self) -> Span;
+  // /// Returns the Span pertaining to Self, for error message purposes
+  // fn get_span(&self) -> Span;
 }
 
 impl<W: CompilerWorkflow> Asterizer<W> {
@@ -57,6 +57,11 @@ impl<W: CompilerWorkflow> Asterizer<W> {
     };
 
     Ok(result)
+  }
+
+  /// Creates a Span using the SpanStart provided as a parameter of Ast::make
+  fn finish_span(&self, start: SpanStart) -> Span {
+    start.into_span(self.reader.get_position())
   }
 }
 

@@ -17,14 +17,70 @@ use crate::asterizer::{
 };
 
 impl<W: CompilerWorkflow> Ast<W> for FunctionArgument {
-  fn make(_compiler: &mut Compiler<W>, _aster: &mut Asterizer<W>, _start: SpanStart) -> Result<Option<Self>> {
-    todo!()
+  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart) -> Result<Option<Self>> {
+    let Some(identifier) = aster.make(compiler)? else {
+      return Ok(None);
+    };
+
+    aster.reader.seek_whitespace_and_comments();
+
+    let Some(TokenKind::Punctuation(Punctuation::Colon)) = aster.reader.next_kind() else {
+      // TODO: should this be an error?
+      return Ok(None);
+    };
+
+    aster.reader.seek_whitespace_and_comments();
+
+    let Some(ty) = aster.make(compiler)? else {
+      // TODO: should this be an error?
+      return Ok(None);
+    };
+
+    Ok(Some(Self {
+      identifier,
+      ty,
+      span: aster.finish_span(start),
+    }))
   }
 }
 
 impl<W: CompilerWorkflow> Ast<W> for FunctionArguments {
-  fn make(_compiler: &mut Compiler<W>, _aster: &mut Asterizer<W>, _start: SpanStart) -> Result<Option<Self>> {
-    todo!()
+  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart) -> Result<Option<Self>> {
+    let mut arguments = vec![];
+
+    aster.reader.push_mark();
+
+    loop {
+      // Read argument, if there is one to read
+      let Some(argument) = aster.make(compiler)? else {
+        // Otherwise, return our arguments
+        aster.reader.pop_mark();
+        break;
+      };
+
+      aster.reader.drop_mark();
+      arguments.push(argument);
+
+      // Push a mark in case there is no comma following the argument
+      aster.reader.push_mark();
+      aster.reader.seek_whitespace_and_comments();
+
+      let Some(TokenKind::Punctuation(Punctuation::Comma)) = aster.reader.peek_kind() else {
+        // If there is none, pop the mark and return our arguments
+        aster.reader.pop_mark();
+        break;
+      };
+
+      // Otherwise, drop the mark and continue onto the next argument
+      aster.reader.drop_mark();
+      aster.reader.push_mark();
+      aster.reader.seek_whitespace_and_comments();
+    };
+
+    Ok(Some(Self {
+      arguments,
+      span: aster.finish_span(start),
+    }))
   }
 }
 

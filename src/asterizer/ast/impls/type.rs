@@ -13,7 +13,14 @@ use crate::asterizer::{
 };
 
 impl<W: CompilerWorkflow> Ast<W> for Type {
-  fn make(_compiler: &mut Compiler<W>, _aster: &mut Asterizer<W>, _start: SpanStart) -> Result<Option<Self>> {
-    todo!()
+  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, _start: SpanStart) -> Result<Option<Self>> {
+    #[allow(clippy::manual_map)]
+    Ok({
+      if let Some(identifier) = aster.make(compiler)? {
+        Some(Self::Identifier(identifier))
+      } else {
+        None
+      }
+    })
   }
 }

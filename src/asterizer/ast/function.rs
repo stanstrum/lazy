@@ -18,6 +18,7 @@ pub(crate) struct FunctionArgument {
 pub(crate) struct FunctionArguments {
   /// The arguments of this function
   pub(crate) arguments: Vec<FunctionArgument>,
+  pub(crate) span: Span,
 }
 
 /// A simple function, i.e. not a class method, meaning no "this" reference can

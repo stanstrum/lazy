@@ -9,6 +9,7 @@ pub(crate) enum What {
 }
 
 impl What {
+  #[allow(unused)]
   pub fn as_strs(&self) -> (Option<&str>, &str) {
     const A: Option<&str> = Some("a");
     const AN: Option<&str> = Some("an");
@@ -32,6 +33,7 @@ impl What {
     }
   }
 
+  #[allow(unused)]
   pub fn as_name(&self) -> &str {
     let (_, name) = self.as_strs();
 

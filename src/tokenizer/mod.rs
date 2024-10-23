@@ -14,6 +14,7 @@ use crate::Result;
 use crate::compiler::{
   Compiler,
   CompilerWorkflow,
+  Tokenize,
   TakenCompilerModule,
   error::IOSnafu,
 };
@@ -37,7 +38,7 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
   }
 }
 
-impl<W: CompilerWorkflow> crate::compiler::Tokenize<W> for Tokenizer<W> {
+impl<W: CompilerWorkflow> Tokenize<W> for Tokenizer<W> {
   type Out = Vec<Token>;
 
   fn new(module: TakenCompilerModule<W>) -> Self {

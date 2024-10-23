@@ -12,6 +12,7 @@ pub(crate) struct SpanStart(pub usize);
 
 impl Span {
   /// Makes a SpanStart from the data in Self
+  #[allow(unused)]
   pub(crate) fn into_start(&self) -> SpanStart {
     SpanStart(self.start)
   }

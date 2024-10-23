@@ -4,6 +4,7 @@ use typename::TypeName;
 use crate::tokenizer::Span;
 
 /// A simple type, i.e. non-arithmetic
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) enum Type {
   /// A type that is only referred to by name
@@ -11,6 +12,7 @@ pub(crate) enum Type {
 }
 
 /// A simple name, this is equivalent to a String but associated with a Span
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Identifier {
   /// The text of this identifier
@@ -19,6 +21,7 @@ pub(crate) struct Identifier {
 }
 
 /// A standard function argument, i.e. an identifier and a simple type
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct FunctionArgument {
   /// The name of the argument
@@ -29,6 +32,7 @@ pub(crate) struct FunctionArgument {
 }
 
 /// The arguments to a function
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct FunctionArguments {
   /// The arguments of this function
@@ -37,6 +41,7 @@ pub(crate) struct FunctionArguments {
 
 /// A simple function, i.e. not a class method, meaning no "this" reference can
 /// be held here
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Function {
   /// The name of this function
@@ -51,6 +56,7 @@ pub(crate) struct Function {
 }
 
 /// A structure that can appear inside of a namespace
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) enum NamespaceChild {
   Namespace(Box<Namespace>),
@@ -60,6 +66,7 @@ pub(crate) enum NamespaceChild {
 /// A namespace, akin to a module, however modules can only be used to organize
 /// code inside of a file.  Inside of a file, namespaces are used to accomplish
 /// this.
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Namespace {
   /// The name of this namespace
@@ -71,6 +78,7 @@ pub(crate) struct Namespace {
 
 /// The top-level namespace of the module.  Import statements can only appear
 /// here and exports allow visibility outside of the module.
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct TopLevelNamespace {
   /// The structures in this file
@@ -79,6 +87,7 @@ pub(crate) struct TopLevelNamespace {
 }
 
 /// An expression of any kind
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) enum Expression {
   Block(Box<BlockExpression>),
@@ -107,6 +116,7 @@ pub(crate) enum Expression {
 /// ```
 /// bad_variable;
 /// ```
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) enum BindingKind {
   OnlyType(Type),
@@ -118,6 +128,7 @@ pub(crate) enum BindingKind {
 }
 
 /// A variable binding with the identifier
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Binding {
   /// The name of this variable
@@ -127,15 +138,18 @@ pub(crate) struct Binding {
 }
 
 /// A child of a function block
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) enum BlockChild {
   Binding(Binding),
 }
 
 /// A function block, with curly braces at the beginning and end
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct BlockExpression {
   /// The expressions inside of this block
+  #[allow(unused)]
   pub(crate) children: Vec<BlockChild>,
   /// If this block uses shorthand to return the value of the last statement,
   /// then it will appear here.  Note that this value is of type Expression

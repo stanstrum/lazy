@@ -59,6 +59,7 @@ impl TokenReader {
   }
 
   /// Peeks the next TokenKind without advancing the reader position
+  #[allow(unused)]
   pub(super) fn peek_kind(&self) -> Option<&TokenKind> {
     self.peek().map(|tok| &tok.kind)
   }

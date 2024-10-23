@@ -13,7 +13,7 @@ use crate::asterizer::{
 };
 
 impl<W: CompilerWorkflow> Ast<W> for Type {
-  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart) -> Result<Option<Self>> {
+  fn make(_compiler: &mut Compiler<W>, _aster: &mut Asterizer<W>, _start: SpanStart) -> Result<Option<Self>> {
     todo!()
   }
 }

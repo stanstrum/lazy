@@ -3,6 +3,7 @@ use snafu::prelude::*;
 use std::path::PathBuf;
 
 use crate::arg_parser::error::ArgumentError;
+use crate::asterizer::errors::AsterizerError;
 use crate::tokenizer::error::TokenError;
 
 /// Represents an error encounted at any point during the compilation process
@@ -28,6 +29,16 @@ pub(crate) enum CompilerError {
   /// An error occurred when tokenizing a file's source code
   #[snafu(display("Token error: {err:?}"))]
   Token { err: TokenError },
+
+  /// An error occurred when asterizing a file's source code
+  #[snafu(display("AST error: {err:?}"))]
+  Ast { err: AsterizerError },
+}
+
+impl From<ArgumentError> for CompilerError {
+  fn from(err: ArgumentError) -> Self {
+    Self::Argument { err }
+  }
 }
 
 impl From<TokenError> for CompilerError {
@@ -36,9 +47,9 @@ impl From<TokenError> for CompilerError {
   }
 }
 
-impl From<ArgumentError> for CompilerError {
-  fn from(err: ArgumentError) -> Self {
-    Self::Argument { err }
+impl From<AsterizerError> for CompilerError {
+  fn from(err: AsterizerError) -> Self {
+    Self::Ast { err }
   }
 }
 

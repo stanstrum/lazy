@@ -1,0 +1,90 @@
+use typename::TypeName;
+
+use crate::asterizer::ast::*;
+
+/// An expression of any kind
+#[allow(unused)]
+#[derive(Debug, TypeName)]
+pub(crate) enum Expression {
+  Block(Box<BlockExpression>),
+}
+
+/// A variable binding, which has either a type, a bound expression, or both --
+/// however a binding may not have neither as it would conflict with the syntax
+/// of simply recalling the value of a variable, e.g.:
+///
+/// With type:
+/// ```
+/// foo: bool;
+/// ```
+///
+/// With expression:
+/// ```
+/// bar = 0u32;
+/// ```
+///
+/// With both:
+/// ```
+/// foo_bar: f32 = 1.0;
+/// ```
+///
+/// However, having neither would (hypothetically) read as follows:
+/// ```
+/// bad_variable;
+/// ```
+#[allow(unused)]
+#[derive(Debug, TypeName)]
+pub(crate) enum BindingKind {
+  OnlyType(Type),
+  OnlyExpression(Expression),
+  Both {
+    ty: Type,
+    expression: Expression,
+  }
+}
+
+/// A variable binding with the identifier
+#[allow(unused)]
+#[derive(Debug, TypeName)]
+pub(crate) struct Binding {
+  /// The name of this variable
+  pub(crate) identifier: Identifier,
+  /// The specifying information of this variable
+  pub(crate) kind: BindingKind,
+}
+
+/// A child of a function block
+#[allow(unused)]
+#[derive(Debug, TypeName)]
+pub(crate) enum BlockChild {
+  Binding(Binding),
+}
+
+/// A function block, with curly braces at the beginning and end
+#[allow(unused)]
+#[derive(Debug, TypeName)]
+pub(crate) struct BlockExpression {
+  /// The expressions inside of this block
+  #[allow(unused)]
+  pub(crate) children: Vec<BlockChild>,
+  /// If this block uses shorthand to return the value of the last statement,
+  /// then it will appear here.  Note that this value is of type Expression
+  /// rather than BlockChild -- this is because bindings yield no value and
+  /// therefore cannot be returned.
+  ///
+  /// Example:
+  /// ```
+  /// main -> i32 {
+  ///   0
+  /// };
+  /// ```
+  ///
+  /// as opposed to:
+  /// ```
+  /// main -> i32 {
+  ///   return 0;
+  /// };
+  /// ```
+  pub(crate) return_last: Option<Expression>,
+  pub(crate) span: Span,
+}

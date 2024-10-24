@@ -19,13 +19,13 @@ macro_rules! make_todo_stage {
     impl<W: CompilerWorkflow> $trait<W> for $name<W> {
       $(type $assoc = $ty;)+
 
-      fn new(_: Self::In) -> Self {
+      fn new(_input: Self::In, _handle: CompilerStoreHandle<W>) -> Self {
         Self {
           marker: Default::default(),
         }
       }
 
-      fn $method(self, _: &mut Compiler<W>) -> Result {
+      fn $method(self, _compiler: &mut Compiler<W>) -> Result {
         todo!()
       }
     }

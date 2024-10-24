@@ -271,37 +271,37 @@ impl<W: CompilerWorkflow> Compiler<W> {
             data: module.data,
           };
 
-          let tokenizer = W::Tokenizer::new(input);
+          let tokenizer = W::Tokenizer::new(input, *handle);
           let tokenized = tokenizer.tokenize(self)?;
           module.data = CompilerJob::Tokenized(tokenized);
         },
         CompilerJob::Tokenized(input) => {
           info!("{}: asterize", log_prefix());
-          let asterizer = W::Asterizer::new(input);
+          let asterizer = W::Asterizer::new(input, *handle);
           let asterized = asterizer.asterize(self)?;
           module.data = CompilerJob::Asterized(asterized);
         },
         CompilerJob::Asterized(input) => {
           info!("{}: translate", log_prefix());
-          let translator = W::Translator::new(input);
+          let translator = W::Translator::new(input, *handle);
           let translated = translator.translate(self)?;
           module.data = CompilerJob::Translated(translated);
         },
         CompilerJob::Translated(input) => {
           info!("{}: check", log_prefix());
-          let checker = W::Checker::new(input);
+          let checker = W::Checker::new(input, *handle);
           let checked = checker.check(self)?;
           module.data = CompilerJob::Checked(checked);
         },
         CompilerJob::Checked(input) => {
           info!("{}: generate", log_prefix());
-          let generator = W::Generator::new(input);
+          let generator = W::Generator::new(input, *handle);
           let generated = generator.generate(self)?;
           module.data = CompilerJob::Generated(generated);
         },
         CompilerJob::Generated(input) => {
           info!("{}: output", log_prefix());
-          let outputter = W::Outputter::new(input);
+          let outputter = W::Outputter::new(input, *handle);
           return outputter.output(self);
         },
       };

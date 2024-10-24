@@ -4,6 +4,7 @@ use typename::TypeName;
 use crate::Result;
 use crate::compiler::{
   Compiler,
+  CompilerStoreHandle,
   TakenCompilerModule,
 };
 
@@ -12,7 +13,7 @@ pub(crate) trait Tokenize<W: CompilerWorkflow> {
   type Out;
 
   /// Creates this tokenizer
-  fn new(input: TakenCompilerModule<W>) -> Self;
+  fn new(input: TakenCompilerModule<W>, handle: CompilerStoreHandle<W>) -> Self;
   /// Tokenizes the provided module
   fn tokenize(self, compiler: &mut Compiler<W>) -> Result<Self::Out>;
 }
@@ -23,7 +24,7 @@ pub(crate) trait Asterize<W: CompilerWorkflow> {
   type Out;
 
   /// Creates this asterizer
-  fn new(input: Self::In) -> Self;
+  fn new(input: Self::In, handle: CompilerStoreHandle<W>) -> Self;
   /// Asterizes the provided module
   fn asterize(self, compiler: &mut Compiler<W>) -> Result<Self::Out>;
 }
@@ -34,7 +35,7 @@ pub(crate) trait Translate<W: CompilerWorkflow> {
   type Out;
 
   /// Creates this translator
-  fn new(input: Self::In) -> Self;
+  fn new(input: Self::In, handle: CompilerStoreHandle<W>) -> Self;
   /// Translates the provided module
   fn translate(self, compiler: &mut Compiler<W>) -> Result<Self::Out>;
 }
@@ -45,7 +46,7 @@ pub(crate) trait Check<W: CompilerWorkflow> {
   type Out;
 
   /// Creates this checker
-  fn new(input: Self::In) -> Self;
+  fn new(input: Self::In, handle: CompilerStoreHandle<W>) -> Self;
   /// Checks the provided module
   fn check(self, compiler: &mut Compiler<W>) -> Result<Self::Out>;
 }
@@ -56,7 +57,7 @@ pub(crate) trait Generate<W: CompilerWorkflow> {
   type Out;
 
   /// Creates this generator
-  fn new(input: Self::In) -> Self;
+  fn new(input: Self::In, handle: CompilerStoreHandle<W>) -> Self;
   /// Generates the provided module
   fn generate(self, compiler: &mut Compiler<W>) -> Result<Self::Out>;
 }
@@ -66,7 +67,7 @@ pub(crate) trait Output<W: CompilerWorkflow> {
   type In;
 
   /// Creates this outputter
-  fn new(input: Self::In) -> Self;
+  fn new(input: Self::In, handle: CompilerStoreHandle<W>) -> Self;
   /// Outputs the provided module
   fn output(self, compiler: &mut Compiler<W>) -> Result;
 }

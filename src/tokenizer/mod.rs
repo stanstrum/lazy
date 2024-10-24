@@ -12,6 +12,7 @@ use peek_reader::{
 };
 pub(crate) use token::*;
 
+use crate::compiler::CompilerStoreHandle;
 use crate::Result;
 use crate::compiler::{
   Compiler,
@@ -23,6 +24,7 @@ use crate::compiler::{
 
 pub(super) struct Tokenizer<W: CompilerWorkflow> {
   module: TakenCompilerModule<W>,
+  handle: CompilerStoreHandle<W>,
   tokens: Vec<Token<W>>,
   marker: PhantomData<W>,
 }
@@ -43,9 +45,10 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
 impl<W: CompilerWorkflow> Tokenize<W> for Tokenizer<W> {
   type Out = Vec<Token<W>>;
 
-  fn new(module: TakenCompilerModule<W>) -> Self {
+  fn new(module: TakenCompilerModule<W>, handle: CompilerStoreHandle<W>) -> Self {
     Self {
       module,
+      handle,
       tokens: vec![],
       marker: Default::default(),
     }

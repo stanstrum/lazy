@@ -27,11 +27,11 @@ pub(crate) enum CompilerError {
   Argument { err: ArgumentError },
 
   /// An error occurred when tokenizing a file's source code
-  #[snafu(display("Token error: {err:?}"))]
+  #[snafu(display("Token error: {err}"))]
   Token { err: TokenError },
 
   /// An error occurred when asterizing a file's source code
-  #[snafu(display("AST error: {err:?}"))]
+  #[snafu(display("AST error: {err}"))]
   Ast { err: AsterizerError },
 }
 

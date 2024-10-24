@@ -44,6 +44,6 @@ impl What {
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub(crate)))]
 pub(crate) enum AsterizerError {
-  #[snafu(display("expected {:?}", what.as_definite()))]
+  #[snafu(display("expected {}", what.as_definite()))]
   Expected { what: What },
 }

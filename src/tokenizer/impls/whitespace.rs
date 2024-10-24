@@ -8,7 +8,7 @@ use crate::tokenizer::{
 };
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
-  pub(in crate::tokenizer) fn whitespace(&mut self, reader: &mut PeekReader) -> Result {
+  pub(in crate::tokenizer) fn whitespace(&mut self, reader: &mut PeekReader<W>) -> Result {
     trace!("Tokenizer::whitespace");
 
     let Some(item) = reader.next() else {
@@ -19,8 +19,7 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
 
     let start = SpanStart {
       start: item.position,
-      handle: todo!(),
-      marker: Default::default(),
+      handle: reader.handle,
     };
     let mut end = item.position;
 

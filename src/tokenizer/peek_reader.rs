@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::compiler::CompilerWorkflow;
+use crate::compiler::{CompilerStoreHandle, CompilerWorkflow};
 use crate::Result;
 use crate::tokenizer::SpanStart;
 
@@ -10,13 +10,14 @@ pub(super) struct ReaderItem {
   pub ch: char,
 }
 
-pub(super) struct PeekReader<'a> {
+pub(super) struct PeekReader<'a, W: CompilerWorkflow> {
   reader: &'a mut dyn Iterator<Item = Result<ReaderItem>>,
+  pub handle: CompilerStoreHandle<W>,
   buffer: VecDeque<ReaderItem>,
   pub position: usize,
 }
 
-impl<'a> Iterator for PeekReader<'a> {
+impl<'a, W: CompilerWorkflow> Iterator for PeekReader<'a, W> {
   type Item = Result<ReaderItem>;
 
   fn next(&mut self) -> Option<Self::Item> {
@@ -30,20 +31,23 @@ impl<'a> Iterator for PeekReader<'a> {
   }
 }
 
-impl<'a> PeekReader<'a> {
-  pub(super) fn new(reader: &'a mut dyn Iterator<Item = Result<ReaderItem>>) -> Self {
+impl<'a, W: CompilerWorkflow> PeekReader<'a, W> {
+  pub(super) fn new(
+    reader: &'a mut dyn Iterator<Item = Result<ReaderItem>>,
+    handle: CompilerStoreHandle<W>,
+  ) -> Self {
     Self {
       reader,
+      handle,
       buffer: VecDeque::new(),
       position: 0,
     }
   }
 
-  pub(super) fn span_start<W: CompilerWorkflow>(&mut self) -> SpanStart<W> {
+  pub(super) fn span_start(&mut self) -> SpanStart<W> {
     SpanStart {
       start: self.position,
-      handle: todo!(),
-      marker: Default::default(),
+      handle: self.handle,
     }
   }
 

@@ -10,7 +10,7 @@ use crate::compiler::CompilerWorkflow;
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
   /// Reads the escape code of a hexadecimal escape inside of a string
-  pub(super) fn hexadecimal_escape(&mut self, reader: &mut PeekReader) -> Result<char> {
+  pub(super) fn hexadecimal_escape(&mut self, reader: &mut PeekReader<W>) -> Result<char> {
     let text = reader
       .take(2)
       .map(|item| Ok(item?.ch))
@@ -27,7 +27,7 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
   }
 
   /// Reads the escape code of a unicode escape inside of a string
-  pub(super) fn unicode_escape(&mut self, reader: &mut PeekReader) -> Result<char> {
+  pub(super) fn unicode_escape(&mut self, reader: &mut PeekReader<W>) -> Result<char> {
     reader.starts_with_seek("{")?;
 
     let mut text = String::new();

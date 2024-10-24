@@ -17,7 +17,7 @@ pub(crate) enum NumericState {
 }
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
-  pub(in crate::tokenizer) fn numeric(&mut self, reader: &mut PeekReader) -> Result {
+  pub(in crate::tokenizer) fn numeric(&mut self, reader: &mut PeekReader<W>) -> Result {
     let mut content = String::new();
     let mut state = None;
 

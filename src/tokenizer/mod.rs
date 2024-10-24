@@ -72,7 +72,7 @@ impl<W: CompilerWorkflow> Tokenize<W> for Tokenizer<W> {
         Err(err) => IOSnafu { err: err.to_string() }.fail()?,
       });
 
-    let mut reader = PeekReader::new(&mut reader);
+    let mut reader = PeekReader::new(&mut reader, self.handle);
 
     while reader.peek()?.is_some() {
       self.base(&mut reader)?;

@@ -1,4 +1,7 @@
-use crate::compiler::CompilerWorkflow;
+use crate::compiler::{
+  CompilerWorkflow,
+  CompilerStoreHandle,
+};
 use crate::tokenizer::{
   SpanStart,
   Token,
@@ -11,6 +14,8 @@ use crate::whitespace_or_comment;
 pub(super) struct TokenReader<W: CompilerWorkflow> {
   /// The tokens taken from the tokenization stage
   tokens: Vec<Token<W>>,
+  /// The handle of the module being processed
+  handle: CompilerStoreHandle<W>,
   /// The saved position markers that can be used to restore the internal reader
   /// position
   marks: Vec<usize>,
@@ -20,9 +25,10 @@ pub(super) struct TokenReader<W: CompilerWorkflow> {
 
 impl<W: CompilerWorkflow> TokenReader<W> {
   /// Creates a TokenReader provided Tokens
-  pub(super) fn new(tokens: Vec<Token<W>>) -> Self {
+  pub(super) fn new(tokens: Vec<Token<W>>, handle: CompilerStoreHandle<W>) -> Self {
     Self {
       tokens,
+      handle,
       marks: vec![],
       position: 0,
     }
@@ -100,8 +106,7 @@ impl<W: CompilerWorkflow> TokenReader<W> {
   pub(super) fn get_start(&self) -> SpanStart<W> {
     SpanStart {
       start: self.get_position(),
-      handle: todo!(),
-      marker: Default::default(),
+      handle: self.handle,
     }
   }
 

@@ -77,14 +77,14 @@ impl EscapedCharacter {
 }
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
-  fn numeric_escape(&mut self, reader: &mut PeekReader, escape: NumericEscape) -> Result<char> {
+  fn numeric_escape(&mut self, reader: &mut PeekReader<W>, escape: NumericEscape) -> Result<char> {
     match escape {
       NumericEscape::HexadecimalEscape => self.hexadecimal_escape(reader),
       NumericEscape::UnicodeEscape => self.unicode_escape(reader),
     }
   }
 
-  fn text_escape(&mut self, reader: &mut PeekReader) -> Result<Option<char>> {
+  fn text_escape(&mut self, reader: &mut PeekReader<W>) -> Result<Option<char>> {
     let Some(item) = reader.next() else {
       return ExpectedSnafu { what: What::String }.fail()?;
     };
@@ -109,7 +109,7 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
     }
   }
 
-  fn text_character(&mut self, reader: &mut PeekReader, end: char) -> Result<Option<char>> {
+  fn text_character(&mut self, reader: &mut PeekReader<W>, end: char) -> Result<Option<char>> {
     let Some(item) = reader.next() else {
       return ExpectedSnafu { what: What::String }.fail()?;
     };
@@ -122,7 +122,7 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
     })
   }
 
-  fn string_content(&mut self, reader: &mut PeekReader, quote: char) -> Result {
+  fn string_content(&mut self, reader: &mut PeekReader<W>, quote: char) -> Result {
     let start = reader.span_start();
     let mut content = String::new();
 
@@ -139,11 +139,11 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
     ok
   }
 
-  pub(in crate::tokenizer) fn string(&mut self, reader: &mut PeekReader) -> Result {
+  pub(in crate::tokenizer) fn string(&mut self, reader: &mut PeekReader<W>) -> Result {
     self.string_content(reader, '"')
   }
 
-  pub(in crate::tokenizer) fn char(&mut self, reader: &mut PeekReader) -> Result {
+  pub(in crate::tokenizer) fn char(&mut self, reader: &mut PeekReader<W>) -> Result {
     self.string_content(reader, '\'')
   }
 }

@@ -23,8 +23,6 @@ use ast::TopLevelNamespace;
 use reader::TokenReader;
 
 pub(super) struct Asterizer<W: CompilerWorkflow> {
-  /// The handle of the module currently being processed
-  handle: CompilerStoreHandle<W>,
   /// The reader through which Tokens can be read programmatically
   reader: TokenReader<W>,
   marker: PhantomData<W>,
@@ -84,8 +82,7 @@ impl<W: CompilerWorkflow> Asterize<W> for Asterizer<W> {
 
   fn new(tokens: Self::In, handle: CompilerStoreHandle<W>) -> Self {
     Self {
-      handle,
-      reader: TokenReader::new(tokens),
+      reader: TokenReader::new(tokens, handle),
       marker: Default::default(),
     }
   }

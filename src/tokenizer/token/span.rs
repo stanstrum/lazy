@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use crate::compiler::{
   CompilerWorkflow,
   CompilerStoreHandle,
@@ -12,7 +10,6 @@ pub(crate) struct Span<W: CompilerWorkflow> {
   pub start: usize,
   pub end: usize,
   pub handle: CompilerStoreHandle<W>,
-  marker: PhantomData<W>,
 }
 
 /// The beginning of a Span
@@ -20,7 +17,6 @@ pub(crate) struct Span<W: CompilerWorkflow> {
 pub(crate) struct SpanStart<W: CompilerWorkflow> {
   pub start: usize,
   pub handle: CompilerStoreHandle<W>,
-  pub marker: PhantomData<W>,
 }
 
 impl<W: CompilerWorkflow> Span<W> {
@@ -30,7 +26,6 @@ impl<W: CompilerWorkflow> Span<W> {
     SpanStart {
       start: self.start,
       handle: self.handle,
-      marker: Default::default(),
     }
   }
 }
@@ -42,7 +37,6 @@ impl<W: CompilerWorkflow> SpanStart<W> {
       start: self.start,
       end,
       handle: self.handle,
-      marker: Default::default(),
     }
   }
 }

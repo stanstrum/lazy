@@ -10,7 +10,7 @@ use crate::tokenizer::{
 use crate::compiler::CompilerWorkflow;
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
-  pub(in crate::tokenizer) fn line_comment(&mut self, reader: &mut PeekReader) -> Result {
+  pub(in crate::tokenizer) fn line_comment(&mut self, reader: &mut PeekReader<W>) -> Result {
     trace!("Tokenizer::line_comment");
 
     let mut message = String::new();
@@ -33,7 +33,7 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
     ok
   }
 
-  pub(in crate::tokenizer) fn multiline_comment(&mut self, reader: &mut PeekReader) -> Result {
+  pub(in crate::tokenizer) fn multiline_comment(&mut self, reader: &mut PeekReader<W>) -> Result {
     trace!("Tokenizer::line_comment");
 
     const COMMENT_OPEN: &str = "/*";

@@ -11,7 +11,7 @@ use crate::tokenizer::{
 use crate::compiler::CompilerWorkflow;
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
-  pub(in crate::tokenizer) fn operator(&mut self, reader: &mut PeekReader) -> Result {
+  pub(in crate::tokenizer) fn operator(&mut self, reader: &mut PeekReader<W>) -> Result {
     trace!("Tokenizer::operator");
 
     let Some(item) = reader.peek()? else {
@@ -20,8 +20,7 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
 
     let start = SpanStart {
       start: item.position,
-      handle: todo!(),
-      marker: Default::default(),
+      handle: reader.handle,
     };
     let mut end = start.start;
 

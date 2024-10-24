@@ -1,14 +1,16 @@
-use crate::{tokenizer::{
+use crate::compiler::CompilerWorkflow;
+use crate::tokenizer::{
   SpanStart,
   Token,
   TokenKind,
-}, whitespace_or_comment};
+};
+use crate::whitespace_or_comment;
 
 /// A reader for Tokens that allows for peeking, reading, setting, and resetting
 /// the internal reader position at will
-pub(super) struct TokenReader {
+pub(super) struct TokenReader<W: CompilerWorkflow> {
   /// The tokens taken from the tokenization stage
-  tokens: Vec<Token>,
+  tokens: Vec<Token<W>>,
   /// The saved position markers that can be used to restore the internal reader
   /// position
   marks: Vec<usize>,
@@ -16,9 +18,9 @@ pub(super) struct TokenReader {
   position: usize,
 }
 
-impl TokenReader {
+impl<W: CompilerWorkflow> TokenReader<W> {
   /// Creates a TokenReader provided Tokens
-  pub(super) fn new(tokens: Vec<Token>) -> Self {
+  pub(super) fn new(tokens: Vec<Token<W>>) -> Self {
     Self {
       tokens,
       marks: vec![],
@@ -56,7 +58,7 @@ impl TokenReader {
   }
 
   /// Peeks the next Token without advancing the reader position
-  pub(super) fn peek(&self) -> Option<&Token> {
+  pub(super) fn peek(&self) -> Option<&Token<W>> {
     self.tokens.get(self.position)
   }
 
@@ -67,7 +69,7 @@ impl TokenReader {
   }
 
   /// Reads the next Token and advances the reader position
-  pub(super) fn next(&mut self) -> Option<&Token> {
+  pub(super) fn next(&mut self) -> Option<&Token<W>> {
     let tok = self.tokens.get(self.position);
     self.position += 1;
 
@@ -95,8 +97,12 @@ impl TokenReader {
   }
 
   /// Computes a SpanStart that refers to the next Token to be read
-  pub(super) fn get_start(&self) -> SpanStart {
-    SpanStart(self.get_position())
+  pub(super) fn get_start(&self) -> SpanStart<W> {
+    SpanStart {
+      start: self.get_position(),
+      handle: todo!(),
+      marker: Default::default(),
+    }
   }
 
   /// Whether all the Tokens have been read

@@ -5,8 +5,8 @@ use crate::asterizer::ast::*;
 /// An expression of any kind
 #[allow(unused)]
 #[derive(Debug, TypeName)]
-pub(crate) enum Expression {
-  Block(Box<BlockExpression>),
+pub(crate) enum Expression<W: CompilerWorkflow> {
+  Block(Box<BlockExpression<W>>),
 }
 
 /// A variable binding, which has either a type, a bound expression, or both --
@@ -34,39 +34,39 @@ pub(crate) enum Expression {
 /// ```
 #[allow(unused)]
 #[derive(Debug, TypeName)]
-pub(crate) enum BindingKind {
-  OnlyType(Type),
-  OnlyExpression(Expression),
+pub(crate) enum BindingKind<W: CompilerWorkflow> {
+  OnlyType(Type<W>),
+  OnlyExpression(Expression<W>),
   Both {
-    ty: Type,
-    expression: Expression,
+    ty: Type<W>,
+    expression: Expression<W>,
   }
 }
 
 /// A variable binding with the identifier
 #[allow(unused)]
 #[derive(Debug, TypeName)]
-pub(crate) struct Binding {
+pub(crate) struct Binding<W: CompilerWorkflow> {
   /// The name of this variable
-  pub(crate) identifier: Identifier,
+  pub(crate) identifier: Identifier<W>,
   /// The specifying information of this variable
-  pub(crate) kind: BindingKind,
+  pub(crate) kind: BindingKind<W>,
 }
 
 /// A child of a function block
 #[allow(unused)]
 #[derive(Debug, TypeName)]
-pub(crate) enum BlockChild {
-  Binding(Binding),
+pub(crate) enum BlockChild<W: CompilerWorkflow> {
+  Binding(Binding<W>),
 }
 
 /// A function block, with curly braces at the beginning and end
 #[allow(unused)]
 #[derive(Debug, TypeName)]
-pub(crate) struct BlockExpression {
+pub(crate) struct BlockExpression<W: CompilerWorkflow> {
   /// The expressions inside of this block
   #[allow(unused)]
-  pub(crate) children: Vec<BlockChild>,
+  pub(crate) children: Vec<BlockChild<W>>,
   /// If this block uses shorthand to return the value of the last statement,
   /// then it will appear here.  Note that this value is of type Expression
   /// rather than BlockChild -- this is because bindings yield no value and
@@ -85,6 +85,6 @@ pub(crate) struct BlockExpression {
   ///   return 0;
   /// };
   /// ```
-  pub(crate) return_last: Option<Expression>,
-  pub(crate) span: Span,
+  pub(crate) return_last: Option<Expression<W>>,
+  pub(crate) span: Span<W>,
 }

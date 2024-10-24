@@ -22,7 +22,11 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
       return ExpectedSnafu { what: What::Identifier }.fail()?;
     };
 
-    let start = SpanStart(item.position);
+    let start = SpanStart {
+      start: item.position,
+      handle: todo!(),
+      marker: Default::default(),
+    };
     let mut name = String::from(item.ch);
 
     loop {

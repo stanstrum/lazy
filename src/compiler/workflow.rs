@@ -1,3 +1,5 @@
+use typename::TypeName;
+
 use crate::{
   tokenizer,
   asterizer,
@@ -5,7 +7,7 @@ use crate::{
 };
 
 /// The default workflow for compiling Lazy code
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy, TypeName)]
 pub(crate) struct DefaultWorkflow;
 
 impl crate::compiler::CompilerWorkflow for DefaultWorkflow {

@@ -16,8 +16,8 @@ use crate::asterizer::{
   errors::*,
 };
 
-impl<W: CompilerWorkflow> Ast<W> for FunctionArgument {
-  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart) -> Result<Option<Self>> {
+impl<W: CompilerWorkflow> Ast<W> for FunctionArgument<W> {
+  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart<W>) -> Result<Option<Self>> {
     let Some(identifier) = aster.make(compiler)? else {
       return Ok(None);
     };
@@ -44,8 +44,8 @@ impl<W: CompilerWorkflow> Ast<W> for FunctionArgument {
   }
 }
 
-impl<W: CompilerWorkflow> Ast<W> for FunctionArguments {
-  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart) -> Result<Option<Self>> {
+impl<W: CompilerWorkflow> Ast<W> for FunctionArguments<W> {
+  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart<W>) -> Result<Option<Self>> {
     let mut arguments = vec![];
 
     aster.reader.push_mark();
@@ -84,8 +84,8 @@ impl<W: CompilerWorkflow> Ast<W> for FunctionArguments {
   }
 }
 
-impl<W: CompilerWorkflow> Ast<W> for Function {
-  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart) -> Result<Option<Self>> {
+impl<W: CompilerWorkflow> Ast<W> for Function<W> {
+  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart<W>) -> Result<Option<Self>> {
     // Parse function name
     let Some(identifier) = aster.make(compiler)? else {
       return Ok(None);

@@ -23,12 +23,12 @@ use crate::compiler::{
 
 pub(super) struct Tokenizer<W: CompilerWorkflow> {
   module: TakenCompilerModule<W>,
-  tokens: Vec<Token>,
+  tokens: Vec<Token<W>>,
   marker: PhantomData<W>,
 }
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
-  fn push_tok(&mut self, kind: TokenKind, start: SpanStart, end: usize) {
+  fn push_tok(&mut self, kind: TokenKind, start: SpanStart<W>, end: usize) {
     debug!("Tokenizer::push_tok: {kind:?}");
 
     let token = Token {
@@ -41,7 +41,7 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
 }
 
 impl<W: CompilerWorkflow> Tokenize<W> for Tokenizer<W> {
-  type Out = Vec<Token>;
+  type Out = Vec<Token<W>>;
 
   fn new(module: TakenCompilerModule<W>) -> Self {
     Self {

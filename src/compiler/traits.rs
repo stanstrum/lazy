@@ -1,3 +1,6 @@
+use std::fmt::Debug;
+use typename::TypeName;
+
 use crate::Result;
 use crate::compiler::{
   Compiler,
@@ -70,9 +73,7 @@ pub(crate) trait Output<W: CompilerWorkflow> {
 
 /// The interface through which a Compiler can bring the provided modules to
 /// completion
-pub(crate) trait CompilerWorkflow
-  where Self: Sized + Clone + Copy
-{
+pub(crate) trait CompilerWorkflow: Debug + Clone + Copy + TypeName + Sized {
   type Tokenizer: Tokenize<Self>;
   type Asterizer: Asterize<Self, In = <Self::Tokenizer as Tokenize<Self>>::Out>;
   type Translator: Translate<Self, In = <Self::Asterizer as Asterize<Self>>::Out>;

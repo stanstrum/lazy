@@ -34,7 +34,7 @@ macro_rules! make_todo_stage {
 
 // These allow for making skeletons for the compiler workflow without fully
 // implementing each stage
-make_todo_stage! { Translator: Translate::<In = crate::asterizer::ast::TopLevelNamespace, Out = ()>::translate }
+make_todo_stage! { Translator: Translate::<In = crate::asterizer::ast::TopLevelNamespace<W>, Out = ()>::translate }
 make_todo_stage! { Checker: Check::<In = (), Out = ()>::check }
 make_todo_stage! { Generator: Generate::<In = (), Out = ()>::generate }
 make_todo_stage! { Outputter: Output::<In = ()>::output }

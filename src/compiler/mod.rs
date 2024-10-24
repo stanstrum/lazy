@@ -39,7 +39,7 @@ pub(crate) struct CompilerStore<W: CompilerWorkflow> {
 /// Represents a CompilerJob without actually taking its data.  Can be used for
 /// referring to values in other modules without causing problems related to
 /// circular dependencies or invalid program hierarchies
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct CompilerStoreHandle<W: CompilerWorkflow> {
   /// The index into CompilerStore that the respective CompilerJob is stored
   index: usize,

@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 
+use crate::compiler::CompilerWorkflow;
 use crate::Result;
 use crate::tokenizer::SpanStart;
 
@@ -38,8 +39,12 @@ impl<'a> PeekReader<'a> {
     }
   }
 
-  pub(super) fn span_start(&mut self) -> SpanStart {
-    SpanStart(self.position)
+  pub(super) fn span_start<W: CompilerWorkflow>(&mut self) -> SpanStart<W> {
+    SpanStart {
+      start: self.position,
+      handle: todo!(),
+      marker: Default::default(),
+    }
   }
 
   pub(super) fn seek(&mut self) {

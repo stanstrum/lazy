@@ -3,7 +3,7 @@ mod expression;
 mod impls;
 
 use typename::TypeName;
-use crate::tokenizer::Span;
+use crate::{compiler::CompilerWorkflow, tokenizer::Span};
 
 use function::*;
 use expression::*;
@@ -11,26 +11,26 @@ use expression::*;
 /// A simple name, this is equivalent to a String but associated with a Span
 #[allow(unused)]
 #[derive(Debug, TypeName)]
-pub(crate) struct Identifier {
+pub(crate) struct Identifier<W: CompilerWorkflow> {
   /// The text of this identifier
   pub(crate) name: String,
-  pub(crate) span: Span,
+  pub(crate) span: Span<W>,
 }
 
 /// A simple type, i.e. non-arithmetic
 #[allow(unused)]
 #[derive(Debug, TypeName)]
-pub(crate) enum Type {
+pub(crate) enum Type<W: CompilerWorkflow> {
   /// A type that is only referred to by name
-  Identifier(Identifier),
+  Identifier(Identifier<W>),
 }
 
 /// A structure that can appear inside of a namespace
 #[allow(unused)]
 #[derive(Debug, TypeName)]
-pub(crate) enum NamespaceChild {
-  Namespace(Box<Namespace>),
-  Function(Function),
+pub(crate) enum NamespaceChild<W: CompilerWorkflow> {
+  Namespace(Box<Namespace<W>>),
+  Function(Function<W>),
 }
 
 /// A namespace, akin to a module, however modules can only be used to organize
@@ -38,20 +38,20 @@ pub(crate) enum NamespaceChild {
 /// this.
 #[allow(unused)]
 #[derive(Debug, TypeName)]
-pub(crate) struct Namespace {
+pub(crate) struct Namespace<W: CompilerWorkflow> {
   /// The name of this namespace
-  pub(crate) identifier: Identifier,
+  pub(crate) identifier: Identifier<W>,
   /// The structures inside this namespace
-  pub(crate) children: NamespaceChild,
-  pub(crate) span: Span,
+  pub(crate) children: NamespaceChild<W>,
+  pub(crate) span: Span<W>,
 }
 
 /// The top-level namespace of the module.  Import statements can only appear
 /// here and exports allow visibility outside of the module.
 #[allow(unused)]
 #[derive(Debug, TypeName)]
-pub(crate) struct TopLevelNamespace {
+pub(crate) struct TopLevelNamespace<W: CompilerWorkflow> {
   /// The structures in this file
-  pub(crate) children: Vec<NamespaceChild>,
-  pub(crate) span: Span,
+  pub(crate) children: Vec<NamespaceChild<W>>,
+  pub(crate) span: Span<W>,
 }

@@ -12,8 +12,8 @@ use crate::asterizer::{
   ast::*,
 };
 
-impl<W: CompilerWorkflow> Ast<W> for Type {
-  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, _start: SpanStart) -> Result<Option<Self>> {
+impl<W: CompilerWorkflow> Ast<W> for Type<W> {
+  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, _start: SpanStart<W>) -> Result<Option<Self>> {
     #[allow(clippy::manual_map)]
     Ok({
       if let Some(identifier) = aster.make(compiler)? {

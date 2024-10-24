@@ -17,7 +17,11 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
 
     let item = item?;
 
-    let start = SpanStart(item.position);
+    let start = SpanStart {
+      start: item.position,
+      handle: todo!(),
+      marker: Default::default(),
+    };
     let mut end = item.position;
 
     while let Some(item) = reader.peek()? {

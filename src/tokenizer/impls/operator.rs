@@ -18,8 +18,12 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
       return ExpectedSnafu { what: What::Operator }.fail()?;
     };
 
-    let start = SpanStart(item.position);
-    let mut end = start.0;
+    let start = SpanStart {
+      start: item.position,
+      handle: todo!(),
+      marker: Default::default(),
+    };
+    let mut end = start.start;
 
     let mut content = String::new();
 

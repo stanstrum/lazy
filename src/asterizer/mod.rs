@@ -23,7 +23,7 @@ use reader::TokenReader;
 
 pub(super) struct Asterizer<W: CompilerWorkflow> {
   /// The reader through which Tokens can be read programmatically
-  reader: TokenReader,
+  reader: TokenReader<W>,
   marker: PhantomData<W>,
 }
 
@@ -32,7 +32,7 @@ trait Ast<W: CompilerWorkflow>: TypeName + Debug + Sized {
   /// Attempts to parse tokens from TokenReader into Self if possible.  Errors
   /// are only emitted if input is absolutely unparseable, otherwise Ok(None) is
   /// returned.
-  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart) -> Result<Option<Self>>;
+  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart<W>) -> Result<Option<Self>>;
   // /// Returns the Span pertaining to Self, for error message purposes
   // fn get_span(&self) -> Span;
 }
@@ -70,14 +70,14 @@ impl<W: CompilerWorkflow> Asterizer<W> {
   }
 
   /// Creates a Span using the SpanStart provided as a parameter of Ast::make
-  fn finish_span(&self, start: SpanStart) -> Span {
+  fn finish_span(&self, start: SpanStart<W>) -> Span<W> {
     start.into_span(self.reader.get_position())
   }
 }
 
 impl<W: CompilerWorkflow> Asterize<W> for Asterizer<W> {
-  type In = Vec<Token>;
-  type Out = ast::TopLevelNamespace;
+  type In = Vec<Token<W>>;
+  type Out = ast::TopLevelNamespace<W>;
 
   fn new(tokens: Self::In) -> Self {
     Self {

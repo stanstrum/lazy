@@ -6,6 +6,7 @@ pub(crate) use consts::*;
 pub(crate) use span::*;
 
 use crate::Result;
+use crate::compiler::CompilerWorkflow;
 use error::*;
 
 use crate::tokenizer::impls::numeric::NumericState;
@@ -37,9 +38,9 @@ pub(crate) enum TokenKind {
 
 #[allow(unused)]
 #[derive(Debug)]
-pub(crate) struct Token {
+pub(crate) struct Token<W: CompilerWorkflow> {
   pub kind: TokenKind,
-  pub span: Span,
+  pub span: Span<W>,
 }
 
 impl NumericKind {

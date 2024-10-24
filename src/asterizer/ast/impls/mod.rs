@@ -19,9 +19,9 @@ use crate::tokenizer::{
   TokenKind,
 };
 
-impl TopLevelNamespace {
+impl<W: CompilerWorkflow> TopLevelNamespace<W> {
   /// Make an empty TopLevelNamespace in the case of an empty module
-  pub(in crate::asterizer) fn new_empty(start: SpanStart) -> Self {
+  pub(in crate::asterizer) fn new_empty(start: SpanStart<W>) -> Self {
     Self {
       children: vec![],
       span: start.into_span(0),
@@ -29,8 +29,8 @@ impl TopLevelNamespace {
   }
 }
 
-impl<W: CompilerWorkflow> Ast<W> for Identifier {
-  fn make(_compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart) -> Result<Option<Self>> {
+impl<W: CompilerWorkflow> Ast<W> for Identifier<W> {
+  fn make(_compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart<W>) -> Result<Option<Self>> {
     let Some(TokenKind::Identifier(name)) = aster.reader.next_kind() else {
       return Ok(None);
     };
@@ -42,17 +42,17 @@ impl<W: CompilerWorkflow> Ast<W> for Identifier {
   }
 }
 
-impl<W: CompilerWorkflow> Ast<W> for Namespace {
-  fn make(_: &mut Compiler<W>, _: &mut Asterizer<W>, _: SpanStart) -> Result<Option<Self>> {
+impl<W: CompilerWorkflow> Ast<W> for Namespace<W> {
+  fn make(_: &mut Compiler<W>, _: &mut Asterizer<W>, _: SpanStart<W>) -> Result<Option<Self>> {
     warn!("Namespace Ast::make stub");
 
     Ok(None)
   }
 }
 
-impl<W: CompilerWorkflow> Ast<W> for NamespaceChild {
+impl<W: CompilerWorkflow> Ast<W> for NamespaceChild<W> {
   #[allow(clippy::manual_map)]
-  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, _: SpanStart) -> Result<Option<Self>> {
+  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, _: SpanStart<W>) -> Result<Option<Self>> {
     Ok({
       if let Some(namespace) = aster.make(compiler)? {
         Some(Self::Namespace(Box::new(namespace)))
@@ -65,8 +65,8 @@ impl<W: CompilerWorkflow> Ast<W> for NamespaceChild {
   }
 }
 
-impl<W: CompilerWorkflow> Ast<W> for TopLevelNamespace {
-  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart) -> Result<Option<Self>> {
+impl<W: CompilerWorkflow> Ast<W> for TopLevelNamespace<W> {
+  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart<W>) -> Result<Option<Self>> {
     let mut children = vec![];
 
     while !aster.reader.is_empty() {

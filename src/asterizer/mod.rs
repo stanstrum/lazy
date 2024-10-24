@@ -22,6 +22,29 @@ use crate::tokenizer::{
 use ast::TopLevelNamespace;
 use reader::TokenReader;
 
+#[macro_export]
+macro_rules! impl_ast {
+  ($what:ident: @todo) => {
+    impl_ast!($what: (_, _, _) => todo!());
+  };
+
+  ($what:ident: @stub) => {
+    impl_ast!($what: (_, _, _) => {
+      warn!("{} Ast::make stub", Self::type_name());
+
+      Ok(None)
+    });
+  };
+
+  ($what:ident: ($compiler:tt, $aster:tt, $start:tt) => $expr:expr) => {
+    impl<W: CompilerWorkflow> Ast<W> for $what<W> {
+      fn make($compiler: &mut Compiler<W>, $aster: &mut Asterizer<W>, $start: SpanStart<W>) -> Result<Option<Self>> {
+        $expr
+      }
+    }
+  };
+}
+
 pub(super) struct Asterizer<W: CompilerWorkflow> {
   /// The reader through which Tokens can be read programmatically
   reader: TokenReader<W>,

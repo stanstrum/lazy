@@ -2,7 +2,7 @@ mod r#type;
 mod function;
 mod expression;
 
-use crate::Result;
+use crate::{impl_ast, Result};
 use crate::compiler::{
   Compiler,
   CompilerWorkflow,
@@ -42,13 +42,7 @@ impl<W: CompilerWorkflow> Ast<W> for Identifier<W> {
   }
 }
 
-impl<W: CompilerWorkflow> Ast<W> for Namespace<W> {
-  fn make(_: &mut Compiler<W>, _: &mut Asterizer<W>, _: SpanStart<W>) -> Result<Option<Self>> {
-    warn!("Namespace Ast::make stub");
-
-    Ok(None)
-  }
-}
+impl_ast!(Namespace: @stub);
 
 impl<W: CompilerWorkflow> Ast<W> for NamespaceChild<W> {
   #[allow(clippy::manual_map)]

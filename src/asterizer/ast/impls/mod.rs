@@ -29,53 +29,47 @@ impl<W: CompilerWorkflow> TopLevelNamespace<W> {
   }
 }
 
-impl<W: CompilerWorkflow> Ast<W> for Identifier<W> {
-  fn make(_compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart<W>) -> Result<Option<Self>> {
-    let Some(TokenKind::Identifier(name)) = aster.reader.next_kind() else {
-      return Ok(None);
-    };
+impl_ast!(Identifier: (_, aster, start) => {
+  let Some(TokenKind::Identifier(name)) = aster.reader.next_kind() else {
+    return Ok(None);
+  };
 
-    Ok(Some(Self {
-      name: name.into(),
-      span: aster.finish_span(start),
-    }))
-  }
-}
+  Ok(Some(Self {
+    name: name.into(),
+    span: aster.finish_span(start),
+  }))
+});
 
 impl_ast!(Namespace: @stub);
 
-impl<W: CompilerWorkflow> Ast<W> for NamespaceChild<W> {
+impl_ast!(NamespaceChild: (compiler, aster, _) => {
   #[allow(clippy::manual_map)]
-  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, _: SpanStart<W>) -> Result<Option<Self>> {
-    Ok({
-      if let Some(namespace) = aster.make(compiler)? {
-        Some(Self::Namespace(Box::new(namespace)))
-      } else if let Some(function) = aster.make(compiler)? {
-        Some(Self::Function(function))
-      } else {
-        None
-      }
-    })
-  }
-}
+  Ok({
+    if let Some(namespace) = aster.make(compiler)? {
+      Some(Self::Namespace(Box::new(namespace)))
+    } else if let Some(function) = aster.make(compiler)? {
+      Some(Self::Function(function))
+    } else {
+      None
+    }
+  })
+});
 
-impl<W: CompilerWorkflow> Ast<W> for TopLevelNamespace<W> {
-  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart<W>) -> Result<Option<Self>> {
-    let mut children = vec![];
+impl_ast!(TopLevelNamespace: (compiler, aster, start) => {
+  let mut children = vec![];
 
-    while !aster.reader.is_empty() {
-      let Some(child) = aster.make(compiler)? else {
-        return ExpectedSnafu { what: What::TopLevelNamespace }.fail()?;
-      };
-
-      children.push(child);
-
-      aster.reader.seek_whitespace_and_comments();
+  while !aster.reader.is_empty() {
+    let Some(child) = aster.make(compiler)? else {
+      return ExpectedSnafu { what: What::TopLevelNamespace }.fail()?;
     };
 
-    Ok(Some(Self {
-      children,
-      span: aster.finish_span(start),
-    }))
-  }
-}
+    children.push(child);
+
+    aster.reader.seek_whitespace_and_comments();
+  };
+
+  Ok(Some(Self {
+    children,
+    span: aster.finish_span(start),
+  }))
+});

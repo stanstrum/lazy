@@ -1,4 +1,4 @@
-use crate::Result;
+use crate::{impl_ast, Result};
 
 use crate::compiler::{
   Compiler,
@@ -12,15 +12,13 @@ use crate::asterizer::{
   ast::*,
 };
 
-impl<W: CompilerWorkflow> Ast<W> for Type<W> {
-  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, _start: SpanStart<W>) -> Result<Option<Self>> {
-    #[allow(clippy::manual_map)]
-    Ok({
-      if let Some(identifier) = aster.make(compiler)? {
-        Some(Self::Identifier(identifier))
-      } else {
-        None
-      }
-    })
-  }
-}
+impl_ast!(Type: (compiler, aster, _) => {
+  #[allow(clippy::manual_map)]
+  Ok({
+    if let Some(identifier) = aster.make(compiler)? {
+      Some(Self::Identifier(identifier))
+    } else {
+      None
+    }
+  })
+});

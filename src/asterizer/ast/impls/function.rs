@@ -62,7 +62,7 @@ impl_ast!(FunctionArguments: (compiler, aster, start) => {
     aster.reader.push_mark();
     aster.reader.seek_whitespace_and_comments();
 
-    let Some(TokenKind::Punctuation(Punctuation::Comma)) = aster.reader.peek_kind() else {
+    let Some(TokenKind::Punctuation(Punctuation::Comma)) = aster.reader.next_kind() else {
       // If there is none, pop the mark and return our arguments
       aster.reader.pop_mark();
       break;

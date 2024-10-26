@@ -58,6 +58,7 @@ pub(crate) struct Binding<W: CompilerWorkflow> {
 #[derive(Debug, TypeName)]
 pub(crate) enum BlockChild<W: CompilerWorkflow> {
   Binding(Binding<W>),
+  Expression(Expression<W>),
 }
 
 /// A function block, with curly braces at the beginning and end

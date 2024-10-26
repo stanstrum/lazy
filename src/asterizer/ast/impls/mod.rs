@@ -15,8 +15,9 @@ use crate::asterizer::{
   errors::*,
 };
 use crate::tokenizer::{
-  SpanStart,
   TokenKind,
+  Punctuation,
+  SpanStart,
 };
 
 impl<W: CompilerWorkflow> TopLevelNamespace<W> {
@@ -59,13 +60,18 @@ impl_ast!(TopLevelNamespace: (compiler, aster, start) => {
   let mut children = vec![];
 
   while !aster.reader.is_empty() {
+    aster.reader.seek_whitespace_and_comments();
+
     let Some(child) = aster.make(compiler)? else {
       return ExpectedSnafu { what: What::TopLevelNamespace }.fail()?;
     };
 
     children.push(child);
-
     aster.reader.seek_whitespace_and_comments();
+
+    let Some(TokenKind::Punctuation(Punctuation::Semicolon)) = aster.reader.next_kind() else {
+      return ExpectedSnafu { what: What::Semicolon }.fail()?;
+    };
   };
 
   Ok(Some(Self {

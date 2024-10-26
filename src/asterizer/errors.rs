@@ -6,6 +6,7 @@ pub(crate) enum What {
   Type,
   FunctionArguments,
   FunctionBody,
+  Semicolon,
 }
 
 impl What {
@@ -20,6 +21,7 @@ impl What {
       What::Type => (A, "type"),
       What::FunctionArguments => (NULL, "function arguments"),
       What::FunctionBody => (NULL, "function body"),
+      What::Semicolon => (A, "semicolon"),
     }
   }
 

@@ -3,7 +3,7 @@ use snafu::prelude::*;
 use std::path::PathBuf;
 
 use crate::arg_parser::error::ArgumentError;
-use crate::asterizer::errors::AsterizerError;
+use crate::asterizer::error::AsterizerError;
 use crate::tokenizer::error::TokenError;
 
 /// Represents an error encounted at any point during the compilation process

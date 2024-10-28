@@ -13,7 +13,7 @@ use crate::asterizer::{
   Ast,
   Asterizer,
   ast::*,
-  errors::*,
+  error::*,
 };
 
 impl_ast!(FunctionArgument: (compiler, aster, start) => {

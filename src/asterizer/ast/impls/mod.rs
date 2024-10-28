@@ -12,7 +12,7 @@ use crate::asterizer::{
   Ast,
   Asterizer,
   ast::*,
-  errors::*,
+  error::*,
 };
 use crate::tokenizer::{
   TokenKind,

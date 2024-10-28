@@ -1,6 +1,6 @@
 pub mod ast;
 mod reader;
-pub(crate) mod errors;
+pub(crate) mod error;
 
 use typename::TypeName;
 use std::fmt::Debug;

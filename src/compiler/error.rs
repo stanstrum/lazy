@@ -1,10 +1,34 @@
 use snafu::prelude::*;
+use utf8_read::Char;
 
+use std::fs::File;
 use std::path::PathBuf;
+
+use crate::Result;
 
 use crate::arg_parser::error::ArgumentError;
 use crate::asterizer::error::AsterizerError;
 use crate::tokenizer::error::TokenError;
+
+use super::{
+  Compiler,
+  CompilerWorkflow,
+};
+
+use crate::tokenizer::Span;
+
+#[allow(unused)]
+/// Stores error information taken from a Span without the need for propagating
+/// the W: CompilerWorkflow constraint to bearers down the error-handling path
+#[derive(Debug)]
+pub(crate) struct ReadSpan {
+  pub(crate) path: PathBuf,
+  pub(crate) start: usize,
+  pub(crate) end: usize,
+  pub(crate) line: usize,
+  pub(crate) column: usize,
+  pub(crate) text: String,
+}
 
 /// Represents an error encounted at any point during the compilation process
 #[derive(Debug, Snafu)]
@@ -66,5 +90,80 @@ impl crate::help::LazyHelp for CompilerError {
       CompilerError::Argument { err } => err.should_print_help_text(),
       _ => false,
     }
+  }
+
+  fn applicable_span(self) -> Option<ReadSpan> {
+    match self {
+      CompilerError::Ast { err } => err.applicable_span(),
+      _ => None,
+    }
+  }
+}
+
+impl<W: CompilerWorkflow> Compiler<W> {
+  pub(crate) fn span_to_read_span(&self, span: Span<W>) -> Result<ReadSpan> {
+    // Get module by the handle provided by `span`
+    let module = self.store.get_module(&span.handle);
+    // Get the module's path
+    let path = &module.path;
+
+    // Open said file
+    let file = match File::open(path) {
+      Ok(x) => x,
+      // Error if the file can't be opened
+      Err(err) => return IOSnafu { err: err.to_string() }.fail()?,
+    };
+
+    // TODO: low-hanging fruit (see below):
+    // Create a UTF-8 reader ... again.  This is because Spans currently hold
+    // position counters that are based in UTF-8 characters and not bytes,
+    // therefore we can't simply seek to the specified position of the error.
+    // This can likely be easily fixed by rewriting Tokenizer code so that the
+    // length of the bytes is preserved for this specific situation.  However
+    // for now, we'll just do the hard work.
+    let mut reader = utf8_read::Reader::new(file);
+
+    // As a result of having to manually Seek the file, we can actually find out
+    // at this point the line and column that the error is found on.
+    // TODO: this feels like the wrong place to determine this.  Maybe Spans
+    // should include this information as well?
+
+    // These are solely for the end-user to see, so we'll use human-readable/
+    // one-indexed counters
+    let mut line = 1;
+    let mut column = 1;
+
+    // Manually seek to the beginning of `span`
+    for _ in 0..span.start {
+      match reader.next_char() {
+        Ok(Char::Char('\n')) => {
+          line += 1;
+          column = 1;
+        },
+        Ok(Char::Char(_)) => column += 1,
+        Ok(Char::Eof) => return IOSnafu { err: "span starts outside of the end of the file" }.fail()?,
+        Ok(Char::NoData) => return IOSnafu { err: "invalid UTF-8 in file" }.fail()?,
+        Err(err) => return IOSnafu { err: err.to_string() }.fail()?,
+      };
+    };
+
+    // Calculate the length of `span` -- this may be zero but never negative
+    let length = span.end - span.start;
+
+    // Now read the section of code we're actually looking for
+    let text = match reader.take(length).collect() {
+      Ok(x) => x,
+      // TODO: make this an implicit Into -- getting annoying
+      Err(err) => return IOSnafu { err: err.to_string() }.fail()?,
+    };
+
+    Ok(ReadSpan {
+      path: path.to_owned(),
+      start: span.start,
+      end: span.end,
+      line,
+      column,
+      text,
+    })
   }
 }

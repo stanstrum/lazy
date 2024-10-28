@@ -33,6 +33,8 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
   fn push_tok(&mut self, kind: TokenKind, start: SpanStart<W>, end: usize) {
     debug!("Tokenizer::push_tok: {kind:?}");
 
+    assert!(end >= start.start, "invalid span: {} >= {} == false: {kind:?}", start.start, end);
+
     let token = Token {
       kind,
       span: start.into_span(end),

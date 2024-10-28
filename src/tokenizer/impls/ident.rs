@@ -41,13 +41,15 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
       reader.seek();
     };
 
+    let end = start.start + name.len();
+
     let kind = if let Some(keyword) = Keyword::from_str(&name) {
       TokenKind::Keyword(keyword)
     } else {
       TokenKind::Identifier(name)
     };
 
-    self.push_tok(kind, start, reader.position);
+    self.push_tok(kind, start, end);
 
     ok
   }

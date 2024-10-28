@@ -6,6 +6,7 @@ use typename::TypeName;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
+use crate::compiler::error::ReadSpan;
 use crate::Result;
 use crate::compiler::{
   Asterize,
@@ -106,6 +107,11 @@ impl<W: CompilerWorkflow> Asterizer<W> {
   /// Creates a Span using the SpanStart provided as a parameter of Ast::make
   fn finish_span(&self, start: SpanStart<W>) -> Span<W> {
     start.into_span(self.reader.get_position())
+  }
+
+  /// Creates a ReadSpan using the next Token in the stream
+  fn next_read_span(&self, compiler: &mut Compiler<W>) -> Result<ReadSpan> {
+    compiler.span_to_read_span(self.reader.next_span())
   }
 }
 

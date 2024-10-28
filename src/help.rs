@@ -1,5 +1,10 @@
+use crate::compiler::error::{
+  CompilerError,
+  ReadSpan,
+};
+
 /// Interface for displaying errors once caught
-pub(crate) trait LazyHelp {
+pub(crate) trait LazyHelp: Sized {
   /// Whether this error causes the help options to be printed
   fn should_print_message(&self) -> bool {
     true
@@ -8,6 +13,11 @@ pub(crate) trait LazyHelp {
   /// Whether this error is printed to the console
   fn should_print_help_text(&self) -> bool {
     false
+  }
+
+  // Returns a ReadSpan if one is applicable
+  fn applicable_span(self) -> Option<ReadSpan> {
+    None
   }
 }
 
@@ -30,4 +40,21 @@ pub(super) fn print_help_text() {
     \n\
     See LICENSE for more information.\
   ")
+}
+
+/// Prints a spanned error message
+pub(super) fn print_message(err: CompilerError) {
+  let message = err.to_string();
+
+  let Some(span) = err.applicable_span() else {
+    // If there's no span applicable here, then just print the message and move
+    // along
+    error!("{message}");
+    return;
+  };
+
+  let header = format!("in {}:{}:{}", span.path.to_string_lossy(), span.line, span.column);
+
+  // TODO: colorization, correct formatting ...
+  error!("{message}\n{header}\n\n{}\n^ here", span.text);
 }

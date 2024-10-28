@@ -98,7 +98,10 @@ impl_ast!(Function: (compiler, aster, start) => {
       aster.reader.seek_whitespace_and_comments();
 
       let Some(ty) = aster.make(compiler)? else {
-        return ExpectedSnafu { what: What::Type }.fail()?;
+        return ExpectedSnafu {
+          what: What::Type,
+          span: aster.next_read_span(compiler)?,
+        }.fail()?;
       };
 
       Some(ty)
@@ -123,7 +126,10 @@ impl_ast!(Function: (compiler, aster, start) => {
       aster.reader.seek_whitespace_and_comments();
 
       let Some(arguments) = aster.make(compiler)? else {
-        return ExpectedSnafu { what: What::FunctionArguments }.fail()?;
+        return ExpectedSnafu {
+          what: What::FunctionArguments,
+          span: aster.next_read_span(compiler)?,
+        }.fail()?;
       };
 
       // There might be whitespace after the function arguments
@@ -138,7 +144,10 @@ impl_ast!(Function: (compiler, aster, start) => {
 
   // Finally parse body
   let Some(body) = aster.make(compiler)? else {
-    return ExpectedSnafu { what: What::FunctionBody }.fail()?;
+    return ExpectedSnafu {
+      what: What::FunctionBody,
+      span: aster.next_read_span(compiler)?,
+     }.fail()?;
   };
 
   Ok(Some(Self {

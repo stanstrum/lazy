@@ -1,5 +1,7 @@
 use snafu::prelude::*;
 
+use crate::compiler::error::ReadSpan;
+
 #[derive(Debug)]
 pub(crate) enum What {
   TopLevelNamespace,
@@ -51,5 +53,16 @@ impl What {
 #[snafu(visibility(pub(crate)))]
 pub(crate) enum AsterizerError {
   #[snafu(display("expected {}", what.as_definite()))]
-  Expected { what: What },
+  Expected {
+    what: What,
+    span: ReadSpan,
+  },
+}
+
+impl crate::help::LazyHelp for AsterizerError {
+  fn applicable_span(self) -> Option<ReadSpan> {
+    match self {
+      AsterizerError::Expected { span, .. } => Some(span),
+    }
+  }
 }

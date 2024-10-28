@@ -1,13 +1,16 @@
+
+use crate::whitespace_or_comment;
+
 use crate::compiler::{
   CompilerWorkflow,
   CompilerStoreHandle,
 };
 use crate::tokenizer::{
+  Span,
   SpanStart,
   Token,
   TokenKind,
 };
-use crate::whitespace_or_comment;
 
 /// A reader for Tokens that allows for peeking, reading, setting, and resetting
 /// the internal reader position at will
@@ -127,5 +130,25 @@ impl<W: CompilerWorkflow> TokenReader<W> {
   /// it catches small mistakes
   pub(super) fn marks_len(&self) -> usize {
     self.marks.len()
+  }
+
+  /// Next Span in stream, or a Span representing the beginning of this empty
+  /// file
+  pub(super) fn next_span(&self) -> Span<W> {
+    if let Some(peek) = self.peek() {
+      // Either the next Span
+      peek.span
+    } else if let Some(last) = self.tokens.last() {
+      // The last Span
+      last.span
+    } else {
+      // Or a Span representing the beginning of an empty file, since that's
+      // the only other possibility
+      Span {
+        start: 0,
+        end: 0,
+        handle: self.handle,
+      }
+    }
   }
 }

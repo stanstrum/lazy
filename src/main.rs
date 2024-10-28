@@ -94,7 +94,7 @@ fn main() -> ExitCode {
   };
 
   if should_print_message {
-    error!("{err}");
+    help::print_message(err);
   };
 
   // Since we have an error, return an error code so the caller is aware

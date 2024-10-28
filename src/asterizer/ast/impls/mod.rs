@@ -66,14 +66,20 @@ impl_ast!(TopLevelNamespace: (compiler, aster, start) => {
     !aster.reader.is_empty()
   } {
     let Some(child) = aster.make(compiler)? else {
-      return ExpectedSnafu { what: What::TopLevelNamespace }.fail()?;
+      return ExpectedSnafu {
+        what: What::TopLevelNamespace,
+        span: aster.next_read_span(compiler)?,
+      }.fail()?;
     };
 
     children.push(child);
     aster.reader.seek_whitespace_and_comments();
 
     let Some(TokenKind::Punctuation(Punctuation::Semicolon)) = aster.reader.next_kind() else {
-      return ExpectedSnafu { what: What::Semicolon }.fail()?;
+      return ExpectedSnafu {
+        what: What::Semicolon,
+        span: aster.next_read_span(compiler)?,
+      }.fail()?;
     };
   };
 

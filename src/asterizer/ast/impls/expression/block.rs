@@ -56,7 +56,10 @@ impl_ast!(BlockExpression: (compiler, aster, start) => {
     // If there was no closing brace, then we're looking for a block child
     let Some(child) = aster.make(compiler)? else {
       // Invalid otherwise
-      return ExpectedSnafu { what: What::Expression }.fail()?;
+      return ExpectedSnafu {
+        what: What::Expression,
+        span: aster.next_read_span(compiler)?,
+      }.fail()?;
     };
 
     // Skip whitespace and comments following our statement
@@ -98,7 +101,10 @@ impl_ast!(BlockExpression: (compiler, aster, start) => {
     // the end of the statement immediately
     let Some(TokenKind::Grouping(Grouping::CloseBrace)) = aster.reader.next_kind() else {
       // Invalid otherwise
-      return ExpectedSnafu { what: What::ClosingBrace }.fail()?;
+      return ExpectedSnafu {
+        what: What::ClosingBrace,
+        span: aster.next_read_span(compiler)?,
+      }.fail()?;
     };
 
     // Now everything is taken care of.  Break out and return.

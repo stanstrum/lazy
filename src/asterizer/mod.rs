@@ -30,7 +30,7 @@ macro_rules! impl_ast {
 
   ($what:ident: @stub) => {
     impl_ast!($what: (_, _, _) => {
-      warn!("{} Ast::make stub", Self::type_name());
+      warn!("{} Ast::make stub", Self::better_type_name());
 
       Ok(None)
     });
@@ -59,6 +59,14 @@ trait Ast<W: CompilerWorkflow>: TypeName + Debug + Sized {
   fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart<W>) -> Result<Option<Self>>;
   // /// Returns the Span pertaining to Self, for error message purposes
   // fn get_span(&self) -> Span;
+
+  fn better_type_name() -> String {
+    Self::type_name()
+      .strip_prefix("lazy::asterizer::ast::")
+      .unwrap()
+      .strip_suffix("<lazy::compiler::workflow::DefaultWorkflow>")
+      .unwrap().into()
+  }
 }
 
 impl<W: CompilerWorkflow> Asterizer<W> {
@@ -66,7 +74,9 @@ impl<W: CompilerWorkflow> Asterizer<W> {
   /// additional information to the associated Ast::make methods so debug
   /// information may be preserved.
   fn make<T: Ast<W>>(&mut self, compiler: &mut Compiler<W>) -> Result<Option<T>> {
-    trace!("{}: Ast::make", T::type_name());
+    let type_name = T::better_type_name();
+
+    trace!("{}: Ast::make", type_name);
 
     let marks_len_before = self.reader.marks_len();
     let start = self.reader.get_start();
@@ -85,7 +95,7 @@ impl<W: CompilerWorkflow> Asterizer<W> {
       self.reader.pop_mark();
     };
 
-    debug!("{}: Ast::make: {result:#?}", T::type_name());
+    debug!("{}: Ast::make: {result:#?}", type_name);
 
     let marks_len_after = self.reader.marks_len();
     assert!(marks_len_before == marks_len_after, "mark length mismatch!");

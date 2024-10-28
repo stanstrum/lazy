@@ -59,9 +59,12 @@ impl_ast!(NamespaceChild: (compiler, aster, _) => {
 impl_ast!(TopLevelNamespace: (compiler, aster, start) => {
   let mut children = vec![];
 
-  while !aster.reader.is_empty() {
+  while {
+    // Skip whitespace and comments
     aster.reader.seek_whitespace_and_comments();
-
+    // While there are non-whitespace/comment Tokens left
+    !aster.reader.is_empty()
+  } {
     let Some(child) = aster.make(compiler)? else {
       return ExpectedSnafu { what: What::TopLevelNamespace }.fail()?;
     };

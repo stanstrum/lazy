@@ -1,12 +1,17 @@
+mod literal;
+
 use typename::TypeName;
 
 use crate::asterizer::ast::*;
+
+pub(crate) use literal::*;
 
 /// An expression of any kind
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) enum Expression<W: CompilerWorkflow> {
   Block(Box<BlockExpression<W>>),
+  Literal(Literal<W>),
 }
 
 /// A variable binding, which has either a type, a bound expression, or both --

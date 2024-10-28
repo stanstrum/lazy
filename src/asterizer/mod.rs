@@ -76,7 +76,7 @@ impl<W: CompilerWorkflow> Asterizer<W> {
   fn make<T: Ast<W>>(&mut self, compiler: &mut Compiler<W>) -> Result<Option<T>> {
     let type_name = T::better_type_name();
 
-    trace!("{}: Ast::make", type_name);
+    trace!("{}: Ast::make: {:#?}", type_name, self.reader.peek());
 
     let marks_len_before = self.reader.marks_len();
     let start = self.reader.get_start();

@@ -10,7 +10,7 @@ use crate::tokenizer::{
 use crate::compiler::CompilerWorkflow;
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
-  pub(in crate::tokenizer) fn identifier(&mut self, reader: &mut PeekReader<W>) -> Result {
+  pub(in crate::pipeline::tokenizer) fn identifier(&mut self, reader: &mut PeekReader<W>) -> Result {
     trace!("Tokenizer::identifier");
 
     let Some(item) = reader.next() else {

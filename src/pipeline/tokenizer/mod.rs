@@ -22,7 +22,7 @@ use crate::compiler::{
   error::IOSnafu,
 };
 
-pub(super) struct Tokenizer<W: CompilerWorkflow> {
+pub(crate) struct Tokenizer<W: CompilerWorkflow> {
   module: TakenCompilerModule<W>,
   handle: CompilerStoreHandle<W>,
   tokens: Vec<Token<W>>,

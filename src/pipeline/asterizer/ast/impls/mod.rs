@@ -22,7 +22,7 @@ use crate::tokenizer::{
 
 impl<W: CompilerWorkflow> TopLevelNamespace<W> {
   /// Make an empty TopLevelNamespace in the case of an empty module
-  pub(in crate::asterizer) fn new_empty(start: SpanStart<W>) -> Self {
+  pub(in crate::pipeline::asterizer) fn new_empty(start: SpanStart<W>) -> Self {
     Self {
       children: vec![],
       span: start.into_span(0),

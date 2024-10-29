@@ -9,8 +9,7 @@ mod help;
 mod compiler;
 
 mod todo;
-mod tokenizer;
-mod asterizer;
+mod pipeline;
 
 use std::process::ExitCode;
 
@@ -27,6 +26,7 @@ use compiler::{
 };
 
 use crate::help::LazyHelp;
+pub(crate) use pipeline::*;
 
 pub(crate) type Result<T = ()> = std::result::Result<T, CompilerError>;
 

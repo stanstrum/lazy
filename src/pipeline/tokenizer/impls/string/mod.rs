@@ -139,11 +139,11 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
     ok
   }
 
-  pub(in crate::tokenizer) fn string(&mut self, reader: &mut PeekReader<W>) -> Result {
+  pub(in crate::pipeline::tokenizer) fn string(&mut self, reader: &mut PeekReader<W>) -> Result {
     self.string_content(reader, '"')
   }
 
-  pub(in crate::tokenizer) fn char(&mut self, reader: &mut PeekReader<W>) -> Result {
+  pub(in crate::pipeline::tokenizer) fn char(&mut self, reader: &mut PeekReader<W>) -> Result {
     self.string_content(reader, '\'')
   }
 }

@@ -15,7 +15,7 @@ use crate::tokenizer::{
 use crate::compiler::CompilerWorkflow;
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
-  pub(in crate::tokenizer) fn base(&mut self, reader: &mut PeekReader<W>) -> Result {
+  pub(in crate::pipeline::tokenizer) fn base(&mut self, reader: &mut PeekReader<W>) -> Result {
     trace!("Tokenizer::base");
     let start = reader.span_start();
 

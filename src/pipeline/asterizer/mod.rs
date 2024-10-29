@@ -46,7 +46,7 @@ macro_rules! impl_ast {
   };
 }
 
-pub(super) struct Asterizer<W: CompilerWorkflow> {
+pub(crate) struct Asterizer<W: CompilerWorkflow> {
   /// The reader through which Tokens can be read programmatically
   reader: TokenReader<W>,
   marker: PhantomData<W>,

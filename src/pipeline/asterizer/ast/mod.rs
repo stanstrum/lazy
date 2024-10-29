@@ -17,12 +17,32 @@ pub(crate) struct Identifier<W: CompilerWorkflow> {
   pub(crate) span: Span<W>,
 }
 
+/// A qualified identifier is an identifier with one or more concatenated parts
+/// using double colons (::):
+///
+/// ```
+/// namespace Test {
+///   export type Something := usize;
+/// };
+///
+/// do_something {
+///   value: Test::Something = 5;
+/// };
+/// ```
+#[derive(Debug, TypeName)]
+pub(crate) struct Qualified<W: CompilerWorkflow> {
+  pub(crate) implicit: bool,
+  /// The parts of this qualified identifier
+  pub(crate) parts: Vec<Identifier<W>>,
+  pub(crate) span: Span<W>,
+}
+
 /// A simple type, i.e. non-arithmetic
 #[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) enum Type<W: CompilerWorkflow> {
   /// A type that is only referred to by name
-  Identifier(Identifier<W>),
+  Qualified(Qualified<W>),
 }
 
 /// A structure that can appear inside of a namespace

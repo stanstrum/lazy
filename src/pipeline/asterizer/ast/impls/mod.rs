@@ -41,6 +41,48 @@ impl_ast!(Identifier: (_, aster, start) => {
   }))
 });
 
+impl_ast!(Qualified: (compiler, aster, start) => {
+  let mut parts = vec![];
+  let implicit;
+
+  // If the qualified identifier begins with a double colon, then it's an
+  // implicit identifier (details are otherwise resolved using context)
+  if let Some(TokenKind::Punctuation(Punctuation::DoubleColon)) = aster.reader.peek_kind() {
+    // Consume the double colon
+    aster.reader.seek();
+
+    implicit = true;
+  } else {
+    // Otherwise, this is a definite qualified identifier -- a.k.a. a non-
+    // implicit one
+    implicit = false;
+  };
+
+  loop {
+    // Push mark in case we're doing reading
+    aster.reader.push_mark();
+    // Skip leading whitespace
+    aster.reader.seek_whitespace_and_comments();
+
+    // Check if there's another part to read
+    let Some(part) = aster.make(compiler)? else {
+      // If not, pop the mark and break out
+      aster.reader.pop_mark();
+      break;
+    };
+
+    // Otherwise, drop the mark, push the child, and continue onto the next part
+    aster.reader.drop_mark();
+    parts.push(part);
+  };
+
+  Ok(Some(Self {
+    implicit,
+    parts,
+    span: aster.finish_span(start),
+  }))
+});
+
 impl_ast!(Namespace: @stub);
 
 impl_ast!(NamespaceChild: (compiler, aster, _) => {

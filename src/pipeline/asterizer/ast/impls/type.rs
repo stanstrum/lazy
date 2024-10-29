@@ -16,7 +16,7 @@ impl_ast!(Type: (compiler, aster, _) => {
   #[allow(clippy::manual_map)]
   Ok({
     if let Some(identifier) = aster.make(compiler)? {
-      Some(Self::Identifier(identifier))
+      Some(Self::Qualified(identifier))
     } else {
       None
     }

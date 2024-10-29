@@ -3,10 +3,11 @@ mod expression;
 mod impls;
 
 use typename::TypeName;
-use crate::{compiler::CompilerWorkflow, tokenizer::Span};
+use crate::tokenizer::Span;
+use crate::compiler::CompilerWorkflow;
 
-use function::*;
-use expression::*;
+pub(crate) use function::*;
+pub(crate) use expression::*;
 
 /// A simple name, this is equivalent to a String but associated with a Span
 #[allow(unused)]
@@ -29,6 +30,7 @@ pub(crate) struct Identifier<W: CompilerWorkflow> {
 ///   value: Test::Something = 5;
 /// };
 /// ```
+#[allow(unused)]
 #[derive(Debug, TypeName)]
 pub(crate) struct Qualified<W: CompilerWorkflow> {
   pub(crate) implicit: bool,

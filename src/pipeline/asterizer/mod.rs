@@ -63,7 +63,7 @@ trait Ast<W: CompilerWorkflow>: TypeName + Debug + Sized {
 
   fn better_type_name() -> String {
     Self::type_name()
-      .strip_prefix("lazy::asterizer::ast::")
+      .strip_prefix("lazy::pipeline::")
       .unwrap()
       .strip_suffix("<lazy::compiler::workflow::DefaultWorkflow>")
       .unwrap().into()

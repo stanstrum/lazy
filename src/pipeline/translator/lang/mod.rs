@@ -1,7 +1,7 @@
 mod r#type;
 mod function;
 mod reference;
-use std::fmt::{Debug, Pointer};
+use std::fmt::Debug;
 
 pub(crate) use r#type::*;
 pub(crate) use function::*;
@@ -19,12 +19,6 @@ use crate::tokenizer::Span;
 #[derive(Clone)]
 pub(crate) struct OpaqueParent<T: Clone> {
   parent: T,
-}
-
-impl<T: Clone> Debug for OpaqueParent<T> {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.write_str("(parent)")
-  }
 }
 
 /// A member/child of a Module
@@ -55,7 +49,7 @@ pub(crate) struct Module {
   /// The name of this module
   pub(crate) name: ModuleName,
   /// The children/members of this module
-  pub(crate) children: Vec<ModuleChild>,
+  pub(crate) children: Vec<RcCell<ModuleChild>>,
   pub(crate) span: Span<DefaultWorkflow>,
   // TODO: imports, exports, ...
 }
@@ -69,5 +63,20 @@ impl<T: Clone> From<T> for OpaqueParent<T> {
 impl<T: Clone> OpaqueParent<T> {
   pub(crate) fn unwrap(self) -> T {
     self.parent
+  }
+}
+
+impl PartialEq<&str> for ModuleName {
+  fn eq(&self, other: &&str) -> bool {
+    match self {
+      ModuleName::Identifier(identifier) => &identifier.name == other,
+      ModuleName::File(_) => false,
+    }
+  }
+}
+
+impl<T: Clone> Debug for OpaqueParent<T> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    f.write_str("(parent)")
   }
 }

@@ -7,6 +7,7 @@ use crate::compiler::{
 
 use crate::translator::lang::*;
 
+#[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Checker<W: CompilerWorkflow> {
   input: Option<RcCell<Module>>,
@@ -24,7 +25,7 @@ impl<W: CompilerWorkflow> Check<W> for Checker<W> {
     }
   }
 
-  fn check(mut self, compiler: &mut Compiler<W>) -> crate::Result<Self::Out> {
+  fn check(mut self, _compiler: &mut Compiler<W>) -> crate::Result<Self::Out> {
     let input = self.input.take().unwrap();
 
     dbg!(&input);

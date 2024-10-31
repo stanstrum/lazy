@@ -15,12 +15,6 @@ use crate::compiler::{
 
 use crate::asterizer::ast::TopLevelNamespace;
 
-trait Parse<'a>: Sized {
-  type In;
-
-  fn parse(translator: &mut Translator<DefaultWorkflow>, input: Self::In) -> Result<Self>;
-}
-
 trait ParseScope<'a>: Sized + SearchIn<Self::Scope> {
   type In;
   type Scope: Scope;
@@ -36,10 +30,6 @@ pub(crate) struct Translator<W: CompilerWorkflow> {
 }
 
 impl Translator<DefaultWorkflow> {
-  fn parse<'a, T: Parse<'a>>(&mut self, input: T::In) -> Result<T> {
-    T::parse(self, input)
-  }
-
   fn parse_scope<'a, T: ParseScope<'a> + SearchIn<S>, S: Scope>(&mut self, input: T::In, parent: &Option<RcCell<T::Scope>>) -> Result<RcCell<T>> {
     T::parse_scope(self, input, parent)
   }
@@ -56,7 +46,7 @@ impl Translate<DefaultWorkflow> for Translator<DefaultWorkflow> {
     }
   }
 
-  fn translate(mut self, compiler: &mut Compiler<DefaultWorkflow>) -> Result<Self::Out> {
+  fn translate(mut self, _compiler: &mut Compiler<DefaultWorkflow>) -> Result<Self::Out> {
     let ast = self.ast.take().unwrap();
 
     let mut children = vec![];
@@ -71,7 +61,7 @@ impl Translate<DefaultWorkflow> for Translator<DefaultWorkflow> {
     let parent = Some(module.clone());
 
     for child in ast.children {
-      let child = self.parse((child, &parent))?;
+      let child = self.parse_scope::<ModuleChild, Module>(child, &parent)?;
       children.push(child);
     };
 

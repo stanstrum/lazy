@@ -11,21 +11,24 @@ use super::*;
 
 pub(crate) type RcCell<T> = Rc<RefCell<T>>;
 
+#[allow(unused)]
 pub(crate) enum ScopeSearch<V: SearchIn<S>, S: Scope> {
   Found(RcCell<V>),
   Next(RcCell<S>),
   None,
 }
 
+#[allow(unused)]
 pub(crate) trait SearchIn<S: Scope>: Sized + Debug {
   fn parent(&self) -> Option<RcCell<S>>;
-  fn search_in(scope: &S, index: &S::Index) -> Result<RcCell<Self>>;
+  fn search_in(scope: &S, index: &S::Index) -> Result<ScopeSearch<Self, S>>;
 }
 
+#[allow(unused)]
 pub(crate) trait Scope: Debug + Sized {
   type Index: Debug + ?Sized;
 
-  fn search<I: SearchIn<Self>>(&self, index: &Self::Index) -> Result<RcCell<I>> {
+  fn search<I: SearchIn<Self>>(&self, index: &Self::Index) -> Result<ScopeSearch<I, Self>> {
     I::search_in(self, index)
   }
 }

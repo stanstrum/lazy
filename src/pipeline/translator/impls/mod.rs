@@ -33,16 +33,6 @@ impl Scope for Function {
   type Index = str;
 }
 
-impl<S: Scope, T: SearchIn<S>> SearchIn<S> for RcCell<T> {
-  fn parent(&self) -> Option<RcCell<S>> {
-    self.borrow().parent()
-  }
-
-  fn search_in(scope: &S, index: &<S as Scope>::Index) -> Result<RcCell<Self>> {
-    todo!()
-  }
-}
-
 impl<S: Scope> Scope for RcCell<S> {
   type Index = S::Index;
 }
@@ -52,8 +42,19 @@ impl SearchIn<Module> for Function {
     Some(self.parent.clone().unwrap())
   }
 
-  fn search_in(scope: &Module, index: &<Module as Scope>::Index) -> Result<RcCell<Self>> {
-    todo!()
+  fn search_in(scope: &Module, index: &<Module as Scope>::Index) -> Result<ScopeSearch<Self, Module>> {
+    Ok(
+      match ModuleChild::search_in(scope, index)? {
+        ScopeSearch::Found(rc) => {
+          match &*rc.borrow() {
+            ModuleChild::Function(rc) => ScopeSearch::Found(rc.clone()),
+            ModuleChild::Module(rc) => ScopeSearch::Next(rc.clone()),
+          }
+        },
+        ScopeSearch::Next(rc) => ScopeSearch::Next(rc),
+        ScopeSearch::None => ScopeSearch::None,
+      }
+    )
   }
 }
 
@@ -62,21 +63,43 @@ impl SearchIn<Module> for Module {
     self.parent.clone().unwrap()
   }
 
-  fn search_in(scope: &Module, index: &<Module as Scope>::Index) -> Result<RcCell<Self>> {
-    todo!()
+  fn search_in(scope: &Module, index: &<Module as Scope>::Index) -> Result<ScopeSearch<Self, Module>> {
+    Ok(
+      match ModuleChild::search_in(scope, index)? {
+        ScopeSearch::Found(rc) => {
+          match &*rc.borrow() {
+            ModuleChild::Module(rc) => ScopeSearch::Next(rc.clone()),
+            _ => ScopeSearch::None,
+          }
+        },
+        ScopeSearch::Next(rc) => ScopeSearch::Next(rc),
+        ScopeSearch::None => ScopeSearch::None,
+      }
+    )
   }
 }
 
 impl SearchIn<Module> for ModuleChild {
   fn parent(&self) -> Option<RcCell<Module>> {
     match self {
-      ModuleChild::Function(rc) => rc.parent(),
-      ModuleChild::Module(rc) => rc.parent(),
+      ModuleChild::Function(rc) => rc.borrow().parent(),
+      ModuleChild::Module(rc) => rc.borrow().parent(),
     }
   }
 
-  fn search_in(scope: &Module, index: &<Module as Scope>::Index) -> Result<RcCell<Self>> {
-    todo!()
+  fn search_in(scope: &Module, index: &<Module as Scope>::Index) -> Result<ScopeSearch<Self, Module>> {
+    Ok(
+      scope.children.iter().find_map(|child| (
+        match &*child.borrow() {
+          ModuleChild::Function(rc) => {
+            let name_matches = rc.borrow().name.name == index;
+
+            name_matches.then(|| ScopeSearch::Found(new_rc_cell(ModuleChild::Function(rc.clone()))))
+          },
+          ModuleChild::Module(rc) => (rc.borrow().name == index).then(|| ScopeSearch::Next(rc.clone())),
+        }
+      )).unwrap_or(ScopeSearch::None)
+    )
   }
 }
 
@@ -85,40 +108,44 @@ impl SearchIn<Function> for FunctionArgument {
     Some(self.parent.clone().unwrap())
   }
 
-  fn search_in(scope: &Function, index: &<Function as Scope>::Index) -> Result<RcCell<Self>> {
-    todo!()
+  fn search_in(scope: &Function, index: &<Function as Scope>::Index) -> Result<ScopeSearch<Self, Function>> {
+    Ok(
+      scope.arguments.iter().find_map(|argument| (argument.borrow().name.name == index).then(|| ScopeSearch::Found(argument.clone())))
+      .unwrap_or(ScopeSearch::None)
+    )
   }
 }
 
 impl<V: SearchIn<S>, S: Scope> Reference<V, S> {
   fn parent(&self) -> Option<RcCell<S>> {
     match self {
-      Reference::Resolved(rc) => rc.parent(),
+      Reference::Resolved(rc) => rc.borrow().parent(),
       Reference::Unresolved(rc) => Some(rc.borrow().context.clone().unwrap()),
     }
   }
 }
 
-impl SearchIn<Function> for Type<Function> {
-  fn parent(&self) -> Option<RcCell<Function>> {
+impl SearchIn<Module> for Type<Module> {
+  fn parent(&self) -> Option<RcCell<Module>> {
     match self {
-      Type::Intrinsic { kind, parent } => Some(parent.clone().unwrap()),
+      Type::Intrinsic { parent, .. } => Some(parent.clone().unwrap()),
       Type::Reference(reference) => reference.parent(),
     }
   }
 
-  fn search_in(scope: &Function, index: &<Function as Scope>::Index) -> Result<RcCell<Self>> {
-    todo!()
-  }
-}
-
-impl SearchIn<Module> for Type<Module> {
-  fn parent(&self) -> Option<RcCell<Module>> {
-    todo!()
-  }
-
-  fn search_in(scope: &Module, index: &<Module as Scope>::Index) -> Result<RcCell<Self>> {
-    todo!()
+  fn search_in(scope: &Module, index: &<Module as Scope>::Index) -> Result<ScopeSearch<Self, Module>> {
+    Ok(
+      match ModuleChild::search_in(scope, index)? {
+        ScopeSearch::Found(rc) => {
+          match &*rc.borrow() {
+            ModuleChild::Module(rc) => ScopeSearch::Next(rc.clone()),
+            _ => ScopeSearch::None,
+          }
+        },
+        ScopeSearch::Next(rc) => ScopeSearch::Next(rc),
+        ScopeSearch::None => ScopeSearch::None,
+      }
+    )
   }
 }
 
@@ -126,12 +153,12 @@ impl<'a, S: Scope> ParseScope<'a> for Type<S> where Type<S>: SearchIn<S> {
   type In = ast::Type<DefaultWorkflow>;
   type Scope = S;
 
-  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<RcCell<Self::Scope>>) -> Result<RcCell<Self>> {
+  fn parse_scope(_translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<RcCell<Self::Scope>>) -> Result<RcCell<Self>> {
     match input {
       ast::Type::Qualified(qualified) => {
         // If this qualified is not explicit and only has one part, it might be an
         // intrinsic type
-        if qualified.implicit == false && qualified.parts.len() == 1 {
+        if !qualified.implicit && qualified.parts.len() == 1 {
           // We know from the above check that there is exactly one element in this
           // list.  Take that one.
           let argument = qualified.parts.first().unwrap();
@@ -226,24 +253,42 @@ impl<'a> ParseScope<'a> for Module {
   type Scope = Module;
 
   fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<RcCell<Self::Scope>>) -> Result<RcCell<Self>> {
-    todo!()
+    let module = new_rc_cell(Self {
+      parent: parent.clone().into(),
+      name: ModuleName::Identifier(input.identifier),
+      children: vec![],
+      span: input.span,
+    });
+
+    let child_parent = Some(module.clone());
+
+    let children = input.children.into_iter()
+      .map(|child| translator.parse_scope::<ModuleChild, Self::Scope>(child, &child_parent))
+      .collect::<Result<_>>()?;
+
+    {
+      module.borrow_mut().children = children;
+    };
+
+    Ok(module)
   }
 }
 
-impl<'a> Parse<'a> for ModuleChild {
-  type In = (ast::NamespaceChild<DefaultWorkflow>, &'a Option<RcCell<Module>>);
+impl<'a> ParseScope<'a> for ModuleChild {
+  type In = ast::NamespaceChild<DefaultWorkflow>;
+  type Scope = Module;
 
-  fn parse(translator: &mut Translator<DefaultWorkflow>, (input, parent): Self::In) -> Result<Self> {
+  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<RcCell<Self::Scope>>) -> Result<RcCell<Self>> {
     match input {
       ast::NamespaceChild::Namespace(namespace) => {
         let module  = translator.parse_scope(*namespace, parent)?;
 
-        Ok(Self::Module(module))
+        Ok(new_rc_cell(Self::Module(module)))
       },
       ast::NamespaceChild::Function(function) => {
         let function  = translator.parse_scope(function, parent)?;
 
-        Ok(Self::Function(function))
+        Ok(new_rc_cell(Self::Function(function)))
       },
     }
   }

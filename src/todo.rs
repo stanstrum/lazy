@@ -3,11 +3,6 @@ use std::marker::PhantomData;
 use crate::Result;
 use crate::compiler::*;
 
-use crate::translator::lang::{
-  Module,
-  RcCell,
-};
-
 macro_rules! make_todo_stage {
   ($name:ident: $trait:ident::<In = $in:ty>::$method:ident) => {
     make_todo_stage!(@inner: $name, $trait, $method, In = $in);

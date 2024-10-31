@@ -13,7 +13,7 @@ impl crate::compiler::CompilerWorkflow for DefaultWorkflow {
   type Tokenizer = tokenizer::Tokenizer<Self>;
   type Asterizer = asterizer::Asterizer<Self>;
   type Translator = translator::Translator<Self>;
-  type Checker = todo::Checker<Self>;
+  type Checker = checker::Checker<Self>;
   type Generator = todo::Generator<Self>;
   type Outputter = todo::Outputter<Self>;
 }

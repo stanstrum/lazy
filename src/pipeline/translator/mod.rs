@@ -62,7 +62,7 @@ impl Translate<DefaultWorkflow> for Translator<DefaultWorkflow> {
     let mut children = vec![];
 
     let module = new_rc_cell(Module {
-      parent: None,
+      parent: None.into(),
       name: ModuleName::File(self.handle),
       children: vec![],
       span: ast.span,

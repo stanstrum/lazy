@@ -5,7 +5,7 @@ use crate::compiler::{
 
 /// The debug information for a language object
 #[allow(unused)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub(crate) struct Span<W: CompilerWorkflow> {
   pub start: usize,
   pub end: usize,
@@ -38,5 +38,11 @@ impl<W: CompilerWorkflow> SpanStart<W> {
       end,
       handle: self.handle,
     }
+  }
+}
+
+impl<W: CompilerWorkflow + std::fmt::Debug> std::fmt::Debug for Span<W> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    f.write_fmt(format_args!("Span({}, {}, {:?})", self.start, self.end, &self.handle))
   }
 }

@@ -40,7 +40,7 @@ pub(crate) struct CompilerStore<W: CompilerWorkflow> {
 /// Represents a CompilerJob without actually taking its data.  Can be used for
 /// referring to values in other modules without causing problems related to
 /// circular dependencies or invalid program hierarchies
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub(crate) struct CompilerStoreHandle<W: CompilerWorkflow> {
   /// The index into CompilerStore that the respective CompilerJob is stored
   index: usize,
@@ -322,5 +322,11 @@ impl<W: CompilerWorkflow> Compiler<W> {
     self.bring_to_stage(&handle, CompilationStage::Done)?;
 
     ok
+  }
+}
+
+impl<W: CompilerWorkflow + std::fmt::Debug> std::fmt::Debug for CompilerStoreHandle<W> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    f.write_fmt(format_args!("CompilerStoreHandle({})", self.index))
   }
 }

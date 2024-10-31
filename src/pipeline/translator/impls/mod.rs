@@ -49,7 +49,7 @@ impl<S: Scope> Scope for RcCell<S> {
 
 impl SearchIn<Module> for Function {
   fn parent(&self) -> Option<RcCell<Module>> {
-    Some(self.parent.clone())
+    Some(self.parent.clone().unwrap())
   }
 
   fn search_in(scope: &Module, index: &<Module as Scope>::Index) -> Result<RcCell<Self>> {
@@ -59,7 +59,7 @@ impl SearchIn<Module> for Function {
 
 impl SearchIn<Module> for Module {
   fn parent(&self) -> Option<RcCell<Module>> {
-    todo!()
+    self.parent.clone().unwrap()
   }
 
   fn search_in(scope: &Module, index: &<Module as Scope>::Index) -> Result<RcCell<Self>> {
@@ -69,7 +69,10 @@ impl SearchIn<Module> for Module {
 
 impl SearchIn<Module> for ModuleChild {
   fn parent(&self) -> Option<RcCell<Module>> {
-    todo!()
+    match self {
+      ModuleChild::Function(rc) => rc.parent(),
+      ModuleChild::Module(rc) => rc.parent(),
+    }
   }
 
   fn search_in(scope: &Module, index: &<Module as Scope>::Index) -> Result<RcCell<Self>> {
@@ -79,7 +82,7 @@ impl SearchIn<Module> for ModuleChild {
 
 impl SearchIn<Function> for FunctionArgument {
   fn parent(&self) -> Option<RcCell<Function>> {
-    todo!()
+    Some(self.parent.clone().unwrap())
   }
 
   fn search_in(scope: &Function, index: &<Function as Scope>::Index) -> Result<RcCell<Self>> {
@@ -87,9 +90,21 @@ impl SearchIn<Function> for FunctionArgument {
   }
 }
 
+impl<V: SearchIn<S>, S: Scope> Reference<V, S> {
+  fn parent(&self) -> Option<RcCell<S>> {
+    match self {
+      Reference::Resolved(rc) => rc.parent(),
+      Reference::Unresolved(rc) => Some(rc.borrow().context.clone().unwrap()),
+    }
+  }
+}
+
 impl SearchIn<Function> for Type<Function> {
   fn parent(&self) -> Option<RcCell<Function>> {
-    todo!()
+    match self {
+      Type::Intrinsic { kind, parent } => Some(parent.clone().unwrap()),
+      Type::Reference(reference) => reference.parent(),
+    }
   }
 
   fn search_in(scope: &Function, index: &<Function as Scope>::Index) -> Result<RcCell<Self>> {
@@ -124,9 +139,12 @@ impl<'a, S: Scope> ParseScope<'a> for Type<S> where Type<S>: SearchIn<S> {
           let name = &argument.name;
 
           // Check if this identifier corresponds to any Instrinsic
-          if let Some(intrinsic) = Intrinsic::try_from_slice(name) {
+          if let Some(kind) = Intrinsic::try_from_slice(name) {
             // This means that this Type can be resolved as follows
-            return Ok(new_rc_cell(Type::Intrinsic(intrinsic)));
+            return Ok(new_rc_cell(Type::Intrinsic {
+              parent: parent.as_ref().cloned().unwrap().into() ,
+              kind,
+            }));
           };
         };
 
@@ -160,6 +178,7 @@ impl<'a> ParseScope<'a> for FunctionArgument {
     Ok(new_rc_cell(Self {
       name: input.identifier,
       ty,
+      parent: parent.as_ref().cloned().unwrap().into(),
     }))
   }
 }
@@ -170,10 +189,13 @@ impl<'a> ParseScope<'a> for Function {
 
   fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<RcCell<Self::Scope>>) -> Result<RcCell<Self>> {
     let rc = new_rc_cell(Self {
-      parent: parent.as_ref().unwrap().clone(),
+      parent: parent.as_ref().unwrap().clone().into(),
       name: input.identifier,
       arguments: vec![],
-      return_ty: new_rc_cell(Type::Intrinsic(Intrinsic::Void)),
+      return_ty: new_rc_cell(Type::Intrinsic {
+        kind: Intrinsic::Void,
+        parent: parent.as_ref().cloned().unwrap().into(),
+      }),
     });
 
     let argument_parent = Some(rc.clone());

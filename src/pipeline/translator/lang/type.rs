@@ -52,6 +52,9 @@ pub(crate) enum Intrinsic {
 #[derive(Debug)]
 pub(crate) enum Type<S: Scope> where Self: SearchIn<S> {
   /// An intrinsic type
-  Intrinsic(Intrinsic),
+  Intrinsic {
+    kind: Intrinsic,
+    parent: OpaqueParent<RcCell<S>>
+  },
   Reference(Reference<Type<S>, S>),
 }

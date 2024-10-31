@@ -4,6 +4,7 @@ use super::*;
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct FunctionArgument {
+  pub(crate) parent: OpaqueParent<RcCell<Function>>,
   /// The name of this argument
   pub(crate) name: ast::Identifier<DefaultWorkflow>,
   /// The type of this argument
@@ -21,7 +22,7 @@ pub(crate) struct FunctionArgument {
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Function {
-  pub(crate) parent: RcCell<Module>,
+  pub(crate) parent: OpaqueParent<RcCell<Module>>,
   pub(crate) name: ast::Identifier<DefaultWorkflow>,
   pub(crate) arguments: Vec<RcCell<FunctionArgument>>,
   pub(crate) return_ty: RcCell<Type<Module>>,

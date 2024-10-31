@@ -33,7 +33,7 @@ pub(crate) trait Scope: Debug + Sized {
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct UnresolvedReference<S: Scope, W: CompilerWorkflow = DefaultWorkflow> {
-  context: RcCell<S>,
+  pub(crate) context: OpaqueParent<RcCell<S>>,
   implicit: bool,
   parts: Vec<Identifier<W>>,
 }
@@ -48,7 +48,7 @@ pub(crate) enum Reference<V: SearchIn<S>, S: Scope> {
 impl<S: Scope> Type<S> where Self: SearchIn<S> {
   pub(crate) fn new_unknown(context: &RcCell<S>, qualified: Qualified<DefaultWorkflow>) -> RcCell<Self> {
     new_rc_cell(Self::Reference(Reference::Unresolved(new_rc_cell(UnresolvedReference {
-      context: context.clone(),
+      context: context.clone().into(),
       implicit: qualified.implicit,
       parts: qualified.parts,
     }))))

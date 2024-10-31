@@ -3,11 +3,11 @@ use super::*;
 /// A function argument, stored separately for organizational purposes
 #[allow(unused)]
 #[derive(Debug)]
-pub(crate) struct FunctionArgument<W: CompilerWorkflow> {
+pub(crate) struct FunctionArgument {
   /// The name of this argument
-  pub(crate) name: ast::Identifier<W>,
+  pub(crate) name: ast::Identifier<DefaultWorkflow>,
   /// The type of this argument
-  pub(crate) ty: Type<W>,
+  pub(crate) ty: RcCell<Type<Module>>,
 }
 
 /// A simple function, i.e., one that does not belong to a class or interface.
@@ -20,8 +20,9 @@ pub(crate) struct FunctionArgument<W: CompilerWorkflow> {
 /// ```
 #[allow(unused)]
 #[derive(Debug)]
-pub(crate) struct Function<W: CompilerWorkflow> {
-  pub(crate) name: ast::Identifier<W>,
-  pub(crate) arguments: Vec<FunctionArgument<W>>,
-  pub(crate) return_ty: Type<W>,
+pub(crate) struct Function {
+  pub(crate) parent: RcCell<Module>,
+  pub(crate) name: ast::Identifier<DefaultWorkflow>,
+  pub(crate) arguments: Vec<RcCell<FunctionArgument>>,
+  pub(crate) return_ty: RcCell<Type<Module>>,
 }

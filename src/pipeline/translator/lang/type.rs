@@ -4,6 +4,8 @@ use crate::compiler::{
 };
 use crate::asterizer::ast;
 
+use super::*;
+
 /// Represents an unresolved type and the information necessary to resolve it
 #[allow(unused)]
 #[derive(Debug)]
@@ -48,9 +50,8 @@ pub(crate) enum Intrinsic {
 /// A Type of any kind, including unresolved
 #[allow(unused)]
 #[derive(Debug)]
-pub(crate) enum Type<W: CompilerWorkflow> {
-  /// A Type that is yet to have been resolved; just a qualified identifier
-  Unresolved(UnresolvedType<W>),
+pub(crate) enum Type<S: Scope> where Self: SearchIn<S> {
   /// An intrinsic type
   Intrinsic(Intrinsic),
+  Reference(Reference<Type<S>, S>),
 }

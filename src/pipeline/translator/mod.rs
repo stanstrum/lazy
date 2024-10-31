@@ -1,8 +1,9 @@
 pub(crate) mod lang;
 mod impls;
 
-use lang::Module;
+use lang::*;
 
+use crate::compiler::workflow::DefaultWorkflow;
 use crate::Result;
 
 use crate::compiler::{
@@ -14,27 +15,69 @@ use crate::compiler::{
 
 use crate::asterizer::ast::TopLevelNamespace;
 
+trait Parse<'a>: Sized {
+  type In;
+
+  fn parse(translator: &mut Translator<DefaultWorkflow>, input: Self::In) -> Result<Self>;
+}
+
+trait ParseScope<'a>: Sized + SearchIn<Self::Scope> {
+  type In;
+  type Scope: Scope;
+
+  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<RcCell<Self::Scope>>) -> Result<RcCell<Self>>;
+}
+
 #[allow(unused)]
+#[derive(Debug)]
 pub(crate) struct Translator<W: CompilerWorkflow> {
   ast: Option<TopLevelNamespace<W>>,
   handle: CompilerStoreHandle<W>,
 }
 
-impl<W: CompilerWorkflow> Translate<W> for Translator<W> {
-  type In = TopLevelNamespace<W>;
-  type Out = Module<W>;
+impl Translator<DefaultWorkflow> {
+  fn parse<'a, T: Parse<'a>>(&mut self, input: T::In) -> Result<T> {
+    T::parse(self, input)
+  }
 
-  fn new(ast: Self::In, handle: CompilerStoreHandle<W>) -> Self {
+  fn parse_scope<'a, T: ParseScope<'a> + SearchIn<S>, S: Scope>(&mut self, input: T::In, parent: &Option<RcCell<T::Scope>>) -> Result<RcCell<T>> {
+    T::parse_scope(self, input, parent)
+  }
+}
+
+impl Translate<DefaultWorkflow> for Translator<DefaultWorkflow> {
+  type In = TopLevelNamespace<DefaultWorkflow>;
+  type Out = RcCell<Module>;
+
+  fn new(ast: Self::In, handle: CompilerStoreHandle<DefaultWorkflow>) -> Self {
     Self {
       ast: Some(ast),
       handle,
     }
   }
 
-  fn translate(mut self, compiler: &mut Compiler<W>) -> Result<Self::Out> {
+  fn translate(mut self, compiler: &mut Compiler<DefaultWorkflow>) -> Result<Self::Out> {
     let ast = self.ast.take().unwrap();
 
-    let module = self.make_top_level_namespace(compiler, ast)?;
+    let mut children = vec![];
+
+    let module = new_rc_cell(Module {
+      parent: None,
+      name: ModuleName::File(self.handle),
+      children: vec![],
+      span: ast.span,
+    });
+
+    let parent = Some(module.clone());
+
+    for child in ast.children {
+      let child = self.parse((child, &parent))?;
+      children.push(child);
+    };
+
+    {
+      module.borrow_mut().children = children;
+    };
 
     Ok(module)
   }

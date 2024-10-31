@@ -64,7 +64,7 @@ pub(crate) struct Namespace<W: CompilerWorkflow> {
   /// The name of this namespace
   pub(crate) identifier: Identifier<W>,
   /// The structures inside this namespace
-  pub(crate) children: NamespaceChild<W>,
+  pub(crate) children: Vec<NamespaceChild<W>>,
   pub(crate) span: Span<W>,
 }
 

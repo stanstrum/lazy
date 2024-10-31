@@ -1,6 +1,13 @@
+use std::marker::PhantomData;
+
 use crate::Result;
 use crate::compiler::*;
-use std::marker::PhantomData;
+use workflow::DefaultWorkflow;
+
+use crate::translator::lang::{
+  Module,
+  RcCell,
+};
 
 macro_rules! make_todo_stage {
   ($name:ident: $trait:ident::<In = $in:ty>::$method:ident) => {
@@ -35,6 +42,6 @@ macro_rules! make_todo_stage {
 
 // These allow for making skeletons for the compiler workflow without fully
 // implementing each stage
-make_todo_stage! { Checker: Check::<In = crate::translator::lang::Module<W>, Out = ()>::check }
+make_todo_stage! { Checker: Check::<In = RcCell<Module>, Out = ()>::check }
 make_todo_stage! { Generator: Generate::<In = (), Out = ()>::generate }
 make_todo_stage! { Outputter: Output::<In = ()>::output }

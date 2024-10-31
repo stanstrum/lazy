@@ -9,8 +9,8 @@ use crate::compiler::{
 };
 
 /// The compilation step for tokenization
-pub(crate) trait Tokenize<W: CompilerWorkflow> {
-  type Out;
+pub(crate) trait Tokenize<W: CompilerWorkflow>: Debug {
+  type Out: Debug;
 
   /// Creates this tokenizer
   fn new(input: TakenCompilerModule<W>, handle: CompilerStoreHandle<W>) -> Self;
@@ -19,9 +19,9 @@ pub(crate) trait Tokenize<W: CompilerWorkflow> {
 }
 
 /// The compilation step for asterization
-pub(crate) trait Asterize<W: CompilerWorkflow> {
-  type In;
-  type Out;
+pub(crate) trait Asterize<W: CompilerWorkflow>: Debug {
+  type In: Debug;
+  type Out: Debug;
 
   /// Creates this asterizer
   fn new(input: Self::In, handle: CompilerStoreHandle<W>) -> Self;
@@ -30,9 +30,9 @@ pub(crate) trait Asterize<W: CompilerWorkflow> {
 }
 
 /// The compilation step for translation
-pub(crate) trait Translate<W: CompilerWorkflow> {
-  type In;
-  type Out;
+pub(crate) trait Translate<W: CompilerWorkflow>: Debug {
+  type In: Debug;
+  type Out: Debug;
 
   /// Creates this translator
   fn new(input: Self::In, handle: CompilerStoreHandle<W>) -> Self;
@@ -41,9 +41,9 @@ pub(crate) trait Translate<W: CompilerWorkflow> {
 }
 
 /// The compilation step for checking
-pub(crate) trait Check<W: CompilerWorkflow> {
-  type In;
-  type Out;
+pub(crate) trait Check<W: CompilerWorkflow>: Debug {
+  type In: Debug;
+  type Out: Debug;
 
   /// Creates this checker
   fn new(input: Self::In, handle: CompilerStoreHandle<W>) -> Self;
@@ -52,9 +52,9 @@ pub(crate) trait Check<W: CompilerWorkflow> {
 }
 
 /// The compilation step for generation
-pub(crate) trait Generate<W: CompilerWorkflow> {
-  type In;
-  type Out;
+pub(crate) trait Generate<W: CompilerWorkflow>: Debug {
+  type In: Debug;
+  type Out: Debug;
 
   /// Creates this generator
   fn new(input: Self::In, handle: CompilerStoreHandle<W>) -> Self;
@@ -63,8 +63,8 @@ pub(crate) trait Generate<W: CompilerWorkflow> {
 }
 
 /// The compilation step for outputting
-pub(crate) trait Output<W: CompilerWorkflow> {
-  type In;
+pub(crate) trait Output<W: CompilerWorkflow>: Debug {
+  type In: Debug;
 
   /// Creates this outputter
   fn new(input: Self::In, handle: CompilerStoreHandle<W>) -> Self;

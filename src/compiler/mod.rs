@@ -12,6 +12,7 @@ use std::marker::PhantomData;
 
 /// A file in the process of being compiled
 #[allow(unused)]
+#[derive(Debug)]
 pub(crate) enum CompilerJob<W: CompilerWorkflow> {
   /// Has been taken by a compilation step and is therefore unavailable
   Taken,
@@ -103,6 +104,7 @@ enum CompilationStage {
 
 /// The interface through which a module can be accessed after being taken from
 /// the compiler store
+#[derive(Debug)]
 pub(crate) struct TakenCompilerModule<W: CompilerWorkflow> {
   /// Handle into the CompilerStore, for reference and reinsertion
   pub(crate) handle: CompilerStoreHandle<W>,

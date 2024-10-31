@@ -12,6 +12,7 @@ macro_rules! make_todo_stage {
   };
 
   (@inner: $name:ident, $trait:ident, $method:ident, $($assoc:ident = $ty:ty),+) => {
+    #[derive(Debug)]
     pub(super) struct $name<W: CompilerWorkflow> {
       marker: PhantomData<W>,
     }

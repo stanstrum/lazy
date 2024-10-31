@@ -14,6 +14,7 @@ use crate::tokenizer::{
 
 /// A reader for Tokens that allows for peeking, reading, setting, and resetting
 /// the internal reader position at will
+#[derive(Debug)]
 pub(super) struct TokenReader<W: CompilerWorkflow> {
   /// The tokens taken from the tokenization stage
   tokens: Vec<Token<W>>,

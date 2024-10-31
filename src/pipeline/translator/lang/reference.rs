@@ -4,10 +4,10 @@ use std::{
   fmt::Debug,
 };
 
-use ast::{Identifier, Qualified};
-
-use crate::Result;
 use super::*;
+use crate::Result;
+
+use ast::{Identifier, Qualified};
 
 pub(crate) type RcCell<T> = Rc<RefCell<T>>;
 

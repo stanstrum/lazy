@@ -1,11 +1,12 @@
 mod r#type;
 mod function;
 mod reference;
-use std::fmt::Debug;
 
 pub(crate) use r#type::*;
 pub(crate) use function::*;
 pub(crate) use reference::*;
+
+use std::fmt::Debug;
 
 use crate::compiler::{
   CompilerStoreHandle,

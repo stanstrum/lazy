@@ -1,7 +1,8 @@
 use std::collections::VecDeque;
 
-use crate::compiler::{CompilerStoreHandle, CompilerWorkflow};
 use crate::Result;
+
+use crate::compiler::{CompilerStoreHandle, CompilerWorkflow};
 use crate::tokenizer::SpanStart;
 
 #[derive(Debug, Clone, Copy)]

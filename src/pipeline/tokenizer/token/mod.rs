@@ -4,10 +4,10 @@ pub(crate) mod error;
 
 pub(crate) use consts::*;
 pub(crate) use span::*;
+use error::*;
 
 use crate::Result;
 use crate::compiler::CompilerWorkflow;
-use error::*;
 
 use crate::tokenizer::impls::numeric::NumericState;
 

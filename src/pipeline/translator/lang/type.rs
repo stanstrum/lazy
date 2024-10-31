@@ -1,10 +1,10 @@
+use super::*;
+
 use crate::compiler::{
   CompilerStoreHandle,
   CompilerWorkflow,
 };
 use crate::asterizer::ast;
-
-use super::*;
 
 /// Represents an unresolved type and the information necessary to resolve it
 #[allow(unused)]

@@ -1,8 +1,7 @@
 use super::*;
-
-use crate::compiler::workflow::DefaultWorkflow;
 use crate::Result;
 
+use crate::compiler::workflow::DefaultWorkflow;
 use crate::asterizer::ast;
 
 impl Intrinsic {

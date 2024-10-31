@@ -17,7 +17,7 @@ impl SearchIn<Function> for FunctionArgument {
     Ok(
       scope.arguments.iter()
         .find_map(|argument| {
-          let name_matches  = argument.borrow().name.name == index;
+          let name_matches = { argument.borrow().name.name == index };
 
           name_matches.then(
             || ScopeSearch::Found(argument.clone())
@@ -118,13 +118,17 @@ impl<'a> ParseScope<'a> for Function {
       .collect::<Result<_>>()?;
 
     {
+      rc.borrow_mut().body.borrow_mut().parent = argument_parent.clone().into();
+    };
+
+    if let Some(input) = input.return_ty {
+      let return_ty = translator.parse_scope::<Type<Module>, Module>(input, parent)?;
+
+      rc.borrow_mut().return_ty = return_ty;
+    };
+
+    {
       let mut function = rc.borrow_mut();
-
-      function.body.borrow_mut().parent = argument_parent.clone().into();
-
-      if let Some(input) = input.return_ty {
-        function.return_ty = translator.parse_scope::<Type<Module>, Module>(input, parent)?;
-      };
 
       function.parent = parent.clone().into();
       function.arguments = arguments;

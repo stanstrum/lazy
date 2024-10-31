@@ -1,6 +1,6 @@
 use std::{
   cell::RefCell,
-  rc::Rc,
+  rc::{Rc, Weak},
   fmt::Debug,
 };
 
@@ -60,4 +60,28 @@ impl<S: Scope> Type<S> where Self: SearchIn<S> {
 
 pub(crate) fn new_rc_cell<T>(value: T) -> RcCell<T> {
   Rc::new(RefCell::new(value))
+}
+
+impl<S: Scope<Index = str>> UnresolvedReference<S> {
+  pub(crate) fn find_reference<V: SearchIn<S>>(&self) -> Result<ScopeSearch<V, S>> {
+    let mut context = Rc::downgrade(&self.context.parent);
+
+    for part in self.parts.iter() {
+      let search = {
+        trace!("borrow UnresolvedReference context via weak upgrade");
+
+        context.upgrade().unwrap().borrow_mut().search::<V>(&part.name)?
+      };
+
+      let next = match search {
+        ScopeSearch::Found(rc) => return Ok(ScopeSearch::Found(rc.clone())),
+        ScopeSearch::Next(rc) => Rc::downgrade(&rc),
+        ScopeSearch::None => return Ok(ScopeSearch::None),
+      };
+
+      context = next;
+    };
+
+    todo!()
+  }
 }

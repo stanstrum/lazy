@@ -1,3 +1,5 @@
+use super::*;
+
 use std::fmt::Debug;
 use typename::TypeName;
 
@@ -7,6 +9,14 @@ use crate::compiler::{
   CompilerStoreHandle,
   TakenCompilerModule,
 };
+
+/// Insertion into a CompilerStore
+pub(crate) trait JobStore<W: CompilerWorkflow> where Self: Sized {
+  /// Stores this job's data via handle
+  fn store_by_handle(self, store: &mut CompilerStore<W>, handle: CompilerStoreHandle<W>) -> CompilerStoreHandle<W>;
+  /// Stores this job's data via owned data
+  fn store(self, store: &mut CompilerStore<W>) -> CompilerStoreHandle<W>;
+}
 
 /// The compilation step for tokenization
 pub(crate) trait Tokenize<W: CompilerWorkflow>: Debug {
@@ -81,4 +91,24 @@ pub(crate) trait CompilerWorkflow: Debug + Clone + Copy + TypeName + Sized {
   type Checker: Check<Self, In = <Self::Translator as Translate<Self>>::Out>;
   type Generator: Generate<Self, In = <Self::Checker as Check<Self>>::Out>;
   type Outputter: Output<Self, In = <Self::Generator as Generate<Self>>::Out>;
+}
+
+/// A file in the process of being compiled
+#[allow(unused)]
+#[derive(Debug)]
+pub(crate) enum CompilerJob<W: CompilerWorkflow> {
+  /// Has been taken by a compilation step and is therefore unavailable
+  Taken,
+  /// Has not been processed yet
+  Unprocessed,
+  /// Has been tokenized
+  Tokenized(<W::Tokenizer as Tokenize<W>>::Out),
+  /// Has been asterized
+  Asterized(<W::Asterizer as Asterize<W>>::Out),
+  /// Has been translated
+  Translated(<W::Translator as Translate<W>>::Out),
+  /// Has been checked
+  Checked(<W::Checker as Check<W>>::Out),
+  /// Has been generated
+  Generated(<W::Generator as Generate<W>>::Out),
 }

@@ -66,11 +66,7 @@ impl<S: Scope<Index = str>> UnresolvedReference<S> {
     let mut context = self.context.as_ref().clone();
 
     for part in self.parts.iter() {
-      let search = {
-        trace!("borrow UnresolvedReference context via weak upgrade");
-
-        context.upgrade().unwrap().borrow().search(&part.name)?
-      };
+      let search = context.upgrade().unwrap().borrow().search(&part.name)?;
 
       let next = match search {
         ScopeSearch::Found(rc) => return Ok(ScopeSearch::Found(rc)),

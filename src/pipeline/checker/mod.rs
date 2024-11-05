@@ -1,4 +1,7 @@
-use crate::Result;
+use std::collections::VecDeque;
+use std::rc::Rc;
+
+use crate::{Result, ok};
 
 use crate::compiler::{
   Compiler,
@@ -11,89 +14,122 @@ use crate::translator::lang::*;
 
 #[allow(unused)]
 #[derive(Debug)]
+pub(crate) struct Modifications {
+  modifications: VecDeque<Modification>,
+}
+
+#[allow(unused)]
+#[derive(Debug)]
 pub(crate) struct Checker<W: CompilerWorkflow> {
   input: RcCell<Module>,
   handle: CompilerStoreHandle<W>,
 }
 
 trait Resolve: Sized {
-  fn resolve(&mut self) -> Result<bool>;
+  fn resolve(&self, mods: &mut Modifications) -> Result;
+}
+
+#[allow(unused)]
+#[derive(Debug)]
+enum Modification {
+  ResolveUnresolvedTypeModuleReference {
+    weak: WeakCell<UnresolvedReference<Module>>,
+    value: Reference<Type<Module>, Module>,
+  },
+}
+
+impl Modification {
+  fn apply(self) -> Result {
+    todo!()
+  }
+}
+
+impl Modifications {
+  fn new() -> Self {
+    Self {
+      modifications: VecDeque::new(),
+    }
+  }
+
+  fn push(&mut self, modification: Modification) {
+    self.modifications.push_back(modification);
+  }
+
+  fn is_empty(&self) -> bool {
+    self.modifications.is_empty()
+  }
+
+  fn apply_all(self) -> Result {
+    for (i, modification) in (1..).zip(self.modifications) {
+      trace!("check: modification #{i}");
+      modification.apply()?;
+    };
+
+    ok
+  }
 }
 
 impl Resolve for Reference<Type<Module>, Module> {
-  fn resolve(&mut self) -> Result<bool> {
+  fn resolve(&self, mods: &mut Modifications) -> Result {
     match self {
-      Reference::Resolved(_) => Ok(false),
+      Reference::Resolved(_) => {},
       Reference::Unresolved(rc) => {
-        let search = {
-          trace!("borrow UnresolvedReference");
-
-          rc.borrow().find_reference::<Type<Module>>()?
-        };
+        let search = rc.borrow().find_reference()?;
 
         if let ScopeSearch::Found(found) = search {
-          *self = Self::Resolved(found.upgrade().unwrap());
-
-          return Ok(true)
+          mods.push(Modification::ResolveUnresolvedTypeModuleReference {
+            weak: Rc::downgrade(&rc),
+            value: Self::Resolved(found.upgrade().unwrap()),
+          });
         };
-
-        Ok(false)
       },
-    }
+    }; ok
   }
 }
 
 impl Resolve for Type<Module> {
-  fn resolve(&mut self) -> Result<bool> {
+  fn resolve(&self, mods: &mut Modifications) -> Result {
     match self {
-      Type::Intrinsic { .. } => Ok(false),
-      Type::Reference(reference) => reference.resolve(),
+      Type::Intrinsic { .. } => ok,
+      Type::Reference(reference) => reference.resolve(mods),
     }
   }
 }
 
 impl Resolve for FunctionArgument {
-  fn resolve(&mut self) -> Result<bool> {
-    trace!("borrow FunctionArgument.ty");
+  fn resolve(&self, mods: &mut Modifications) -> Result {
+    self.ty.borrow().resolve(mods)?;
 
-    self.ty.borrow_mut().resolve()
+    ok
   }
 }
 
 impl Resolve for Function {
-  fn resolve(&mut self) -> Result<bool> {
-    let mut did_work = false;
-
-    for (i, argument)  in self.arguments.iter().enumerate() {
-      trace!("borrow Function.arguments[{i}]");
-
-      did_work |= argument.borrow_mut().resolve()?;
+  fn resolve(&self, mods: &mut Modifications) -> Result {
+    for argument in self.arguments.iter() {
+      argument.borrow().resolve(mods)?;
     };
 
-    Ok(did_work)
+    ok
   }
 }
 
 impl Resolve for ModuleChild {
-  fn resolve(&mut self) -> Result<bool> {
-    trace!("borrow ModuleChild::*");
-
+  fn resolve(&self, mods: &mut Modifications) -> Result {
     match self {
-      ModuleChild::Function(rc) => rc.borrow_mut().resolve(),
-      ModuleChild::Module(rc) => rc.borrow_mut().resolve(),
+      ModuleChild::Function(rc) => rc.borrow().resolve(mods),
+      ModuleChild::Module(rc) => rc.borrow().resolve(mods),
     }
   }
 }
 
 impl Resolve for Module {
-  fn resolve(&mut self) -> Result<bool> {
-    let mut did_work = false;
-
-    for child in self.children.iter_mut() {
-      did_work |= child.borrow_mut().resolve()?;
+  fn resolve(&self, mods: &mut Modifications) -> Result {
+    for child in self.children.iter() {
+      child.borrow().resolve(mods)?;
     };
 
-    Ok(did_work)
+    ok
   }
 }
 
@@ -115,10 +151,26 @@ impl<W: CompilerWorkflow> Check<W> for Checker<W> {
     loop {
       trace!("check: resolve pass #{counter}");
 
-      if !self.input.borrow_mut().resolve()? {
+      // Make new queue of modifications for this pass to add to
+      let mut mods = Modifications::new();
+
+      // Do resolution work and add modifications to `mods` -- chaining along
+      // errors if there are any
+      self.input.borrow().resolve(&mut mods)?;
+
+      // If no modifications to the program structure are suggested, then just
+      // break out of the loop
+      if mods.is_empty() {
+        trace!("check: resolve pass #{counter}: complete; no modifications found");
+
         break;
       };
 
+      // Otherwise, apply those modifications
+      mods.apply_all()?;
+
+      // Since there were modifications found, we aren't done resolving types
+      // and comparing them, so continue to the next iteration
       counter += 1;
     };
 

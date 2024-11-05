@@ -1,18 +1,16 @@
 use snafu::prelude::*;
+
 use utf8_read::Char;
-
 use std::fs::File;
-use std::path::PathBuf;
 
-use crate::Result;
+use super::*;
 
-use crate::arg_parser::error::ArgumentError;
-use crate::asterizer::error::AsterizerError;
-use crate::tokenizer::error::TokenError;
-
-use super::{
-  Compiler,
-  CompilerWorkflow,
+use crate::{
+  arg_parser::error::ArgumentError,
+  asterizer::error::AsterizerError,
+  tokenizer::error::TokenError,
+  checker::error::CheckerError,
+  Result,
 };
 
 use crate::tokenizer::Span;
@@ -57,6 +55,10 @@ pub(crate) enum CompilerError {
   /// An error occurred when asterizing a file's source code
   #[snafu(display("AST error: {err}"))]
   Ast { err: AsterizerError },
+
+  /// An error occurred when checking a file's source tree
+  #[snafu(display("type check error: {err}"))]
+  Check { err: CheckerError },
 }
 
 impl From<ArgumentError> for CompilerError {
@@ -74,6 +76,12 @@ impl From<TokenError> for CompilerError {
 impl From<AsterizerError> for CompilerError {
   fn from(err: AsterizerError) -> Self {
     Self::Ast { err }
+  }
+}
+
+impl From<CheckerError> for CompilerError {
+  fn from(err: CheckerError) -> Self {
+    Self::Check { err }
   }
 }
 
@@ -95,6 +103,7 @@ impl crate::help::LazyHelp for CompilerError {
   fn applicable_span(self) -> Option<ReadSpan> {
     match self {
       CompilerError::Ast { err } => err.applicable_span(),
+      CompilerError::Check { err } => err.applicable_span(),
       _ => None,
     }
   }

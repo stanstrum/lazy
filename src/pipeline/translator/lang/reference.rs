@@ -4,6 +4,8 @@ use std::{
   fmt::Debug,
 };
 
+use ast::Qualified;
+
 use super::*;
 use crate::Result;
 
@@ -36,8 +38,8 @@ pub(crate) trait Scope: Debug + Sized {
 #[derive(Debug)]
 pub(crate) struct UnresolvedReference<S: Scope, W: CompilerWorkflow = DefaultWorkflow> {
   pub(crate) context: OpaqueParent<WeakCell<S>>,
-  pub(crate) implicit: bool,
-  pub(crate) parts: Vec<ast::Identifier<W>>,
+  pub(crate) qualified: Qualified<DefaultWorkflow>,
+  pub(crate) span: Span<W>,
 }
 
 #[allow(unused)]
@@ -65,7 +67,7 @@ impl<S: Scope<Index = str>> UnresolvedReference<S> {
   pub(crate) fn find_reference<V: SearchIn<S>>(&self) -> Result<ScopeSearch<V, S>> {
     let mut context = self.context.as_ref().clone();
 
-    for part in self.parts.iter() {
+    for part in self.qualified.parts.iter() {
       let search = context.upgrade().unwrap().borrow().search(&part.name)?;
 
       let next = match search {

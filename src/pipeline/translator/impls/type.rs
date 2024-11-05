@@ -50,8 +50,8 @@ impl<'a, S: Scope> ParseScope<'a> for Type<S> where Type<S>: SearchIn<S> {
         // such
         Ok(new_rc_cell(Self::Reference(Reference::Unresolved(new_rc_cell(UnresolvedReference {
           context: parent.clone().unwrap().into(),
-          implicit: qualified.implicit,
-          parts: qualified.parts,
+          span: qualified.span,
+          qualified,
         })))))
       },
     }

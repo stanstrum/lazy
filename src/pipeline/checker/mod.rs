@@ -1,7 +1,10 @@
+pub(crate) mod error;
+
+use crate::compiler::workflow::DefaultWorkflow;
+use crate::{Result, ok};
+
 use std::collections::VecDeque;
 use std::rc::Rc;
-
-use crate::{Result, ok};
 
 use crate::compiler::{
   Compiler,
@@ -11,6 +14,7 @@ use crate::compiler::{
 };
 
 use crate::translator::lang::*;
+use error::*;
 
 #[allow(unused)]
 #[derive(Debug)]
@@ -27,6 +31,7 @@ pub(crate) struct Checker<W: CompilerWorkflow> {
 
 trait Resolve: Sized {
   fn resolve(&self, mods: &mut Modifications) -> Result;
+  fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result;
 }
 
 #[allow(unused)]
@@ -85,6 +90,17 @@ impl Resolve for Reference<Type<Module>, Module> {
       },
     }; ok
   }
+
+  fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
+    match self {
+      Reference::Resolved(rc) => rc.borrow().ensure_resolved(compiler),
+      Reference::Unresolved(rc) => {
+        let span = compiler.span_to_read_span(rc.borrow().span)?;
+
+        UnresolvedQualifiedSnafu { span }.fail()?
+      },
+    }
+  }
 }
 
 impl Resolve for Type<Module> {
@@ -92,6 +108,13 @@ impl Resolve for Type<Module> {
     match self {
       Type::Intrinsic { .. } => ok,
       Type::Reference(reference) => reference.resolve(mods),
+    }
+  }
+
+  fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
+    match self {
+      Type::Intrinsic { .. } => ok,
+      Type::Reference(reference) => reference.ensure_resolved(compiler),
     }
   }
 }
@@ -102,6 +125,10 @@ impl Resolve for FunctionArgument {
 
     ok
   }
+
+  fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
+    self.ty.borrow().ensure_resolved(compiler)
+  }
 }
 
 impl Resolve for Function {
@@ -109,6 +136,18 @@ impl Resolve for Function {
     for argument in self.arguments.iter() {
       argument.borrow().resolve(mods)?;
     };
+
+    self.return_ty.borrow().resolve(mods)?;
+
+    ok
+  }
+
+  fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
+    for argument in self.arguments.iter() {
+      argument.borrow().ensure_resolved(compiler)?;
+    };
+
+    self.return_ty.borrow().ensure_resolved(compiler)?;
 
     ok
   }
@@ -121,6 +160,13 @@ impl Resolve for ModuleChild {
       ModuleChild::Module(rc) => rc.borrow().resolve(mods),
     }
   }
+
+  fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
+    match self {
+      ModuleChild::Function(rc) => rc.borrow().ensure_resolved(compiler),
+      ModuleChild::Module(rc) => rc.borrow().ensure_resolved(compiler),
+    }
+  }
 }
 
 impl Resolve for Module {
@@ -131,20 +177,28 @@ impl Resolve for Module {
 
     ok
   }
+
+  fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
+    for child in self.children.iter() {
+      child.borrow().ensure_resolved(compiler)?;
+    };
+
+    ok
+  }
 }
 
-impl<W: CompilerWorkflow> Check<W> for Checker<W> {
+impl Check<DefaultWorkflow> for Checker<DefaultWorkflow> {
   type In = RcCell<Module>;
   type Out = RcCell<Module>;
 
-  fn new(input: Self::In, handle: CompilerStoreHandle<W>) -> Self {
+  fn new(input: Self::In, handle: CompilerStoreHandle<DefaultWorkflow>) -> Self {
     Self {
       handle,
       input,
     }
   }
 
-  fn check(self, _compiler: &mut Compiler<W>) -> Result<Self::Out> {
+  fn check(self, compiler: &mut Compiler<DefaultWorkflow>) -> crate::Result<Self::Out> {
     trace!("{:#?}", &self.input);
 
     let mut counter = 1;
@@ -173,6 +227,12 @@ impl<W: CompilerWorkflow> Check<W> for Checker<W> {
       // and comparing them, so continue to the next iteration
       counter += 1;
     };
+
+    // At this point, the checker isn't able to resolve the program contents
+    // any further.  We'll do one last pass through the program hierarchy to
+    // detect any unresolved bits, at which point we will throw an error.
+    // Otherwise, this code is ready to be generated
+    self.input.borrow().ensure_resolved(compiler)?;
 
     Ok(self.input)
   }

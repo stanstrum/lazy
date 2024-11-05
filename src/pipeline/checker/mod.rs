@@ -32,7 +32,7 @@ impl Resolve for Reference<Type<Module>, Module> {
         };
 
         if let ScopeSearch::Found(found) = search {
-          *self = Self::Resolved(found);
+          *self = Self::Resolved(found.upgrade().unwrap());
 
           return Ok(true)
         };

@@ -1,6 +1,9 @@
 pub(crate) mod lang;
 mod impls;
 
+use std::borrow::Borrow;
+use std::rc::Rc;
+
 use lang::*;
 
 use crate::compiler::workflow::DefaultWorkflow;
@@ -19,7 +22,7 @@ trait ParseScope<'a>: Sized + SearchIn<Self::Scope> {
   type In;
   type Scope: Scope;
 
-  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<RcCell<Self::Scope>>) -> Result<RcCell<Self>>;
+  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>>;
 }
 
 #[allow(unused)]
@@ -30,8 +33,13 @@ pub(crate) struct Translator<W: CompilerWorkflow> {
 }
 
 impl Translator<DefaultWorkflow> {
-  fn parse_scope<'a, T: ParseScope<'a> + SearchIn<S>, S: Scope>(&mut self, input: T::In, parent: &Option<RcCell<T::Scope>>) -> Result<RcCell<T>> {
-    T::parse_scope(self, input, parent)
+  fn parse_scope<'a, T: ParseScope<'a> + SearchIn<S>, S: Scope>(&mut self, input: T::In, parent: &Option<WeakCell<T::Scope>>) -> Result<RcCell<T>> {
+    match parent {
+      Some(parent) => trace!("{:?}", (*parent).borrow()),
+      None => warn!("no parent"),
+    };
+
+    T::parse_scope(self, input, dbg!(parent))
   }
 }
 
@@ -58,7 +66,7 @@ impl Translate<DefaultWorkflow> for Translator<DefaultWorkflow> {
       span: ast.span,
     });
 
-    let parent = Some(module.clone());
+    let parent = Some(Rc::downgrade(&module));
 
     for child in ast.children {
       let child = self.parse_scope::<ModuleChild, Module>(child, &parent)?;

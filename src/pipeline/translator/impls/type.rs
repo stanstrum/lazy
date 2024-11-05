@@ -24,7 +24,7 @@ impl<'a, S: Scope> ParseScope<'a> for Type<S> where Type<S>: SearchIn<S> {
   type In = ast::Type<DefaultWorkflow>;
   type Scope = S;
 
-  fn parse_scope(_translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<RcCell<Self::Scope>>) -> Result<RcCell<Self>> {
+  fn parse_scope(_translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
     match input {
       ast::Type::Qualified(qualified) => {
         // If this qualified is not explicit and only has one part, it might be an
@@ -40,7 +40,7 @@ impl<'a, S: Scope> ParseScope<'a> for Type<S> where Type<S>: SearchIn<S> {
           if let Some(kind) = Intrinsic::try_from_slice(name) {
             // This means that this Type can be resolved as follows
             return Ok(new_rc_cell(Type::Intrinsic {
-              parent: parent.as_ref().cloned().unwrap().into() ,
+              parent: parent.clone().unwrap().into(),
               kind,
             }));
           };
@@ -48,14 +48,18 @@ impl<'a, S: Scope> ParseScope<'a> for Type<S> where Type<S>: SearchIn<S> {
 
         // Otherwise, this qualified is as of yet unresolved -- return it as
         // such
-        Ok(Self::new_unknown(parent.as_ref().unwrap(), qualified))
+        Ok(new_rc_cell(Self::Reference(Reference::Unresolved(new_rc_cell(UnresolvedReference {
+          context: parent.clone().unwrap().into(),
+          implicit: qualified.implicit,
+          parts: qualified.parts,
+        })))))
       },
     }
   }
 }
 
 impl SearchIn<Module> for Type<Module> {
-  fn parent(&self) -> Option<RcCell<Module>> {
+  fn parent(&self) -> Option<WeakCell<Module>> {
     match self {
       Type::Intrinsic { parent, .. } => Some(parent.clone().unwrap()),
       Type::Reference(reference) => reference.parent(),
@@ -66,8 +70,8 @@ impl SearchIn<Module> for Type<Module> {
     Ok(
       match ModuleChild::search_in(scope, index)? {
         ScopeSearch::Found(rc) => {
-          match &*rc.borrow() {
-            ModuleChild::Module(rc) => ScopeSearch::Next(rc.clone()),
+          match &*rc.upgrade().unwrap().try_borrow().unwrap() {
+            ModuleChild::Module(rc) => ScopeSearch::Next(Rc::downgrade(rc)),
             _ => ScopeSearch::None,
           }
         },

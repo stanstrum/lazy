@@ -46,7 +46,7 @@ pub(crate) enum ModuleName<W: CompilerWorkflow = DefaultWorkflow> {
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Module {
-  pub(crate) parent: OpaqueParent<Option<RcCell<Module>>>,
+  pub(crate) parent: OpaqueParent<Option<WeakCell<Module>>>,
   /// The name of this module
   pub(crate) name: ModuleName,
   /// The children/members of this module
@@ -64,6 +64,10 @@ impl<T: Clone> From<T> for OpaqueParent<T> {
 impl<T: Clone> OpaqueParent<T> {
   pub(crate) fn unwrap(self) -> T {
     self.parent
+  }
+
+  pub(crate) fn as_ref(&self) -> &T {
+    &self.parent
   }
 }
 

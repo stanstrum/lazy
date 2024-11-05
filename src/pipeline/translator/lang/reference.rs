@@ -7,20 +7,19 @@ use std::{
 use super::*;
 use crate::Result;
 
-use ast::{Identifier, Qualified};
-
 pub(crate) type RcCell<T> = Rc<RefCell<T>>;
+pub(crate) type WeakCell<T> = Weak<RefCell<T>>;
 
 #[allow(unused)]
 pub(crate) enum ScopeSearch<V: SearchIn<S>, S: Scope> {
-  Found(RcCell<V>),
-  Next(RcCell<S>),
+  Found(WeakCell<V>),
+  Next(WeakCell<S>),
   None,
 }
 
 #[allow(unused)]
 pub(crate) trait SearchIn<S: Scope>: Sized + Debug {
-  fn parent(&self) -> Option<RcCell<S>>;
+  fn parent(&self) -> Option<WeakCell<S>>;
   fn search_in(scope: &S, index: &S::Index) -> Result<ScopeSearch<Self, S>>;
 }
 
@@ -36,9 +35,9 @@ pub(crate) trait Scope: Debug + Sized {
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct UnresolvedReference<S: Scope, W: CompilerWorkflow = DefaultWorkflow> {
-  pub(crate) context: OpaqueParent<RcCell<S>>,
-  implicit: bool,
-  parts: Vec<Identifier<W>>,
+  pub(crate) context: OpaqueParent<WeakCell<S>>,
+  pub(crate) implicit: bool,
+  pub(crate) parts: Vec<ast::Identifier<W>>,
 }
 
 #[allow(unused)]
@@ -49,13 +48,13 @@ pub(crate) enum Reference<V: SearchIn<S>, S: Scope> {
 }
 
 impl<S: Scope> Type<S> where Self: SearchIn<S> {
-  pub(crate) fn new_unknown(context: &RcCell<S>, qualified: Qualified<DefaultWorkflow>) -> RcCell<Self> {
-    new_rc_cell(Self::Reference(Reference::Unresolved(new_rc_cell(UnresolvedReference {
-      context: context.clone().into(),
-      implicit: qualified.implicit,
-      parts: qualified.parts,
-    }))))
-  }
+  // pub(crate) fn new_unknown(context: &RcCell<S>, qualified: Qualified<DefaultWorkflow>) -> RcCell<Self> {
+  //   new_rc_cell(Self::Reference(Reference::Unresolved(new_rc_cell(UnresolvedReference {
+  //     context: Rc::downgrade(context).into(),
+  //     implicit: qualified.implicit,
+  //     parts: qualified.parts,
+  //   }))))
+  // }
 }
 
 pub(crate) fn new_rc_cell<T>(value: T) -> RcCell<T> {
@@ -64,18 +63,18 @@ pub(crate) fn new_rc_cell<T>(value: T) -> RcCell<T> {
 
 impl<S: Scope<Index = str>> UnresolvedReference<S> {
   pub(crate) fn find_reference<V: SearchIn<S>>(&self) -> Result<ScopeSearch<V, S>> {
-    let mut context = Rc::downgrade(&self.context.parent);
+    let mut context = self.context.as_ref().clone();
 
     for part in self.parts.iter() {
       let search = {
         trace!("borrow UnresolvedReference context via weak upgrade");
 
-        context.upgrade().unwrap().borrow_mut().search::<V>(&part.name)?
+        context.upgrade().unwrap().borrow().search(&part.name)?
       };
 
       let next = match search {
-        ScopeSearch::Found(rc) => return Ok(ScopeSearch::Found(rc.clone())),
-        ScopeSearch::Next(rc) => Rc::downgrade(&rc),
+        ScopeSearch::Found(rc) => return Ok(ScopeSearch::Found(rc)),
+        ScopeSearch::Next(rc) => rc,
         ScopeSearch::None => return Ok(ScopeSearch::None),
       };
 

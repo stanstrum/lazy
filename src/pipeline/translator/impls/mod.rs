@@ -13,20 +13,20 @@ impl<S: Scope> Scope for RcCell<S> {
 }
 
 impl<V: SearchIn<S>, S: Scope> Reference<V, S> {
-  fn parent(&self) -> Option<RcCell<S>> {
+  fn parent(&self) -> Option<WeakCell<S>> {
     match self {
-      Reference::Resolved(rc) => rc.borrow().parent(),
-      Reference::Unresolved(rc) => Some(rc.borrow().context.clone().unwrap()),
+      Reference::Resolved(rc) => rc.try_borrow().unwrap().parent(),
+      Reference::Unresolved(rc) => Some(rc.try_borrow().unwrap().context.clone().unwrap()),
     }
   }
 }
 
 pub(crate) trait ScopeParent<S: Scope, T: SearchIn<S>> {
-  fn scope_parent(&self) -> Option<RcCell<S>>;
+  fn scope_parent(&self) -> Option<WeakCell<S>>;
 }
 
 impl<S: Scope, T: SearchIn<S>> ScopeParent<S, T> for RcCell<T> {
-  fn scope_parent(&self) -> Option<RcCell<S>> {
-    self.borrow().parent().clone()
+  fn scope_parent(&self) -> Option<WeakCell<S>> {
+    self.try_borrow().unwrap().parent().clone()
   }
 }

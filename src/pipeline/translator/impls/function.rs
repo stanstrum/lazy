@@ -9,7 +9,7 @@ impl Scope for FunctionBlock {
 }
 
 impl SearchIn<Function> for FunctionArgument {
-  fn parent(&self) -> Option<RcCell<Function>> {
+  fn parent(&self) -> Option<WeakCell<Function>> {
     Some(self.parent.clone().unwrap())
   }
 
@@ -17,10 +17,9 @@ impl SearchIn<Function> for FunctionArgument {
     Ok(
       scope.arguments.iter()
         .find_map(|argument| {
-          let name_matches = { argument.borrow().name.name == index };
+          let name_matches = { argument.try_borrow().unwrap().name.name == index };
 
-          name_matches.then(
-            || ScopeSearch::Found(argument.clone())
+          name_matches.then(|| ScopeSearch::Found(Rc::downgrade(argument))
           )
       })
       .unwrap_or(ScopeSearch::None)
@@ -29,7 +28,7 @@ impl SearchIn<Function> for FunctionArgument {
 }
 
 impl SearchIn<Module> for Function {
-  fn parent(&self) -> Option<RcCell<Module>> {
+  fn parent(&self) -> Option<WeakCell<Module>> {
     self.parent.clone().unwrap()
   }
 
@@ -37,9 +36,9 @@ impl SearchIn<Module> for Function {
     Ok(
       match ModuleChild::search_in(scope, index)? {
         ScopeSearch::Found(rc) => {
-          match &*rc.borrow() {
-            ModuleChild::Function(rc) => ScopeSearch::Found(rc.clone()),
-            ModuleChild::Module(rc) => ScopeSearch::Next(rc.clone()),
+          match &*rc.upgrade().unwrap().try_borrow().unwrap() {
+            ModuleChild::Function(rc) => ScopeSearch::Found(Rc::downgrade(rc)),
+            ModuleChild::Module(rc) => ScopeSearch::Next(Rc::downgrade(rc)),
           }
         },
         ScopeSearch::Next(rc) => ScopeSearch::Next(rc),
@@ -50,11 +49,11 @@ impl SearchIn<Module> for Function {
 }
 
 impl SearchIn<Function> for FunctionBlock {
-  fn parent(&self) -> Option<RcCell<Function>> {
+  fn parent(&self) -> Option<WeakCell<Function>> {
     todo!()
   }
 
-  fn search_in(scope: &Function, index: &<Function as Scope>::Index) -> Result<ScopeSearch<Self, Function>> {
+  fn search_in(_scope: &Function, _index: &<Function as Scope>::Index) -> Result<ScopeSearch<Self, Function>> {
     todo!()
   }
 }
@@ -63,8 +62,8 @@ impl<'a> ParseScope<'a> for FunctionArgument {
   type In = ast::FunctionArgument<DefaultWorkflow>;
   type Scope = Function;
 
-  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<RcCell<Self::Scope>>) -> Result<RcCell<Self>> {
-    let module = parent.as_ref().unwrap().scope_parent();
+  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
+    let module = { parent.clone().unwrap().upgrade().unwrap().scope_parent() };
 
     let ty = translator.parse_scope::<Type<Module>, Module>(input.ty, &module)?;
 
@@ -80,7 +79,7 @@ impl<'a> ParseScope<'a> for FunctionBlock {
   type In = ast::BlockExpression<DefaultWorkflow>;
   type Scope = Function;
 
-  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<RcCell<Self::Scope>>) -> Result<RcCell<Self>> {
+  fn parse_scope(_translator: &mut Translator<DefaultWorkflow>, _input: Self::In, _parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
     todo!()
   }
 }
@@ -89,7 +88,7 @@ impl<'a> ParseScope<'a> for Function {
   type In = ast::Function<DefaultWorkflow>;
   type Scope = Module;
 
-  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<RcCell<Self::Scope>>) -> Result<RcCell<Self>> {
+  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
     dbg!("hello");
 
     let body = new_rc_cell(FunctionBlock {
@@ -104,25 +103,25 @@ impl<'a> ParseScope<'a> for Function {
       body,
       return_ty: new_rc_cell(Type::Intrinsic {
         kind: Intrinsic::Void,
-        parent: parent.as_ref().cloned().unwrap().into(),
+        parent: parent.clone().unwrap().into(),
       }),
     });
 
-    let argument_parent = Some(rc.clone());
+    let argument_parent = Some(Rc::downgrade(&rc));
+
+    {
+      rc.try_borrow().unwrap().body.borrow_mut().parent = argument_parent.clone().into();
+    };
 
     let arguments = input.arguments
       .map(|x| x.arguments)
       .unwrap_or_default()
       .into_iter()
-      .map(|argument| translator.parse_scope::<FunctionArgument, Function>(argument, &argument_parent))
+      .map(|argument| translator.parse_scope(argument, &argument_parent))
       .collect::<Result<_>>()?;
 
-    {
-      rc.borrow_mut().body.borrow_mut().parent = argument_parent.clone().into();
-    };
-
     if let Some(input) = input.return_ty {
-      let return_ty = translator.parse_scope::<Type<Module>, Module>(input, parent)?;
+      let return_ty = translator.parse_scope(input, parent)?;
 
       rc.borrow_mut().return_ty = return_ty;
     };
@@ -139,7 +138,7 @@ impl<'a> ParseScope<'a> for Function {
 }
 
 impl SearchIn<FunctionBlock> for Variable {
-  fn parent(&self) -> Option<RcCell<FunctionBlock>> {
+  fn parent(&self) -> Option<WeakCell<FunctionBlock>> {
     todo!()
   }
 

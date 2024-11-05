@@ -89,8 +89,6 @@ impl<'a> ParseScope<'a> for Function {
   type Scope = Module;
 
   fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
-    dbg!("hello");
-
     let body = new_rc_cell(FunctionBlock {
       parent: None.into(),
       variables: vec![],

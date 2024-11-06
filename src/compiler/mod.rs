@@ -30,6 +30,7 @@ pub(super) struct Compiler<W: CompilerWorkflow> {
   pub(crate) settings: CompilerSettings,
   /// Module store
   pub(crate) store: CompilerStore<W>,
+  pub(crate) context: inkwell::context::Context,
 }
 
 impl<W: CompilerWorkflow> Compiler<W> {
@@ -52,6 +53,7 @@ impl<W: CompilerWorkflow> Compiler<W> {
     Self {
       settings,
       store: CompilerStore::new(),
+      context: inkwell::context::Context::create(),
     }
   }
 

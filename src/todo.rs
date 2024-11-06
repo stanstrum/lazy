@@ -1,12 +1,8 @@
 use std::marker::PhantomData;
 
+use crate::generator::GeneratorModule;
 use crate::Result;
 use crate::compiler::*;
-
-use crate::translator::lang::{
-  RcCell,
-  Module,
-};
 
 macro_rules! make_todo_stage {
   ($name:ident: $trait:ident::<In = $in:ty>::$method:ident) => {
@@ -41,5 +37,4 @@ macro_rules! make_todo_stage {
 
 // These allow for making skeletons for the compiler workflow without fully
 // implementing each stage
-make_todo_stage! { Generator: Generate::<In = RcCell<Module>, Out = ()>::generate }
-make_todo_stage! { Outputter: Output::<In = ()>::output }
+make_todo_stage! { Outputter: Output::<In = inkwell::module::Module<'static>>::output }

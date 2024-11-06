@@ -14,6 +14,6 @@ impl crate::compiler::CompilerWorkflow for DefaultWorkflow {
   type Asterizer = asterizer::Asterizer<Self>;
   type Translator = translator::Translator<Self>;
   type Checker = checker::Checker<Self>;
-  type Generator = todo::Generator<Self>;
+  type Generator = generator::Generator<Self>;
   type Outputter = todo::Outputter<Self>;
 }

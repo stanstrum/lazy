@@ -108,7 +108,7 @@ impl_ast!(ImportPattern: @stub);
 
 // TODO: No Span is saved here for the export keyword, which might be needed
 //       later on.
-impl_ast!(Export: (compiler, aster, start) => {
+impl_ast!(Export: (compiler, aster, _start) => {
   let Some(TokenKind::Keyword(Keyword::Export)) = aster.reader.next_kind() else {
     return Ok(None);
   };

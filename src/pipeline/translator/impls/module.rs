@@ -65,6 +65,7 @@ impl<'a> ParseScope<'a> for ModuleChild {
 
         Ok(new_rc_cell(Self::Function(function)))
       },
+      ast::NamespaceChild::Alias(export) => todo!(),
     }
   }
 }

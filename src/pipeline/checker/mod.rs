@@ -60,6 +60,8 @@ fn get_main_handle(compiler: &mut Compiler<DefaultWorkflow>) -> Result<CompilerS
     compiler.store.get_module_mut(&handle).data = CompilerJob::Unprocessed;
   };
 
+  compiler.store.get_module(&handle).data.stage();
+
   compiler.bring_to_stage(&handle, CompilationStage::Generate)?;
 
   Ok(handle)
@@ -223,16 +225,18 @@ impl Check<DefaultWorkflow> for Checker<DefaultWorkflow> {
   fn check(self, compiler: &mut Compiler<DefaultWorkflow>) -> Result<Self::Out> {
     trace!("{:#?}", &self.input);
 
-    let std_handle = get_main_handle(compiler)?;
-    let CompilerJob::Checked(std) = &compiler.store.get_module(&std_handle).data else {
-      unreachable!();
-    };
+    if matches!(&compiler.store.get_module(&self.handle).path, CompilerModulePath::Real(_)) {
+      let std_handle = get_main_handle(compiler)?;
+      let CompilerJob::Checked(std) = &compiler.store.get_module(&std_handle).data else {
+        unreachable!();
+      };
 
-    {
-      let mut this = self.input.borrow_mut();
+      {
+        let mut this = self.input.borrow_mut();
 
-      for export in std.borrow().exports.iter() {
-        this.imports.push(Import(export.get_reference().clone()));
+        for export in std.borrow().exports.iter() {
+          this.imports.push(Import(export.get_reference().clone()));
+        };
       };
     };
 

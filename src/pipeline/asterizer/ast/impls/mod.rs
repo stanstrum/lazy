@@ -12,13 +12,15 @@ use crate::asterizer::{
   Ast,
   Asterizer,
   ast::*,
-  error::*,
+  error,
 };
 use crate::tokenizer::{
-  TokenKind,
+  Keyword,
   Punctuation,
   SpanStart,
+  TokenKind,
 };
+pub(self) use error::*;
 
 impl<W: CompilerWorkflow> TopLevelNamespace<W> {
   /// Make an empty TopLevelNamespace in the case of an empty module
@@ -26,6 +28,7 @@ impl<W: CompilerWorkflow> TopLevelNamespace<W> {
     Self {
       children: vec![],
       span: start.into_span(0),
+      exports: vec![],
     }
   }
 }
@@ -88,18 +91,45 @@ impl_ast!(Namespace: @stub);
 impl_ast!(NamespaceChild: (compiler, aster, _) => {
   #[allow(clippy::manual_map)]
   Ok({
-    if let Some(namespace) = aster.make(compiler)? {
-      Some(Self::Namespace(Box::new(namespace)))
+      if let Some(alias) = aster.make(compiler)? {
+      Some(Self::Alias(alias))
     } else if let Some(function) = aster.make(compiler)? {
       Some(Self::Function(function))
+    } else if let Some(namespace) = aster.make(compiler)? {
+      Some(Self::Namespace(Box::new(namespace)))
     } else {
       None
     }
   })
 });
 
+impl_ast!(Import: @stub);
+impl_ast!(ImportPattern: @stub);
+
+// TODO: No Span is saved here for the export keyword, which might be needed
+//       later on.
+impl_ast!(Export: (compiler, aster, start) => {
+  let Some(TokenKind::Keyword(Keyword::Export)) = aster.reader.next_kind() else {
+    return Ok(None);
+  };
+
+  aster.reader.seek_whitespace_and_comments();
+
+  if let Some(child) = aster.make(compiler)? {
+    Ok(Some(Self::NamespaceChild(Box::new(child))))
+  } else if let Some(import) = aster.make(compiler)? {
+    Ok(Some(Self::Import(import)))
+  } else {
+    ExpectedSnafu {
+      what: What::ExportChild,
+      span: aster.next_read_span(compiler)?,
+    }.fail()?
+  }
+});
+
 impl_ast!(TopLevelNamespace: (compiler, aster, start) => {
   let mut children = vec![];
+  let mut exports = vec![];
 
   while {
     // Skip whitespace and comments
@@ -107,17 +137,20 @@ impl_ast!(TopLevelNamespace: (compiler, aster, start) => {
     // While there are non-whitespace/comment Tokens left
     !aster.reader.is_empty()
   } {
-    let Some(child) = aster.make(compiler)? else {
+    if let Some(export) = aster.make(compiler)? {
+      exports.push(export);
+    } else if let Some(child) = aster.make(compiler)? {
+      children.push(child);
+    } else {
       return ExpectedSnafu {
         what: What::TopLevelNamespace,
         span: aster.next_read_span(compiler)?,
       }.fail()?;
     };
 
-    children.push(child);
     aster.reader.seek_whitespace_and_comments();
 
-    let Some(TokenKind::Punctuation(Punctuation::Semicolon)) = aster.reader.next_kind() else {
+    let Some(TokenKind::Punctuation(Punctuation::Semicolon)) = dbg!(aster.reader.next_kind()) else {
       return ExpectedSnafu {
         what: What::Semicolon,
         span: aster.next_read_span(compiler)?,
@@ -128,5 +161,6 @@ impl_ast!(TopLevelNamespace: (compiler, aster, start) => {
   Ok(Some(Self {
     children,
     span: aster.finish_span(start),
+    exports,
   }))
 });

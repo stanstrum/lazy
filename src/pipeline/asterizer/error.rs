@@ -5,12 +5,15 @@ use crate::compiler::error::ReadSpan;
 #[derive(Debug)]
 pub(crate) enum What {
   TopLevelNamespace,
+  Identifier,
   Type,
   FunctionArguments,
   FunctionBody,
   Expression,
   Semicolon,
   ClosingBrace,
+  ExportChild,
+  Punctuation,
 }
 
 impl What {
@@ -22,12 +25,15 @@ impl What {
 
     match self {
       What::TopLevelNamespace => (A, "top-level namespace"),
+      What::Identifier => (AN, "identifier"),
       What::Type => (A, "type"),
       What::FunctionArguments => (NULL, "function arguments"),
       What::FunctionBody => (NULL, "function body"),
       What::Expression => (AN, "expression"),
       What::Semicolon => (A, "semicolon"),
       What::ClosingBrace => (A, "closing brace"),
+      What::ExportChild => (AN, "exported member"),
+      What::Punctuation => (NULL, "punctuation"),
     }
   }
 

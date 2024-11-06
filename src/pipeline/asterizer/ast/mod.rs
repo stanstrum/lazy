@@ -1,6 +1,7 @@
 mod function;
 mod expression;
 mod impls;
+mod r#type;
 
 use typename::TypeName;
 use crate::tokenizer::Span;
@@ -8,6 +9,7 @@ use crate::compiler::CompilerWorkflow;
 
 pub(crate) use function::*;
 pub(crate) use expression::*;
+pub(crate) use r#type::*;
 
 /// A simple name, this is equivalent to a String but associated with a Span
 #[allow(unused)]
@@ -39,12 +41,25 @@ pub(crate) struct Qualified<W: CompilerWorkflow> {
   pub(crate) span: Span<W>,
 }
 
-/// A simple type, i.e. non-arithmetic
 #[allow(unused)]
 #[derive(Debug, TypeName)]
-pub(crate) enum Type<W: CompilerWorkflow> {
-  /// A type that is only referred to by name
-  Qualified(Qualified<W>),
+pub(crate) enum ImportPattern<W: CompilerWorkflow> {
+  Marker(W),
+}
+
+#[allow(unused)]
+#[derive(Debug, TypeName)]
+pub(crate) struct Import<W: CompilerWorkflow> {
+  pub(crate) pattern: ImportPattern<W>,
+  pub(crate) span: Span<W>,
+}
+
+/// An exported child
+#[allow(unused)]
+#[derive(Debug, TypeName)]
+pub(crate) enum Export<W: CompilerWorkflow> {
+  NamespaceChild(Box<NamespaceChild<W>>),
+  Import(Import<W>),
 }
 
 /// A structure that can appear inside of a namespace
@@ -53,6 +68,7 @@ pub(crate) enum Type<W: CompilerWorkflow> {
 pub(crate) enum NamespaceChild<W: CompilerWorkflow> {
   Namespace(Box<Namespace<W>>),
   Function(Function<W>),
+  Alias(TypeAlias<W>),
 }
 
 /// A namespace, akin to a module, however modules can only be used to organize
@@ -76,4 +92,5 @@ pub(crate) struct TopLevelNamespace<W: CompilerWorkflow> {
   /// The structures in this file
   pub(crate) children: Vec<NamespaceChild<W>>,
   pub(crate) span: Span<W>,
+  pub(crate) exports: Vec<Export<W>>,
 }

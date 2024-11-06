@@ -40,7 +40,7 @@ pub(crate) struct CompilerStoreHandle<W: CompilerWorkflow> {
 
 impl<W: CompilerWorkflow> CompilerJob<W> {
   /// Returns the stage of this module as a CompilationStage
-  pub(super) fn stage(&self) -> Option<CompilationStage> {
+  pub(crate) fn stage(&self) -> Option<CompilationStage> {
     match self {
       CompilerJob::Taken => None,
       CompilerJob::Unprocessed => Some(CompilationStage::Tokenize),
@@ -93,6 +93,8 @@ impl<W: CompilerWorkflow> CompilerStore<W> {
     if let Some(handle) = self.find_module(module) {
       return handle;
     };
+
+    dbg!("add");
 
     self.add_module(CompilerModule {
       path: module.path.to_owned(),

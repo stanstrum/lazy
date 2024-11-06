@@ -1,9 +1,6 @@
 use typename::TypeName;
 
-use crate::{
-  pipeline::*,
-  todo,
-};
+use crate::pipeline::*;
 
 /// The default workflow for compiling Lazy code
 #[derive(Debug, Clone, Copy, TypeName)]
@@ -15,5 +12,5 @@ impl crate::compiler::CompilerWorkflow for DefaultWorkflow {
   type Translator = translator::Translator<Self>;
   type Checker = checker::Checker<Self>;
   type Generator = generator::Generator<Self>;
-  type Outputter = todo::Outputter<Self>;
+  type Outputter = outputter::Outputter<Self>;
 }

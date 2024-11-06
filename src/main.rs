@@ -8,7 +8,6 @@ mod help;
 
 mod compiler;
 
-mod todo;
 mod pipeline;
 
 use std::process::ExitCode;

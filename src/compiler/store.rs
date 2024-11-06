@@ -24,7 +24,7 @@ pub(crate) enum CompilationStage {
 /// Stores modules in their respective stages of compilation
 pub(crate) struct CompilerStore<W: CompilerWorkflow> {
   /// Program modules
-  pub(super) modules: Vec<CompilerModule<W>>,
+  pub(crate) modules: Vec<CompilerModule<W>>,
   pub(super) marker: PhantomData<W>,
 }
 
@@ -129,5 +129,14 @@ impl<W: CompilerWorkflow> CompilerStore<W> {
     std::mem::swap(&mut module.data, &mut taken.data);
 
     taken
+  }
+}
+
+impl<W: CompilerWorkflow> CompilerStoreHandle<W> {
+  pub(crate) fn new(index: usize) -> Self {
+    Self {
+      index,
+      marker: PhantomData,
+    }
   }
 }

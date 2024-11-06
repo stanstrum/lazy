@@ -53,7 +53,7 @@ pub(super) fn print_message(err: CompilerError) {
     return;
   };
 
-  let header = format!("in {}:{}:{}", span.path.to_string_lossy(), span.line, span.column);
+  let header = format!("in {}:{}:{}", span.path, span.line, span.column);
 
   // TODO: colorization, correct formatting ...
   error!("{message}\n{header}\n\n{}\n^ here", span.text);

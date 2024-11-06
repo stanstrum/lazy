@@ -49,6 +49,15 @@ pub(crate) enum Reference<V: SearchIn<S>, S: Scope> {
   Unresolved(RcCell<UnresolvedReference<S>>),
 }
 
+impl<V: SearchIn<S>, S: Scope> Clone for Reference<V, S> {
+  fn clone(&self) -> Self {
+    match self {
+      Self::Resolved(rc) => Self::Resolved(rc.clone()),
+      Self::Unresolved(rc) => Self::Unresolved(rc.clone()),
+    }
+  }
+}
+
 impl<S: Scope> Type<S> where Self: SearchIn<S> {
   // pub(crate) fn new_unknown(context: &RcCell<S>, qualified: Qualified<DefaultWorkflow>) -> RcCell<Self> {
   //   new_rc_cell(Self::Reference(Reference::Unresolved(new_rc_cell(UnresolvedReference {

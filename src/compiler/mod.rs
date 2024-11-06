@@ -57,12 +57,12 @@ impl<W: CompilerWorkflow> Compiler<W> {
 
   /// Applies compilation steps as appropriate for a certain Handle until it
   /// reaches the stage provided
-  fn bring_to_stage(&mut self, handle: &CompilerStoreHandle<W>, stage: CompilationStage) -> Result {
+  pub(crate) fn bring_to_stage(&mut self, handle: &CompilerStoreHandle<W>, stage: CompilationStage) -> Result {
     while {
       let module = self.store.get_module(handle);
 
       let Some(module_stage) = module.data.stage() else {
-        warn!("module {} (id {}): no stage", module.path.to_string_lossy(), handle.index);
+        warn!("module {} (id {}): no stage", module.path.to_string(), handle.index);
         return ok;
       };
 

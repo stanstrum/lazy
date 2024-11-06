@@ -1,7 +1,6 @@
 use snafu::prelude::*;
 
 use utf8_read::Char;
-use std::fs::File;
 
 use super::*;
 
@@ -20,7 +19,7 @@ use crate::tokenizer::Span;
 /// the W: CompilerWorkflow constraint to bearers down the error-handling path
 #[derive(Debug)]
 pub(crate) struct ReadSpan {
-  pub(crate) path: PathBuf,
+  pub(crate) path: CompilerModulePath,
   pub(crate) start: usize,
   pub(crate) end: usize,
   pub(crate) line: usize,
@@ -117,11 +116,7 @@ impl<W: CompilerWorkflow> Compiler<W> {
     let path = &module.path;
 
     // Open said file
-    let file = match File::open(path) {
-      Ok(x) => x,
-      // Error if the file can't be opened
-      Err(err) => return IOSnafu { err: err.to_string() }.fail()?,
-    };
+    let file = path.bytes()?;
 
     // TODO: low-hanging fruit (see below):
     // Create a UTF-8 reader ... again.  This is because Spans currently hold

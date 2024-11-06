@@ -12,7 +12,7 @@ use crate::compiler::{
   Compiler,
   CompilerStoreHandle,
   CompilerWorkflow,
-  Translate,
+  Translate
 };
 
 use crate::asterizer::ast::TopLevelNamespace;
@@ -62,6 +62,8 @@ impl Translate<DefaultWorkflow> for Translator<DefaultWorkflow> {
       parent: None.into(),
       name: ModuleName::File(self.handle),
       children: vec![],
+      imports: vec![],
+      exports: vec![],
       span: ast.span,
     });
 

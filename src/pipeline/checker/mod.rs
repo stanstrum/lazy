@@ -7,10 +7,14 @@ use std::collections::VecDeque;
 use std::rc::Rc;
 
 use crate::compiler::{
+  Check,
+  CompilationStage,
   Compiler,
+  CompilerJob,
+  CompilerModule,
+  CompilerModulePath,
   CompilerStoreHandle,
   CompilerWorkflow,
-  Check,
 };
 
 use crate::translator::lang::*;
@@ -41,6 +45,24 @@ enum Modification {
     weak: WeakCell<UnresolvedReference<Module>>,
     value: Reference<Type<Module>, Module>,
   },
+}
+
+fn get_main_handle(compiler: &mut Compiler<DefaultWorkflow>) -> Result<CompilerStoreHandle<DefaultWorkflow>> {
+  let handle = compiler.store.register_module(&CompilerModule {
+    path: CompilerModulePath::ImplicitSource {
+      name: "index.zy",
+      content: include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/std/index.zy")),
+    },
+    data: CompilerJob::Taken,
+  });
+
+  if let CompilerJob::Taken = compiler.store.get_module(&handle).data {
+    compiler.store.get_module_mut(&handle).data = CompilerJob::Unprocessed;
+  };
+
+  compiler.bring_to_stage(&handle, CompilationStage::Generate)?;
+
+  Ok(handle)
 }
 
 impl Modification {
@@ -83,7 +105,7 @@ impl Resolve for Reference<Type<Module>, Module> {
 
         if let ScopeSearch::Found(found) = search {
           mods.push(Modification::ResolveUnresolvedTypeModuleReference {
-            weak: Rc::downgrade(&rc),
+            weak: Rc::downgrade(rc),
             value: Self::Resolved(found.upgrade().unwrap()),
           });
         };
@@ -198,8 +220,21 @@ impl Check<DefaultWorkflow> for Checker<DefaultWorkflow> {
     }
   }
 
-  fn check(self, compiler: &mut Compiler<DefaultWorkflow>) -> crate::Result<Self::Out> {
+  fn check(self, compiler: &mut Compiler<DefaultWorkflow>) -> Result<Self::Out> {
     trace!("{:#?}", &self.input);
+
+    let std_handle = get_main_handle(compiler)?;
+    let CompilerJob::Checked(std) = &compiler.store.get_module(&std_handle).data else {
+      unreachable!();
+    };
+
+    {
+      let mut this = self.input.borrow_mut();
+
+      for export in std.borrow().exports.iter() {
+        this.imports.push(Import(export.get_reference().clone()));
+      };
+    };
 
     let mut counter = 1;
     loop {

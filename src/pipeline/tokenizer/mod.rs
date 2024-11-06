@@ -58,11 +58,8 @@ impl<W: CompilerWorkflow> Tokenize<W> for Tokenizer<W> {
   }
 
   fn tokenize(mut self, compiler: &mut Compiler<W>) -> Result<Self::Out> {
-    let path = compiler.store.get_module(&self.module.handle).path.as_path();
-    let file = match std::fs::File::open(path) {
-      Ok(x) => x,
-      Err(err) => return IOSnafu { err: err.to_string() }.fail()?,
-    };
+    let path = &compiler.store.get_module(&self.module.handle).path;
+    let file = path.bytes()?;
 
     let buf_reader = std::io::BufReader::new(file);
 

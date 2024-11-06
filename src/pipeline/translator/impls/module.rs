@@ -79,6 +79,8 @@ impl<'a> ParseScope<'a> for Module {
       name: ModuleName::Identifier(input.identifier),
       children: vec![],
       span: input.span,
+      imports: vec![],
+      exports: vec![],
     });
 
     let child_parent = Some(Rc::downgrade(&module));

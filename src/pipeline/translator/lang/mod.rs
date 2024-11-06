@@ -42,6 +42,18 @@ pub(crate) enum ModuleName<W: CompilerWorkflow = DefaultWorkflow> {
   File(CompilerStoreHandle<W>),
 }
 
+#[allow(unused)]
+#[derive(Debug)]
+pub(crate) struct Import(pub Reference<ModuleChild, Module>);
+
+#[allow(unused)]
+#[derive(Debug)]
+pub(crate) struct Export(pub Reference<ModuleChild, Module>);
+
+impl Export {
+  pub(crate) fn get_reference(&self) -> &Reference<ModuleChild, Module> { &self.0 }
+}
+
 /// Represents a Module, specifically, the top-level namespace thereof
 #[allow(unused)]
 #[derive(Debug)]
@@ -53,6 +65,8 @@ pub(crate) struct Module {
   pub(crate) children: Vec<RcCell<ModuleChild>>,
   pub(crate) span: Span<DefaultWorkflow>,
   // TODO: imports, exports, ...
+  pub(crate) imports: Vec<Import>,
+  pub(crate) exports: Vec<Export>,
 }
 
 impl<T: Clone> From<T> for OpaqueParent<T> {

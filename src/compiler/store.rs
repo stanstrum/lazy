@@ -89,7 +89,7 @@ impl<W: CompilerWorkflow> CompilerStore<W> {
   }
 
   /// Creates a new entry into Self if the provided module is not already stored
-  pub(super) fn register_module(&mut self, module: &CompilerModule<W>) -> CompilerStoreHandle<W> {
+  pub(crate) fn register_module(&mut self, module: &CompilerModule<W>) -> CompilerStoreHandle<W> {
     if let Some(handle) = self.find_module(module) {
       return handle;
     };
@@ -101,7 +101,7 @@ impl<W: CompilerWorkflow> CompilerStore<W> {
   }
 
   /// Stores a module using the JobStore trait
-  pub(super) fn store_module<T: JobStore<W>>(&mut self, module: T) -> CompilerStoreHandle<W> {
+  pub(crate) fn store_module<T: JobStore<W>>(&mut self, module: T) -> CompilerStoreHandle<W> {
     module.store(self)
   }
 
@@ -111,12 +111,12 @@ impl<W: CompilerWorkflow> CompilerStore<W> {
   }
 
   /// Gets a mutable reference from Self from a Handle
-  fn get_module_mut(&mut self, handle: &CompilerStoreHandle<W>) -> &mut CompilerModule<W> {
+  pub(crate) fn get_module_mut(&mut self, handle: &CompilerStoreHandle<W>) -> &mut CompilerModule<W> {
     &mut self.modules[handle.index]
   }
 
   /// Take a module from a Handle and update the internal store accordingly
-  pub(super) fn take_module(&mut self, handle: &CompilerStoreHandle<W>) -> TakenCompilerModule<W> {
+  pub(crate) fn take_module(&mut self, handle: &CompilerStoreHandle<W>) -> TakenCompilerModule<W> {
     let module = self.get_module_mut(handle);
 
     let mut taken = TakenCompilerModule::<W> {

@@ -1,0 +1,5 @@
+export type char := u32;
+export type bool := u8;
+
+export const false: bool = 0;
+export const true: bool = 1;

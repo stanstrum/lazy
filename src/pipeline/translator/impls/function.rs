@@ -103,6 +103,7 @@ impl<'a> ParseScope<'a> for Function {
         kind: Intrinsic::Void,
         parent: parent.clone().unwrap().into(),
       }),
+      generator_id: None,
     });
 
     let argument_parent = Some(Rc::downgrade(&rc));

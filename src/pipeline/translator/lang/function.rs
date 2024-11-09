@@ -43,4 +43,5 @@ pub(crate) struct Function {
   pub(crate) arguments: Vec<RcCell<FunctionArgument>>,
   pub(crate) body: RcCell<FunctionBlock>,
   pub(crate) return_ty: RcCell<Type<Module>>,
+  pub(crate) generator_id: Option<usize>,
 }

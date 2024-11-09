@@ -1,8 +1,11 @@
+mod impls;
+
 use std::io::Read;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 use inkwell::context::Context;
+use inkwell::values::FunctionValue;
 use tempfile::NamedTempFile;
 
 use crate::Result;
@@ -17,12 +20,15 @@ use crate::compiler::{
 
 use crate::translator::lang::{RcCell, Module};
 
+use super::translator::lang::ModuleChild;
+
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Generator<W: CompilerWorkflow> {
   handle: CompilerStoreHandle<W>,
-  input: RcCell<Module>,
+  input: Option<RcCell<Module>>,
   context: Context,
+  functions: Vec<FunctionValue<'static>>,
 }
 
 #[allow(unused)]
@@ -38,41 +44,24 @@ trait LlvmGenerate<W: CompilerWorkflow> {
   fn generate_in_context(&self, context: &Context) -> Result<Self::Out>;
 }
 
-impl LlvmGenerate<DefaultWorkflow> for Module {
-  type Out = inkwell::module::Module<'static>;
-
-  fn generate_in_context(&self, context: &Context) -> Result<Self::Out> {
-    let module = context.create_module(format!("{:?}", &self.name).as_str());
-
-    // TODO: ???
-    Ok(unsafe { std::mem::transmute(module) })
-  }
-}
-
-impl<L: LlvmGenerate<W>, W: CompilerWorkflow> LlvmGenerate<W> for RcCell<L> {
-  type Out = L::Out;
-
-  fn generate_in_context(&self, context: &Context) -> Result<Self::Out> {
-    self.borrow().generate_in_context(context)
-  }
-}
-
 impl Generate<DefaultWorkflow> for Generator<DefaultWorkflow> {
   type In = RcCell<Module>;
   type Out = PathBuf;
 
   fn new(input: Self::In, handle: CompilerStoreHandle<DefaultWorkflow>) -> Self {
     Self {
-      input,
+      input: Some(input),
       handle,
       context: Context::create(),
+      functions: vec![],
     }
   }
 
-  fn generate(self, compiler: &mut Compiler<DefaultWorkflow>) -> Result<Self::Out> {
-    let module = compiler.context.create_module(format!("{:?}", &self.input.borrow().name).as_str());
+  fn generate(mut self, compiler: &mut Compiler<DefaultWorkflow>) -> Result<Self::Out> {
+    let input = self.input.take().unwrap();
+    let module = compiler.context.create_module(format!("{:?}", &input.borrow().name).as_str());
 
-    self.input.generate_in_context(&self.context)?;
+    input.borrow().generate(&mut self, &compiler.context)?;
 
     let llc_out = NamedTempFile::with_suffix(".s").expect("failed to make tmpfile").into_temp_path();
     let as_out = NamedTempFile::with_suffix(".o").expect("failed to make tmpfile").into_temp_path();

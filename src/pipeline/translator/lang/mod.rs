@@ -67,6 +67,7 @@ pub(crate) struct Module {
   // TODO: imports, exports, ...
   pub(crate) imports: Vec<Import>,
   pub(crate) exports: Vec<Export>,
+  pub(crate) generator_id: Option<usize>,
 }
 
 impl<T: Clone> From<T> for OpaqueParent<T> {
@@ -89,7 +90,11 @@ impl PartialEq<&str> for ModuleName {
   fn eq(&self, other: &&str) -> bool {
     match self {
       ModuleName::Identifier(identifier) => &identifier.name == other,
-      ModuleName::File(_) => false,
+      ModuleName::File(_) => {
+        warn!("maybe duplicating a file?");
+
+        false
+      }
     }
   }
 }

@@ -65,6 +65,7 @@ impl Translate<DefaultWorkflow> for Translator<DefaultWorkflow> {
       imports: vec![],
       exports: vec![],
       span: ast.span,
+      generator_id: None,
     });
 
     let parent = Some(Rc::downgrade(&module));

@@ -4,8 +4,6 @@ use std::{
   fmt::Debug,
 };
 
-use ast::Qualified;
-
 use super::*;
 use crate::Result;
 
@@ -38,7 +36,7 @@ pub(crate) trait Scope: Debug + Sized {
 #[derive(Debug)]
 pub(crate) struct UnresolvedReference<S: Scope, W: CompilerWorkflow = DefaultWorkflow> {
   pub(crate) context: OpaqueParent<WeakCell<S>>,
-  pub(crate) qualified: Qualified<DefaultWorkflow>,
+  pub(crate) qualified: ast::Qualified<DefaultWorkflow>,
   pub(crate) span: Span<W>,
 }
 
@@ -66,6 +64,12 @@ impl<S: Scope> Type<S> where Self: SearchIn<S> {
   //     parts: qualified.parts,
   //   }))))
   // }
+}
+
+impl<V: SearchIn<S>, S: Scope> Reference<V, S> {
+  fn new(value: V) -> Self {
+    Self::Resolved(new_rc_cell(value))
+  }
 }
 
 pub(crate) fn new_rc_cell<T>(value: T) -> RcCell<T> {

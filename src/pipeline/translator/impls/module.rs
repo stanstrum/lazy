@@ -56,12 +56,12 @@ impl<'a> ParseScope<'a> for ModuleChild {
   fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
     match input {
       ast::NamespaceChild::Namespace(namespace) => {
-        let module  = translator.parse_scope(*namespace, parent)?;
+        let module = translator.parse_scope(*namespace, parent)?;
 
         Ok(new_rc_cell(Self::Module(module)))
       },
       ast::NamespaceChild::Function(function) => {
-        let function  = translator.parse_scope(function, parent)?;
+        let function = translator.parse_scope(function, parent)?;
 
         Ok(new_rc_cell(Self::Function(function)))
       },
@@ -82,6 +82,7 @@ impl<'a> ParseScope<'a> for Module {
       span: input.span,
       imports: vec![],
       exports: vec![],
+      generator_id: None,
     });
 
     let child_parent = Some(Rc::downgrade(&module));

@@ -56,5 +56,5 @@ pub(crate) enum Type<S: Scope> where Self: SearchIn<S> {
     kind: Intrinsic,
     parent: OpaqueParent<WeakCell<S>>
   },
-  Reference(Reference<Type<S>, S>),
+  Reference(RcCell<Reference<Type<S>, S>>),
 }

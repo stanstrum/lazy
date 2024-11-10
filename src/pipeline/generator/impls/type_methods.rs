@@ -8,6 +8,7 @@ pub(super) enum GeneratorSuperType<'ctx> {
 }
 
 #[allow(unused)]
+#[derive(Clone, Copy)]
 pub(super) enum ContextOrRef<'a, 'ctx> {
   Context(&'a Context),
   Ref(&'a ContextRef<'ctx>),
@@ -49,7 +50,11 @@ impl<'ctx> GeneratorTypeMethods<'ctx> for GeneratorSuperType<'ctx> {
   }
 
   fn as_basic_metadata_type(&self) -> BasicMetadataTypeEnum<'ctx> {
-    todo!()
+    match self {
+      GeneratorSuperType::Void(_) => unimplemented!(),
+      GeneratorSuperType::Basic(basic_type_enum) => basic_type_enum.as_basic_metadata_type(),
+      GeneratorSuperType::Metadata(metadata_type) => BasicMetadataTypeEnum::MetadataType(*metadata_type),
+    }
   }
 }
 
@@ -84,6 +89,13 @@ impl<'ctx> GeneratorTypeMethods<'ctx> for BasicTypeEnum<'ctx> {
   }
 
   fn as_basic_metadata_type(&self) -> BasicMetadataTypeEnum<'ctx> {
-    todo!()
+    match *self {
+      BasicTypeEnum::ArrayType(x) => BasicMetadataTypeEnum::ArrayType(x),
+      BasicTypeEnum::FloatType(x) => BasicMetadataTypeEnum::FloatType(x),
+      BasicTypeEnum::IntType(x) => BasicMetadataTypeEnum::IntType(x),
+      BasicTypeEnum::PointerType(x) => BasicMetadataTypeEnum::PointerType(x),
+      BasicTypeEnum::StructType(x) => BasicMetadataTypeEnum::StructType(x),
+      BasicTypeEnum::VectorType(x) => BasicMetadataTypeEnum::VectorType(x),
+    }
   }
 }

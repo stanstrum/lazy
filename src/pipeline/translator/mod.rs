@@ -3,6 +3,7 @@ mod impls;
 
 use std::rc::Rc;
 
+pub(crate) use impls::*;
 use lang::*;
 
 use crate::compiler::workflow::DefaultWorkflow;
@@ -21,7 +22,7 @@ trait ParseScope<'a>: Sized + SearchIn<Self::Scope> {
   type In;
   type Scope: Scope;
 
-  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>>;
+  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, compiler: &Compiler<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>>;
 }
 
 #[allow(unused)]
@@ -32,12 +33,12 @@ pub(crate) struct Translator<W: CompilerWorkflow> {
 }
 
 impl Translator<DefaultWorkflow> {
-  fn parse_scope<'a, T: ParseScope<'a> + SearchIn<S>, S: Scope>(&mut self, input: T::In, parent: &Option<WeakCell<T::Scope>>) -> Result<RcCell<T>> {
+  fn parse_scope<'a, T: ParseScope<'a> + SearchIn<S>, S: Scope>(&mut self, compiler: &Compiler<DefaultWorkflow>, input: T::In, parent: &Option<WeakCell<T::Scope>>) -> Result<RcCell<T>> {
     if parent.is_none() {
       warn!("no parent");
     };
 
-    T::parse_scope(self, input, parent)
+    T::parse_scope(self, compiler, input, parent)
   }
 }
 
@@ -52,7 +53,7 @@ impl Translate<DefaultWorkflow> for Translator<DefaultWorkflow> {
     }
   }
 
-  fn translate(mut self, _compiler: &mut Compiler<DefaultWorkflow>) -> Result<Self::Out> {
+  fn translate(mut self, compiler: &mut Compiler<DefaultWorkflow>) -> Result<Self::Out> {
     let ast = self.ast.take().unwrap();
 
     let mut children = vec![];
@@ -69,8 +70,14 @@ impl Translate<DefaultWorkflow> for Translator<DefaultWorkflow> {
 
     let parent = Some(Rc::downgrade(&module));
 
+    let exports = Export::parse_exports(&mut self, &compiler, ast.exports, &parent)?;
+
+    {
+      module.borrow_mut().exports = exports
+    }
+
     for child in ast.children {
-      let child = self.parse_scope::<ModuleChild, Module>(child, &parent)?;
+      let child = self.parse_scope::<ModuleChild, Module>(&compiler, child, &parent)?;
       children.push(child);
     };
 

@@ -22,12 +22,21 @@ pub(crate) struct OpaqueParent<T: Clone> {
   parent: T,
 }
 
+#[allow(unused)]
+#[derive(Debug)]
+pub(crate) struct TypeAlias {
+  pub(crate) parent: OpaqueParent<WeakCell<Module>>,
+  pub(crate) name: ast::Identifier<DefaultWorkflow>,
+  pub(crate) ty: RcCell<Type<Module>>,
+}
+
 /// A member/child of a Module
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) enum ModuleChild {
   Function(RcCell<Function>),
   Module(RcCell<Module>),
+  Type(RcCell<TypeAlias>),
 }
 
 /// The name of a module.  This is a variant because top-level namespaces are
@@ -44,14 +53,16 @@ pub(crate) enum ModuleName<W: CompilerWorkflow = DefaultWorkflow> {
 
 #[allow(unused)]
 #[derive(Debug)]
-pub(crate) struct Import(pub Reference<ModuleChild, Module>);
+pub(crate) struct Import {
+  pub(crate) name: String,
+  pub(crate) reference: RcCell<Reference<ModuleChild, Module>>,
+}
 
 #[allow(unused)]
 #[derive(Debug)]
-pub(crate) struct Export(pub Reference<ModuleChild, Module>);
-
-impl Export {
-  pub(crate) fn get_reference(&self) -> &Reference<ModuleChild, Module> { &self.0 }
+pub(crate) struct Export {
+  pub(crate) name: Option<String>,
+  pub(crate) reference: RcCell<Reference<ModuleChild, Module>>,
 }
 
 /// Represents a Module, specifically, the top-level namespace thereof

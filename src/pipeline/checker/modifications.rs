@@ -2,9 +2,9 @@ use super::*;
 
 #[allow(unused)]
 #[derive(Debug)]
-pub(super) enum Modification {
+pub(crate) enum Modification {
   ResolveUnresolvedTypeModuleReference {
-    weak: WeakCell<UnresolvedReference<Module>>,
+    weak: WeakCell<Reference<Type<Module>, Module>>,
     value: Reference<Type<Module>, Module>,
   },
 }
@@ -17,7 +17,13 @@ pub(super) struct Modifications {
 
 impl Modification {
   fn apply(self) -> Result {
-    todo!()
+    match self {
+      Modification::ResolveUnresolvedTypeModuleReference { weak, value } => {
+        *weak.upgrade().unwrap().borrow_mut() = value;
+      },
+    };
+
+    ok
   }
 }
 

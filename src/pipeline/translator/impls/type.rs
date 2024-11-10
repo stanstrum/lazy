@@ -1,3 +1,5 @@
+use ast::Identifier;
+
 use super::*;
 
 impl Intrinsic {
@@ -20,11 +22,11 @@ impl Intrinsic {
   }
 }
 
-impl<'a, S: Scope> ParseScope<'a> for Type<S> where Type<S>: SearchIn<S> {
+impl<'a, S: Scope<Part = Identifier<DefaultWorkflow>>> ParseScope<'a> for Type<S> where Type<S>: SearchIn<S> {
   type In = ast::Type<DefaultWorkflow>;
   type Scope = S;
 
-  fn parse_scope(_translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
+  fn parse_scope(_translator: &mut Translator<DefaultWorkflow>, _compiler: &Compiler<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
     match input {
       ast::Type::Qualified(qualified) => {
         // If this qualified is not explicit and only has one part, it might be an
@@ -48,11 +50,12 @@ impl<'a, S: Scope> ParseScope<'a> for Type<S> where Type<S>: SearchIn<S> {
 
         // Otherwise, this qualified is as of yet unresolved -- return it as
         // such
-        Ok(new_rc_cell(Self::Reference(Reference::Unresolved(new_rc_cell(UnresolvedReference {
+        Ok(new_rc_cell(Self::Reference(new_rc_cell(Reference::Unresolved(new_rc_cell(UnresolvedReference {
           context: parent.clone().unwrap().into(),
           span: qualified.span,
-          qualified,
-        })))))
+          implicit: qualified.implicit,
+          parts: qualified.parts,
+        }))))))
       },
     }
   }
@@ -72,6 +75,7 @@ impl SearchIn<Module> for Type<Module> {
         ScopeSearch::Found(rc) => {
           match &*rc.upgrade().unwrap().try_borrow().unwrap() {
             ModuleChild::Module(rc) => ScopeSearch::Next(Rc::downgrade(rc)),
+            ModuleChild::Type(rc) => ScopeSearch::Found(Rc::downgrade(&rc.borrow().ty)),
             _ => ScopeSearch::None,
           }
         },

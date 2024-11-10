@@ -8,16 +8,40 @@ use crate::Result;
 use crate::compiler::workflow::DefaultWorkflow;
 use crate::asterizer::ast;
 
-impl<S: Scope> Scope for RcCell<S> {
-  type Index = S::Index;
+pub(crate) trait ReferenceResolve<V: SearchIn<S>, S: Scope> {
+  fn parent(&self) -> Option<WeakCell<S>>;
+  fn get(&self) -> Result<Option<WeakCell<V>>>;
 }
 
-impl<V: SearchIn<S>, S: Scope> Reference<V, S> {
+impl<V: SearchIn<S>, S: Scope> ReferenceResolve<V, S> for Reference<V, S> {
   fn parent(&self) -> Option<WeakCell<S>> {
     match self {
       Reference::Resolved(rc) => rc.try_borrow().unwrap().parent(),
       Reference::Unresolved(rc) => Some(rc.try_borrow().unwrap().context.clone().unwrap()),
     }
+  }
+
+  fn get(&self) -> Result<Option<WeakCell<V>>> {
+    Ok(match self {
+      Reference::Resolved(reference) => Some(Rc::downgrade(reference)),
+      Reference::Unresolved(rc) => {
+        if let ScopeSearch::Found(weak) = rc.borrow().find_reference()? {
+          Some(weak)
+        } else {
+          None
+        }
+      },
+    })
+  }
+}
+
+impl<V: SearchIn<S>, S: Scope> ReferenceResolve<V, S> for RcCell<Reference<V, S>> {
+  fn parent(&self) -> Option<WeakCell<S>> {
+    self.borrow().parent()
+  }
+
+  fn get(&self) -> Result<Option<WeakCell<V>>> {
+    self.borrow().get()
   }
 }
 
@@ -35,7 +59,7 @@ impl<'a> ParseScope<'a> for Instruction {
   type In = ast::BlockChild<DefaultWorkflow>;
   type Scope = FunctionBlock;
 
-  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
+  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, compiler: &Compiler<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
     todo!()
   }
 }

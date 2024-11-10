@@ -69,6 +69,7 @@ pub(crate) enum NamespaceChild<W: CompilerWorkflow> {
   Namespace(Box<Namespace<W>>),
   Function(Function<W>),
   Alias(TypeAlias<W>),
+  Export(Export<W>),
 }
 
 /// A namespace, akin to a module, however modules can only be used to organize

@@ -19,8 +19,10 @@ use crate::compiler::{
   CompilerWorkflow,
 };
 
-use modifications::*;
 use crate::translator::lang::*;
+
+pub(crate) use impls::*;
+use modifications::*;
 use error::*;
 
 #[allow(unused)]
@@ -33,6 +35,16 @@ pub(crate) struct Checker<W: CompilerWorkflow> {
 trait Resolve: Sized {
   fn resolve(&self, mods: &mut Modifications) -> Result;
   fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result;
+}
+
+impl<T: Resolve> Resolve for RcCell<T> {
+  fn resolve(&self, mods: &mut Modifications) -> Result {
+    self.borrow().resolve(mods)
+  }
+
+  fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
+    self.borrow().ensure_resolved(compiler)
+  }
 }
 
 fn get_main_handle(compiler: &mut Compiler<DefaultWorkflow>) -> Result<CompilerStoreHandle<DefaultWorkflow>> {
@@ -77,10 +89,20 @@ impl Check<DefaultWorkflow> for Checker<DefaultWorkflow> {
         let mut this = self.input.borrow_mut();
 
         for export in std.borrow().exports.iter() {
-          this.imports.push(Import(export.get_reference().clone()));
+          let Some(name) = export.get_name(&*compiler)? else {
+            warn!("{}: couldn't resolve reference, therefore couldn't resolve name", enchant!(""));
+            continue;
+          };
+
+          this.imports.push(Import {
+            name,
+            reference: export.get_reference().upgrade().unwrap(),
+          });
         };
       };
     };
+
+    dbg!(&self.input);
 
     let name = enchant!("check");
 
@@ -91,7 +113,7 @@ impl Check<DefaultWorkflow> for Checker<DefaultWorkflow> {
 
       // Do resolution work and add modifications to `mods` -- chaining along
       // errors if there are any
-      self.input.borrow().resolve(&mut mods)?;
+      self.input.resolve(&mut mods)?;
 
       // If no modifications to the program structure are suggested, then just
       // break out of the loop
@@ -113,7 +135,7 @@ impl Check<DefaultWorkflow> for Checker<DefaultWorkflow> {
     // any further.  We'll do one last pass through the program hierarchy to
     // detect any unresolved bits, at which point we will throw an error.
     // Otherwise, this code is ready to be generated
-    self.input.borrow().ensure_resolved(compiler)?;
+    self.input.ensure_resolved(compiler)?;
 
     Ok(self.input)
   }

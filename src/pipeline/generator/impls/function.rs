@@ -14,7 +14,7 @@ impl lang::FunctionBlock {
 
       // let name = variable.name.name.to_owned();
       let context = (&generator.context).into();
-      let ty = variable.ty.g_type_of(&context)
+      let ty = variable.ty.g_type_of(context)
         ?.as_basic_metadata_type();
 
       scope.push(ty);
@@ -43,7 +43,7 @@ impl lang::Function {
       should_push_value = true;
 
       let context = ContextOrRef::Ref(&context);
-      let function_ty = this.g_type_of(&context)?;
+      let function_ty = this.g_type_of(context)?;
       let function = module.add_function(&this.borrow().name.name, function_ty, None);
 
       let id = generator.functions.len();
@@ -69,13 +69,13 @@ impl lang::Function {
 impl TypeOf for lang::Function {
   type Out<'ctx> = FunctionType<'ctx>;
 
-  fn g_type_of<'a, 'ctx: 'a>(&self, context: &'a ContextOrRef<'a, 'ctx>) -> Result<Self::Out<'ctx>> {
+  fn g_type_of<'a, 'ctx: 'a>(&self, context: ContextOrRef<'a, 'ctx>) -> Result<Self::Out<'ctx>> {
     let param_types: Vec<_> = self.arguments.iter()
       .map(|argument| {
-        Ok(argument.borrow().ty.g_type_of(&context)?.as_basic_metadata_type())
+        Ok(argument.borrow().ty.g_type_of(context)?.as_basic_metadata_type())
       })
       .collect::<Result<_>>()?;
 
-    Ok(self.return_ty.g_type_of(&context)?.fn_type(&param_types, false))
+    Ok(self.return_ty.g_type_of(context)?.fn_type(&param_types, false))
   }
 }

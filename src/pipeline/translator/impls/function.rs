@@ -1,11 +1,25 @@
 use super::*;
 
+impl<S: Scope<Index = str>> Part<S> for ast::Identifier<DefaultWorkflow> {
+  fn part_to_index(&self) -> &S::Index {
+    self.name.as_str()
+  }
+}
+
+impl<S: Scope<Index = usize>> Part<S> for usize {
+  fn part_to_index(&self) -> &S::Index {
+    self
+  }
+}
+
 impl Scope for Function {
   type Index = str;
+  type Part = ast::Identifier<DefaultWorkflow>;
 }
 
 impl Scope for FunctionBlock {
   type Index = usize;
+  type Part = usize;
 }
 
 impl SearchIn<Function> for FunctionArgument {
@@ -39,6 +53,7 @@ impl SearchIn<Module> for Function {
           match &*rc.upgrade().unwrap().try_borrow().unwrap() {
             ModuleChild::Function(rc) => ScopeSearch::Found(Rc::downgrade(rc)),
             ModuleChild::Module(rc) => ScopeSearch::Next(Rc::downgrade(rc)),
+            ModuleChild::Type(rc) => todo!(),
           }
         },
         ScopeSearch::Next(rc) => ScopeSearch::Next(rc),
@@ -62,10 +77,10 @@ impl<'a> ParseScope<'a> for FunctionArgument {
   type In = ast::FunctionArgument<DefaultWorkflow>;
   type Scope = Function;
 
-  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
+  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, compiler: &Compiler<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
     let module = { parent.clone().unwrap().upgrade().unwrap().scope_parent() };
 
-    let ty = translator.parse_scope::<Type<Module>, Module>(input.ty, &module)?;
+    let ty = translator.parse_scope::<Type<Module>, Module>(compiler, input.ty, &module)?;
 
     Ok(new_rc_cell(Self {
       name: input.identifier,
@@ -79,7 +94,7 @@ impl<'a> ParseScope<'a> for FunctionBlock {
   type In = ast::BlockExpression<DefaultWorkflow>;
   type Scope = Function;
 
-  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
+  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, compiler: &Compiler<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
     // instantiate self so our children have parent references
     let this = new_rc_cell(Self {
       parent: Some(parent.clone().unwrap()).into(),
@@ -100,7 +115,7 @@ impl<'a> ParseScope<'a> for FunctionBlock {
       let ty = match binding.kind {
         ast::BindingKind::OnlyType(ty) => {
           let scope_parent= parent.as_ref().unwrap().upgrade().unwrap().scope_parent();
-          translator.parse_scope::<Type<Module>, Module>(ty, &scope_parent)?
+          translator.parse_scope::<Type<Module>, Module>(compiler, ty, &scope_parent)?
         },
         ast::BindingKind::OnlyExpression(expression) => {
           todo!()
@@ -121,7 +136,7 @@ impl<'a> ParseScope<'a> for Function {
   type In = ast::Function<DefaultWorkflow>;
   type Scope = Module;
 
-  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
+  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, compiler: &Compiler<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
     // SPONGE: this is a dummy block that gets destroyed when this scope ends -- this might lead to leaks or duplicates
     let body = new_rc_cell(FunctionBlock {
       parent: None.into(),
@@ -151,11 +166,11 @@ impl<'a> ParseScope<'a> for Function {
       .map(|x| x.arguments)
       .unwrap_or_default()
       .into_iter()
-      .map(|argument| translator.parse_scope(argument, &argument_parent))
+      .map(|argument| translator.parse_scope(compiler, argument, &argument_parent))
       .collect::<Result<_>>()?;
 
     if let Some(input) = input.return_ty {
-      let return_ty = translator.parse_scope(input, parent)?;
+      let return_ty = translator.parse_scope(compiler, input, parent)?;
 
       rc.borrow_mut().return_ty = return_ty;
     };
@@ -168,7 +183,7 @@ impl<'a> ParseScope<'a> for Function {
     };
 
     // That dummy block from earlier gets dropped here
-    rc.borrow_mut().body = FunctionBlock::parse_scope(translator, input.body, &argument_parent)?;
+    rc.borrow_mut().body = FunctionBlock::parse_scope(translator, compiler, input.body, &argument_parent)?;
 
     Ok(rc)
   }

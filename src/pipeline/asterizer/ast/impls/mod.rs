@@ -91,7 +91,9 @@ impl_ast!(Namespace: @stub);
 impl_ast!(NamespaceChild: (compiler, aster, _) => {
   #[allow(clippy::manual_map)]
   Ok({
-      if let Some(alias) = aster.make(compiler)? {
+    if let Some(export) = aster.make(compiler)? {
+      Some(Self::Export(export))
+    } else if let Some(alias) = aster.make(compiler)? {
       Some(Self::Alias(alias))
     } else if let Some(function) = aster.make(compiler)? {
       Some(Self::Function(function))

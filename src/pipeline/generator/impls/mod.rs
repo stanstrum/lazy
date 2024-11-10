@@ -1,12 +1,15 @@
-use impls::lang::{Reference, SearchIn};
-use inkwell::builder;
 use inkwell::context::ContextRef;
-use inkwell::types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType, MetadataType, VoidType};
-use inkwell::values::AsValueRef;
+use inkwell::types::{
+  BasicMetadataTypeEnum,
+  BasicTypeEnum,
+  FunctionType,
+  MetadataType,
+  VoidType,
+};
 
 use super::*;
 
-use crate::{compiler, ok};
+use crate::ok;
 use crate::translator::lang;
 
 trait TypeOf {
@@ -25,7 +28,7 @@ impl<T: TypeOf> TypeOf for RcCell<T> {
 
 trait GeneratorTypeMethods<'ctx> {
   fn fn_type(&self, param_types: &[BasicMetadataTypeEnum<'ctx>], is_var_args: bool) -> FunctionType<'ctx>;
-  fn into_basic_metadata_type(&self) -> BasicMetadataTypeEnum<'ctx>;
+  fn as_basic_metadata_type(&self) -> BasicMetadataTypeEnum<'ctx>;
 }
 
 impl<'ctx> GeneratorTypeMethods<'ctx> for BasicTypeEnum<'ctx> {
@@ -40,7 +43,7 @@ impl<'ctx> GeneratorTypeMethods<'ctx> for BasicTypeEnum<'ctx> {
     }
   }
 
-  fn into_basic_metadata_type(&self) -> BasicMetadataTypeEnum<'ctx> {
+  fn as_basic_metadata_type(&self) -> BasicMetadataTypeEnum<'ctx> {
     todo!()
   }
 }
@@ -54,7 +57,7 @@ impl<'ctx> GeneratorTypeMethods<'ctx> for GeneratorSuperType<'ctx> {
     }
   }
 
-  fn into_basic_metadata_type(&self) -> BasicMetadataTypeEnum<'ctx> {
+  fn as_basic_metadata_type(&self) -> BasicMetadataTypeEnum<'ctx> {
     todo!()
   }
 }
@@ -72,11 +75,12 @@ impl<'ctx> GeneratorTypeMethods<'ctx> for BasicMetadataTypeEnum<'ctx> {
     }
   }
 
-  fn into_basic_metadata_type(&self) -> BasicMetadataTypeEnum<'ctx> {
+  fn as_basic_metadata_type(&self) -> BasicMetadataTypeEnum<'ctx> {
     todo!()
   }
 }
 
+#[allow(unused)]
 enum GeneratorSuperType<'ctx> {
   Void(VoidType<'ctx>),
   Basic(BasicTypeEnum<'ctx>),
@@ -110,7 +114,7 @@ impl TypeOf for lang::Type<Module> {
   fn g_type_of<'ctx>(&self, context: &ContextRef<'ctx>) -> Result<Self::Out<'ctx>> {
     match self {
       lang::Type::Intrinsic { kind, .. } => kind.g_type_of(context),
-      lang::Type::Reference(reference) => todo!(),
+      lang::Type::Reference(_) => todo!(),
     }
   }
 }
@@ -121,7 +125,7 @@ impl TypeOf for lang::Function {
   fn g_type_of<'ctx>(&self, context: &ContextRef<'ctx>) -> Result<Self::Out<'ctx>> {
     let param_types: Vec<_> = self.arguments.iter()
       .map(|argument| {
-        Ok(argument.borrow().ty.g_type_of(context)?.into_basic_metadata_type())
+        Ok(argument.borrow().ty.g_type_of(context)?.as_basic_metadata_type())
       })
       .collect::<Result<_>>()?;
 
@@ -130,28 +134,29 @@ impl TypeOf for lang::Function {
 }
 
 impl lang::FunctionBlock {
-  fn generate_in_function<'ctx, W: CompilerWorkflow>(this: &RcCell<Self>, generator: &mut Generator<W>, function: &FunctionValue<'ctx>) -> Result {
+  fn generate_in_function<W: CompilerWorkflow>(_this: &RcCell<Self>, generator: &mut Generator<W>, function: &FunctionValue) -> Result {
     let builder = generator.context.create_builder();
     let basic_block = generator.context.append_basic_block(*function, "entry");
     builder.position_at_end(basic_block);
 
     warn!("FunctionBlock stub");
 
-    dbg!(function.get_type().get_return_type());
-    builder.build_return(None);
+    if function.get_type().get_return_type().is_none() {
+      builder.build_return(None);
+    };
 
     ok
   }
 }
 
 impl lang::Function {
-  fn generate_in_module<'ctx, W: CompilerWorkflow>(this: &RcCell<Self>, generator: &mut Generator<W>, module: &inkwell::module::Module<'ctx>) -> Result {
+  fn generate_in_module<W: CompilerWorkflow>(this: &RcCell<Self>, generator: &mut Generator<W>, module: &inkwell::module::Module) -> Result {
     let context = module.get_context();
 
     let function = if this.borrow().generator_id.is_some() {
-      let id = { this.borrow().generator_id.clone().unwrap() };
+      let id = this.borrow().generator_id.unwrap();
 
-      generator.functions[id].clone()
+      generator.functions[id]
     } else {
       let function_ty = this.g_type_of(&context)?;
       let function = module.add_function(&this.borrow().name.name, function_ty, None);
@@ -159,7 +164,11 @@ impl lang::Function {
       trace!("{function:?}");
 
       let id = generator.functions.len();
-      generator.functions.push(unsafe { std::mem::transmute(function.clone()) });
+
+      generator.functions.push(unsafe {
+        #[allow(clippy::missing_transmute_annotations)]
+        std::mem::transmute(function)
+      });
 
       this.borrow_mut().generator_id = Some(id);
 
@@ -177,7 +186,7 @@ impl lang::Function {
 }
 
 impl lang::ModuleChild {
-  fn generate_in_module<'ctx, W: CompilerWorkflow>(&self, generator: &mut Generator<W>, module: &inkwell::module::Module<'ctx>) -> Result {
+  fn generate_in_module<W: CompilerWorkflow>(&self, generator: &mut Generator<W>, module: &inkwell::module::Module) -> Result {
     match self {
       ModuleChild::Function(rc) => lang::Function::generate_in_module(rc, generator, module),
       ModuleChild::Module(rc) => rc.borrow().generate_in_module(generator, module),
@@ -186,9 +195,9 @@ impl lang::ModuleChild {
 }
 
 impl lang::Module {
-  fn generate_in_module<'ctx, W: CompilerWorkflow>(&self, generator: &mut Generator<W>, module: &inkwell::module::Module<'ctx>) -> Result {
+  fn generate_in_module<W: CompilerWorkflow>(&self, generator: &mut Generator<W>, module: &inkwell::module::Module) -> Result {
     for child in self.children.iter() {
-      child.borrow().generate_in_module(generator, &module)?;
+      child.borrow().generate_in_module(generator, module)?;
     };
 
     ok

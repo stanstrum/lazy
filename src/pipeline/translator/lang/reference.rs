@@ -66,6 +66,7 @@ impl<S: Scope> Type<S> where Self: SearchIn<S> {
   // }
 }
 
+#[allow(unused)]
 impl<V: SearchIn<S>, S: Scope> Reference<V, S> {
   fn new(value: V) -> Self {
     Self::Resolved(new_rc_cell(value))

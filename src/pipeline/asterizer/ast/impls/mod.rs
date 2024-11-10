@@ -20,7 +20,7 @@ use crate::tokenizer::{
   SpanStart,
   TokenKind,
 };
-pub(self) use error::*;
+use error::*;
 
 impl<W: CompilerWorkflow> TopLevelNamespace<W> {
   /// Make an empty TopLevelNamespace in the case of an empty module

@@ -3,18 +3,15 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 use tempfile::TempPath;
-
-use super::*;
-
-use crate::compiler::error::IOSnafu;
-use crate::compiler::CompilerJob;
 use crate::{Result, ok};
 use crate::compiler::{
   CompilationStage,
   Compiler,
+  CompilerJob,
   CompilerStoreHandle,
   CompilerWorkflow,
   Output,
+  error::IOSnafu,
   workflow::DefaultWorkflow,
 };
 

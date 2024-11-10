@@ -38,12 +38,6 @@ pub(crate) struct GeneratorModule {
   module: inkwell::module::Module<'static>,
 }
 
-trait LlvmGenerate<W: CompilerWorkflow> {
-  type Out;
-
-  fn generate_in_context(&self, context: &Context) -> Result<Self::Out>;
-}
-
 impl Generate<DefaultWorkflow> for Generator<DefaultWorkflow> {
   type In = RcCell<Module>;
   type Out = PathBuf;

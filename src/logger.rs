@@ -45,5 +45,29 @@ pub(super) fn init() {
   builder.format(colog::formatter(Logger));
   builder.init();
 
-  debug!("Initialized logger");
+  debug!("initialized logger");
+}
+
+#[macro_export]
+macro_rules! enchant {
+  ($expr:expr) => {{
+    use colored::Colorize;
+
+    if cfg!(feature = "vscode_links") {
+      let file = file!();
+      let line = line!();
+      let column = column!();
+
+      let current_path = std::env::current_dir().unwrap();
+      let source_path_string = current_path.join(file)
+        .canonicalize()
+        .expect("couldn't find source file, do you need vscode_links?")
+        .to_string_lossy()
+        .to_string();
+
+      format!("\x1b]8;;vscode://file{source_path_string}:{line}:{column}\x1b\\{}\x1b]8;;\x1b\\", $expr)
+    } else {
+      $expr.into()
+    }.bold()
+  }};
 }

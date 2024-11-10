@@ -20,8 +20,6 @@ use crate::compiler::{
 
 use crate::translator::lang::{RcCell, Module};
 
-use super::translator::lang::ModuleChild;
-
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Generator<W: CompilerWorkflow> {

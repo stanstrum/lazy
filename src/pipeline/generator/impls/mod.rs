@@ -156,6 +156,8 @@ impl lang::Function {
       let function_ty = this.g_type_of(&context)?;
       let function = module.add_function(&this.borrow().name.name, function_ty, None);
 
+      trace!("{function:?}");
+
       let id = generator.functions.len();
       generator.functions.push(unsafe { std::mem::transmute(function.clone()) });
 

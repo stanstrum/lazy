@@ -150,7 +150,7 @@ impl_ast!(TopLevelNamespace: (compiler, aster, start) => {
 
     aster.reader.seek_whitespace_and_comments();
 
-    let Some(TokenKind::Punctuation(Punctuation::Semicolon)) = dbg!(aster.reader.next_kind()) else {
+    let Some(TokenKind::Punctuation(Punctuation::Semicolon)) = aster.reader.next_kind() else {
       return ExpectedSnafu {
         what: What::Semicolon,
         span: aster.next_read_span(compiler)?,

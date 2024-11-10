@@ -66,6 +66,8 @@ impl<W: CompilerWorkflow> CompilerStore<W> {
   fn add_module(&mut self, module: CompilerModule<W>) -> CompilerStoreHandle<W> {
     let index = self.modules.len();
 
+    debug!("add module #{index} with path {}", &module.path);
+
     self.modules.push(module);
 
     CompilerStoreHandle {
@@ -91,15 +93,17 @@ impl<W: CompilerWorkflow> CompilerStore<W> {
   /// Creates a new entry into Self if the provided module is not already stored
   pub(crate) fn register_module(&mut self, module: &CompilerModule<W>) -> CompilerStoreHandle<W> {
     if let Some(handle) = self.find_module(module) {
+      debug!("Found already registered module #{} at path {:?}", handle.index, &module.path);
       return handle;
     };
 
-    dbg!("add");
-
-    self.add_module(CompilerModule {
+    let handle = self.add_module(CompilerModule {
       path: module.path.to_owned(),
       data: CompilerJob::Taken,
-    })
+    });
+
+    warn!("Added unrecognized module #{} at path {:?}", handle.index, module.path);
+    handle
   }
 
   /// Stores a module using the JobStore trait

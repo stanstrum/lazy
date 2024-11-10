@@ -21,13 +21,13 @@ use crate::translator::lang;
 trait TypeOf {
   type Out<'ctx>;
 
-  fn g_type_of<'ctx>(&self, context: &ContextRef<'ctx>) -> Result<Self::Out<'ctx>>;
+  fn g_type_of<'a, 'ctx: 'a>(&self, context: &'a ContextOrRef<'a, 'ctx>) -> Result<Self::Out<'ctx>>;
 }
 
 impl<T: TypeOf> TypeOf for RcCell<T> {
   type Out<'ctx> = T::Out<'ctx>;
 
-  fn g_type_of<'ctx>(&self, context: &ContextRef<'ctx>) -> Result<Self::Out<'ctx>> {
+  fn g_type_of<'a, 'ctx: 'a>(&self, context: &'a ContextOrRef<'a, 'ctx>) -> Result<Self::Out<'ctx>> {
     self.borrow().g_type_of(context)
   }
 }

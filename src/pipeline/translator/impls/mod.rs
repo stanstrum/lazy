@@ -30,3 +30,22 @@ impl<S: Scope, T: SearchIn<S>> ScopeParent<S, T> for RcCell<T> {
     self.try_borrow().unwrap().parent().clone()
   }
 }
+
+impl<'a> ParseScope<'a> for Instruction {
+  type In = ast::BlockChild<DefaultWorkflow>;
+  type Scope = FunctionBlock;
+
+  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
+    todo!()
+  }
+}
+
+impl SearchIn<FunctionBlock> for Instruction {
+  fn parent(&self) -> Option<WeakCell<FunctionBlock>> {
+    todo!()
+  }
+
+  fn search_in(scope: &FunctionBlock, index: &<FunctionBlock as Scope>::Index) -> Result<ScopeSearch<Self, FunctionBlock>> {
+    todo!()
+  }
+}

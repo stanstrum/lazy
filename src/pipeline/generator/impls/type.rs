@@ -3,9 +3,9 @@ use super::*;
 impl TypeOf for lang::Intrinsic {
   type Out<'ctx> = GeneratorSuperType<'ctx>;
 
-  fn g_type_of<'ctx>(&self, context: &ContextRef<'ctx>) -> Result<Self::Out<'ctx>> {
+  fn g_type_of<'a, 'ctx: 'a>(&self, context: &'a ContextOrRef<'a, 'ctx>) -> Result<Self::Out<'ctx>> {
     Ok(match self {
-      lang::Intrinsic::Void => GeneratorSuperType::Void(context.void_type()),
+      lang::Intrinsic::Void => GeneratorSuperType::Void(unsafe { std::mem::transmute(context.void_type()) }),
       lang::Intrinsic::U8 => todo!(),
       lang::Intrinsic::U16 => todo!(),
       lang::Intrinsic::U32 => todo!(),
@@ -24,7 +24,7 @@ impl TypeOf for lang::Intrinsic {
 impl TypeOf for lang::Type<Module> {
   type Out<'ctx> = GeneratorSuperType<'ctx>;
 
-  fn g_type_of<'ctx>(&self, context: &ContextRef<'ctx>) -> Result<Self::Out<'ctx>> {
+  fn g_type_of<'a, 'ctx: 'a>(&self, context: &'a ContextOrRef<'a, 'ctx>) -> Result<Self::Out<'ctx>> {
     match self {
       lang::Type::Intrinsic { kind, .. } => kind.g_type_of(context),
       lang::Type::Reference(_) => todo!(),

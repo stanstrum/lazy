@@ -2,4 +2,4 @@ target/
 a.ll
 a.s
 a.o
-program
+a.out

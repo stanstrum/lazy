@@ -1,6 +1,6 @@
 mod impls;
 
-use std::io::Read;
+use std::io::{Read, Write};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
@@ -8,7 +8,7 @@ use inkwell::context::Context;
 use inkwell::values::FunctionValue;
 use tempfile::NamedTempFile;
 
-use crate::{Result, enchant};
+use crate::{Result, ok, enchant};
 use crate::compiler::{
   Compiler,
   CompilerStoreHandle,
@@ -53,96 +53,119 @@ impl Generate<DefaultWorkflow> for Generator<DefaultWorkflow> {
     let input = self.input.take().unwrap();
     let module = input.borrow().generate(&mut self, &compiler.context)?;
 
-    let llc_out = NamedTempFile::with_suffix(".s").expect("failed to make tmpfile").into_temp_path();
-    let as_out = NamedTempFile::with_suffix(".o").expect("failed to make tmpfile").into_temp_path();
+    let object_file = NamedTempFile::with_suffix(".o").expect("failed to make tmpfile").into_temp_path();
 
-    {
-      let llc_in = NamedTempFile::with_suffix(".ll").expect("failed to make tmpfile").into_temp_path();
-
-      if compiler.settings.print_llvm {
-        info!("{}: {}:\n{}",
-          enchant!("--print-llvm"),
-          self.handle.proper_name(compiler),
-          module.print_to_string().to_string_lossy().trim()
-        );
-      };
-
-      if let Err(err) = module.print_to_file(&llc_in) {
-        return IOSnafu { err: err.to_string() }.fail()?;
-      };
-
-      trace!("{}: written LLVM to {}", enchant!("output"), llc_in.to_string_lossy());
-
-      let mut command = Command::new(&compiler.settings.llc);
-
-      command
-        // this argument is surprisingly important
-        .arg("--relocation-model=pic")
-        .arg("-o")
-        .arg(&llc_out)
-        .arg(&llc_in)
-        .stdout(std::io::stdout())
-        .stderr(Stdio::piped());
-
-      debug!("{} -c {command:?}", enchant!("sh"));
-
-      let mut child = command.spawn().unwrap();
-      let result = child.wait();
-
-      let mut stderr_text = String::new();
-      child.stderr.take().unwrap()
-        .read_to_string(&mut stderr_text)
-        .unwrap();
-
-      let stderr_text = stderr_text.trim();
-      if !stderr_text.is_empty() {
-        error!("{}", stderr_text);
-      };
-
-      match result {
-        Ok(x) if x.success() => {},
-        Ok(x) => return IOSnafu { err: format!("cc returned {x}") }.fail()?,
-        Err(err) => return IOSnafu { err: err.to_string() }.fail()?,
-      };
-
-      trace!("{} {llc_in:?}", enchant!("rm"));
+    if compiler.settings.print_llvm {
+      info!("{}: {}:\n{}",
+        enchant!("--print-llvm"),
+        self.handle.proper_name(compiler),
+        module.print_to_string().to_string_lossy().trim()
+      );
     };
 
-    {
-      let mut command = Command::new(&compiler.settings.cc);
+    let mut llc = Command::new(&compiler.settings.llc);
+    let mut assembler = Command::new(&compiler.settings.cc);
 
-      command
-        .stdout(std::io::stdout())
-        .stderr(Stdio::piped())
-        .arg("-c")
-        .arg("-o")
-        .arg(&as_out)
-        .arg(&llc_out);
+    llc
+      // this argument is surprisingly important
+      .arg("--relocation-model=pic")
+      .stdout(Stdio::piped())
+      .stdin(Stdio::piped())
+      .stderr(Stdio::piped());
 
-      debug!("{} -c {command:?}", enchant!("sh"));
+    assembler
+      .arg("-c")
+      .args(["-x", "assembler"])
+      .arg("-o")
+      .arg(&object_file)
+      .arg("-")
+      .stdout(std::io::stdout())
+      .stdin(Stdio::piped())
+      .stderr(Stdio::piped());
 
-      let mut child = command.spawn().unwrap();
-      let result = child.wait();
+    trace!("{} -c {:?}", enchant!("sh"), &llc);
+    let mut llc_child = llc.spawn().expect("spawn llc subprocess");
+    let mut llc_out = llc_child.stdout.take().unwrap();
+    let mut llc_in = llc_child.stdin.take().unwrap();
+    let mut llc_err = llc_child.stderr.take().unwrap();
 
-      let mut stderr_text = String::new();
-      child.stderr.take().unwrap()
-        .read_to_string(&mut stderr_text)
+    let bitcode = module.write_bitcode_to_memory();
+    let bitcode = bitcode.as_slice().to_owned();
+
+    let llc_writer = std::thread::spawn(move || {
+      llc_in
+        .write_all(&bitcode)
+        .expect("failed to write bitcode to llc stdin");
+    });
+
+    let llc_error_reader = std::thread::spawn(move || {
+      let mut stderr = String::new();
+
+      llc_err
+        .read_to_string(&mut stderr)
         .unwrap();
 
-      match result {
-        Ok(x) if x.success() => {},
-        Ok(x) => return IOSnafu { err: format!("cc returned {x}") }.fail()?,
-        Err(err) => return IOSnafu { err: err.to_string() }.fail()?,
+      let stderr = stderr.trim();
+      if !stderr.is_empty() {
+        error!("{stderr}");
+      };
+    });
+
+    trace!("{} -c {:?}", enchant!("sh"), &assembler);
+    let mut assembler_child = assembler.spawn().expect("spawn assembler subprocess");
+    let mut assembler_in = assembler_child.stdin.take().unwrap();
+    let mut assembler_err = assembler_child.stderr.take().unwrap();
+
+    let assembler_pipe = std::thread::spawn(move || {
+      let mut buffer = [0; 1024];
+
+      loop {
+        match llc_out.read(&mut buffer) {
+          Ok(0) => break,
+          Ok(size) => {
+            if let Err(err) = assembler_in.write(&buffer[..size]) {
+              return IOSnafu { err: err.to_string() }.fail()?;
+            };
+          },
+          Err(err) => {
+            return IOSnafu { err: err.to_string() }.fail()?;
+          },
+        };
       };
 
-      let stderr_text = stderr_text.trim();
-      if !stderr_text.is_empty() {
-        error!("{}", stderr_text);
+      ok
+    });
+
+    let assembler_error_reader = std::thread::spawn(move || {
+      let mut stderr = String::new();
+      assembler_err
+        .read_to_string(&mut stderr)
+        .unwrap();
+
+      let stderr = stderr.trim();
+      if !stderr.is_empty() {
+        error!("{stderr}");
       };
+    });
+
+    // join pipe threads
+    llc_writer.join().expect("couldn't join llc bitcode writer");
+    llc_error_reader.join().expect("couldn't join assembler pipe");
+    assembler_pipe.join().expect("couldn't join assembler pipe")?;
+    assembler_error_reader.join().expect("couldn't join assembler pipe");
+
+    match llc_child.wait() {
+      Ok(x) if x.success() => {},
+      Ok(x) => return IOSnafu { err: format!("llc returned {x}") }.fail()?,
+      Err(err) => return IOSnafu { err: err.to_string() }.fail()?,
     };
 
-    trace!("{} {llc_out:?}", enchant!("rm"));
+    match assembler_child.wait() {
+      Ok(x) if x.success() => {},
+      Ok(x) => return IOSnafu { err: format!("llc returned {x}") }.fail()?,
+      Err(err) => return IOSnafu { err: err.to_string() }.fail()?,
+    };
 
-    Ok(as_out.keep().unwrap())
+    Ok(object_file.keep().unwrap())
   }
 }

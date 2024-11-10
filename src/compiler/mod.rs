@@ -22,6 +22,8 @@ pub(super) struct CompilerSettings {
   pub(super) llc: PathBuf,
   /// Path of CC executable
   pub(super) cc: PathBuf,
+  /// Print LLVM code during generation
+  pub(super) print_llvm: bool,
 }
 
 /// The Lazy compiler
@@ -42,12 +44,14 @@ impl<W: CompilerWorkflow> Compiler<W> {
           Input path: {:?}\n  \
           Output path: {:?}\n  \
           LLC path: {:?}\n  \
-          CC path: {:?}\
+          CC path: {:?}\n  \
+          Print LLVM: {:?}\
       ",
       &settings.input_file,
       &settings.output_file,
       &settings.llc,
       &settings.cc,
+      &settings.print_llvm,
     );
 
     Self {

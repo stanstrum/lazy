@@ -40,6 +40,7 @@ fn parse_compiler_settings() -> Result<CompilerSettings> {
     output_file,
     llc,
     cc,
+    print_llvm,
   } = arg_parser::parse()?;
 
   if help {
@@ -55,6 +56,7 @@ fn parse_compiler_settings() -> Result<CompilerSettings> {
     output_file,
     llc,
     cc,
+    print_llvm,
   })
 }
 

@@ -24,6 +24,8 @@ pub(super) struct CompilerParser {
   pub(super) llc: Option<String>,
   /// Path to CC executable
   pub(super) cc: Option<String>,
+  /// Print LLVM code during generation
+  pub(super) print_llvm: bool,
 }
 
 impl CompilerParser {
@@ -36,6 +38,7 @@ impl CompilerParser {
       output_file: None,
       llc: None,
       cc: None,
+      print_llvm: false,
     }
   }
 
@@ -77,6 +80,7 @@ impl CompilerParser {
     if let Some(flag) = Flag::from_argument(&argument) {
       match flag {
         Flag::Help => self.help = true,
+        Flag::PrintLLVM => self.print_llvm = true,
       };
 
       return ok;

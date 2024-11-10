@@ -69,9 +69,16 @@ impl Generate<DefaultWorkflow> for Generator<DefaultWorkflow> {
     {
       let llc_in = NamedTempFile::with_suffix(".ll").expect("failed to make tmpfile").into_temp_path();
 
+      if compiler.settings.print_llvm {
+        let path = &compiler.store.get_module(&self.handle).path;
+
+        info!("output: module #{:?} {path}: llvm\n{}", &self.handle, module.print_to_string().to_string_lossy());
+      };
+
       if let Err(err) = module.print_to_file(&llc_in) {
         return IOSnafu { err: err.to_string() }.fail()?;
       };
+
       trace!("output: written LLVM to {}", llc_in.to_string_lossy());
 
       let mut command = Command::new(&compiler.settings.llc);

@@ -26,6 +26,8 @@ pub(crate) struct CompilerOptions {
   pub(crate) llc: PathBuf,
   /// Path to CC executable
   pub(crate) cc: PathBuf,
+  /// Print LLVM code during generation
+  pub(super) print_llvm: bool,
 }
 
 /// Resolves a provided optional String into a path (with a provided default)
@@ -71,5 +73,6 @@ pub(crate) fn parse() -> Result<CompilerOptions> {
     output_file,
     llc,
     cc,
+    print_llvm: parser.print_llvm,
   })
 }

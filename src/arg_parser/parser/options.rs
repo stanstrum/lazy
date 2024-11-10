@@ -1,6 +1,7 @@
 /// A command line flag; may be true or false
 pub(super) enum Flag {
   Help,
+  PrintLLVM,
 }
 
 /// A command line argument; holds a string value which is later validated.
@@ -24,6 +25,7 @@ impl Process for Flag {
   fn from_argument(argument: &str) -> Option<Self> {
     match argument {
       "-h" | "--help" => Some(Self::Help),
+      "--print-llvm" => Some(Self::PrintLLVM),
       _ => None,
     }
   }

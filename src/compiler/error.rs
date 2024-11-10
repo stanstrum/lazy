@@ -1,5 +1,4 @@
 use snafu::prelude::*;
-
 use utf8_read::Char;
 
 use super::*;
@@ -58,30 +57,6 @@ pub(crate) enum CompilerError {
   /// An error occurred when checking a file's source tree
   #[snafu(display("type check error: {err}"))]
   Check { err: CheckerError },
-}
-
-impl From<ArgumentError> for CompilerError {
-  fn from(err: ArgumentError) -> Self {
-    Self::Argument { err }
-  }
-}
-
-impl From<TokenError> for CompilerError {
-  fn from(err: TokenError) -> Self {
-    Self::Token { err }
-  }
-}
-
-impl From<AsterizerError> for CompilerError {
-  fn from(err: AsterizerError) -> Self {
-    Self::Ast { err }
-  }
-}
-
-impl From<CheckerError> for CompilerError {
-  fn from(err: CheckerError) -> Self {
-    Self::Check { err }
-  }
 }
 
 impl crate::help::LazyHelp for CompilerError {

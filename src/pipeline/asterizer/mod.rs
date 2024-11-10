@@ -31,7 +31,7 @@ macro_rules! impl_ast {
 
   ($what:ident: @stub) => {
     impl_ast!($what: (_, _, _) => {
-      warn!("{} Ast::make stub", Self::better_type_name());
+      warn!("{}: Ast::make stubbed for {}", $crate::enchant!("stub"), Self::better_type_name());
 
       Ok(None)
     });
@@ -76,9 +76,8 @@ impl<W: CompilerWorkflow> Asterizer<W> {
   /// additional information to the associated Ast::make methods so debug
   /// information may be preserved.
   fn make<T: Ast<W>>(&mut self, compiler: &mut Compiler<W>) -> Result<Option<T>> {
-    let type_name = T::better_type_name();
-
-    trace!("{}: Ast::make: {:#?}", type_name, self.reader.peek());
+    // let type_name = T::better_type_name();
+    // trace!("{}: Ast::make: {:#?}", type_name, self.reader.peek());
 
     let marks_len_before = self.reader.marks_len();
     let start = self.reader.get_start();
@@ -97,7 +96,7 @@ impl<W: CompilerWorkflow> Asterizer<W> {
       self.reader.pop_mark();
     };
 
-    debug!("{}: Ast::make: {result:#?}", type_name);
+    // trace!("{}: Ast::make: {result:#?}", type_name);
 
     let marks_len_after = self.reader.marks_len();
     assert!(marks_len_before == marks_len_after, "mark length mismatch!");

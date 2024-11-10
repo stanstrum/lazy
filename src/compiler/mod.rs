@@ -8,7 +8,7 @@ pub(crate) use module::*;
 pub(crate) use traits::*;
 pub(crate) use store::*;
 
-use crate::{Result, ok};
+use crate::{Result, ok, enchant};
 use std::path::PathBuf;
 
 /// Parsed CompilerOptions after default values and IO checks
@@ -38,20 +38,22 @@ pub(super) struct Compiler<W: CompilerWorkflow> {
 impl<W: CompilerWorkflow> Compiler<W> {
   /// Creates a new Compiler
   pub(crate) fn new(settings: CompilerSettings) -> Self {
-    info!(
+    let output_file = std::env::current_dir().unwrap().join(&settings.output_file);
+
+    debug!(
       "\
         Compiler initialized:\n  \
-          Input path: {:?}\n  \
-          Output path: {:?}\n  \
-          LLC path: {:?}\n  \
-          CC path: {:?}\n  \
-          Print LLVM: {:?}\
+          input path: {}\n  \
+          output path: {}\n  \
+          llc path: {}\n  \
+          cc path: {}\
+          {}\
       ",
-      &settings.input_file,
-      &settings.output_file,
-      &settings.llc,
-      &settings.cc,
-      &settings.print_llvm,
+      settings.input_file.to_string_lossy(),
+      output_file.to_string_lossy(),
+      settings.llc.to_string_lossy(),
+      settings.cc.to_string_lossy(),
+      if settings.print_llvm { "\n  --print-llvm enabled" } else { "" },
     );
 
     Self {
@@ -68,7 +70,7 @@ impl<W: CompilerWorkflow> Compiler<W> {
       let module = self.store.get_module(handle);
 
       let Some(module_stage) = module.data.stage() else {
-        warn!("module {} (id {}): no stage", module.path.to_string(), handle.index);
+        warn!("{}: no stage in {}", enchant!("bring_to_stage"), handle.proper_name(self));
         return ok;
       };
 
@@ -76,15 +78,14 @@ impl<W: CompilerWorkflow> Compiler<W> {
       module_stage < stage
     } {
       let mut module = self.store.take_module(handle);
-      let log_prefix = || format!("module {:?} (id #{})", &self.store.get_module(handle).path, handle.index);
+      let proper_name = handle.proper_name(self);
 
       match module.data {
         CompilerJob::Taken => {
-          warn!("{}: taken", log_prefix());
+          warn!("{}: {proper_name}", enchant!("taken"));
           return ok;
         },
         CompilerJob::Unprocessed => {
-          info!("{}: tokenize", log_prefix());
           let input = TakenCompilerModule {
             handle: *handle,
             data: module.data,
@@ -95,31 +96,29 @@ impl<W: CompilerWorkflow> Compiler<W> {
           module.data = CompilerJob::Tokenized(tokenized);
         },
         CompilerJob::Tokenized(input) => {
-          info!("{}: asterize", log_prefix());
           let asterizer = W::Asterizer::new(input, *handle);
           let asterized = asterizer.asterize(self)?;
           module.data = CompilerJob::Asterized(asterized);
         },
         CompilerJob::Asterized(input) => {
-          info!("{}: translate", log_prefix());
           let translator = W::Translator::new(input, *handle);
           let translated = translator.translate(self)?;
           module.data = CompilerJob::Translated(translated);
         },
         CompilerJob::Translated(input) => {
-          info!("{}: check", log_prefix());
+          debug!("{}: {proper_name}", enchant!("check"));
           let checker = W::Checker::new(input, *handle);
           let checked = checker.check(self)?;
           module.data = CompilerJob::Checked(checked);
         },
         CompilerJob::Checked(input) => {
-          info!("{}: generate", log_prefix());
+          debug!("{}: {proper_name}", enchant!("generate"));
           let generator = W::Generator::new(input, *handle);
           let generated = generator.generate(self)?;
           module.data = CompilerJob::Generated(generated);
         },
         CompilerJob::Generated(input) => {
-          info!("{}: output", log_prefix());
+          debug!("{}: {proper_name}", enchant!("output"));
           let outputter = W::Outputter::new(input, *handle);
           return outputter.output(self);
         },

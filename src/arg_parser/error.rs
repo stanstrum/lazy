@@ -1,5 +1,7 @@
 use snafu::prelude::*;
 
+use super::CompilerError;
+
 /// An error encountered when parsing command-line arguments
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub(crate)))]
@@ -36,5 +38,11 @@ impl crate::help::LazyHelp for ArgumentError {
       | ArgumentError::Help
       | ArgumentError::UnknownFlag { .. }
     )
+  }
+}
+
+impl From<ArgumentError> for CompilerError {
+  fn from(err: ArgumentError) -> Self {
+    Self::Argument { err }
   }
 }

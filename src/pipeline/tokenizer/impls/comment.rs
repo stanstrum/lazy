@@ -11,8 +11,6 @@ use crate::compiler::CompilerWorkflow;
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
   pub(in crate::pipeline::tokenizer) fn line_comment(&mut self, reader: &mut PeekReader<W>) -> Result {
-    trace!("Tokenizer::line_comment");
-
     let mut message = String::new();
     let start = reader.span_start();
 
@@ -34,8 +32,6 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
   }
 
   pub(in crate::pipeline::tokenizer) fn multiline_comment(&mut self, reader: &mut PeekReader<W>) -> Result {
-    trace!("Tokenizer::line_comment");
-
     const COMMENT_OPEN: &str = "/*";
     const COMMENT_CLOSE: &str = "*/";
 

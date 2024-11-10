@@ -1,6 +1,9 @@
 use snafu::prelude::*;
 
-use crate::compiler::error::ReadSpan;
+use crate::compiler::error::{
+  CompilerError,
+  ReadSpan,
+};
 
 #[derive(Debug)]
 pub(crate) enum What {
@@ -14,6 +17,16 @@ pub(crate) enum What {
   ClosingBrace,
   ExportChild,
   Punctuation,
+}
+
+#[derive(Debug, Snafu)]
+#[snafu(visibility(pub(crate)))]
+pub(crate) enum AsterizerError {
+  #[snafu(display("expected {}", what.as_definite()))]
+  Expected {
+    what: What,
+    span: ReadSpan,
+  },
 }
 
 impl What {
@@ -55,20 +68,16 @@ impl What {
   }
 }
 
-#[derive(Debug, Snafu)]
-#[snafu(visibility(pub(crate)))]
-pub(crate) enum AsterizerError {
-  #[snafu(display("expected {}", what.as_definite()))]
-  Expected {
-    what: What,
-    span: ReadSpan,
-  },
-}
-
 impl crate::help::LazyHelp for AsterizerError {
   fn applicable_span(self) -> Option<ReadSpan> {
     match self {
       AsterizerError::Expected { span, .. } => Some(span),
     }
+  }
+}
+
+impl From<AsterizerError> for CompilerError {
+  fn from(err: AsterizerError) -> Self {
+    Self::Ast { err }
   }
 }

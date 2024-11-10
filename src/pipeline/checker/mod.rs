@@ -3,7 +3,7 @@ mod modifications;
 pub(crate) mod error;
 
 use crate::compiler::workflow::DefaultWorkflow;
-use crate::{Result, ok};
+use crate::{enchant, ok, Result};
 
 use std::collections::VecDeque;
 use std::rc::Rc;
@@ -67,8 +67,6 @@ impl Check<DefaultWorkflow> for Checker<DefaultWorkflow> {
   }
 
   fn check(self, compiler: &mut Compiler<DefaultWorkflow>) -> Result<Self::Out> {
-    trace!("{:#?}", &self.input);
-
     if matches!(&compiler.store.get_module(&self.handle).path, CompilerModulePath::Real(_)) {
       let std_handle = get_main_handle(compiler)?;
       let CompilerJob::Checked(std) = &compiler.store.get_module(&std_handle).data else {
@@ -84,10 +82,10 @@ impl Check<DefaultWorkflow> for Checker<DefaultWorkflow> {
       };
     };
 
+    let name = enchant!("check");
+
     let mut counter = 1;
     loop {
-      trace!("check: resolve pass #{counter}");
-
       // Make new queue of modifications for this pass to add to
       let mut mods = Modifications::new();
 
@@ -98,7 +96,7 @@ impl Check<DefaultWorkflow> for Checker<DefaultWorkflow> {
       // If no modifications to the program structure are suggested, then just
       // break out of the loop
       if mods.is_empty() {
-        trace!("check: resolve pass #{counter}: complete; no modifications found");
+        trace!("{name}: resolve pass #{counter}: complete; no modifications found");
 
         break;
       };

@@ -1,5 +1,7 @@
 use snafu::prelude::*;
 
+use crate::compiler::error::CompilerError;
+
 #[derive(Debug)]
 pub(crate) enum What {
   Identifier,
@@ -20,6 +22,12 @@ pub(crate) enum TokenError {
 
   #[snafu(display("invalid {} {content:?}", what.as_name()))]
   Invalid { what: What, content: String }
+}
+
+impl From<TokenError> for CompilerError {
+  fn from(err: TokenError) -> Self {
+    Self::Token { err }
+  }
 }
 
 impl What {

@@ -66,7 +66,7 @@ impl<W: CompilerWorkflow> CompilerStore<W> {
   fn add_module(&mut self, module: CompilerModule<W>) -> CompilerStoreHandle<W> {
     let index = self.modules.len();
 
-    debug!("add module #{index} with path {}", &module.path);
+    debug!("{}: module #{index} with path {}", crate::enchant!("add_module"), &module.path);
 
     self.modules.push(module);
 
@@ -92,8 +92,10 @@ impl<W: CompilerWorkflow> CompilerStore<W> {
 
   /// Creates a new entry into Self if the provided module is not already stored
   pub(crate) fn register_module(&mut self, module: &CompilerModule<W>) -> CompilerStoreHandle<W> {
+    let name = crate::enchant!("register_module");
+
     if let Some(handle) = self.find_module(module) {
-      debug!("Found already registered module #{} at path {:?}", handle.index, &module.path);
+      debug!("{name}: found already registered module #{}", handle.index);
       return handle;
     };
 
@@ -102,7 +104,7 @@ impl<W: CompilerWorkflow> CompilerStore<W> {
       data: CompilerJob::Taken,
     });
 
-    warn!("Added unrecognized module #{} at path {:?}", handle.index, module.path);
+    warn!("{name}: added unrecognized module #{}", handle.index);
     handle
   }
 

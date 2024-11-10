@@ -6,7 +6,7 @@ impl lang::FunctionBlock {
     let basic_block = generator.context.append_basic_block(*function, "entry");
     builder.position_at_end(basic_block);
 
-    warn!("FunctionBlock stub");
+    warn!("{}: generate_in_function", crate::enchant!("stub"));
 
     if function.get_type().get_return_type().is_none() {
       builder.build_return(None);
@@ -28,7 +28,7 @@ impl lang::Function {
       let function_ty = this.g_type_of(&context)?;
       let function = module.add_function(&this.borrow().name.name, function_ty, None);
 
-      trace!("{function:?}");
+      trace!("{} added {function:?}", enchant!("generate_in_module"));
 
       let id = generator.functions.len();
 

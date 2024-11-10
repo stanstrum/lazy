@@ -1,6 +1,9 @@
 use snafu::prelude::*;
 
-use crate::compiler::error::ReadSpan;
+use crate::compiler::error::{
+  CompilerError,
+  ReadSpan,
+};
 
 #[allow(unused)]
 #[derive(Debug, Snafu)]
@@ -17,5 +20,11 @@ impl CheckerError {
     match self {
       CheckerError::UnresolvedQualified { span,  ..  } => Some(span),
     }
+  }
+}
+
+impl From<CheckerError> for CompilerError {
+  fn from(err: CheckerError) -> Self {
+    Self::Check { err }
   }
 }

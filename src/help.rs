@@ -38,6 +38,9 @@ pub(super) fn print_help_text() {
       --llc=<FILE>                           Path to the llc executable\n  \
       --cc=<FILE>                            Path to the cc executable\n  \
     \n\
+    Debug options:\n  \
+      --print-llvm                           Prints intermediate LLVM code during compilation\n\
+    \n\
     See LICENSE for more information.\
   ")
 }

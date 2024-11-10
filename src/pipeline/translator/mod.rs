@@ -33,9 +33,8 @@ pub(crate) struct Translator<W: CompilerWorkflow> {
 
 impl Translator<DefaultWorkflow> {
   fn parse_scope<'a, T: ParseScope<'a> + SearchIn<S>, S: Scope>(&mut self, input: T::In, parent: &Option<WeakCell<T::Scope>>) -> Result<RcCell<T>> {
-    match parent {
-      Some(parent) => trace!("parse_scope_parent: {:?}", (*parent).upgrade()),
-      None => warn!("no parent"),
+    if parent.is_none() {
+      warn!("no parent");
     };
 
     T::parse_scope(self, input, parent)

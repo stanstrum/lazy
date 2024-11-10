@@ -119,3 +119,24 @@ impl std::fmt::Display for CompilerModulePath {
     }
   }
 }
+
+impl<W: CompilerWorkflow> CompilerStoreHandle<W> {
+  pub(crate) fn proper_name(&self, compiler: &Compiler<W>) -> String {
+    let path = &compiler.store.get_module(self).path;
+
+    format!("module #{} ({})", self.index, path.proper_name(compiler))
+  }
+}
+
+impl CompilerModulePath {
+  pub(crate) fn proper_name<W: CompilerWorkflow>(&self, compiler: &Compiler<W>) -> String {
+    match self {
+      CompilerModulePath::Real(path) => {
+        let base = compiler.settings.input_file.parent().expect("input file has a parent directory");
+
+        path.strip_prefix(base).unwrap_or(path).to_string_lossy().to_string()
+      },
+      CompilerModulePath::ImplicitSource { name, .. } => format!("lazy::internal[{name}]"),
+    }
+  }
+}

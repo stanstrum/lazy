@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 use tempfile::TempPath;
-use crate::{Result, ok};
+use crate::{Result, ok, enchant};
 use crate::compiler::{
   CompilationStage,
   Compiler,
@@ -57,13 +57,13 @@ impl Output<DefaultWorkflow> for Outputter<DefaultWorkflow> {
       .arg(&compiler.settings.output_file)
       .args(&object_files);
 
-    debug!("sh -c {command:?}");
+    debug!("{} -c {command:?}", enchant!("sh"));
 
     let mut child = command.spawn().unwrap();
     let result = child.wait();
 
     for object_file in object_files.into_iter() {
-      trace!("rm {object_file:?}");
+      trace!("{} {object_file:?}", enchant!("rm"));
       TempPath::from_path(object_file);
     };
 

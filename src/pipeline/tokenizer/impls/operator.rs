@@ -12,8 +12,6 @@ use crate::compiler::CompilerWorkflow;
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
   pub(in crate::pipeline::tokenizer) fn operator(&mut self, reader: &mut PeekReader<W>) -> Result {
-    trace!("Tokenizer::operator");
-
     let Some(item) = reader.peek()? else {
       return ExpectedSnafu { what: What::Operator }.fail()?;
     };

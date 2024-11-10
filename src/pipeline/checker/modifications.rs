@@ -1,0 +1,47 @@
+use super::*;
+
+#[allow(unused)]
+#[derive(Debug)]
+pub(super) enum Modification {
+  ResolveUnresolvedTypeModuleReference {
+    weak: WeakCell<UnresolvedReference<Module>>,
+    value: Reference<Type<Module>, Module>,
+  },
+}
+
+#[allow(unused)]
+#[derive(Debug)]
+pub(super) struct Modifications {
+  modifications: VecDeque<Modification>,
+}
+
+impl Modification {
+  fn apply(self) -> Result {
+    todo!()
+  }
+}
+
+impl Modifications {
+  pub(super) fn new() -> Self {
+    Self {
+      modifications: VecDeque::new(),
+    }
+  }
+
+  pub(super) fn push(&mut self, modification: Modification) {
+    self.modifications.push_back(modification);
+  }
+
+  pub(super) fn is_empty(&self) -> bool {
+    self.modifications.is_empty()
+  }
+
+  pub(super) fn apply_all(self) -> Result {
+    for (i, modification) in (1..).zip(self.modifications) {
+      trace!("check: modification #{i}");
+      modification.apply()?;
+    };
+
+    ok
+  }
+}

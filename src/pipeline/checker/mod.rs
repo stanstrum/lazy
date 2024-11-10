@@ -1,3 +1,5 @@
+mod impls;
+mod modifications;
 pub(crate) mod error;
 
 use crate::compiler::workflow::DefaultWorkflow;
@@ -17,14 +19,9 @@ use crate::compiler::{
   CompilerWorkflow,
 };
 
+use modifications::*;
 use crate::translator::lang::*;
 use error::*;
-
-#[allow(unused)]
-#[derive(Debug)]
-pub(crate) struct Modifications {
-  modifications: VecDeque<Modification>,
-}
 
 #[allow(unused)]
 #[derive(Debug)]
@@ -36,15 +33,6 @@ pub(crate) struct Checker<W: CompilerWorkflow> {
 trait Resolve: Sized {
   fn resolve(&self, mods: &mut Modifications) -> Result;
   fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result;
-}
-
-#[allow(unused)]
-#[derive(Debug)]
-enum Modification {
-  ResolveUnresolvedTypeModuleReference {
-    weak: WeakCell<UnresolvedReference<Module>>,
-    value: Reference<Type<Module>, Module>,
-  },
 }
 
 fn get_main_handle(compiler: &mut Compiler<DefaultWorkflow>) -> Result<CompilerStoreHandle<DefaultWorkflow>> {
@@ -65,150 +53,6 @@ fn get_main_handle(compiler: &mut Compiler<DefaultWorkflow>) -> Result<CompilerS
   compiler.bring_to_stage(&handle, CompilationStage::Generate)?;
 
   Ok(handle)
-}
-
-impl Modification {
-  fn apply(self) -> Result {
-    todo!()
-  }
-}
-
-impl Modifications {
-  fn new() -> Self {
-    Self {
-      modifications: VecDeque::new(),
-    }
-  }
-
-  fn push(&mut self, modification: Modification) {
-    self.modifications.push_back(modification);
-  }
-
-  fn is_empty(&self) -> bool {
-    self.modifications.is_empty()
-  }
-
-  fn apply_all(self) -> Result {
-    for (i, modification) in (1..).zip(self.modifications) {
-      trace!("check: modification #{i}");
-      modification.apply()?;
-    };
-
-    ok
-  }
-}
-
-impl Resolve for Reference<Type<Module>, Module> {
-  fn resolve(&self, mods: &mut Modifications) -> Result {
-    match self {
-      Reference::Resolved(_) => {},
-      Reference::Unresolved(rc) => {
-        let search = rc.borrow().find_reference()?;
-
-        if let ScopeSearch::Found(found) = search {
-          mods.push(Modification::ResolveUnresolvedTypeModuleReference {
-            weak: Rc::downgrade(rc),
-            value: Self::Resolved(found.upgrade().unwrap()),
-          });
-        };
-      },
-    }; ok
-  }
-
-  fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
-    match self {
-      Reference::Resolved(rc) => rc.borrow().ensure_resolved(compiler),
-      Reference::Unresolved(rc) => {
-        let span = compiler.span_to_read_span(rc.borrow().span)?;
-
-        UnresolvedQualifiedSnafu { span }.fail()?
-      },
-    }
-  }
-}
-
-impl Resolve for Type<Module> {
-  fn resolve(&self, mods: &mut Modifications) -> Result {
-    match self {
-      Type::Intrinsic { .. } => ok,
-      Type::Reference(reference) => reference.resolve(mods),
-    }
-  }
-
-  fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
-    match self {
-      Type::Intrinsic { .. } => ok,
-      Type::Reference(reference) => reference.ensure_resolved(compiler),
-    }
-  }
-}
-
-impl Resolve for FunctionArgument {
-  fn resolve(&self, mods: &mut Modifications) -> Result {
-    self.ty.borrow().resolve(mods)?;
-
-    ok
-  }
-
-  fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
-    self.ty.borrow().ensure_resolved(compiler)
-  }
-}
-
-impl Resolve for Function {
-  fn resolve(&self, mods: &mut Modifications) -> Result {
-    for argument in self.arguments.iter() {
-      argument.borrow().resolve(mods)?;
-    };
-
-    self.return_ty.borrow().resolve(mods)?;
-
-    ok
-  }
-
-  fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
-    for argument in self.arguments.iter() {
-      argument.borrow().ensure_resolved(compiler)?;
-    };
-
-    self.return_ty.borrow().ensure_resolved(compiler)?;
-
-    ok
-  }
-}
-
-impl Resolve for ModuleChild {
-  fn resolve(&self, mods: &mut Modifications) -> Result {
-    match self {
-      ModuleChild::Function(rc) => rc.borrow().resolve(mods),
-      ModuleChild::Module(rc) => rc.borrow().resolve(mods),
-    }
-  }
-
-  fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
-    match self {
-      ModuleChild::Function(rc) => rc.borrow().ensure_resolved(compiler),
-      ModuleChild::Module(rc) => rc.borrow().ensure_resolved(compiler),
-    }
-  }
-}
-
-impl Resolve for Module {
-  fn resolve(&self, mods: &mut Modifications) -> Result {
-    for child in self.children.iter() {
-      child.borrow().resolve(mods)?;
-    };
-
-    ok
-  }
-
-  fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
-    for child in self.children.iter() {
-      child.borrow().ensure_resolved(compiler)?;
-    };
-
-    ok
-  }
 }
 
 impl Check<DefaultWorkflow> for Checker<DefaultWorkflow> {

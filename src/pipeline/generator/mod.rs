@@ -51,9 +51,7 @@ impl Generate<DefaultWorkflow> for Generator<DefaultWorkflow> {
 
   fn generate(mut self, compiler: &mut Compiler<DefaultWorkflow>) -> Result<Self::Out> {
     let input = self.input.take().unwrap();
-    let module = compiler.context.create_module(self.handle.proper_name(compiler).as_str());
-
-    input.borrow().generate(&mut self, &compiler.context)?;
+    let module = input.borrow().generate(&mut self, &compiler.context)?;
 
     let llc_out = NamedTempFile::with_suffix(".s").expect("failed to make tmpfile").into_temp_path();
     let as_out = NamedTempFile::with_suffix(".o").expect("failed to make tmpfile").into_temp_path();

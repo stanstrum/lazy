@@ -102,8 +102,6 @@ impl Check<DefaultWorkflow> for Checker<DefaultWorkflow> {
       };
     };
 
-    dbg!(&self.input);
-
     let name = enchant!("check");
 
     let mut counter = 1;

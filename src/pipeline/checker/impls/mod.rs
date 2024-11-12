@@ -1,7 +1,5 @@
 use std::rc::Weak;
 
-use crate::translator::ReferenceResolve;
-
 use super::*;
 
 mod module;
@@ -29,7 +27,7 @@ impl<V: SearchIn<S>, S: Scope> Resolve for RcCell<Reference<V, S>> {
 }
 
 impl GetAndMaybeModify<Type<Module>, Module> for RcCell<Type<Module>> {
-  fn get_and_maybe_modify(&self, mods: &mut Modifications) -> Result<Option<WeakCell<Type<Module>>>> {
+  fn get_and_maybe_modify(&self, _mods: &mut Modifications) -> Result<Option<WeakCell<Type<Module>>>> {
     todo!()
   }
 }
@@ -42,11 +40,11 @@ impl Resolve for RcCell<Type<Module>> {
     }
   }
 
-  fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
+  fn ensure_resolved(&self, _compiler: &Compiler<DefaultWorkflow>) -> Result {
     match &*self.borrow() {
       Type::Intrinsic { .. } => ok,
       Type::Reference(reference) => match &*reference.borrow() {
-        Reference::Resolved(rc) => rc.ensure_resolved(compiler),
+        Reference::Resolved(rc) => rc.ensure_resolved(_compiler),
         Reference::Unresolved(_) => todo!(),
       }
     }

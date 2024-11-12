@@ -127,9 +127,9 @@ impl<W: CompilerWorkflow> CompilerStore<W> {
   pub(crate) fn take_module(&mut self, handle: &CompilerStoreHandle<W>) -> TakenCompilerModule<W> {
     let module = self.get_module_mut(handle);
 
-    let mut taken = TakenCompilerModule::<W> {
-      handle: <CompilerStoreHandle<W> as Clone>::clone(handle),
-      data: CompilerJob::Taken::<W>,
+    let mut taken = TakenCompilerModule {
+      handle: Clone::clone(handle),
+      data: CompilerJob::Taken,
     };
 
     std::mem::swap(&mut module.data, &mut taken.data);

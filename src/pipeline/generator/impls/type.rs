@@ -8,6 +8,8 @@ impl TypeOf for lang::Intrinsic {
   type Out<'ctx> = GeneratorSuperType<'ctx>;
 
   fn g_type_of<'a, 'ctx: 'a>(&self, context: ContextOrRef<'a, 'ctx>) -> Result<Self::Out<'ctx>> {
+    // SPONGE: deal with this later
+    #[allow(clippy::missing_transmute_annotations)]
     Ok(unsafe { std::mem::transmute(match self {
       lang::Intrinsic::Void => GeneratorSuperType::Void(context.void_type()),
       lang::Intrinsic::U8 => GeneratorSuperType::Basic(match &context {

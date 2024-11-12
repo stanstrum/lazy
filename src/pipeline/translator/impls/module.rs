@@ -12,7 +12,7 @@ impl SearchIn<Module> for TypeAlias {
     todo!()
   }
 
-  fn search_in(scope: &Module, index: &<Module as Scope>::Index) -> Result<ScopeSearch<Self, Module>> {
+  fn search_in(_scope: &Module, _index: &<Module as Scope>::Index) -> Result<ScopeSearch<Self, Module>> {
     todo!()
   }
 }
@@ -81,7 +81,7 @@ impl SearchIn<Module> for Export {
     todo!()
   }
 
-  fn search_in(scope: &Module, index: &<Module as Scope>::Index) -> Result<ScopeSearch<Self, Module>> {
+  fn search_in(_scope: &Module, _index: &<Module as Scope>::Index) -> Result<ScopeSearch<Self, Module>> {
     todo!()
   }
 }
@@ -131,7 +131,7 @@ impl Export {
   ) -> Result<Vec<Export>> {
     match input {
       ast::Export::NamespaceChild(child) => {
-        let child = translator.parse_scope::<ModuleChild, Module>(compiler, *child, parent)?;
+        let child = translator.parse_scope::<ModuleChild, _>(compiler, *child, parent)?;
         let name = { child.borrow().name(compiler) };
 
         Ok(vec![Export {
@@ -139,7 +139,7 @@ impl Export {
           reference: new_rc_cell(Reference::Resolved(child)),
         }])
       },
-      ast::Export::Import(import) => todo!(),
+      ast::Export::Import(_) => todo!(),
     }
   }
 
@@ -210,17 +210,13 @@ impl<'a> ParseScope<'a> for Module {
           exports.extend(parsed);
         },
         other => {
-          let child = translator.parse_scope::<ModuleChild, Module>(compiler, other, &child_parent)?;
+          let child = translator.parse_scope(compiler, other, &child_parent)?;
           children.push(child);
         },
       };
 
       todo!()
     };
-
-    // let children = input.children.into_iter()
-    //   .map(|child| translator.parse_scope::<ModuleChild, Self::Scope>(child, &child_parent))
-    //   .collect::<Result<_>>()?;
 
     {
       module.borrow_mut().children = children;

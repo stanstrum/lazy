@@ -122,7 +122,7 @@ impl<S: Scope> UnresolvedReference<S> {
         warn!("{}: tried to search in something other than a scope (likely an error)", enchant!("find_reference"));
         return Ok(ScopeSearch::None);
       };
-      search = weak.upgrade().unwrap().borrow().search::<V>(&part)?;
+      search = weak.upgrade().unwrap().borrow().search(part)?;
     };
 
     Ok(search)

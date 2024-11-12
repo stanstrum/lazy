@@ -44,7 +44,7 @@ impl Modifications {
 
   pub(super) fn apply_all(self) -> Result {
     for (i, modification) in (1..).zip(self.modifications) {
-      trace!("check: modification #{i}");
+      trace!("{}: modification #{i}", crate::enchant!("check"));
       modification.apply()?;
     };
 

@@ -1,3 +1,5 @@
+use crate::enchant;
+
 use super::*;
 
 impl<S: Scope<Index = str>> Part<S> for ast::Identifier<DefaultWorkflow> {
@@ -53,7 +55,7 @@ impl SearchIn<Module> for Function {
           match &*rc.upgrade().unwrap().try_borrow().unwrap() {
             ModuleChild::Function(rc) => ScopeSearch::Found(Rc::downgrade(rc)),
             ModuleChild::Module(rc) => ScopeSearch::Next(Rc::downgrade(rc)),
-            ModuleChild::Type(rc) => todo!(),
+            ModuleChild::Type(_) => todo!(),
           }
         },
         ScopeSearch::Next(rc) => ScopeSearch::Next(rc),
@@ -80,7 +82,7 @@ impl<'a> ParseScope<'a> for FunctionArgument {
   fn parse_scope(translator: &mut Translator<DefaultWorkflow>, compiler: &Compiler<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
     let module = { parent.clone().unwrap().upgrade().unwrap().scope_parent() };
 
-    let ty = translator.parse_scope::<Type<Module>, Module>(compiler, input.ty, &module)?;
+    let ty = translator.parse_scope(compiler, input.ty, &module)?;
 
     Ok(new_rc_cell(Self {
       name: input.identifier,
@@ -103,7 +105,7 @@ impl<'a> ParseScope<'a> for FunctionBlock {
     });
 
     // parent reference for parsing children nodes
-    let child_parent = Some(Rc::downgrade(&this));
+    let _child_parent = Some(Rc::downgrade(&this));
 
     // first, collect all of this scope's variables
     for child in input.children {
@@ -115,18 +117,20 @@ impl<'a> ParseScope<'a> for FunctionBlock {
       let ty = match binding.kind {
         ast::BindingKind::OnlyType(ty) => {
           let scope_parent= parent.as_ref().unwrap().upgrade().unwrap().scope_parent();
-          translator.parse_scope::<Type<Module>, Module>(compiler, ty, &scope_parent)?
+          translator.parse_scope(compiler, ty, &scope_parent)?
         },
-        ast::BindingKind::OnlyExpression(expression) => {
+        ast::BindingKind::OnlyExpression(_) => {
           todo!()
         },
-        ast::BindingKind::Both { ty, expression } => {
+        ast::BindingKind::Both { .. } => {
           todo!()
         },
       };
 
       this.borrow_mut().variables.push(new_rc_cell(Variable { name: binding.identifier, ty }));
     };
+
+    warn!("{}: not parsing function body", enchant!("stub"));
 
     Ok(this)
   }

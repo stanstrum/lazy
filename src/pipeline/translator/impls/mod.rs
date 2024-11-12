@@ -59,7 +59,7 @@ impl<'a> ParseScope<'a> for Instruction {
   type In = ast::BlockChild<DefaultWorkflow>;
   type Scope = FunctionBlock;
 
-  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, compiler: &Compiler<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
+  fn parse_scope(_translator: &mut Translator<DefaultWorkflow>, _compiler: &Compiler<DefaultWorkflow>, _input: Self::In, _parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
     todo!()
   }
 }
@@ -69,7 +69,7 @@ impl SearchIn<FunctionBlock> for Instruction {
     todo!()
   }
 
-  fn search_in(scope: &FunctionBlock, index: &<FunctionBlock as Scope>::Index) -> Result<ScopeSearch<Self, FunctionBlock>> {
+  fn search_in(_scope: &FunctionBlock, _index: &<FunctionBlock as Scope>::Index) -> Result<ScopeSearch<Self, FunctionBlock>> {
     todo!()
   }
 }

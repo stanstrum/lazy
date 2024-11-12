@@ -1,7 +1,7 @@
 use super::*;
 
 impl lang::FunctionBlock {
-  fn generate_in_function<'ctx, W: CompilerWorkflow>(this: &RcCell<Self>, generator: &mut Generator<W>, function: &FunctionValue) -> Result {
+  fn generate_in_function< W: CompilerWorkflow>(this: &RcCell<Self>, generator: &mut Generator<W>, function: &FunctionValue) -> Result {
     let builder = generator.context.create_builder();
     let basic_block = generator.context.append_basic_block(*function, "entry");
     builder.position_at_end(basic_block);
@@ -31,7 +31,7 @@ impl lang::FunctionBlock {
 }
 
 impl lang::Function {
-  pub(super) fn generate_in_module<'a, 'ctx, W: CompilerWorkflow>(this: &RcCell<Self>, generator: &mut Generator<W>, module: &'a inkwell::module::Module<'ctx>) -> Result {
+  pub(super) fn generate_in_module<W: CompilerWorkflow>(this: &RcCell<Self>, generator: &mut Generator<W>, module: &inkwell::module::Module) -> Result {
     let context = module.get_context();
 
     let mut should_push_value = false;
@@ -58,6 +58,7 @@ impl lang::Function {
     // don't drop our value
     if should_push_value {
       generator.functions.push(unsafe {
+        #[allow(clippy::missing_transmute_annotations)]
         std::mem::transmute(function)
       });
     };

@@ -5,7 +5,7 @@ impl lang::ModuleChild {
     match self {
       lang::ModuleChild::Function(rc) => lang::Function::generate_in_module(rc, generator, module),
       lang::ModuleChild::Module(rc) => rc.borrow().generate_in_module(generator, module),
-      lang::ModuleChild::Type(rc) => todo!(),
+      lang::ModuleChild::Type(_) => todo!(),
     }
   }
 }

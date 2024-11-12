@@ -70,14 +70,14 @@ impl Translate<DefaultWorkflow> for Translator<DefaultWorkflow> {
 
     let parent = Some(Rc::downgrade(&module));
 
-    let exports = Export::parse_exports(&mut self, &compiler, ast.exports, &parent)?;
+    let exports = Export::parse_exports(&mut self, compiler, ast.exports, &parent)?;
 
     {
       module.borrow_mut().exports = exports
     }
 
     for child in ast.children {
-      let child = self.parse_scope::<ModuleChild, Module>(&compiler, child, &parent)?;
+      let child = self.parse_scope(compiler, child, &parent)?;
       children.push(child);
     };
 

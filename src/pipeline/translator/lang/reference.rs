@@ -24,11 +24,9 @@ pub(crate) enum ScopeSearch<V: SearchIn<S>, S: Scope> {
 
 #[allow(unused)]
 pub(crate) trait SearchIn<S: Scope>: Sized + Debug + crate::checker::MakeModification<S> {
-  fn parent(&self) -> Option<WeakCell<S>>;
-  fn search_in(scope: &S, index: &S::Index) -> Result<ScopeSearch<Self, S>>;
-  fn span(&self, compiler: &Compiler<DefaultWorkflow>) -> ReadSpan {
-    todo!()
-  }
+  fn parent(&self) -> Option<WeakCell<S>> { todo!() }
+  fn search_in(scope: &S, index: &S::Index) -> Result<ScopeSearch<Self, S>> { todo!() }
+  fn span(&self, compiler: &Compiler<DefaultWorkflow>) -> ReadSpan { todo!() }
 }
 
 pub(crate) trait Part<S: Scope> {

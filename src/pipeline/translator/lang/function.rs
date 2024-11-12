@@ -30,7 +30,7 @@ pub(crate) enum Instruction {
 pub(crate) struct FunctionBlock {
   pub(crate) parent: OpaqueParent<Option<WeakCell<Function>>>,
   pub(crate) variables: Vec<RcCell<Variable>>,
-  pub(crate) children: Vec<Instruction>,
+  pub(crate) children: Vec<RcCell<Instruction>>,
 }
 
 /// A simple function, i.e., one that does not belong to a class or interface.

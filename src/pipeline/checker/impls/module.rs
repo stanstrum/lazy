@@ -5,8 +5,20 @@ pub(in crate::pipeline::checker) trait GetAndMaybeModify<V: SearchIn<S>, S: Scop
 }
 
 pub(crate) trait MakeModification<S: Scope, W: CompilerWorkflow = DefaultWorkflow> {
-  fn make_resolve_reference(_this: &RcCell<Reference<Self, S>>, _value: &WeakCell<Self>) -> Modification where Self: SearchIn<S>;
+  fn make_resolve_reference(_this: &RcCell<Reference<Self, S>>, _value: &WeakCell<Self>) -> Modification where Self: SearchIn<S> {
+    todo!()
+  }
 }
+
+impl MakeModification<Module> for Export {}
+impl MakeModification<Module> for TypeAlias {}
+impl MakeModification<FunctionBlock> for Instruction {}
+impl MakeModification<FunctionBlock> for Variable {}
+impl MakeModification<Function> for FunctionBlock {}
+impl MakeModification<Function> for FunctionArgument {}
+impl MakeModification<Module> for Function {}
+impl MakeModification<Module> for ModuleChild {}
+impl MakeModification<Module> for Module {}
 
 impl<V: SearchIn<S>, S: Scope> GetAndMaybeModify<V, S> for RcCell<Reference<V, S>> {
   fn get_and_maybe_modify(&self, mods: &mut Modifications) -> Result<Option<WeakCell<V>>> {
@@ -28,28 +40,14 @@ impl<V: SearchIn<S>, S: Scope> GetAndMaybeModify<V, S> for RcCell<Reference<V, S
   }
 }
 
-// impl Resolve for RcCell<Reference<ModuleChild, Module>> {
-//   fn resolve(&self, mods: &mut Modifications) -> Result {
-//     if let Some(weak) = self.get_and_maybe_modify(mods)?.as_ref().and_then(Weak::upgrade) {
-//       weak.borrow().resolve(mods)?;
-//     } else {
-//       warn!("{}: couldn't resolve because the reference couldn't be resolved", enchant!("resolve"));
-//     };
-
-//     ok
-//   }
-
-//   fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
-//     match &*self.borrow() {
-//       Reference::Resolved(rc) => rc.ensure_resolved(compiler),
-//       Reference::Unresolved(rc) => {
-//         let span = rc.borrow().span;
-//         let span = compiler.span_to_read_span(span)?;
-//         return UnresolvedQualifiedSnafu { span }.fail()?;
-//       },
-//     }
-//   }
-// }
+impl MakeModification<Module> for Type<Module> {
+  fn make_resolve_reference(this: &RcCell<Reference<Self, Module>>, value: &WeakCell<Self>) -> Modification where Self: SearchIn<Module> {
+    Modification::ResolveUnresolvedTypeModuleReference {
+      weak: Rc::downgrade(this),
+      value: Reference::Resolved(value.upgrade().unwrap()),
+    }
+  }
+}
 
 impl Resolve for TypeAlias {
   fn resolve(&self, mods: &mut Modifications) -> Result {
@@ -114,68 +112,5 @@ impl Resolve for RcCell<Module> {
     };
 
     ok
-  }
-}
-
-impl MakeModification<Module> for Export {
-  fn make_resolve_reference(_this: &RcCell<Reference<Self, Module>>, _value: &WeakCell<Self>) -> Modification where Self: SearchIn<Module> {
-    todo!()
-  }
-}
-
-impl MakeModification<Module> for Type<Module> {
-  fn make_resolve_reference(this: &RcCell<Reference<Self, Module>>, value: &WeakCell<Self>) -> Modification where Self: SearchIn<Module> {
-    Modification::ResolveUnresolvedTypeModuleReference {
-      weak: Rc::downgrade(this),
-      value: Reference::Resolved(value.upgrade().unwrap()),
-    }
-  }
-}
-
-impl MakeModification<Module> for TypeAlias {
-  fn make_resolve_reference(_this: &RcCell<Reference<Self, Module>>, _value: &WeakCell<Self>) -> Modification where Self: SearchIn<Module> {
-    todo!()
-  }
-}
-
-impl MakeModification<Module> for Function {
-  fn make_resolve_reference(_this: &RcCell<Reference<Self, Module>>, _value: &WeakCell<Self>) -> Modification where Self: SearchIn<Module> {
-    todo!()
-  }
-}
-
-impl MakeModification<Module> for ModuleChild {
-  fn make_resolve_reference(_this: &RcCell<Reference<Self, Module>>, _value: &WeakCell<Self>) -> Modification where Self: SearchIn<Module> {
-    todo!()
-  }
-}
-
-impl MakeModification<Module> for Module {
-  fn make_resolve_reference(_this: &RcCell<Reference<Self, Module>>, _value: &WeakCell<Self>) -> Modification where Self: SearchIn<Module> {
-    todo!()
-  }
-}
-
-impl MakeModification<Function> for FunctionArgument {
-  fn make_resolve_reference(_this: &RcCell<Reference<Self, Function>>, _value: &WeakCell<Self>) -> Modification where Self: SearchIn<Function> {
-    todo!()
-  }
-}
-
-impl MakeModification<Function> for FunctionBlock {
-  fn make_resolve_reference(_this: &RcCell<Reference<Self, Function>>, _value: &WeakCell<Self>) -> Modification where Self: SearchIn<Function> {
-    todo!()
-  }
-}
-
-impl MakeModification<FunctionBlock> for Variable {
-  fn make_resolve_reference(_this: &RcCell<Reference<Self, FunctionBlock>>, _value: &WeakCell<Self>) -> Modification where Self: SearchIn<FunctionBlock> {
-    todo!()
-  }
-}
-
-impl MakeModification<FunctionBlock> for Instruction {
-  fn make_resolve_reference(_this: &RcCell<Reference<Self, FunctionBlock>>, _value: &WeakCell<Self>) -> Modification where Self: SearchIn<FunctionBlock> {
-    todo!()
   }
 }

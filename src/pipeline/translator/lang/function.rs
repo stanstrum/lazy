@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use ast::Identifier;
 
 use super::*;
@@ -22,7 +24,36 @@ pub(crate) struct Variable {
 
 #[allow(unused)]
 #[derive(Debug)]
+pub(crate) enum LiteralInstructionKind {
+  Integer(u64),
+  Float(f64),
+  String(String),
+}
+
+
+#[allow(unused)]
+#[derive(Debug)]
+pub(crate) struct LiteralInstruction {
+  pub(crate) kind: Rc<LiteralInstructionKind>,
+  pub(crate) ty: Type<Module>,
+  pub(crate) span: Span<DefaultWorkflow>,
+}
+
+#[allow(unused)]
+#[derive(Debug)]
+pub(crate) struct BlockInstruction {
+  pub(crate) parent: OpaqueParent<WeakCell<FunctionBlock>>,
+  pub(crate) variables: Vec<RcCell<Variable>>,
+  pub(crate) instructions: Vec<RcCell<Instruction>>,
+  pub(crate) span: Span<DefaultWorkflow>,
+}
+
+#[allow(unused)]
+#[derive(Debug)]
 pub(crate) enum Instruction {
+  Literal(LiteralInstruction),
+  Block(BlockInstruction),
+  Return(Option<RcCell<Instruction>>),
 }
 
 #[allow(unused)]

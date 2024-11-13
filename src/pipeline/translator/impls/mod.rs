@@ -1,12 +1,11 @@
-mod module;
 mod function;
+mod module;
 mod r#type;
 
 use super::*;
-use crate::Result;
-
-use crate::compiler::workflow::DefaultWorkflow;
 use crate::asterizer::ast;
+use crate::compiler::workflow::DefaultWorkflow;
+use crate::Result;
 
 pub(crate) trait ReferenceResolve<V: SearchIn<S>, S: Scope> {
   fn parent(&self) -> Option<WeakCell<S>>;

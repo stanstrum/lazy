@@ -107,8 +107,6 @@ impl<'a> ParseScope<'a> for Module {
           children.push(child);
         },
       };
-
-      todo!()
     };
 
     {

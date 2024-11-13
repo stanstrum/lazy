@@ -1,3 +1,5 @@
+use std::rc::Weak;
+
 use super::*;
 
 use crate::compiler::{
@@ -56,5 +58,9 @@ pub(crate) enum Type<S: Scope> where Self: SearchIn<S> {
     kind: Intrinsic,
     parent: OpaqueParent<WeakCell<S>>
   },
+  TypeOfExpression {
+    weak: WeakCell<Instruction>,
+  },
+  UnresolvedInstrinsic(Weak<LiteralInstructionKind>),
   Reference(RcCell<Reference<Type<S>, S>>),
 }

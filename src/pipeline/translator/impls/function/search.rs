@@ -11,6 +11,8 @@ impl SearchIn<FunctionBlock> for Variable {
   }
 }
 
+impl SearchIn<FunctionBlock> for LiteralInstruction {}
+
 impl SearchIn<Function> for FunctionArgument {
   fn parent(&self) -> Option<WeakCell<Function>> {
     Some(self.parent.clone().unwrap())
@@ -30,7 +32,6 @@ impl SearchIn<Function> for FunctionArgument {
           name_matches.then(|| ScopeSearch::Found(Rc::downgrade(argument)))
         })
         .unwrap_or(ScopeSearch::None),
-      .unwrap_or(ScopeSearch::None)
     )
   }
 }

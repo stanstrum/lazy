@@ -5,7 +5,13 @@ pub(in crate::pipeline::checker) trait GetAndMaybeModify<V: SearchIn<S>, S: Scop
 }
 
 pub(crate) trait MakeModification<S: Scope, W: CompilerWorkflow = DefaultWorkflow> {
-  fn make_resolve_reference(_this: &RcCell<Reference<Self, S>>, _value: &WeakCell<Self>) -> Modification where Self: SearchIn<S> {
+  fn make_resolve_reference(
+    _this: &RcCell<Reference<Self, S>>,
+    _value: &WeakCell<Self>,
+  ) -> Modification
+  where
+    Self: SearchIn<S>,
+  {
     todo!()
   }
 }
@@ -13,6 +19,7 @@ pub(crate) trait MakeModification<S: Scope, W: CompilerWorkflow = DefaultWorkflo
 impl MakeModification<Module> for Export {}
 impl MakeModification<Module> for TypeAlias {}
 impl MakeModification<FunctionBlock> for Instruction {}
+impl MakeModification<FunctionBlock> for LiteralInstruction {}
 impl MakeModification<FunctionBlock> for Variable {}
 impl MakeModification<Function> for FunctionBlock {}
 impl MakeModification<Function> for FunctionArgument {}
@@ -41,7 +48,13 @@ impl<V: SearchIn<S>, S: Scope> GetAndMaybeModify<V, S> for RcCell<Reference<V, S
 }
 
 impl MakeModification<Module> for Type<Module> {
-  fn make_resolve_reference(this: &RcCell<Reference<Self, Module>>, value: &WeakCell<Self>) -> Modification where Self: SearchIn<Module> {
+  fn make_resolve_reference(
+    this: &RcCell<Reference<Self, Module>>,
+    value: &WeakCell<Self>,
+  ) -> Modification
+  where
+    Self: SearchIn<Module>,
+  {
     Modification::ResolveUnresolvedTypeModuleReference {
       weak: Rc::downgrade(this),
       value: Reference::Resolved(value.upgrade().unwrap()),
@@ -83,15 +96,15 @@ impl Resolve for RcCell<Module> {
 
     for import in this.imports.iter() {
       import.reference.resolve(mods)?;
-    };
+    }
 
     for export in this.exports.iter() {
       export.get_reference().upgrade().unwrap().resolve(mods)?;
-    };
+    }
 
     for child in this.children.iter() {
       child.borrow().resolve(mods)?;
-    };
+    }
 
     ok
   }
@@ -101,15 +114,19 @@ impl Resolve for RcCell<Module> {
 
     for import in this.imports.iter() {
       import.reference.ensure_resolved(compiler)?;
-    };
+    }
 
     for export in this.exports.iter() {
-      export.get_reference().upgrade().unwrap().ensure_resolved(compiler)?;
-    };
+      export
+        .get_reference()
+        .upgrade()
+        .unwrap()
+        .ensure_resolved(compiler)?;
+    }
 
     for child in this.children.iter() {
       child.borrow().ensure_resolved(compiler)?;
-    };
+    }
 
     ok
   }

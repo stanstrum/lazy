@@ -1,8 +1,9 @@
 mod options;
 
-use crate::{Result, ok};
-use super::error::*;
 use options::*;
+
+use super::error::*;
+use crate::{ok, Result};
 
 enum State {
   /// Beginning of a flag or an implicit entry point
@@ -60,11 +61,13 @@ impl CompilerParser {
     if let Some(original) = option {
       let long_name = kind.long_name();
 
-      warn!("\
+      warn!(
+        "\
         duplicate argument values:\n  \
           {long_name}={original:?}\n  \
           {long_name}={argument:?}\
-      ");
+      "
+      );
 
       return DuplicateSnafu { long_name }.fail()?;
     };
@@ -128,7 +131,7 @@ impl CompilerParser {
         self.state = State::First;
 
         ok
-      }
+      },
     }
   }
 }

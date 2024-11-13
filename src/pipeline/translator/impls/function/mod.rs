@@ -1,9 +1,8 @@
 mod parse;
 mod search;
 
-use crate::enchant;
-
 use super::*;
+use crate::enchant;
 
 impl<S: Scope<Index = str>> Part<S> for ast::Identifier<DefaultWorkflow> {
   fn part_to_index(&self) -> &S::Index {

@@ -1,14 +1,12 @@
 use crate::compiler::CompilerWorkflow;
-use crate::{Result, ok};
-use crate::tokenizer::{
-  PeekReader,
-  Tokenizer,
-  TokenKind,
-  SpanStart,
-};
+use crate::tokenizer::{PeekReader, SpanStart, TokenKind, Tokenizer};
+use crate::{ok, Result};
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
-  pub(in crate::pipeline::tokenizer) fn whitespace(&mut self, reader: &mut PeekReader<W>) -> Result {
+  pub(in crate::pipeline::tokenizer) fn whitespace(
+    &mut self,
+    reader: &mut PeekReader<W>,
+  ) -> Result {
     let Some(item) = reader.next() else {
       return ok;
     };
@@ -28,7 +26,7 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
 
       end = item.position;
       reader.seek();
-    };
+    }
 
     self.push_tok(TokenKind::Whitespace, start, end);
 

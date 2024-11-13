@@ -8,17 +8,11 @@ use inkwell::context::Context;
 use inkwell::values::FunctionValue;
 use tempfile::NamedTempFile;
 
-use crate::{Result, ok, enchant};
 use crate::compiler::{
-  Compiler,
-  CompilerStoreHandle,
-  CompilerWorkflow,
-  Generate,
-  workflow::DefaultWorkflow,
-  error::*,
+  error::*, workflow::DefaultWorkflow, Compiler, CompilerStoreHandle, CompilerWorkflow, Generate,
 };
-
-use crate::translator::lang::{RcCell, Module};
+use crate::translator::lang::{Module, RcCell};
+use crate::{enchant, ok, Result};
 
 #[allow(unused)]
 #[derive(Debug)]
@@ -53,10 +47,13 @@ impl Generate<DefaultWorkflow> for Generator<DefaultWorkflow> {
     let input = self.input.take().unwrap();
     let module = input.borrow().generate(&mut self, &compiler.context)?;
 
-    let object_file = NamedTempFile::with_suffix(".o").expect("failed to make tmpfile").into_temp_path();
+    let object_file = NamedTempFile::with_suffix(".o")
+      .expect("failed to make tmpfile")
+      .into_temp_path();
 
     if compiler.settings.print_llvm {
-      info!("{}: {}:\n{}",
+      info!(
+        "{}: {}:\n{}",
         enchant!("--print-llvm"),
         self.handle.proper_name(compiler),
         module.print_to_string().to_string_lossy().trim()
@@ -101,9 +98,7 @@ impl Generate<DefaultWorkflow> for Generator<DefaultWorkflow> {
     let llc_error_reader = std::thread::spawn(move || {
       let mut stderr = String::new();
 
-      llc_err
-        .read_to_string(&mut stderr)
-        .unwrap();
+      llc_err.read_to_string(&mut stderr).unwrap();
 
       let stderr = stderr.trim();
       if !stderr.is_empty() {
@@ -124,23 +119,27 @@ impl Generate<DefaultWorkflow> for Generator<DefaultWorkflow> {
           Ok(0) => break,
           Ok(size) => {
             if let Err(err) = assembler_in.write(&buffer[..size]) {
-              return IOSnafu { err: err.to_string() }.fail()?;
+              return IOSnafu {
+                err: err.to_string(),
+              }
+              .fail()?;
             };
           },
           Err(err) => {
-            return IOSnafu { err: err.to_string() }.fail()?;
+            return IOSnafu {
+              err: err.to_string(),
+            }
+            .fail()?;
           },
         };
-      };
+      }
 
       ok
     });
 
     let assembler_error_reader = std::thread::spawn(move || {
       let mut stderr = String::new();
-      assembler_err
-        .read_to_string(&mut stderr)
-        .unwrap();
+      assembler_err.read_to_string(&mut stderr).unwrap();
 
       let stderr = stderr.trim();
       if !stderr.is_empty() {
@@ -150,20 +149,46 @@ impl Generate<DefaultWorkflow> for Generator<DefaultWorkflow> {
 
     // join pipe threads
     llc_writer.join().expect("couldn't join llc bitcode writer");
-    llc_error_reader.join().expect("couldn't join assembler pipe");
-    assembler_pipe.join().expect("couldn't join assembler pipe")?;
-    assembler_error_reader.join().expect("couldn't join assembler pipe");
+    llc_error_reader
+      .join()
+      .expect("couldn't join assembler pipe");
+    assembler_pipe
+      .join()
+      .expect("couldn't join assembler pipe")?;
+    assembler_error_reader
+      .join()
+      .expect("couldn't join assembler pipe");
 
     match llc_child.wait() {
       Ok(x) if x.success() => {},
-      Ok(x) => return IOSnafu { err: format!("llc returned {x}") }.fail()?,
-      Err(err) => return IOSnafu { err: err.to_string() }.fail()?,
+      Ok(x) => {
+        return IOSnafu {
+          err: format!("llc returned {x}"),
+        }
+        .fail()?
+      },
+      Err(err) => {
+        return IOSnafu {
+          err: err.to_string(),
+        }
+        .fail()?
+      },
     };
 
     match assembler_child.wait() {
       Ok(x) if x.success() => {},
-      Ok(x) => return IOSnafu { err: format!("llc returned {x}") }.fail()?,
-      Err(err) => return IOSnafu { err: err.to_string() }.fail()?,
+      Ok(x) => {
+        return IOSnafu {
+          err: format!("llc returned {x}"),
+        }
+        .fail()?
+      },
+      Err(err) => {
+        return IOSnafu {
+          err: err.to_string(),
+        }
+        .fail()?
+      },
     };
 
     Ok(object_file.keep().unwrap())

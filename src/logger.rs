@@ -20,7 +20,9 @@ impl colog::format::CologStyle for Logger {
       log::Level::Info => msg.green(),
       log::Level::Debug => msg.bright_black(),
       log::Level::Trace => msg.magenta(),
-    }.bold().to_string()
+    }
+    .bold()
+    .to_string()
   }
 
   fn prefix_token(&self, level: &log::Level) -> String {
@@ -59,15 +61,20 @@ macro_rules! enchant {
       let column = column!();
 
       let current_path = std::env::current_dir().unwrap();
-      let source_path_string = current_path.join(file)
+      let source_path_string = current_path
+        .join(file)
         .canonicalize()
         .expect("couldn't find source file, do you need vscode_links?")
         .to_string_lossy()
         .to_string();
 
-      format!("\x1b]8;;vscode://file{source_path_string}:{line}:{column}\x1b\\{}\x1b]8;;\x1b\\", $expr)
+      format!(
+        "\x1b]8;;vscode://file{source_path_string}:{line}:{column}\x1b\\{}\x1b]8;;\x1b\\",
+        $expr
+      )
     } else {
       $expr.into()
-    }.bold()
+    }
+    .bold()
   }};
 }

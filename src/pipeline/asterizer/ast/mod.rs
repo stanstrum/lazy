@@ -1,15 +1,15 @@
-mod function;
 mod expression;
+mod function;
 mod impls;
 mod r#type;
 
-use typename::TypeName;
-use crate::tokenizer::Span;
-use crate::compiler::CompilerWorkflow;
-
-pub(crate) use function::*;
 pub(crate) use expression::*;
+pub(crate) use function::*;
 pub(crate) use r#type::*;
+use typename::TypeName;
+
+use crate::compiler::CompilerWorkflow;
+use crate::tokenizer::Span;
 
 /// A simple name, this is equivalent to a String but associated with a Span
 #[allow(unused)]

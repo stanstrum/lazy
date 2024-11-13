@@ -1,16 +1,13 @@
-use crate::ok;
-
-use crate::Result;
-use crate::tokenizer::{
-  PeekReader,
-  Tokenizer,
-  TokenKind,
-  error::*,
-};
 use crate::compiler::CompilerWorkflow;
+use crate::ok;
+use crate::tokenizer::{error::*, PeekReader, TokenKind, Tokenizer};
+use crate::Result;
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
-  pub(in crate::pipeline::tokenizer) fn line_comment(&mut self, reader: &mut PeekReader<W>) -> Result {
+  pub(in crate::pipeline::tokenizer) fn line_comment(
+    &mut self,
+    reader: &mut PeekReader<W>,
+  ) -> Result {
     let mut message = String::new();
     let start = reader.span_start();
 
@@ -22,7 +19,7 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
       };
 
       message.push(item.ch);
-    };
+    }
 
     let kind = TokenKind::Comment(message.trim().into());
 
@@ -31,7 +28,10 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
     ok
   }
 
-  pub(in crate::pipeline::tokenizer) fn multiline_comment(&mut self, reader: &mut PeekReader<W>) -> Result {
+  pub(in crate::pipeline::tokenizer) fn multiline_comment(
+    &mut self,
+    reader: &mut PeekReader<W>,
+  ) -> Result {
     const COMMENT_OPEN: &str = "/*";
     const COMMENT_CLOSE: &str = "*/";
 
@@ -66,11 +66,12 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
         return InvalidSnafu {
           what: What::MultilineComment,
           content,
-        }.fail()?;
+        }
+        .fail()?;
       };
 
       content.push(item?.ch);
-    };
+    }
 
     self.push_tok(TokenKind::Comment(content), start, reader.position);
 

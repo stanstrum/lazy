@@ -62,3 +62,5 @@ impl SearchIn<Function> for FunctionBlock {
     self.parent.clone().unwrap()
   }
 }
+
+impl SearchIn<FunctionBlock> for Instruction {}

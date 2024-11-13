@@ -1,16 +1,6 @@
-
+use crate::compiler::{CompilerStoreHandle, CompilerWorkflow};
+use crate::tokenizer::{Span, SpanStart, Token, TokenKind};
 use crate::whitespace_or_comment;
-
-use crate::compiler::{
-  CompilerWorkflow,
-  CompilerStoreHandle,
-};
-use crate::tokenizer::{
-  Span,
-  SpanStart,
-  Token,
-  TokenKind,
-};
 
 /// A reader for Tokens that allows for peeking, reading, setting, and resetting
 /// the internal reader position at will
@@ -123,7 +113,7 @@ impl<W: CompilerWorkflow> TokenReader<W> {
   pub(super) fn seek_whitespace_and_comments(&mut self) {
     while let Some(whitespace_or_comment!()) = self.peek_kind() {
       self.seek();
-    };
+    }
   }
 
   /// Returns the amount of marks stored in the reader for asserting that we

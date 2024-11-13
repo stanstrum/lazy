@@ -1,28 +1,26 @@
-pub(crate) mod lang;
 mod impls;
+pub(crate) mod lang;
 
 use std::rc::Rc;
 
 pub(crate) use impls::*;
 use lang::*;
 
-use crate::compiler::workflow::DefaultWorkflow;
-use crate::Result;
-
-use crate::compiler::{
-  Compiler,
-  CompilerStoreHandle,
-  CompilerWorkflow,
-  Translate
-};
-
 use crate::asterizer::ast::TopLevelNamespace;
+use crate::compiler::workflow::DefaultWorkflow;
+use crate::compiler::{Compiler, CompilerStoreHandle, CompilerWorkflow, Translate};
+use crate::Result;
 
 trait ParseScope<'a>: Sized + SearchIn<Self::Scope> {
   type In;
   type Scope: Scope;
 
-  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, compiler: &Compiler<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>>;
+  fn parse_scope(
+    translator: &mut Translator<DefaultWorkflow>,
+    compiler: &Compiler<DefaultWorkflow>,
+    input: Self::In,
+    parent: &Option<WeakCell<Self::Scope>>,
+  ) -> Result<RcCell<Self>>;
 }
 
 #[allow(unused)]
@@ -33,7 +31,12 @@ pub(crate) struct Translator<W: CompilerWorkflow> {
 }
 
 impl Translator<DefaultWorkflow> {
-  fn parse_scope<'a, T: ParseScope<'a> + SearchIn<S>, S: Scope>(&mut self, compiler: &Compiler<DefaultWorkflow>, input: T::In, parent: &Option<WeakCell<T::Scope>>) -> Result<RcCell<T>> {
+  fn parse_scope<'a, T: ParseScope<'a> + SearchIn<S>, S: Scope>(
+    &mut self,
+    compiler: &Compiler<DefaultWorkflow>,
+    input: T::In,
+    parent: &Option<WeakCell<T::Scope>>,
+  ) -> Result<RcCell<T>> {
     if parent.is_none() {
       warn!("no parent");
     };
@@ -79,7 +82,7 @@ impl Translate<DefaultWorkflow> for Translator<DefaultWorkflow> {
     for child in ast.children {
       let child = self.parse_scope(compiler, child, &parent)?;
       children.push(child);
-    };
+    }
 
     {
       module.borrow_mut().children = children;

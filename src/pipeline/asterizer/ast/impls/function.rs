@@ -1,20 +1,7 @@
+use crate::asterizer::{ast::*, error::*, Ast, Asterizer};
+use crate::compiler::{Compiler, CompilerWorkflow};
+use crate::tokenizer::{Punctuation, SpanStart, TokenKind};
 use crate::{impl_ast, Result};
-use crate::compiler::{
-  Compiler,
-  CompilerWorkflow,
-};
-
-use crate::tokenizer::{
-  Punctuation,
-  SpanStart,
-  TokenKind,
-};
-use crate::asterizer::{
-  Ast,
-  Asterizer,
-  ast::*,
-  error::*,
-};
 
 impl_ast!(FunctionArgument: (compiler, aster, start) => {
   let Some(identifier) = aster.make(compiler)? else {

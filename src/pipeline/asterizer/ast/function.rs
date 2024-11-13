@@ -1,5 +1,6 @@
-use crate::asterizer::ast::*;
 use typename::TypeName;
+
+use crate::asterizer::ast::*;
 
 /// A standard function argument, i.e. an identifier and a simple type
 #[allow(unused)]

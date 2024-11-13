@@ -1,20 +1,15 @@
-mod r#type;
 mod function;
 mod reference;
-
-pub(crate) use r#type::*;
-pub(crate) use function::*;
-pub(crate) use reference::*;
+mod r#type;
 
 use std::fmt::Debug;
 
-use crate::compiler::{
-  CompilerStoreHandle,
-  workflow::DefaultWorkflow,
-  CompilerWorkflow,
-};
+pub(crate) use function::*;
+pub(crate) use r#type::*;
+pub(crate) use reference::*;
 
 use crate::asterizer::ast;
+use crate::compiler::{workflow::DefaultWorkflow, CompilerStoreHandle, CompilerWorkflow};
 use crate::tokenizer::Span;
 
 #[derive(Clone)]
@@ -105,7 +100,7 @@ impl PartialEq<&str> for ModuleName {
         warn!("maybe duplicating a file?");
 
         false
-      }
+      },
     }
   }
 }

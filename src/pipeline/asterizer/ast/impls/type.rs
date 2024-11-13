@@ -1,20 +1,10 @@
-use super::*;
-
 use impls::{Keyword, TokenKind};
 
-use crate::{impl_ast, Result};
-
-use crate::compiler::{
-  Compiler,
-  CompilerWorkflow,
-};
-
+use super::*;
+use crate::asterizer::{ast::*, Ast, Asterizer};
+use crate::compiler::{Compiler, CompilerWorkflow};
 use crate::tokenizer::SpanStart;
-use crate::asterizer::{
-  Ast,
-  Asterizer,
-  ast::*,
-};
+use crate::{impl_ast, Result};
 
 impl_ast!(TypeAlias: (compiler, aster, start) => {
   let Some(TokenKind::Keyword(Keyword::Type)) = aster.reader.next_kind() else {

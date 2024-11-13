@@ -46,7 +46,7 @@ impl Modifications {
     for (i, modification) in (1..).zip(self.modifications) {
       trace!("{}: modification #{i}", crate::enchant!("check"));
       modification.apply()?;
-    };
+    }
 
     ok
   }

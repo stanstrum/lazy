@@ -34,9 +34,9 @@ impl crate::help::LazyHelp for ArgumentError {
   }
 
   fn should_print_help_text(&self) -> bool {
-    matches!(self,
-      | ArgumentError::Help
-      | ArgumentError::UnknownFlag { .. }
+    matches!(
+      self,
+      |ArgumentError::Help| ArgumentError::UnknownFlag { .. }
     )
   }
 }

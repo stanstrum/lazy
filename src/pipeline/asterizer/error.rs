@@ -1,9 +1,6 @@
 use snafu::prelude::*;
 
-use crate::compiler::error::{
-  CompilerError,
-  ReadSpan,
-};
+use crate::compiler::error::{CompilerError, ReadSpan};
 
 #[derive(Debug)]
 pub(crate) enum What {
@@ -23,10 +20,7 @@ pub(crate) enum What {
 #[snafu(visibility(pub(crate)))]
 pub(crate) enum AsterizerError {
   #[snafu(display("expected {}", what.as_definite()))]
-  Expected {
-    what: What,
-    span: ReadSpan,
-  },
+  Expected { what: What, span: ReadSpan },
 }
 
 impl What {

@@ -3,17 +3,12 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 use tempfile::TempPath;
-use crate::{Result, ok, enchant};
+
 use crate::compiler::{
-  CompilationStage,
-  Compiler,
-  CompilerJob,
-  CompilerStoreHandle,
-  CompilerWorkflow,
-  Output,
-  error::IOSnafu,
-  workflow::DefaultWorkflow,
+  error::IOSnafu, workflow::DefaultWorkflow, CompilationStage, Compiler, CompilerJob,
+  CompilerStoreHandle, CompilerWorkflow, Output,
 };
+use crate::{enchant, ok, Result};
 
 #[allow(unused)]
 #[derive(Debug)]
@@ -26,10 +21,7 @@ impl Output<DefaultWorkflow> for Outputter<DefaultWorkflow> {
   type In = PathBuf;
 
   fn new(input: Self::In, handle: CompilerStoreHandle<DefaultWorkflow>) -> Self {
-    Self {
-      handle,
-      input,
-    }
+    Self { handle, input }
   }
 
   fn output(self, compiler: &mut Compiler<DefaultWorkflow>) -> Result {
@@ -46,7 +38,7 @@ impl Output<DefaultWorkflow> for Outputter<DefaultWorkflow> {
       };
 
       object_files.push(object_file.to_path_buf());
-    };
+    }
 
     let mut command = Command::new(&compiler.settings.cc);
 
@@ -65,10 +57,13 @@ impl Output<DefaultWorkflow> for Outputter<DefaultWorkflow> {
     for object_file in object_files.into_iter() {
       trace!("{} {object_file:?}", enchant!("rm"));
       TempPath::from_path(object_file);
-    };
+    }
 
     let mut stderr_text = String::new();
-    child.stderr.take().unwrap()
+    child
+      .stderr
+      .take()
+      .unwrap()
       .read_to_string(&mut stderr_text)
       .unwrap();
 
@@ -78,11 +73,24 @@ impl Output<DefaultWorkflow> for Outputter<DefaultWorkflow> {
 
     match result {
       Ok(x) if x.success() => {},
-      Ok(x) => return IOSnafu { err: format!("cc returned {x}") }.fail()?,
-      Err(err) => return IOSnafu { err: err.to_string() }.fail()?,
+      Ok(x) => {
+        return IOSnafu {
+          err: format!("cc returned {x}"),
+        }
+        .fail()?
+      },
+      Err(err) => {
+        return IOSnafu {
+          err: err.to_string(),
+        }
+        .fail()?
+      },
     };
 
-    info!("Your shiny new Lazy program is located in {}", compiler.settings.output_file.to_string_lossy());
+    info!(
+      "Your shiny new Lazy program is located in {}",
+      compiler.settings.output_file.to_string_lossy()
+    );
 
     ok
   }

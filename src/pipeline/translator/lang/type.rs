@@ -1,12 +1,8 @@
 use std::rc::Weak;
 
 use super::*;
-
-use crate::compiler::{
-  CompilerStoreHandle,
-  CompilerWorkflow,
-};
 use crate::asterizer::ast;
+use crate::compiler::{CompilerStoreHandle, CompilerWorkflow};
 
 /// Represents an unresolved type and the information necessary to resolve it
 #[allow(unused)]
@@ -52,11 +48,14 @@ pub(crate) enum Intrinsic {
 /// A Type of any kind, including unresolved
 #[allow(unused)]
 #[derive(Debug)]
-pub(crate) enum Type<S: Scope> where Self: SearchIn<S> {
+pub(crate) enum Type<S: Scope>
+where
+  Self: SearchIn<S>,
+{
   /// An intrinsic type
   Intrinsic {
     kind: Intrinsic,
-    parent: OpaqueParent<WeakCell<S>>
+    parent: OpaqueParent<WeakCell<S>>,
   },
   TypeOfExpression {
     weak: WeakCell<Instruction>,

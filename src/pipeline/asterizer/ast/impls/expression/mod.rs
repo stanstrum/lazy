@@ -1,18 +1,10 @@
-mod literal;
 mod block;
+mod literal;
 
-use crate::{impl_ast, Result};
-
-use crate::compiler::{
-  Compiler,
-  CompilerWorkflow,
-};
+use crate::asterizer::{ast::*, Ast, Asterizer};
+use crate::compiler::{Compiler, CompilerWorkflow};
 use crate::tokenizer::SpanStart;
-use crate::asterizer::{
-  Ast,
-  Asterizer,
-  ast::*,
-};
+use crate::{impl_ast, Result};
 
 impl_ast!(Expression: (compiler, aster, _) => {
   #[allow(clippy::manual_map)]

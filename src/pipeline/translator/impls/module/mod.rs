@@ -1,9 +1,8 @@
 mod parse;
 mod search;
 
-use crate::enchant;
-
 use super::*;
+use crate::enchant;
 
 impl Scope for Module {
   type Index = str;

@@ -1,7 +1,4 @@
-use crate::compiler::error::{
-  CompilerError,
-  ReadSpan,
-};
+use crate::compiler::error::{CompilerError, ReadSpan};
 
 /// Interface for displaying errors once caught
 pub(crate) trait LazyHelp: Sized {
@@ -26,7 +23,8 @@ pub(super) fn print_help_text() {
   let full_executable_path = std::env::current_exe().unwrap();
   let executable = full_executable_path.file_name().unwrap().to_string_lossy();
 
-  eprintln!("\
+  eprintln!(
+    "\
     Usage: {executable} [OPTION]... [INPUT]\n\
     \n\
     Options:\n  \
@@ -42,7 +40,8 @@ pub(super) fn print_help_text() {
       --print-llvm                           Prints intermediate LLVM code during compilation\n\
     \n\
     See LICENSE for more information.\
-  ")
+  "
+  )
 }
 
 /// Prints a spanned error message

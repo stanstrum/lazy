@@ -1,9 +1,8 @@
 use std::collections::VecDeque;
 
-use crate::Result;
-
 use crate::compiler::{CompilerStoreHandle, CompilerWorkflow};
 use crate::tokenizer::SpanStart;
+use crate::Result;
 
 #[derive(Debug, Clone, Copy)]
 pub(super) struct ReaderItem {
@@ -64,7 +63,7 @@ impl<'a, W: CompilerWorkflow> PeekReader<'a, W> {
   pub(super) fn seek_n(&mut self, count: usize) {
     for _ in 0..count {
       self.seek();
-    };
+    }
   }
 
   pub(super) fn peek(&mut self) -> Result<Option<ReaderItem>> {
@@ -83,7 +82,10 @@ impl<'a, W: CompilerWorkflow> PeekReader<'a, W> {
   }
 
   fn peek_take(&mut self, count: usize) -> Result<Option<impl Iterator<Item = char> + '_>> {
-    assert!(count != 0, "peek must be of non-zero length (for span data)");
+    assert!(
+      count != 0,
+      "peek must be of non-zero length (for span data)"
+    );
 
     if self.buffer.len() < count {
       let needed = count - self.buffer.len();
@@ -94,13 +96,10 @@ impl<'a, W: CompilerWorkflow> PeekReader<'a, W> {
         };
 
         self.buffer.push_back(item?);
-      };
+      }
     };
 
-    let iter = self.buffer
-      .iter()
-      .take(count)
-      .map(|item| item.ch);
+    let iter = self.buffer.iter().take(count).map(|item| item.ch);
 
     Ok(Some(iter))
   }
@@ -114,7 +113,7 @@ impl<'a, W: CompilerWorkflow> PeekReader<'a, W> {
       if a != b {
         return Ok(false);
       };
-    };
+    }
 
     Ok(true)
   }

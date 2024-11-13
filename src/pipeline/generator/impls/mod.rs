@@ -1,20 +1,13 @@
-mod module;
-mod type_methods;
-mod r#type;
 mod function;
+mod module;
+mod r#type;
+mod type_methods;
 
 use inkwell::context::ContextRef;
-use inkwell::types::{
-  BasicMetadataTypeEnum,
-  BasicTypeEnum,
-  FunctionType,
-  MetadataType,
-  VoidType,
-};
-
-use super::*;
+use inkwell::types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType, MetadataType, VoidType};
 use type_methods::*;
 
+use super::*;
 use crate::ok;
 use crate::translator::lang;
 
@@ -33,10 +26,11 @@ impl<T: TypeOf> TypeOf for RcCell<T> {
 }
 
 impl lang::Module {
-    pub(in crate::pipeline::generator) fn generate<
-    'ctx,
-    W: CompilerWorkflow
-  >(&self, generator: &mut Generator<W>, context: &'ctx Context) -> Result<inkwell::module::Module<'ctx>> {
+  pub(in crate::pipeline::generator) fn generate<'ctx, W: CompilerWorkflow>(
+    &self,
+    generator: &mut Generator<W>,
+    context: &'ctx Context,
+  ) -> Result<inkwell::module::Module<'ctx>> {
     let module = context.create_module(format!("{:?}", &self.name).as_str());
 
     self.generate_in_module(generator, &module)?;

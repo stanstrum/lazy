@@ -1,15 +1,14 @@
-mod span;
 mod consts;
 pub(crate) mod error;
+mod span;
 
 pub(crate) use consts::*;
-pub(crate) use span::*;
 use error::*;
+pub(crate) use span::*;
 
-use crate::Result;
 use crate::compiler::CompilerWorkflow;
-
 use crate::tokenizer::impls::numeric::NumericState;
+use crate::Result;
 
 #[allow(unused)]
 #[derive(Debug)]
@@ -44,7 +43,10 @@ pub(crate) struct Token<W: CompilerWorkflow> {
 }
 
 impl NumericKind {
-  pub fn from_state_and_content(state: super::impls::numeric::NumericState, content: &str) -> Result<Self> {
+  pub fn from_state_and_content(
+    state: super::impls::numeric::NumericState,
+    content: &str,
+  ) -> Result<Self> {
     let base = match state {
       NumericState::Binary => 2,
       NumericState::Octal => 8,
@@ -55,13 +57,21 @@ impl NumericKind {
     Ok({
       if content.find('.').is_some() {
         let Ok(value) = content.parse() else {
-          return InvalidSnafu { what: What::Float, content }.fail()?;
+          return InvalidSnafu {
+            what: What::Float,
+            content,
+          }
+          .fail()?;
         };
 
         Self::Float(value)
       } else {
         let Ok(value) = u64::from_str_radix(content, base) else {
-          return InvalidSnafu { what: What::Integer, content }.fail()?;
+          return InvalidSnafu {
+            what: What::Integer,
+            content,
+          }
+          .fail()?;
         };
 
         Self::Integer(value)

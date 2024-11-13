@@ -2,16 +2,11 @@ use snafu::prelude::*;
 use utf8_read::Char;
 
 use super::*;
-
-use crate::{
-  arg_parser::error::ArgumentError,
-  asterizer::error::AsterizerError,
-  tokenizer::error::TokenError,
-  checker::error::CheckerError,
-  Result,
-};
-
 use crate::tokenizer::Span;
+use crate::{
+  arg_parser::error::ArgumentError, asterizer::error::AsterizerError, checker::error::CheckerError,
+  tokenizer::error::TokenError, Result,
+};
 
 #[allow(unused)]
 /// Stores error information taken from a Span without the need for propagating
@@ -120,11 +115,26 @@ impl<W: CompilerWorkflow> Compiler<W> {
           column = 1;
         },
         Ok(Char::Char(_)) => column += 1,
-        Ok(Char::Eof) => return IOSnafu { err: "span starts outside of the end of the file" }.fail()?,
-        Ok(Char::NoData) => return IOSnafu { err: "invalid UTF-8 in file" }.fail()?,
-        Err(err) => return IOSnafu { err: err.to_string() }.fail()?,
+        Ok(Char::Eof) => {
+          return IOSnafu {
+            err: "span starts outside of the end of the file",
+          }
+          .fail()?
+        },
+        Ok(Char::NoData) => {
+          return IOSnafu {
+            err: "invalid UTF-8 in file",
+          }
+          .fail()?
+        },
+        Err(err) => {
+          return IOSnafu {
+            err: err.to_string(),
+          }
+          .fail()?
+        },
       };
-    };
+    }
 
     // Calculate the length of `span` -- this may be zero but never negative
     let length = span.end - span.start;
@@ -133,7 +143,12 @@ impl<W: CompilerWorkflow> Compiler<W> {
     let text = match reader.take(length).collect() {
       Ok(x) => x,
       // TODO: make this an implicit Into -- getting annoying
-      Err(err) => return IOSnafu { err: err.to_string() }.fail()?,
+      Err(err) => {
+        return IOSnafu {
+          err: err.to_string(),
+        }
+        .fail()?
+      },
     };
 
     Ok(ReadSpan {

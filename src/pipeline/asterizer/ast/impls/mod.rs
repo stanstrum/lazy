@@ -1,26 +1,13 @@
-mod r#type;
-mod function;
 mod expression;
+mod function;
+mod r#type;
 
-use crate::{impl_ast, Result};
-use crate::compiler::{
-  Compiler,
-  CompilerWorkflow,
-};
-
-use crate::asterizer::{
-  Ast,
-  Asterizer,
-  ast::*,
-  error,
-};
-use crate::tokenizer::{
-  Keyword,
-  Punctuation,
-  SpanStart,
-  TokenKind,
-};
 use error::*;
+
+use crate::asterizer::{ast::*, error, Ast, Asterizer};
+use crate::compiler::{Compiler, CompilerWorkflow};
+use crate::tokenizer::{Keyword, Punctuation, SpanStart, TokenKind};
+use crate::{impl_ast, Result};
 
 impl<W: CompilerWorkflow> TopLevelNamespace<W> {
   /// Make an empty TopLevelNamespace in the case of an empty module

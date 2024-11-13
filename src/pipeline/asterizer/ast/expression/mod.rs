@@ -1,10 +1,9 @@
 mod literal;
 
+pub(crate) use literal::*;
 use typename::TypeName;
 
 use crate::asterizer::ast::*;
-
-pub(crate) use literal::*;
 
 /// An expression of any kind
 #[allow(unused)]
@@ -45,7 +44,7 @@ pub(crate) enum BindingKind<W: CompilerWorkflow> {
   Both {
     ty: Type<W>,
     expression: Expression<W>,
-  }
+  },
 }
 
 /// A variable binding with the identifier

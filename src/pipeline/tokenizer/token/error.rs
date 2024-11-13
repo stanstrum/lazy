@@ -21,7 +21,7 @@ pub(crate) enum TokenError {
   Expected { what: What },
 
   #[snafu(display("invalid {} {content:?}", what.as_name()))]
-  Invalid { what: What, content: String }
+  Invalid { what: What, content: String },
 }
 
 impl From<TokenError> for CompilerError {

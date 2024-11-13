@@ -1,27 +1,18 @@
 pub mod ast;
-mod reader;
 pub(crate) mod error;
+mod reader;
 
-use typename::TypeName;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
-use crate::compiler::error::ReadSpan;
-use crate::Result;
-use crate::compiler::{
-  Asterize,
-  Compiler,
-  CompilerStoreHandle,
-  CompilerWorkflow,
-};
-use crate::tokenizer::{
-  Token,
-  Span,
-  SpanStart,
-};
-
 use ast::TopLevelNamespace;
 use reader::TokenReader;
+use typename::TypeName;
+
+use crate::compiler::error::ReadSpan;
+use crate::compiler::{Asterize, Compiler, CompilerStoreHandle, CompilerWorkflow};
+use crate::tokenizer::{Span, SpanStart, Token};
+use crate::Result;
 
 #[macro_export]
 macro_rules! impl_ast {
@@ -58,7 +49,11 @@ trait Ast<W: CompilerWorkflow>: TypeName + Debug + Sized {
   /// Attempts to parse tokens from TokenReader into Self if possible.  Errors
   /// are only emitted if input is absolutely unparseable, otherwise Ok(None) is
   /// returned.
-  fn make(compiler: &mut Compiler<W>, aster: &mut Asterizer<W>, start: SpanStart<W>) -> Result<Option<Self>>;
+  fn make(
+    compiler: &mut Compiler<W>,
+    aster: &mut Asterizer<W>,
+    start: SpanStart<W>,
+  ) -> Result<Option<Self>>;
   // /// Returns the Span pertaining to Self, for error message purposes
   // fn get_span(&self) -> Span;
 
@@ -67,7 +62,8 @@ trait Ast<W: CompilerWorkflow>: TypeName + Debug + Sized {
       .strip_prefix("lazy::pipeline::")
       .unwrap()
       .strip_suffix("<lazy::compiler::workflow::DefaultWorkflow>")
-      .unwrap().into()
+      .unwrap()
+      .into()
   }
 }
 

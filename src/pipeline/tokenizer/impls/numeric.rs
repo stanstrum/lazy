@@ -1,12 +1,6 @@
-use crate::{Result, ok};
-use crate::tokenizer::{
-  PeekReader,
-  Tokenizer,
-  TokenKind,
-  NumericKind,
-  error::*
-};
 use crate::compiler::CompilerWorkflow;
+use crate::tokenizer::{error::*, NumericKind, PeekReader, TokenKind, Tokenizer};
+use crate::{ok, Result};
 
 #[derive(Debug)]
 pub(crate) enum NumericState {
@@ -57,10 +51,13 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
       };
 
       content.push(item.ch);
-    };
+    }
 
     if content.is_empty() {
-      return ExpectedSnafu { what: What::Numeric }.fail()?;
+      return ExpectedSnafu {
+        what: What::Numeric,
+      }
+      .fail()?;
     };
 
     let state = state.unwrap_or(NumericState::Decimal);

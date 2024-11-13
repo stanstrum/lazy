@@ -1,17 +1,7 @@
-use crate::{impl_ast, Result};
-
+use crate::asterizer::{ast::*, Ast, Asterizer};
 use crate::compiler::Compiler;
-
-use crate::asterizer::{
-  Ast,
-  Asterizer,
-  ast::*,
-};
-use crate::tokenizer::{
-  TokenKind,
-  NumericKind,
-  SpanStart,
-};
+use crate::tokenizer::{NumericKind, SpanStart, TokenKind};
+use crate::{impl_ast, Result};
 
 impl_ast!(Literal: (_, aster, start) => {
   let kind = match aster.reader.next_kind() {

@@ -1,7 +1,11 @@
 use super::*;
 
 impl lang::FunctionBlock {
-  fn generate_in_function< W: CompilerWorkflow>(this: &RcCell<Self>, generator: &mut Generator<W>, function: &FunctionValue) -> Result {
+  fn generate_in_function<W: CompilerWorkflow>(
+    this: &RcCell<Self>,
+    generator: &mut Generator<W>,
+    function: &FunctionValue,
+  ) -> Result {
     let builder = generator.context.create_builder();
     let basic_block = generator.context.append_basic_block(*function, "entry");
     builder.position_at_end(basic_block);
@@ -14,13 +18,12 @@ impl lang::FunctionBlock {
 
       // let name = variable.name.name.to_owned();
       let context = (&generator.context).into();
-      let ty = variable.ty.g_type_of(context)
-        ?.as_basic_metadata_type();
+      let ty = variable.ty.g_type_of(context)?.as_basic_metadata_type();
 
       scope.push(ty);
 
       todo!();
-    };
+    }
 
     if function.get_type().get_return_type().is_none() {
       builder.build_return(None);
@@ -31,7 +34,11 @@ impl lang::FunctionBlock {
 }
 
 impl lang::Function {
-  pub(super) fn generate_in_module<W: CompilerWorkflow>(this: &RcCell<Self>, generator: &mut Generator<W>, module: &inkwell::module::Module) -> Result {
+  pub(super) fn generate_in_module<W: CompilerWorkflow>(
+    this: &RcCell<Self>,
+    generator: &mut Generator<W>,
+    module: &inkwell::module::Module,
+  ) -> Result {
     let context = module.get_context();
 
     let mut should_push_value = false;
@@ -53,7 +60,8 @@ impl lang::Function {
       function
     };
 
-    let result = lang::FunctionBlock::generate_in_function(&this.borrow().body, generator, &function);
+    let result =
+      lang::FunctionBlock::generate_in_function(&this.borrow().body, generator, &function);
 
     // don't drop our value
     if should_push_value {
@@ -71,12 +79,25 @@ impl TypeOf for lang::Function {
   type Out<'ctx> = FunctionType<'ctx>;
 
   fn g_type_of<'a, 'ctx: 'a>(&self, context: ContextOrRef<'a, 'ctx>) -> Result<Self::Out<'ctx>> {
-    let param_types: Vec<_> = self.arguments.iter()
+    let param_types: Vec<_> = self
+      .arguments
+      .iter()
       .map(|argument| {
-        Ok(argument.borrow().ty.g_type_of(context)?.as_basic_metadata_type())
+        Ok(
+          argument
+            .borrow()
+            .ty
+            .g_type_of(context)?
+            .as_basic_metadata_type(),
+        )
       })
       .collect::<Result<_>>()?;
 
-    Ok(self.return_ty.g_type_of(context)?.fn_type(&param_types, false))
+    Ok(
+      self
+        .return_ty
+        .g_type_of(context)?
+        .fn_type(&param_types, false),
+    )
   }
 }

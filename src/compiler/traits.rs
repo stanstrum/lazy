@@ -1,19 +1,22 @@
-use super::*;
-
 use std::fmt::Debug;
+
 use typename::TypeName;
 
+use super::*;
+use crate::compiler::{Compiler, CompilerStoreHandle, TakenCompilerModule};
 use crate::Result;
-use crate::compiler::{
-  Compiler,
-  CompilerStoreHandle,
-  TakenCompilerModule,
-};
 
 /// Insertion into a CompilerStore
-pub(crate) trait JobStore<W: CompilerWorkflow> where Self: Sized {
+pub(crate) trait JobStore<W: CompilerWorkflow>
+where
+  Self: Sized,
+{
   /// Stores this job's data via handle
-  fn store_by_handle(self, store: &mut CompilerStore<W>, handle: CompilerStoreHandle<W>) -> CompilerStoreHandle<W>;
+  fn store_by_handle(
+    self,
+    store: &mut CompilerStore<W>,
+    handle: CompilerStoreHandle<W>,
+  ) -> CompilerStoreHandle<W>;
   /// Stores this job's data via owned data
   fn store(self, store: &mut CompilerStore<W>) -> CompilerStoreHandle<W>;
 }

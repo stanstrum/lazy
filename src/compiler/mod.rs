@@ -1,15 +1,16 @@
-mod module;
-mod traits;
-mod store;
-pub(crate) mod workflow;
 pub(crate) mod error;
+mod module;
+mod store;
+mod traits;
+pub(crate) mod workflow;
+
+use std::path::PathBuf;
 
 pub(crate) use module::*;
-pub(crate) use traits::*;
 pub(crate) use store::*;
+pub(crate) use traits::*;
 
-use crate::{Result, ok, enchant};
-use std::path::PathBuf;
+use crate::{enchant, ok, Result};
 
 /// Parsed CompilerOptions after default values and IO checks
 #[allow(unused)]
@@ -53,7 +54,11 @@ impl<W: CompilerWorkflow> Compiler<W> {
       output_file.to_string_lossy(),
       settings.llc.to_string_lossy(),
       settings.cc.to_string_lossy(),
-      if settings.print_llvm { "\n  --print-llvm enabled" } else { "" },
+      if settings.print_llvm {
+        "\n  --print-llvm enabled"
+      } else {
+        ""
+      },
     );
 
     Self {
@@ -65,12 +70,20 @@ impl<W: CompilerWorkflow> Compiler<W> {
 
   /// Applies compilation steps as appropriate for a certain Handle until it
   /// reaches the stage provided
-  pub(crate) fn bring_to_stage(&mut self, handle: &CompilerStoreHandle<W>, stage: CompilationStage) -> Result {
+  pub(crate) fn bring_to_stage(
+    &mut self,
+    handle: &CompilerStoreHandle<W>,
+    stage: CompilationStage,
+  ) -> Result {
     while {
       let module = self.store.get_module(handle);
 
       let Some(module_stage) = module.data.stage() else {
-        warn!("{}: no stage in {}", enchant!("bring_to_stage"), handle.proper_name(self));
+        warn!(
+          "{}: no stage in {}",
+          enchant!("bring_to_stage"),
+          handle.proper_name(self)
+        );
         return ok;
       };
 
@@ -125,7 +138,7 @@ impl<W: CompilerWorkflow> Compiler<W> {
       };
 
       self.store.store_module(module);
-    };
+    }
 
     ok
   }

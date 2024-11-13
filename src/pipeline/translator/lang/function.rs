@@ -30,7 +30,6 @@ pub(crate) enum LiteralInstructionKind {
   String(String),
 }
 
-
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct LiteralInstruction {

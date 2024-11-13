@@ -1,7 +1,4 @@
-use crate::compiler::{
-  CompilerWorkflow,
-  CompilerStoreHandle,
-};
+use crate::compiler::{CompilerStoreHandle, CompilerWorkflow};
 
 /// The debug information for a language object
 #[allow(unused)]
@@ -43,6 +40,9 @@ impl<W: CompilerWorkflow> SpanStart<W> {
 
 impl<W: CompilerWorkflow + std::fmt::Debug> std::fmt::Debug for Span<W> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.write_fmt(format_args!("Span({}, {}, {:?})", self.start, self.end, &self.handle))
+    f.write_fmt(format_args!(
+      "Span({}, {}, {:?})",
+      self.start, self.end, &self.handle
+    ))
   }
 }

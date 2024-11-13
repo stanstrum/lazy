@@ -1,19 +1,16 @@
-use crate::{Result, ok};
-use crate::tokenizer::{
-  PeekReader,
-  Tokenizer,
-  TokenKind,
-  Operator,
-  Punctuation,
-  SpanStart,
-  error::*,
-};
 use crate::compiler::CompilerWorkflow;
+use crate::tokenizer::{
+  error::*, Operator, PeekReader, Punctuation, SpanStart, TokenKind, Tokenizer,
+};
+use crate::{ok, Result};
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
   pub(in crate::pipeline::tokenizer) fn operator(&mut self, reader: &mut PeekReader<W>) -> Result {
     let Some(item) = reader.peek()? else {
-      return ExpectedSnafu { what: What::Operator }.fail()?;
+      return ExpectedSnafu {
+        what: What::Operator,
+      }
+      .fail()?;
     };
 
     let start = SpanStart {
@@ -60,13 +57,12 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
         | (":", ':')
         | (":", '=')
         | (".", '.')
-        | ("..", '.')
-        => {},
+        | ("..", '.') => {},
         ("//", _) => return self.line_comment(reader),
         ("/*", _) => return self.multiline_comment(reader),
         _ => break,
       };
-    };
+    }
 
     let kind = if let Some(op) = Operator::from_str(&content) {
       TokenKind::Operator(op)
@@ -75,8 +71,12 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
     } else {
       // TODO: `unrecognized` isn't strictly the same as `expected`
 
-      return ExpectedSnafu { what: What::Operator }.fail()?;
-      // return OtherSnafu { err: format!("unrecognized operator: {content:?}") }.fail()?;
+      return ExpectedSnafu {
+        what: What::Operator,
+      }
+      .fail()?;
+      // return OtherSnafu { err: format!("unrecognized operator: {content:?}")
+      // }.fail()?;
     };
 
     self.push_tok(kind, start, end);

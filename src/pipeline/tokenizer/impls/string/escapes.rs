@@ -1,12 +1,8 @@
 use std::char;
 
-use crate::Result;
-use crate::tokenizer::{
-  Tokenizer,
-  PeekReader,
-  error::*,
-};
 use crate::compiler::CompilerWorkflow;
+use crate::tokenizer::{error::*, PeekReader, Tokenizer};
+use crate::Result;
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
   /// Reads the escape code of a hexadecimal escape inside of a string
@@ -20,7 +16,8 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
       return InvalidSnafu {
         what: What::StringEscapeSequence,
         content: &text,
-      }.fail()?;
+      }
+      .fail()?;
     };
 
     Ok(value as char)
@@ -36,7 +33,8 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
       let Some(item) = reader.next() else {
         return ExpectedSnafu {
           what: What::StringEscapeSequence,
-        }.fail()?;
+        }
+        .fail()?;
       };
 
       let item = item?;
@@ -46,20 +44,22 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
       };
 
       text.push(item.ch);
-    };
+    }
 
     let Ok(value) = u32::from_str_radix(&text, 16) else {
       return InvalidSnafu {
         what: What::StringEscapeSequence,
         content: &text,
-      }.fail()?;
+      }
+      .fail()?;
     };
 
     let Some(character) = char::from_u32(value) else {
       return InvalidSnafu {
         what: What::StringEscapeSequence,
         content: &text,
-      }.fail()?;
+      }
+      .fail()?;
     };
 
     Ok(character)

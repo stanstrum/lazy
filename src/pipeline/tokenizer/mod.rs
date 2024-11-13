@@ -1,26 +1,18 @@
-mod token;
 mod peek_reader;
-#[macro_use] mod patterns;
+mod token;
+#[macro_use]
+mod patterns;
 
 mod impls;
 
 use std::marker::PhantomData;
 
-use peek_reader::{
-  PeekReader,
-  ReaderItem,
-};
+use peek_reader::{PeekReader, ReaderItem};
 pub(crate) use token::*;
 
 use crate::compiler::CompilerStoreHandle;
+use crate::compiler::{error::IOSnafu, Compiler, CompilerWorkflow, TakenCompilerModule, Tokenize};
 use crate::Result;
-use crate::compiler::{
-  Compiler,
-  CompilerWorkflow,
-  Tokenize,
-  TakenCompilerModule,
-  error::IOSnafu,
-};
 
 #[derive(Debug)]
 pub(crate) struct Tokenizer<W: CompilerWorkflow> {
@@ -32,7 +24,12 @@ pub(crate) struct Tokenizer<W: CompilerWorkflow> {
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
   fn push_tok(&mut self, kind: TokenKind, start: SpanStart<W>, end: usize) {
-    assert!(end >= start.start, "invalid span: {} >= {} == false: {kind:?}", start.start, end);
+    assert!(
+      end >= start.start,
+      "invalid span: {} >= {} == false: {kind:?}",
+      start.start,
+      end
+    );
 
     let token = Token {
       kind,
@@ -66,15 +63,18 @@ impl<W: CompilerWorkflow> Tokenize<W> for Tokenizer<W> {
       .into_iter()
       .enumerate()
       .map(|(position, ch)| match ch {
-        Ok(ch) => Ok(ReaderItem { position, ch, }),
-        Err(err) => IOSnafu { err: err.to_string() }.fail()?,
+        Ok(ch) => Ok(ReaderItem { position, ch }),
+        Err(err) => IOSnafu {
+          err: err.to_string(),
+        }
+        .fail()?,
       });
 
     let mut reader = PeekReader::new(&mut reader, self.handle);
 
     while reader.peek()?.is_some() {
       self.base(&mut reader)?;
-    };
+    }
 
     Ok(self.tokens)
   }

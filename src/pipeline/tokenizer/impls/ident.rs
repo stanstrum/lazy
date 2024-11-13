@@ -1,23 +1,25 @@
-use crate::{Result, ok};
-use crate::tokenizer::{
-  PeekReader,
-  Tokenizer,
-  TokenKind,
-  Keyword,
-  SpanStart,
-  error::*,
-};
 use crate::compiler::CompilerWorkflow;
+use crate::tokenizer::{error::*, Keyword, PeekReader, SpanStart, TokenKind, Tokenizer};
+use crate::{ok, Result};
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
-  pub(in crate::pipeline::tokenizer) fn identifier(&mut self, reader: &mut PeekReader<W>) -> Result {
+  pub(in crate::pipeline::tokenizer) fn identifier(
+    &mut self,
+    reader: &mut PeekReader<W>,
+  ) -> Result {
     let Some(item) = reader.next() else {
-      return ExpectedSnafu { what: What::Identifier }.fail()?;
+      return ExpectedSnafu {
+        what: What::Identifier,
+      }
+      .fail()?;
     };
     let item = item?;
 
     let ident!() = item.ch else {
-      return ExpectedSnafu { what: What::Identifier }.fail()?;
+      return ExpectedSnafu {
+        what: What::Identifier,
+      }
+      .fail()?;
     };
 
     let start = SpanStart {
@@ -37,7 +39,7 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
 
       name.push(peek.ch);
       reader.seek();
-    };
+    }
 
     let end = start.start + name.len();
 
@@ -51,5 +53,4 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
 
     ok
   }
-
 }

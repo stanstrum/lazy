@@ -1,29 +1,21 @@
+pub(crate) mod error;
 mod impls;
 mod modifications;
-pub(crate) mod error;
-
-use crate::compiler::workflow::DefaultWorkflow;
-use crate::{enchant, ok, Result};
 
 use std::collections::VecDeque;
 use std::rc::Rc;
 
-use crate::compiler::{
-  Check,
-  CompilationStage,
-  Compiler,
-  CompilerJob,
-  CompilerModule,
-  CompilerModulePath,
-  CompilerStoreHandle,
-  CompilerWorkflow,
-};
-
-use crate::translator::lang::*;
-
+use error::*;
 pub(crate) use impls::*;
 use modifications::*;
-use error::*;
+
+use crate::compiler::workflow::DefaultWorkflow;
+use crate::compiler::{
+  Check, CompilationStage, Compiler, CompilerJob, CompilerModule, CompilerModulePath,
+  CompilerStoreHandle, CompilerWorkflow,
+};
+use crate::translator::lang::*;
+use crate::{enchant, ok, Result};
 
 #[allow(unused)]
 #[derive(Debug)]
@@ -47,7 +39,9 @@ impl<T: Resolve> Resolve for RcCell<T> {
   }
 }
 
-fn get_main_handle(compiler: &mut Compiler<DefaultWorkflow>) -> Result<CompilerStoreHandle<DefaultWorkflow>> {
+fn get_main_handle(
+  compiler: &mut Compiler<DefaultWorkflow>,
+) -> Result<CompilerStoreHandle<DefaultWorkflow>> {
   let handle = compiler.store.register_module(&CompilerModule {
     path: CompilerModulePath::ImplicitSource {
       name: "index.zy",
@@ -72,14 +66,14 @@ impl Check<DefaultWorkflow> for Checker<DefaultWorkflow> {
   type Out = RcCell<Module>;
 
   fn new(input: Self::In, handle: CompilerStoreHandle<DefaultWorkflow>) -> Self {
-    Self {
-      handle,
-      input,
-    }
+    Self { handle, input }
   }
 
   fn check(self, compiler: &mut Compiler<DefaultWorkflow>) -> Result<Self::Out> {
-    if matches!(&compiler.store.get_module(&self.handle).path, CompilerModulePath::Real(_)) {
+    if matches!(
+      &compiler.store.get_module(&self.handle).path,
+      CompilerModulePath::Real(_)
+    ) {
       let std_handle = get_main_handle(compiler)?;
       let CompilerJob::Checked(std) = &compiler.store.get_module(&std_handle).data else {
         unreachable!();
@@ -90,7 +84,10 @@ impl Check<DefaultWorkflow> for Checker<DefaultWorkflow> {
 
         for export in std.borrow().exports.iter() {
           let Some(name) = export.get_name(&*compiler)? else {
-            warn!("{}: couldn't resolve reference, therefore couldn't resolve name", enchant!(""));
+            warn!(
+              "{}: couldn't resolve reference, therefore couldn't resolve name",
+              enchant!("")
+            );
             continue;
           };
 
@@ -98,7 +95,7 @@ impl Check<DefaultWorkflow> for Checker<DefaultWorkflow> {
             name,
             reference: export.get_reference().upgrade().unwrap(),
           });
-        };
+        }
       };
     };
 
@@ -127,7 +124,7 @@ impl Check<DefaultWorkflow> for Checker<DefaultWorkflow> {
       // Since there were modifications found, we aren't done resolving types
       // and comparing them, so continue to the next iteration
       counter += 1;
-    };
+    }
 
     // At this point, the checker isn't able to resolve the program contents
     // any further.  We'll do one last pass through the program hierarchy to

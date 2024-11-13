@@ -1,13 +1,8 @@
 mod escapes;
 
-use crate::{Result, ok};
-use crate::tokenizer::{
-  PeekReader,
-  TokenKind,
-  Tokenizer,
-  error::*,
-};
 use crate::compiler::CompilerWorkflow;
+use crate::tokenizer::{error::*, PeekReader, TokenKind, Tokenizer};
+use crate::{ok, Result};
 
 #[derive(Debug)]
 enum NumericEscape {
@@ -70,8 +65,7 @@ impl EscapedCharacter {
       Self::Backslash => Some('\\'),
       Self::DoubleQuote => Some('"'),
       Self::SingleQuote => Some('\''),
-      | Self::SkippedMultiline
-      | Self::NumericEscape(_) => None,
+      | Self::SkippedMultiline | Self::NumericEscape(_) => None,
     }
   }
 }
@@ -95,17 +89,13 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
       return InvalidSnafu {
         what: What::String,
         content: format!("\\{ch}"),
-      }.fail()?;
+      }
+      .fail()?;
     };
 
     match escaped {
-      EscapedCharacter::NumericEscape(escape) => {
-        self.numeric_escape(reader, escape)
-          .map(Some)
-      },
-      escaped => Ok(
-        escaped.as_escaped_value()
-      ),
+      EscapedCharacter::NumericEscape(escape) => self.numeric_escape(reader, escape).map(Some),
+      escaped => Ok(escaped.as_escaped_value()),
     }
   }
 
@@ -132,7 +122,7 @@ impl<W: CompilerWorkflow> Tokenizer<W> {
 
     while let Some(ch) = self.text_character(reader, quote)? {
       content.push(ch);
-    };
+    }
 
     self.push_tok(TokenKind::String(content), start, reader.position);
 

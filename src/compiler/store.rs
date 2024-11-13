@@ -1,6 +1,6 @@
-use super::*;
-
 use std::marker::PhantomData;
+
+use super::*;
 
 /// The progress of a compiler job
 #[derive(PartialEq, PartialOrd)]
@@ -66,7 +66,11 @@ impl<W: CompilerWorkflow> CompilerStore<W> {
   fn add_module(&mut self, module: CompilerModule<W>) -> CompilerStoreHandle<W> {
     let index = self.modules.len();
 
-    debug!("{}: module #{index} with path {}", crate::enchant!("add_module"), &module.path);
+    debug!(
+      "{}: module #{index} with path {}",
+      crate::enchant!("add_module"),
+      &module.path
+    );
 
     self.modules.push(module);
 
@@ -85,7 +89,7 @@ impl<W: CompilerWorkflow> CompilerStore<W> {
           marker: Default::default(),
         });
       };
-    };
+    }
 
     None
   }
@@ -119,7 +123,10 @@ impl<W: CompilerWorkflow> CompilerStore<W> {
   }
 
   /// Gets a mutable reference from Self from a Handle
-  pub(crate) fn get_module_mut(&mut self, handle: &CompilerStoreHandle<W>) -> &mut CompilerModule<W> {
+  pub(crate) fn get_module_mut(
+    &mut self,
+    handle: &CompilerStoreHandle<W>,
+  ) -> &mut CompilerModule<W> {
     &mut self.modules[handle.index]
   }
 

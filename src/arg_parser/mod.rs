@@ -1,16 +1,15 @@
 pub(crate) mod error;
 mod parser;
 
-use crate::Result;
-use which::which;
-
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use crate::compiler::error::*;
-
-use parser::*;
 use error::*;
+use parser::*;
+use which::which;
+
+use crate::compiler::error::*;
+use crate::Result;
 
 /// Parsed compiler options; paths have parsed & validated
 #[allow(unused)]
@@ -33,12 +32,11 @@ pub(crate) struct CompilerOptions {
 /// Resolves a provided optional String into a path (with a provided default)
 /// and maps the error into a CompilerError
 fn default_option_resolve_path(path: Option<String>, default: &'static str) -> Result<PathBuf> {
-  let path = path.as_deref()
-    .unwrap_or(default);
+  let path = path.as_deref().unwrap_or(default);
 
   match which(path) {
     Ok(x) => Ok(x),
-    Err(err) => ExecNotFoundSnafu { path, err }.fail()?
+    Err(err) => ExecNotFoundSnafu { path, err }.fail()?,
   }
 }
 
@@ -48,14 +46,19 @@ pub(crate) fn parse() -> Result<CompilerOptions> {
 
   for argument in std::env::args().skip(1) {
     parser.parse_argument(argument)?;
-  };
+  }
 
   let input_file = if let Some(input_file) = &parser.input_file {
     let input_file = PathBuf::from_str(input_file).unwrap();
 
     match std::fs::canonicalize(&input_file) {
       Ok(x) => Some(x),
-      Err(err) => return IOSnafu { err: err.to_string() }.fail(),
+      Err(err) => {
+        return IOSnafu {
+          err: err.to_string(),
+        }
+        .fail()
+      },
     }
   } else {
     None

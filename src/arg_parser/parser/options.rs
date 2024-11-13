@@ -38,7 +38,7 @@ impl Process for Argument {
       "-o" | "--output" => Some(Self::OutputFile),
       "--llc" => Some(Self::LLC),
       "--cc" => Some(Self::CC),
-      _ =>  None,
+      _ => None,
     }
   }
 }

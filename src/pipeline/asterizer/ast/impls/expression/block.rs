@@ -1,18 +1,7 @@
-use crate::{impl_ast, Result};
-
+use crate::asterizer::{ast::*, error::*, Ast, Asterizer};
 use crate::compiler::Compiler;
-use crate::tokenizer::{
-  TokenKind,
-  Punctuation,
-  Grouping,
-  SpanStart,
-};
-use crate::asterizer::{
-  Ast,
-  Asterizer,
-  error::*,
-  ast::*,
-};
+use crate::tokenizer::{Grouping, Punctuation, SpanStart, TokenKind};
+use crate::{impl_ast, Result};
 
 impl_ast!(Binding: @stub);
 

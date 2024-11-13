@@ -1,17 +1,9 @@
-use super::*;
-
 use std::fs::File;
-use std::path::{
-  Path,
-  PathBuf,
-};
+use std::path::{Path, PathBuf};
 
+use super::*;
+use crate::compiler::{error::*, CompilerJob, CompilerWorkflow};
 use crate::Result;
-use crate::compiler::{
-  CompilerJob,
-  CompilerWorkflow,
-  error::*,
-};
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum CompilerModulePath {
@@ -73,7 +65,11 @@ impl<W: CompilerWorkflow> TryFrom<&Path> for CompilerModule<W> {
 }
 
 impl<W: CompilerWorkflow> JobStore<W> for CompilerModule<W> {
-  fn store_by_handle(self, store: &mut CompilerStore<W>, handle: CompilerStoreHandle<W>) -> CompilerStoreHandle<W> {
+  fn store_by_handle(
+    self,
+    store: &mut CompilerStore<W>,
+    handle: CompilerStoreHandle<W>,
+  ) -> CompilerStoreHandle<W> {
     store.modules.insert(handle.index, self);
     handle
   }
@@ -85,7 +81,11 @@ impl<W: CompilerWorkflow> JobStore<W> for CompilerModule<W> {
 }
 
 impl<W: CompilerWorkflow> JobStore<W> for TakenCompilerModule<W> {
-  fn store_by_handle(self, store: &mut CompilerStore<W>, handle: CompilerStoreHandle<W>) -> CompilerStoreHandle<W> {
+  fn store_by_handle(
+    self,
+    store: &mut CompilerStore<W>,
+    handle: CompilerStoreHandle<W>,
+  ) -> CompilerStoreHandle<W> {
     store.modules[handle.index].data = self.data;
     handle
   }
@@ -102,11 +102,12 @@ impl CompilerModulePath {
       CompilerModulePath::Real(path) => match File::open(path) {
         Ok(x) => Ok(Box::new(x)),
         // Error if the file can't be opened
-        Err(err) => IOSnafu { err: err.to_string() }.fail()?,
+        Err(err) => IOSnafu {
+          err: err.to_string(),
+        }
+        .fail()?,
       },
-      CompilerModulePath::ImplicitSource { content, .. } => {
-        Ok(Box::new(content.as_bytes()))
-      },
+      CompilerModulePath::ImplicitSource { content, .. } => Ok(Box::new(content.as_bytes())),
     }
   }
 }
@@ -115,7 +116,9 @@ impl std::fmt::Display for CompilerModulePath {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match self {
       CompilerModulePath::Real(path_buf) => f.write_str(path_buf.to_string_lossy().as_ref()),
-      CompilerModulePath::ImplicitSource { name, .. } => f.write_fmt(format_args!("lazy::internal[{name}]")),
+      CompilerModulePath::ImplicitSource { name, .. } => {
+        f.write_fmt(format_args!("lazy::internal[{name}]"))
+      },
     }
   }
 }
@@ -132,9 +135,17 @@ impl CompilerModulePath {
   pub(crate) fn proper_name<W: CompilerWorkflow>(&self, compiler: &Compiler<W>) -> String {
     match self {
       CompilerModulePath::Real(path) => {
-        let base = compiler.settings.input_file.parent().expect("input file has a parent directory");
+        let base = compiler
+          .settings
+          .input_file
+          .parent()
+          .expect("input file has a parent directory");
 
-        path.strip_prefix(base).unwrap_or(path).to_string_lossy().to_string()
+        path
+          .strip_prefix(base)
+          .unwrap_or(path)
+          .to_string_lossy()
+          .to_string()
       },
       CompilerModulePath::ImplicitSource { name, .. } => format!("lazy::internal[{name}]"),
     }

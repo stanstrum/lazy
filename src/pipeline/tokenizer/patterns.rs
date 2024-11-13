@@ -1,6 +1,8 @@
 #[macro_export]
 macro_rules! whitespace {
-  () => { ' ' | '\t' | '\r' |  '\n' };
+  () => {
+    ' ' | '\t' | '\r' | '\n'
+  };
 }
 
 #[macro_export]
@@ -10,17 +12,23 @@ macro_rules! ident {
 
 #[macro_export]
 macro_rules! binary {
-  () => { '0' | '1' };
+  () => {
+    '0' | '1'
+  };
 }
 
 #[macro_export]
 macro_rules! octal {
-  () => { '0'..='7' };
+  () => {
+    '0'..='7'
+  };
 }
 
 #[macro_export]
 macro_rules! decimal {
-  () => { '0'..='9' }
+  () => {
+    '0'..='9'
+  };
 }
 
 #[macro_export]
@@ -30,7 +38,26 @@ macro_rules! hexademical {
 
 #[macro_export]
 macro_rules! operator {
-  () => { '~' | '!' | '%' | '^' | '&' | '-' | '+' | '=' | '|' | '<' | '>' | '/' | '*' | '?' | ':' | ';' | ',' | '.' };
+  () => {
+    '~'
+      | '!'
+      | '%'
+      | '^'
+      | '&'
+      | '-'
+      | '+'
+      | '='
+      | '|'
+      | '<'
+      | '>'
+      | '/'
+      | '*'
+      | '?'
+      | ':'
+      | ';'
+      | ','
+      | '.'
+  };
 }
 
 #[macro_export]

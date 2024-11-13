@@ -2,8 +2,8 @@ use std::rc::Weak;
 
 use super::*;
 
-mod module;
 mod function;
+mod module;
 
 pub(crate) use module::*;
 
@@ -18,7 +18,13 @@ impl<V: SearchIn<S>, S: Scope> Resolve for RcCell<Reference<V, S>> {
     let this = self.borrow();
 
     let Reference::Resolved(_) = &*this else {
-      let span = this.get_inner_weak().as_ref().and_then(Weak::upgrade).unwrap().borrow().span(compiler);
+      let span = this
+        .get_inner_weak()
+        .as_ref()
+        .and_then(Weak::upgrade)
+        .unwrap()
+        .borrow()
+        .span(compiler);
       return UnresolvedQualifiedSnafu { span }.fail()?;
     };
 
@@ -27,7 +33,10 @@ impl<V: SearchIn<S>, S: Scope> Resolve for RcCell<Reference<V, S>> {
 }
 
 impl GetAndMaybeModify<Type<Module>, Module> for RcCell<Type<Module>> {
-  fn get_and_maybe_modify(&self, _mods: &mut Modifications) -> Result<Option<WeakCell<Type<Module>>>> {
+  fn get_and_maybe_modify(
+    &self,
+    _mods: &mut Modifications,
+  ) -> Result<Option<WeakCell<Type<Module>>>> {
     todo!()
   }
 }
@@ -36,7 +45,9 @@ impl Resolve for RcCell<Type<Module>> {
   fn resolve(&self, mods: &mut Modifications) -> Result {
     match &*self.borrow() {
       Type::Intrinsic { .. } => ok,
-      Type::Reference(reference) => reference.resolve(mods)
+      Type::Reference(reference) => reference.resolve(mods),
+      Type::TypeOfExpression { weak } => todo!(),
+      Type::UnresolvedInstrinsic(weak) => todo!(),
     }
   }
 
@@ -46,7 +57,9 @@ impl Resolve for RcCell<Type<Module>> {
       Type::Reference(reference) => match &*reference.borrow() {
         Reference::Resolved(rc) => rc.ensure_resolved(_compiler),
         Reference::Unresolved(_) => todo!(),
-      }
+      },
+      Type::TypeOfExpression { weak } => todo!(),
+      Type::UnresolvedInstrinsic(weak) => todo!(),
     }
   }
 }

@@ -1,15 +1,13 @@
 use std::{
   cell::RefCell,
-  rc::{Rc, Weak},
   fmt::Debug,
+  rc::{Rc, Weak},
 };
 
 use super::*;
+use crate::compiler::{error::ReadSpan, Compiler};
+use crate::checker::MakeModification;
 use crate::{enchant, Result};
-use crate::compiler::{
-  Compiler,
-  error::ReadSpan,
-};
 
 pub(crate) type RcCell<T> = Rc<RefCell<T>>;
 pub(crate) type WeakCell<T> = Weak<RefCell<T>>;
@@ -23,10 +21,18 @@ pub(crate) enum ScopeSearch<V: SearchIn<S>, S: Scope> {
 }
 
 #[allow(unused)]
-pub(crate) trait SearchIn<S: Scope>: Sized + Debug + crate::checker::MakeModification<S> {
-  fn parent(&self) -> Option<WeakCell<S>> { todo!() }
-  fn search_in(scope: &S, index: &S::Index) -> Result<ScopeSearch<Self, S>> { todo!() }
-  fn span(&self, compiler: &Compiler<DefaultWorkflow>) -> ReadSpan { todo!() }
+pub(crate) trait SearchIn<S: Scope>:
+  Sized + Debug + MakeModification<S>
+{
+  fn parent(&self) -> Option<WeakCell<S>> {
+    todo!()
+  }
+  fn search_in(scope: &S, index: &S::Index) -> Result<ScopeSearch<Self, S>> {
+    todo!()
+  }
+  fn span(&self, compiler: &Compiler<DefaultWorkflow>) -> ReadSpan {
+    todo!()
+  }
 }
 
 pub(crate) trait Part<S: Scope> {
@@ -74,8 +80,12 @@ impl<V: SearchIn<S>, S: Scope> Clone for Reference<V, S> {
   }
 }
 
-impl<S: Scope> Type<S> where Self: SearchIn<S> {
-  // pub(crate) fn new_unknown(context: &RcCell<S>, qualified: Qualified<DefaultWorkflow>) -> RcCell<Self> {
+impl<S: Scope> Type<S>
+where
+  Self: SearchIn<S>,
+{
+  // pub(crate) fn new_unknown(context: &RcCell<S>, qualified:
+  // Qualified<DefaultWorkflow>) -> RcCell<Self> {
   //   new_rc_cell(Self::Reference(Reference::Unresolved(new_rc_cell(UnresolvedReference {
   //     context: Rc::downgrade(context).into(),
   //     implicit: qualified.implicit,
@@ -107,21 +117,30 @@ impl<S: Scope> UnresolvedReference<S> {
     let context = self.context.as_ref().clone();
 
     if self.implicit {
-      trace!("{}: won't resolve an implicit unknown reference", enchant!("find_reference"));
+      trace!(
+        "{}: won't resolve an implicit unknown reference",
+        enchant!("find_reference")
+      );
       return Ok(ScopeSearch::None);
     };
 
     let mut search = ScopeSearch::Next(context);
     for part in self.parts.iter().map(S::Part::part_to_index) {
-      trace!("{}: search for {part:?} in scope: {search:?}", enchant!("find_reference"));
+      trace!(
+        "{}: search for {part:?} in scope: {search:?}",
+        enchant!("find_reference")
+      );
 
       let ScopeSearch::Next(weak) = search else {
         // cannot search any other variant of ScopeSearch as a Scope
-        warn!("{}: tried to search in something other than a scope (likely an error)", enchant!("find_reference"));
+        warn!(
+          "{}: tried to search in something other than a scope (likely an error)",
+          enchant!("find_reference")
+        );
         return Ok(ScopeSearch::None);
       };
       search = weak.upgrade().unwrap().borrow().search(part)?;
-    };
+    }
 
     Ok(search)
   }

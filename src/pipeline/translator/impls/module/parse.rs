@@ -4,7 +4,12 @@ impl<'a> ParseScope<'a> for TypeAlias {
   type In = ast::TypeAlias<DefaultWorkflow>;
   type Scope = Module;
 
-  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, compiler: &Compiler<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
+  fn parse_scope(
+    translator: &mut Translator<DefaultWorkflow>,
+    compiler: &Compiler<DefaultWorkflow>,
+    input: Self::In,
+    parent: &Option<WeakCell<Self::Scope>>,
+  ) -> Result<RcCell<Self>> {
     let ty = translator.parse_scope(compiler, input.ty, parent)?;
 
     Ok(new_rc_cell(Self {
@@ -20,7 +25,7 @@ impl Export {
     translator: &mut Translator<DefaultWorkflow>,
     compiler: &Compiler<DefaultWorkflow>,
     input: ast::Export<DefaultWorkflow>,
-    parent: &Option<WeakCell<Module>>
+    parent: &Option<WeakCell<Module>>,
   ) -> Result<Vec<Export>> {
     match input {
       ast::Export::NamespaceChild(child) => {
@@ -40,15 +45,16 @@ impl Export {
     translator: &mut Translator<DefaultWorkflow>,
     compiler: &Compiler<DefaultWorkflow>,
     input: Vec<ast::Export<DefaultWorkflow>>,
-    parent: &Option<WeakCell<Module>>
+    parent: &Option<WeakCell<Module>>,
   ) -> Result<Vec<Export>> {
-     Ok(
-      input.into_iter()
+    Ok(
+      input
+        .into_iter()
         .map(|input| Export::parse_export(translator, compiler, input, parent))
         .collect::<Result<Vec<Vec<Export>>>>()?
         .into_iter()
         .flatten()
-        .collect()
+        .collect(),
     )
   }
 }
@@ -57,7 +63,12 @@ impl<'a> ParseScope<'a> for ModuleChild {
   type In = ast::NamespaceChild<DefaultWorkflow>;
   type Scope = Module;
 
-  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, compiler: &Compiler<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
+  fn parse_scope(
+    translator: &mut Translator<DefaultWorkflow>,
+    compiler: &Compiler<DefaultWorkflow>,
+    input: Self::In,
+    parent: &Option<WeakCell<Self::Scope>>,
+  ) -> Result<RcCell<Self>> {
     match input {
       ast::NamespaceChild::Namespace(namespace) => {
         let module = translator.parse_scope(compiler, *namespace, parent)?;
@@ -80,7 +91,12 @@ impl<'a> ParseScope<'a> for Module {
   type In = ast::Namespace<DefaultWorkflow>;
   type Scope = Module;
 
-  fn parse_scope(translator: &mut Translator<DefaultWorkflow>, compiler: &Compiler<DefaultWorkflow>, input: Self::In, parent: &Option<WeakCell<Self::Scope>>) -> Result<RcCell<Self>> {
+  fn parse_scope(
+    translator: &mut Translator<DefaultWorkflow>,
+    compiler: &Compiler<DefaultWorkflow>,
+    input: Self::In,
+    parent: &Option<WeakCell<Self::Scope>>,
+  ) -> Result<RcCell<Self>> {
     let module = new_rc_cell(Self {
       parent: parent.clone().into(),
       name: ModuleName::Identifier(input.identifier),
@@ -107,7 +123,7 @@ impl<'a> ParseScope<'a> for Module {
           children.push(child);
         },
       };
-    };
+    }
 
     {
       module.borrow_mut().children = children;

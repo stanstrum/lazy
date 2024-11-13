@@ -1,5 +1,6 @@
 // For logging macros
-#[macro_use] extern crate log;
+#[macro_use]
+extern crate log;
 
 mod logger;
 
@@ -12,20 +13,11 @@ mod pipeline;
 
 use std::process::ExitCode;
 
-use arg_parser::{
-  CompilerOptions,
-  error::*,
-};
-
-use compiler::{
-  Compiler,
-  CompilerSettings,
-  workflow::DefaultWorkflow,
-  error::CompilerError,
-};
+use arg_parser::{error::*, CompilerOptions};
+use compiler::{error::CompilerError, workflow::DefaultWorkflow, Compiler, CompilerSettings};
+pub(crate) use pipeline::*;
 
 use crate::help::LazyHelp;
-pub(crate) use pipeline::*;
 
 pub(crate) type Result<T = ()> = std::result::Result<T, CompilerError>;
 

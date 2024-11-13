@@ -1,18 +1,13 @@
-mod whitespace;
 mod comment;
 mod ident;
-mod operator;
 pub(crate) mod numeric;
+mod operator;
 mod string;
+mod whitespace;
 
-use crate::{Result, ok};
-use crate::tokenizer::{
-  PeekReader,
-  TokenKind,
-  Grouping,
-  Tokenizer,
-};
 use crate::compiler::CompilerWorkflow;
+use crate::tokenizer::{Grouping, PeekReader, TokenKind, Tokenizer};
+use crate::{ok, Result};
 
 impl<W: CompilerWorkflow> Tokenizer<W> {
   pub(in crate::pipeline::tokenizer) fn base(&mut self, reader: &mut PeekReader<W>) -> Result {

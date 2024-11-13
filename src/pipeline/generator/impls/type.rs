@@ -106,8 +106,7 @@ impl TypeOf for lang::Type<Module> {
         .upgrade()
         .unwrap()
         .g_type_of(context),
-      lang::Type::TypeOfExpression { weak } => todo!(),
-      lang::Type::UnresolvedInstrinsic(weak) => todo!(),
+      other => todo!("{other:#?}"),
     }
   }
 }

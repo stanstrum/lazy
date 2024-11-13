@@ -1,4 +1,82 @@
+use inkwell::{
+  builder::Builder,
+  values::{BasicValue, BasicValueEnum},
+};
+
 use super::*;
+
+impl lang::LiteralInstruction {
+  fn generate_with_builder<'ctx, W: CompilerWorkflow>(
+    &self,
+    generator: &Generator<W>,
+    builder: &Builder,
+  ) -> Result<BasicValueEnum<'ctx>> {
+    match &*self.kind {
+      lang::LiteralInstructionKind::Integer(value) => Ok(
+        self
+          .ty
+          .g_type_of(ContextOrRef::Context(&generator.context))?
+          .as_basic_type_enum()
+          .into_int_type()
+          .const_int(*value, false)
+          .as_basic_value_enum(),
+      ),
+      lang::LiteralInstructionKind::Float(float) => {
+        todo!()
+      },
+      lang::LiteralInstructionKind::String(string) => {
+        todo!()
+      },
+    }
+  }
+}
+
+impl lang::Instruction {
+  fn generate_with_builder<'ctx, W: CompilerWorkflow>(
+    this: &RcCell<Self>,
+    generator: &Generator<W>,
+    builder: &Builder,
+  ) -> Result<Option<BasicValueEnum<'ctx>>> {
+    match &*this.borrow() {
+      lang::Instruction::Literal(literal) => {
+        Ok(Some(literal.generate_with_builder(generator, builder)?))
+      },
+      lang::Instruction::Block(this) => {
+        let mut scope = vec![];
+        for variable in this.variables.iter() {
+          let variable = variable.borrow();
+
+          // let name = variable.name.name.to_owned();
+          let context = (&generator.context).into();
+          let ty = variable.ty.g_type_of(context)?;
+
+          builder.build_alloca(ty.as_basic_type_enum(), "alloca");
+
+          scope.push(ty);
+        }
+
+        for instruction in this.instructions.iter() {
+          lang::Instruction::generate_with_builder(&instruction, generator, builder)?;
+        }
+
+        Ok(None)
+      },
+      lang::Instruction::Return {value , .. } => {
+        let value = {
+          if let Some(value) = value {
+            lang::Instruction::generate_with_builder(value, generator, builder)?
+          } else {
+            None
+          }
+        };
+
+        builder.build_return(value.as_ref().map(|x| x as _));
+
+        todo!()
+      },
+    }
+  }
+}
 
 impl lang::FunctionBlock {
   fn generate_in_function<W: CompilerWorkflow>(
@@ -18,11 +96,15 @@ impl lang::FunctionBlock {
 
       // let name = variable.name.name.to_owned();
       let context = (&generator.context).into();
-      let ty = variable.ty.g_type_of(context)?.as_basic_metadata_type();
+      let ty = variable.ty.g_type_of(context)?;
 
-      scope.push(ty);
+      scope.push(ty.as_basic_metadata_type());
 
       todo!();
+    }
+
+    for instruction in this.borrow().children.iter() {
+      lang::Instruction::generate_with_builder(instruction, generator, &builder)?;
     }
 
     if function.get_type().get_return_type().is_none() {

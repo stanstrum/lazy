@@ -1,5 +1,7 @@
 use super::*;
 
+use crate::compiler::error::ReadSpan;
+
 impl SearchIn<FunctionBlock> for Variable {
   fn search_in(
     _scope: &FunctionBlock,
@@ -63,4 +65,36 @@ impl SearchIn<Function> for FunctionBlock {
   }
 }
 
-impl SearchIn<FunctionBlock> for Instruction {}
+impl SearchIn<FunctionBlock> for BlockInstruction {
+  fn parent(&self) -> Option<WeakCell<FunctionBlock>> {
+    std::todo!()
+  }
+
+  fn search_in(scope: &FunctionBlock, index: &<FunctionBlock as Scope>::Index) -> Result<ScopeSearch<Self, FunctionBlock>> {
+    std::todo!()
+  }
+
+  fn span(&self, compiler: &Compiler<DefaultWorkflow>) -> ReadSpan {
+    std::todo!()
+  }
+}
+
+impl SearchIn<FunctionBlock> for Instruction {
+  fn parent(&self) -> Option<WeakCell<FunctionBlock>> {
+    match self {
+      Instruction::Literal(literal_instruction) => literal_instruction.parent(),
+      Instruction::Block(block_instruction) => block_instruction.parent(),
+      Instruction::Return { parent, .. } => {
+        Some(parent.as_ref().clone())
+      },
+    }
+  }
+
+  fn search_in(scope: &FunctionBlock, index: &<FunctionBlock as Scope>::Index) -> Result<ScopeSearch<Self, FunctionBlock>> {
+    todo!()
+  }
+
+  fn span(&self, compiler: &Compiler<DefaultWorkflow>) -> ReadSpan {
+    todo!()
+  }
+}

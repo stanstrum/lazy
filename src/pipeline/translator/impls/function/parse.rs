@@ -33,14 +33,11 @@ impl BlockInstruction {
   ) -> Result<Self> {
     // TODO: bad
     let child_parent = parent
-      .upgrade()
-      .unwrap()
-      .scope_parent()
-      .as_ref()
+      .upgrade().unwrap()
+      .scope_parent().as_ref()
       .and_then(Weak::upgrade)
       .unwrap()
       .scope_parent();
-    let parent = Some(parent.clone());
 
     let mut variables = vec![];
     let mut exprs = vec![];
@@ -48,7 +45,7 @@ impl BlockInstruction {
       match child {
         ast::BlockChild::Binding(binding) => match binding.kind {
           ast::BindingKind::OnlyType(ty) => {
-            let ty = translator.parse_scope(compiler, ty, &child_parent)?;
+            let ty = translator.parse_scope::<Type<Module>, Module>(compiler, ty, &child_parent)?;
 
             variables.push(Variable {
               name: binding.identifier,
@@ -72,21 +69,25 @@ impl BlockInstruction {
       };
     }
 
+    let child_parent = Some(parent.clone());
     let variables: Vec<Rc<std::cell::RefCell<Variable>>> =
       variables.into_iter().map(new_rc_cell).collect::<Vec<_>>();
 
     let mut instructions = exprs
       .into_iter()
-      .map(|expr| translator.parse_scope(compiler, expr, &parent))
+      .map(|expr| translator.parse_scope(compiler, expr, &child_parent))
       .collect::<Result<Vec<_>>>()?;
 
     if let Some(return_last) = input.return_last {
-      let return_last = translator.parse_scope(compiler, return_last, &parent)?;
-      instructions.push(new_rc_cell(Instruction::Return(Some(return_last))));
+      let return_last = translator.parse_scope(compiler, return_last, &child_parent)?;
+      instructions.push(new_rc_cell(Instruction::Return {
+        value: Some(return_last),
+        parent: parent.clone().into(),
+      }));
     };
 
     Ok(Self {
-      parent: parent.unwrap().clone().into(),
+      parent: parent.clone().into(),
       variables,
       instructions,
       span: input.span,
@@ -112,7 +113,7 @@ impl LiteralInstruction {
       },
     });
 
-    let ty = Type::UnresolvedInstrinsic(Rc::downgrade(&kind));
+    let ty = new_rc_cell(Type::UnresolvedInstrinsic(Rc::downgrade(&kind)));
 
     Ok(Self {
       kind,
@@ -202,7 +203,10 @@ impl<'a> ParseScope<'a> for FunctionBlock {
       this
         .borrow_mut()
         .children
-        .push(new_rc_cell(Instruction::Return(Some(instruction))));
+        .push(new_rc_cell(Instruction::Return {
+          value: Some(instruction),
+          parent: Rc::downgrade(&this).into(),
+        }));
     };
 
     Ok(this)

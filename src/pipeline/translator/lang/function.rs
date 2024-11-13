@@ -34,7 +34,7 @@ pub(crate) enum LiteralInstructionKind {
 #[derive(Debug)]
 pub(crate) struct LiteralInstruction {
   pub(crate) kind: Rc<LiteralInstructionKind>,
-  pub(crate) ty: Type<Module>,
+  pub(crate) ty: RcCell<Type<Module>>,
   pub(crate) span: Span<DefaultWorkflow>,
 }
 
@@ -52,7 +52,10 @@ pub(crate) struct BlockInstruction {
 pub(crate) enum Instruction {
   Literal(LiteralInstruction),
   Block(BlockInstruction),
-  Return(Option<RcCell<Instruction>>),
+  Return {
+    parent: OpaqueParent<WeakCell<FunctionBlock>>,
+    value: Option<RcCell<Instruction>>,
+  },
 }
 
 #[allow(unused)]

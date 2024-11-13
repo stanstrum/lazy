@@ -18,8 +18,9 @@ pub(crate) trait MakeModification<S: Scope, W: CompilerWorkflow = DefaultWorkflo
 
 impl MakeModification<Module> for Export {}
 impl MakeModification<Module> for TypeAlias {}
-impl MakeModification<FunctionBlock> for Instruction {}
 impl MakeModification<FunctionBlock> for LiteralInstruction {}
+impl MakeModification<FunctionBlock> for BlockInstruction {}
+impl MakeModification<FunctionBlock> for Instruction {}
 impl MakeModification<FunctionBlock> for Variable {}
 impl MakeModification<Function> for FunctionBlock {}
 impl MakeModification<Function> for FunctionArgument {}

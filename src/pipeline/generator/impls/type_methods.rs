@@ -1,3 +1,5 @@
+use inkwell::types::BasicType;
+
 use super::*;
 
 #[allow(unused)]
@@ -20,6 +22,7 @@ pub(super) trait GeneratorTypeMethods<'ctx> {
     param_types: &[BasicMetadataTypeEnum<'ctx>],
     is_var_args: bool,
   ) -> FunctionType<'ctx>;
+  fn as_basic_type_enum(&self) -> BasicTypeEnum<'ctx>;
   fn as_basic_metadata_type(&self) -> BasicMetadataTypeEnum<'ctx>;
 }
 
@@ -64,68 +67,32 @@ impl<'ctx> GeneratorTypeMethods<'ctx> for GeneratorSuperType<'ctx> {
   fn as_basic_metadata_type(&self) -> BasicMetadataTypeEnum<'ctx> {
     match self {
       GeneratorSuperType::Void(_) => unimplemented!(),
-      GeneratorSuperType::Basic(basic_type_enum) => basic_type_enum.as_basic_metadata_type(),
+      GeneratorSuperType::Basic(basic_type_enum) => (*basic_type_enum).try_into().unwrap(),
       GeneratorSuperType::Metadata(metadata_type) => {
         BasicMetadataTypeEnum::MetadataType(*metadata_type)
       },
     }
   }
-}
 
-impl<'ctx> GeneratorTypeMethods<'ctx> for BasicMetadataTypeEnum<'ctx> {
-  fn fn_type(
-    &self,
-    param_types: &[BasicMetadataTypeEnum<'ctx>],
-    is_var_args: bool,
-  ) -> FunctionType<'ctx> {
+  fn as_basic_type_enum(&self) -> BasicTypeEnum<'ctx> {
     match self {
-      BasicMetadataTypeEnum::ArrayType(array_type) => array_type.fn_type(param_types, is_var_args),
-      BasicMetadataTypeEnum::FloatType(float_type) => float_type.fn_type(param_types, is_var_args),
-      BasicMetadataTypeEnum::IntType(int_type) => int_type.fn_type(param_types, is_var_args),
-      BasicMetadataTypeEnum::PointerType(pointer_type) => {
-        pointer_type.fn_type(param_types, is_var_args)
+      | GeneratorSuperType::Void(_) | GeneratorSuperType::Metadata(_) => unimplemented!(),
+      GeneratorSuperType::Basic(BasicTypeEnum::ArrayType(array)) => {
+        BasicTypeEnum::ArrayType(*array)
       },
-      BasicMetadataTypeEnum::StructType(struct_type) => {
-        struct_type.fn_type(param_types, is_var_args)
+      GeneratorSuperType::Basic(BasicTypeEnum::FloatType(float)) => {
+        BasicTypeEnum::FloatType(*float)
       },
-      BasicMetadataTypeEnum::VectorType(vector_type) => {
-        vector_type.fn_type(param_types, is_var_args)
+      GeneratorSuperType::Basic(BasicTypeEnum::IntType(int)) => BasicTypeEnum::IntType(*int),
+      GeneratorSuperType::Basic(BasicTypeEnum::PointerType(pointer)) => {
+        BasicTypeEnum::PointerType(*pointer)
       },
-      BasicMetadataTypeEnum::MetadataType(metadata_type) => {
-        metadata_type.fn_type(param_types, is_var_args)
+      GeneratorSuperType::Basic(BasicTypeEnum::StructType(r#struct)) => {
+        BasicTypeEnum::StructType(*r#struct)
       },
-    }
-  }
-
-  fn as_basic_metadata_type(&self) -> BasicMetadataTypeEnum<'ctx> {
-    todo!()
-  }
-}
-
-impl<'ctx> GeneratorTypeMethods<'ctx> for BasicTypeEnum<'ctx> {
-  fn fn_type(
-    &self,
-    param_types: &[BasicMetadataTypeEnum<'ctx>],
-    is_var_args: bool,
-  ) -> FunctionType<'ctx> {
-    match self {
-      BasicTypeEnum::ArrayType(array_type) => array_type.fn_type(param_types, is_var_args),
-      BasicTypeEnum::FloatType(float_type) => float_type.fn_type(param_types, is_var_args),
-      BasicTypeEnum::IntType(int_type) => int_type.fn_type(param_types, is_var_args),
-      BasicTypeEnum::PointerType(pointer_type) => pointer_type.fn_type(param_types, is_var_args),
-      BasicTypeEnum::StructType(struct_type) => struct_type.fn_type(param_types, is_var_args),
-      BasicTypeEnum::VectorType(vector_type) => vector_type.fn_type(param_types, is_var_args),
-    }
-  }
-
-  fn as_basic_metadata_type(&self) -> BasicMetadataTypeEnum<'ctx> {
-    match *self {
-      BasicTypeEnum::ArrayType(x) => BasicMetadataTypeEnum::ArrayType(x),
-      BasicTypeEnum::FloatType(x) => BasicMetadataTypeEnum::FloatType(x),
-      BasicTypeEnum::IntType(x) => BasicMetadataTypeEnum::IntType(x),
-      BasicTypeEnum::PointerType(x) => BasicMetadataTypeEnum::PointerType(x),
-      BasicTypeEnum::StructType(x) => BasicMetadataTypeEnum::StructType(x),
-      BasicTypeEnum::VectorType(x) => BasicMetadataTypeEnum::VectorType(x),
+      GeneratorSuperType::Basic(BasicTypeEnum::VectorType(vector)) => {
+        BasicTypeEnum::VectorType(*vector)
+      },
     }
   }
 }

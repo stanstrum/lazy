@@ -76,8 +76,7 @@ impl SearchIn<Module> for Type<Module> {
     match self {
       Type::Intrinsic { parent, .. } => Some(parent.clone().unwrap()),
       Type::Reference(reference) => reference.parent(),
-      Type::TypeOfExpression { weak } => todo!(),
-      Type::UnresolvedInstrinsic(weak) => todo!(),
+      other => todo!("{other:#?}"),
     }
   }
 

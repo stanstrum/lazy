@@ -46,8 +46,7 @@ impl Resolve for RcCell<Type<Module>> {
     match &*self.borrow() {
       Type::Intrinsic { .. } => ok,
       Type::Reference(reference) => reference.resolve(mods),
-      Type::TypeOfExpression { weak } => todo!(),
-      Type::UnresolvedInstrinsic(weak) => todo!(),
+      other => todo!("{other:#?}"),
     }
   }
 
@@ -58,8 +57,7 @@ impl Resolve for RcCell<Type<Module>> {
         Reference::Resolved(rc) => rc.ensure_resolved(_compiler),
         Reference::Unresolved(_) => todo!(),
       },
-      Type::TypeOfExpression { weak } => todo!(),
-      Type::UnresolvedInstrinsic(weak) => todo!(),
+      other => todo!("{other:#?}"),
     }
   }
 }

@@ -29,6 +29,24 @@ trait Resolve: Sized {
   fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result;
 }
 
+trait TypeOf {
+  fn type_of(&self) -> Type<Module>;
+}
+
+trait Coerce<C: CoerceWith<T>, T> {
+  fn coerce(&self, what: &C, mods: &mut Modifications) -> Result;
+}
+
+trait CoerceWith<T> {
+  fn coerce_with(&self, with: &T, mods: &mut Modifications) -> Result;
+}
+
+impl<C: CoerceWith<T>, T> Coerce<C, T> for T {
+  fn coerce(&self, what: &C, mods: &mut Modifications) -> Result {
+    what.coerce_with(self, mods)
+  }
+}
+
 impl<T: Resolve> Resolve for RcCell<T> {
   fn resolve(&self, mods: &mut Modifications) -> Result {
     self.borrow().resolve(mods)

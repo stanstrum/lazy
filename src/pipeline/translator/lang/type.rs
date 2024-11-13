@@ -16,7 +16,7 @@ pub(crate) struct UnresolvedType<W: CompilerWorkflow> {
 
 /// An intrinsic type
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum Intrinsic {
   // Void type for values that can never exist
   Void,
@@ -47,7 +47,7 @@ pub(crate) enum Intrinsic {
 
 /// A Type of any kind, including unresolved
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) enum Type<S: Scope>
 where
   Self: SearchIn<S>,
@@ -60,6 +60,20 @@ where
   TypeOfExpression {
     weak: WeakCell<Instruction>,
   },
+  Intersection(RcCell<Vec<Self>>),
   UnresolvedInstrinsic(Weak<LiteralInstructionKind>),
   Reference(RcCell<Reference<Type<S>, S>>),
+}
+
+impl<S: Scope> Type<S> where Self: SearchIn<S> {
+  pub(crate) fn new_intrinsic<T: Into<OpaqueParent<WeakCell<S>>>>(kind: Intrinsic, parent: T) -> Self {
+    Self::Intrinsic {
+      kind,
+      parent: parent.into(),
+    }
+  }
+
+  pub(crate) fn new_intersection<T: IntoIterator<Item = Self>>(values: T) -> Self {
+    Self::Intersection(new_rc_cell(values.into_iter().collect()))
+  }
 }

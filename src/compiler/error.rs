@@ -78,6 +78,30 @@ impl crate::help::LazyHelp for CompilerError {
   }
 }
 
+trait CatchStreamError {
+  fn catch_stream_error(&self) -> Result<char>;
+}
+
+impl CatchStreamError for Char {
+  fn catch_stream_error(&self) -> Result<char> {
+    match self {
+      Char::Char(ch) => Ok(*ch),
+      Char::Eof => {
+        return IOSnafu {
+          err: "span exists outside of the end of the file",
+        }
+        .fail()?;
+      },
+      Char::NoData => {
+        return IOSnafu {
+          err: "invalid UTF-8 in file",
+        }
+        .fail()?;
+      },
+    }
+  }
+}
+
 impl<W: CompilerWorkflow> Compiler<W> {
   pub(crate) fn span_to_read_span(&self, span: Span<W>) -> Result<ReadSpan> {
     // Get module by the handle provided by `span`
@@ -107,48 +131,44 @@ impl<W: CompilerWorkflow> Compiler<W> {
     let mut line = 1;
     let mut column = 1;
 
+    let mut current_line = "1: ".to_string();
+
     // Manually seek to the beginning of `span`
     for _ in 0..span.start {
-      match reader.next_char() {
-        Ok(Char::Char('\n')) => {
+      match reader.next_char()?.catch_stream_error()? {
+        '\n' => {
           line += 1;
           column = 1;
+          current_line = format!("{line}: ");
         },
-        Ok(Char::Char(_)) => column += 1,
-        Ok(Char::Eof) => {
-          return IOSnafu {
-            err: "span starts outside of the end of the file",
-          }
-          .fail()?
-        },
-        Ok(Char::NoData) => {
-          return IOSnafu {
-            err: "invalid UTF-8 in file",
-          }
-          .fail()?
-        },
-        Err(err) => {
-          return IOSnafu {
-            err: err.to_string(),
-          }
-          .fail()?
+        ch => {
+          current_line.push(ch);
+          column += 1;
         },
       };
-    }
+    };
 
-    // Calculate the length of `span` -- this may be zero but never negative
-    let length = span.end - span.start;
+    let mut text = current_line;
 
-    // Now read the section of code we're actually looking for
-    let text = match reader.take(length).collect() {
-      Ok(x) => x,
-      // TODO: make this an implicit Into -- getting annoying
-      Err(err) => {
-        return IOSnafu {
-          err: err.to_string(),
-        }
-        .fail()?
-      },
+    // Now seek to the end of the selection, since we need to find the end of
+    // that line
+    for _ in span.start..span.end {
+      let ch = reader.next_char()?.catch_stream_error()?;
+      text.push(ch);
+
+      if ch == '\n' {
+        line += 1;
+        text += format!("{line}: ").as_str();
+      };
+    };
+
+    loop {
+      match reader.next_char()? {
+        err @ Char::NoData => { err.catch_stream_error()?; },
+        | Char::Char('\n')
+        | Char::Eof => break,
+        Char::Char(ch) => { text.push(ch); },
+      };
     };
 
     Ok(ReadSpan {
@@ -159,5 +179,11 @@ impl<W: CompilerWorkflow> Compiler<W> {
       column,
       text,
     })
+  }
+}
+
+impl From<utf8_read::Error> for CompilerError {
+  fn from(err: utf8_read::Error) -> Self {
+    Self::IO { err: err.to_string() }
   }
 }

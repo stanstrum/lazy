@@ -58,5 +58,5 @@ pub(super) fn print_message(err: CompilerError) {
   let header = format!("in {}:{}:{}", span.path, span.line, span.column);
 
   // TODO: colorization, correct formatting ...
-  error!("{message}\n{header}\n\n{}\n^ here", span.text);
+  error!("{message}\n{header}\n\n{}\n", span.text);
 }

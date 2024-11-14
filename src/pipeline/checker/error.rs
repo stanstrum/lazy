@@ -2,6 +2,7 @@ use snafu::prelude::*;
 
 use crate::compiler::error::{CompilerError, ReadSpan};
 
+#[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct ReprSpan {
   pub(crate) repr: String,
@@ -12,17 +13,17 @@ pub(crate) struct ReprSpan {
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub(crate)))]
 pub(crate) enum CheckerError {
-  #[snafu(display("unresolved identifier:"))]
+  #[snafu(display("unresolved identifier"))]
   UnresolvedQualified { span: ReadSpan },
 
-  #[snafu(display("type mismatch:"))]
+  #[snafu(display("type mismatch"))]
   TypeMismatch {
     span: ReadSpan,
     found_repr: String,
     expected_repr: String,
   },
 
-  #[snafu(display("unresolved literal:"))]
+  #[snafu(display("unresolved literal"))]
   UnresolvedLiteral {
     span: ReadSpan,
   },

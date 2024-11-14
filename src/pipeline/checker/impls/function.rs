@@ -74,9 +74,30 @@ impl CoerceWith<Type<Module>> for RcCell<Type<Module>> {
           panic!("coerce_with failed");
         };
       },
-      (Type::UnresolvedInstrinsic(weak), other) => {
+      (Type::UnresolvedInstrinsic { weak, .. }, other) => {
         match weak.upgrade().unwrap().as_ref() {
-          LiteralInstructionKind::Integer(value) => todo!(),
+          LiteralInstructionKind::Integer(value) => {
+            let Some(mut with) = with.make_wholly_unique() else {
+              warn!("{}: couldn't resolve an intrinsic because the base isn't resolved yet", enchant!("coerce_with"));
+              return ok;
+            };
+
+            let mut union = Type::new_union([
+              Type::new_intrinsic(Intrinsic::I8, self.scope_parent().unwrap()),
+              Type::new_intrinsic(Intrinsic::I16, self.scope_parent().unwrap()),
+              Type::new_intrinsic(Intrinsic::I32, self.scope_parent().unwrap()),
+              Type::new_intrinsic(Intrinsic::I64, self.scope_parent().unwrap()),
+              Type::new_intrinsic(Intrinsic::U8, self.scope_parent().unwrap()),
+              Type::new_intrinsic(Intrinsic::U16, self.scope_parent().unwrap()),
+              Type::new_intrinsic(Intrinsic::U32, self.scope_parent().unwrap()),
+              Type::new_intrinsic(Intrinsic::U64, self.scope_parent().unwrap()),
+              Type::new_intrinsic(Intrinsic::F32, self.scope_parent().unwrap()),
+              Type::new_intrinsic(Intrinsic::F64, self.scope_parent().unwrap()),
+            ]);
+            with.coerce_with_mut(&mut union)?;
+
+            mods.push(Type::make_coerce_type(self, with));
+          },
           LiteralInstructionKind::Float(value) => todo!(),
           LiteralInstructionKind::String(value) => todo!(),
         };
@@ -87,23 +108,46 @@ impl CoerceWith<Type<Module>> for RcCell<Type<Module>> {
   }
 }
 
-impl CoerceWith<Type<Module>> for Type<Module> {
-  fn coerce_with(&self, with: &Type<Module>, mods: &mut Modifications) -> Result {
-    match (self, with) {
-      (Type::Intrinsic { kind: a, .. }, Type::Intrinsic { kind: b, .. }) => {
-        if a != b {
-          panic!("coerce fail");
-        };
-
-        ok
+impl Extends<Type<Module>> for Type<Module> {
+  fn extends(&self, other: &Type<Module>) -> bool {
+    match (self, other) {
+      (Type::Intrinsic { kind: a, .. }, Type::Intrinsic { kind: b, .. }) => a == b,
+      (_, Type::Union(tys)) => {
+        tys.borrow().iter().any(|ty| self.extends(ty))
       },
-      other => todo!("{other:#?}"),
+      other => {
+        warn!("{}: stub extends: {self:#?} and {other:#?}", enchant!("extends"));
+        false
+      },
     }
   }
 }
 
-impl CoerceWith<Type<Module>> for BlockInstruction {
-  fn coerce_with(&self, with: &Type<Module>, mods: &mut Modifications) -> Result {
+impl Type<Module> {
+  fn coerce_with_mut(&mut self, with: &Type<Module>) -> Result {
+    match (&self, with) {
+      (_, Type::Union(tys)) => {
+        for ty in tys.borrow().iter() {
+          if self.extends(ty) {
+            self.coerce_with_mut(ty)?;
+          } else {
+            warn!("{}: union part doesn't extend and won't be used to coerce", enchant!("coerce_with_mut"));
+          };
+        };
+      },
+      (Type::Intrinsic { kind: a, .. }, Type::Intrinsic { kind: b, .. }) => {
+        match (a, b) {
+          _ if a == b => return ok,
+          other => todo!("{other:#?}"),
+        };
+      },
+      other => todo!("{other:#?}"),
+    }; ok
+  }
+}
+
+impl CoerceWith<RcCell<Type<Module>>> for BlockInstruction {
+  fn coerce_with(&self, with: &RcCell<Type<Module>>, mods: &mut Modifications) -> Result {
     for instruction in self.instructions.iter() {
       if let Instruction::Return { value, .. } = &*instruction.borrow() {
         if let Some(value) = value {
@@ -125,8 +169,8 @@ impl CoerceWith<Type<Module>> for BlockInstruction {
   }
 }
 
-impl CoerceWith<Type<Module>> for RcCell<Instruction> {
-  fn coerce_with(&self, with: &Type<Module>, mods: &mut Modifications) -> Result {
+impl CoerceWith<RcCell<Type<Module>>> for RcCell<Instruction> {
+  fn coerce_with(&self, with: &RcCell<Type<Module>>, mods: &mut Modifications) -> Result {
     match &*self.borrow() {
       Instruction::Literal(literal_instruction) => literal_instruction.coerce_with(with, mods),
       Instruction::Block(block_instruction) => block_instruction.coerce_with(with, mods),
@@ -175,7 +219,12 @@ impl Resolve for Instruction {
   }
 
   fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
-    todo!()
+    match self {
+      Instruction::Literal(literal_instruction) => literal_instruction.ensure_resolved(compiler),
+      Instruction::Block(block_instruction) => block_instruction.ensure_resolved(compiler),
+      Instruction::Return { value: Some(value), .. } => value.ensure_resolved(compiler),
+      Instruction::Return { value: None, .. } => ok,
+    }
   }
 }
 

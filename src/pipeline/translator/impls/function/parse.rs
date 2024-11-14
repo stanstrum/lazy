@@ -113,7 +113,11 @@ impl LiteralInstruction {
       },
     });
 
-    let ty = new_rc_cell(Type::UnresolvedInstrinsic(Rc::downgrade(&kind)));
+    let module = parent.upgrade().unwrap().scope_parent().unwrap().upgrade().unwrap().scope_parent().unwrap();
+    let ty = new_rc_cell(Type::UnresolvedInstrinsic {
+      weak: Rc::downgrade(&kind),
+      parent: module.into(),
+    });
 
     Ok(Self {
       kind,

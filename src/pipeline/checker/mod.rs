@@ -41,6 +41,16 @@ trait CoerceWith<T> {
   fn coerce_with(&self, with: &T, mods: &mut Modifications) -> Result;
 }
 
+trait Extends<T> {
+  fn extends(&self, other: &T) -> bool;
+}
+
+// impl<T: MakeModification<S>, S: Scope, O: Extends<T>> CoerceWith<O> for T {
+//   fn coerce_with(&self, with: &O, mods: &mut Modifications) -> Result {
+//     todo!()
+//   }
+// }
+
 impl<C: CoerceWith<T>, T> Coerce<C, T> for T {
   fn coerce(&self, what: &C, mods: &mut Modifications) -> Result {
     what.coerce_with(self, mods)

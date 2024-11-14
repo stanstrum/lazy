@@ -74,7 +74,8 @@ where
 impl SearchIn<Module> for Type<Module> {
   fn parent(&self) -> Option<WeakCell<Module>> {
     match self {
-      Type::Intrinsic { parent, .. } => Some(parent.clone().unwrap()),
+      | Type::UnresolvedInstrinsic { parent, .. }
+      | Type::Intrinsic { parent, .. } => Some(parent.clone().unwrap()),
       Type::Reference(reference) => reference.parent(),
       other => todo!("{other:#?}"),
     }

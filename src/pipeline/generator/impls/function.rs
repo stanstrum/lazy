@@ -61,7 +61,7 @@ impl lang::Instruction {
 
         Ok(None)
       },
-      lang::Instruction::Return {value , .. } => {
+      lang::Instruction::Return { value , .. } => {
         let value = {
           if let Some(value) = value {
             lang::Instruction::generate_with_builder(value, generator, builder)?
@@ -70,9 +70,11 @@ impl lang::Instruction {
           }
         };
 
+        dbg!(value);
+
         builder.build_return(value.as_ref().map(|x| x as _));
 
-        todo!()
+        Ok(None)
       },
     }
   }
@@ -106,10 +108,6 @@ impl lang::FunctionBlock {
     for instruction in this.borrow().children.iter() {
       lang::Instruction::generate_with_builder(instruction, generator, &builder)?;
     }
-
-    if function.get_type().get_return_type().is_none() {
-      builder.build_return(None);
-    };
 
     ok
   }

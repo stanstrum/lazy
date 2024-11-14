@@ -56,7 +56,10 @@ impl Resolve for RcCell<Type<Module>> {
       Type::Reference(reference) => reference.ensure_resolved(compiler),
       Type::TypeOfExpression { weak } => weak.upgrade().unwrap().ensure_resolved(compiler),
       Type::Union(_) => todo!(),
-      Type::UnresolvedInstrinsic { .. } => todo!("error: unresolved"),
+      Type::UnresolvedInstrinsic { weak, parent, span } => {
+        let span = compiler.span_to_read_span(*span)?;
+        UnresolvedLiteralSnafu { span }.fail()?
+      }
     }
   }
 }

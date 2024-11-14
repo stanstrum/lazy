@@ -64,6 +64,7 @@ where
   UnresolvedInstrinsic {
     weak: Weak<LiteralInstructionKind>,
     parent: OpaqueParent<WeakCell<Module>>,
+    span: Span<DefaultWorkflow>,
   },
   Reference(RcCell<Reference<Type<S>, S>>),
 }
@@ -74,7 +75,7 @@ impl<S: Scope> Clone for Type<S> where Self: SearchIn<S> {
       Self::Intrinsic { kind, parent } => Self::Intrinsic { kind: kind.clone(), parent: parent.clone() },
       Self::TypeOfExpression { weak } => Self::TypeOfExpression { weak: weak.clone() },
       Self::Union(arg0) => Self::Union(arg0.clone()),
-      Self::UnresolvedInstrinsic { weak, parent } => Self::UnresolvedInstrinsic { weak: weak.clone(), parent: parent.clone() },
+      Self::UnresolvedInstrinsic { weak, parent, span } => Self::UnresolvedInstrinsic { weak: weak.clone(), parent: parent.clone(), span: span.clone() },
       Self::Reference(arg0) => Self::Reference(arg0.clone()),
     }
   }

@@ -100,6 +100,7 @@ impl LiteralInstruction {
     let ty = new_rc_cell(Type::UnresolvedInstrinsic {
       weak: Rc::downgrade(&kind),
       parent: module.into(),
+      span: input.span,
     });
 
     Ok(Self {

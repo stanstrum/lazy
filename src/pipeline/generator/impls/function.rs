@@ -56,7 +56,7 @@ impl lang::Instruction {
         }
 
         for instruction in this.borrow().instructions.iter() {
-          lang::Instruction::generate_with_builder(&instruction, generator, builder)?;
+          lang::Instruction::generate_with_builder(instruction, generator, builder)?;
         }
 
         Ok(None)

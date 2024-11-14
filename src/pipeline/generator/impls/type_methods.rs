@@ -67,7 +67,7 @@ impl<'ctx> GeneratorTypeMethods<'ctx> for GeneratorSuperType<'ctx> {
   fn as_basic_metadata_type(&self) -> BasicMetadataTypeEnum<'ctx> {
     match self {
       GeneratorSuperType::Void(_) => unimplemented!(),
-      GeneratorSuperType::Basic(basic_type_enum) => (*basic_type_enum).try_into().unwrap(),
+      GeneratorSuperType::Basic(basic_type_enum) => (*basic_type_enum).into(),
       GeneratorSuperType::Metadata(metadata_type) => {
         BasicMetadataTypeEnum::MetadataType(*metadata_type)
       },

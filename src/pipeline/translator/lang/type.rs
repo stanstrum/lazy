@@ -57,7 +57,7 @@ where
     kind: Intrinsic,
     parent: OpaqueParent<WeakCell<S>>,
   },
-  TypeOfExpression {
+  OfExpression {
     weak: WeakCell<Instruction>,
   },
   Union(RcCell<Vec<Self>>),
@@ -72,10 +72,10 @@ where
 impl<S: Scope> Clone for Type<S> where Self: SearchIn<S> {
   fn clone(&self) -> Self {
     match self {
-      Self::Intrinsic { kind, parent } => Self::Intrinsic { kind: kind.clone(), parent: parent.clone() },
-      Self::TypeOfExpression { weak } => Self::TypeOfExpression { weak: weak.clone() },
+      Self::Intrinsic { kind, parent } => Self::Intrinsic { kind: *kind, parent: parent.clone() },
+      Self::OfExpression { weak } => Self::OfExpression { weak: weak.clone() },
       Self::Union(arg0) => Self::Union(arg0.clone()),
-      Self::UnresolvedInstrinsic { weak, parent, span } => Self::UnresolvedInstrinsic { weak: weak.clone(), parent: parent.clone(), span: span.clone() },
+      Self::UnresolvedInstrinsic { weak, parent, span } => Self::UnresolvedInstrinsic { weak: weak.clone(), parent: parent.clone(), span: *span },
       Self::Reference(arg0) => Self::Reference(arg0.clone()),
     }
   }
@@ -96,7 +96,7 @@ impl<S: Scope> Type<S> where Self: SearchIn<S> {
   pub(crate) fn make_wholly_unique(&self) -> Option<Self> {
     match self {
       | Type::Intrinsic { .. } => Some(self.clone()),
-      Type::TypeOfExpression { .. } => None,
+      Type::OfExpression { .. } => None,
       Type::Union(values) => {
         values.borrow().iter()
           .map(Self::make_wholly_unique)

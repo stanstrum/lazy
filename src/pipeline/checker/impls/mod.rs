@@ -54,7 +54,7 @@ impl Resolve for RcCell<Type<Module>> {
     match &*self.borrow() {
       Type::Intrinsic { .. } => ok,
       Type::Reference(reference) => reference.ensure_resolved(compiler),
-      Type::TypeOfExpression { weak } => weak.upgrade().unwrap().ensure_resolved(compiler),
+      Type::OfExpression { weak } => weak.upgrade().unwrap().ensure_resolved(compiler),
       Type::Union(_) => todo!(),
       Type::UnresolvedInstrinsic { span, .. } => {
         let span = compiler.span_to_read_span(*span)?;

@@ -3,13 +3,6 @@ use snafu::prelude::*;
 use crate::compiler::error::{CompilerError, ReadSpan};
 
 #[allow(unused)]
-#[derive(Debug)]
-pub(crate) struct ReprSpan {
-  pub(crate) repr: String,
-  pub(crate) span: ReadSpan,
-}
-
-#[allow(unused)]
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub(crate)))]
 pub(crate) enum CheckerError {
@@ -18,7 +11,7 @@ pub(crate) enum CheckerError {
 
   #[snafu(display("type mismatch"))]
   TypeMismatch {
-    span: ReadSpan,
+    span: Box<ReadSpan>,
     found_repr: String,
     expected_repr: String,
   },
@@ -33,8 +26,8 @@ impl CheckerError {
   pub(crate) fn applicable_span(self) -> Option<ReadSpan> {
     match self {
       | CheckerError::UnresolvedQualified { span, .. }
-      | CheckerError::UnresolvedLiteral { span }
-      | CheckerError::TypeMismatch { span, .. } => Some(span),
+      | CheckerError::UnresolvedLiteral { span }  => Some(span),
+      CheckerError::TypeMismatch { span, .. } => Some(*span),
     }
   }
 }

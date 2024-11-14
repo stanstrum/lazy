@@ -87,16 +87,16 @@ impl CatchStreamError for Char {
     match self {
       Char::Char(ch) => Ok(*ch),
       Char::Eof => {
-        return IOSnafu {
+        IOSnafu {
           err: "span exists outside of the end of the file",
         }
-        .fail()?;
+        .fail()?
       },
       Char::NoData => {
-        return IOSnafu {
+        IOSnafu {
           err: "invalid UTF-8 in file",
         }
-        .fail()?;
+        .fail()?
       },
     }
   }

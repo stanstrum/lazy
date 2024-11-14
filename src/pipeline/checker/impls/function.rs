@@ -131,7 +131,7 @@ impl Type<Module> {
           if self.extends(ty) {
             self.coerce_with_mut(ty)?;
           } else {
-            warn!("{}: union part doesn't extend and won't be used to coerce", enchant!("coerce_with_mut"));
+            // warn!("{}: union part doesn't extend and won't be used to coerce", enchant!("coerce_with_mut"));
           };
         };
       },

@@ -74,9 +74,9 @@ impl CoerceWith<Type<Module>> for RcCell<Type<Module>> {
           panic!("coerce_with failed");
         };
       },
-      (Type::UnresolvedInstrinsic { weak, .. }, other) => {
+      (Type::UnresolvedInstrinsic { weak, .. }, ..) => {
         match weak.upgrade().unwrap().as_ref() {
-          LiteralInstructionKind::Integer(value) => {
+          LiteralInstructionKind::Integer(_) => {
             let Some(mut with) = with.make_wholly_unique() else {
               warn!("{}: couldn't resolve an intrinsic because the base isn't resolved yet", enchant!("coerce_with"));
               return ok;
@@ -98,8 +98,8 @@ impl CoerceWith<Type<Module>> for RcCell<Type<Module>> {
 
             mods.push(Type::make_coerce_type(self, with));
           },
-          LiteralInstructionKind::Float(value) => todo!(),
-          LiteralInstructionKind::String(value) => todo!(),
+          LiteralInstructionKind::Float(_) => todo!(),
+          LiteralInstructionKind::String(_) => todo!(),
         };
       },
       other => todo!("{other:#?}"),
@@ -176,7 +176,7 @@ impl CoerceWith<RcCell<Type<Module>>> for RcCell<Instruction> {
     match &*self.borrow() {
       Instruction::Literal(literal_instruction) => literal_instruction.coerce_with(with, mods),
       Instruction::Block(block_instruction) => block_instruction.coerce_with(with, mods),
-      Instruction::Return { parent, value } => todo!(),
+      Instruction::Return { .. } => todo!(),
       Instruction::ImplicitReturnLast { .. } => todo!(),
     }
   }

@@ -55,8 +55,8 @@ impl Resolve for RcCell<Type<Module>> {
       Type::Intrinsic { .. } => ok,
       Type::Reference(reference) => reference.ensure_resolved(compiler),
       Type::TypeOfExpression { weak } => weak.upgrade().unwrap().ensure_resolved(compiler),
-      Type::Union(tys) => todo!(),
-      Type::UnresolvedInstrinsic { weak, parent } => todo!("error: unresolved"),
+      Type::Union(_) => todo!(),
+      Type::UnresolvedInstrinsic { .. } => todo!("error: unresolved"),
     }
   }
 }

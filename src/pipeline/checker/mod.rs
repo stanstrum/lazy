@@ -29,6 +29,7 @@ trait Resolve: Sized {
   fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result;
 }
 
+#[allow(unused)]
 trait TypeOf {
   fn type_of(&self) -> Type<Module>;
 }

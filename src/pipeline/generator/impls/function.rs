@@ -9,7 +9,7 @@ impl lang::LiteralInstruction {
   fn generate_with_builder<'ctx, W: CompilerWorkflow>(
     &self,
     generator: &Generator<W>,
-    builder: &Builder,
+    _builder: &Builder,
   ) -> Result<BasicValueEnum<'ctx>> {
     match &*self.kind {
       lang::LiteralInstructionKind::Integer(value) => Ok(
@@ -21,10 +21,10 @@ impl lang::LiteralInstruction {
           .const_int(*value, false)
           .as_basic_value_enum(),
       ),
-      lang::LiteralInstructionKind::Float(float) => {
+      lang::LiteralInstructionKind::Float(_) => {
         todo!()
       },
-      lang::LiteralInstructionKind::String(string) => {
+      lang::LiteralInstructionKind::String(_) => {
         todo!()
       },
     }

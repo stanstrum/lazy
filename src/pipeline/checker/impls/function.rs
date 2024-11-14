@@ -146,14 +146,16 @@ impl Type<Module> {
   }
 }
 
-impl CoerceWith<RcCell<Type<Module>>> for BlockInstruction {
+impl CoerceWith<RcCell<Type<Module>>> for RcCell<BlockInstruction> {
   fn coerce_with(&self, with: &RcCell<Type<Module>>, mods: &mut Modifications) -> Result {
-    for instruction in self.instructions.iter() {
+    let this = self.borrow();
+
+    for instruction in this.instructions.iter() {
       if let Instruction::Return { value, .. } = &*instruction.borrow() {
         if let Some(value) = value {
           value.coerce_with(with, mods)?;
         } else {
-          let parent = self
+          let parent = this
             .parent().unwrap().upgrade().unwrap()
             .scope_parent().unwrap().upgrade().unwrap()
             .scope_parent().unwrap();
@@ -175,6 +177,7 @@ impl CoerceWith<RcCell<Type<Module>>> for RcCell<Instruction> {
       Instruction::Literal(literal_instruction) => literal_instruction.coerce_with(with, mods),
       Instruction::Block(block_instruction) => block_instruction.coerce_with(with, mods),
       Instruction::Return { parent, value } => todo!(),
+      Instruction::ImplicitReturnLast { .. } => todo!(),
     }
   }
 }
@@ -215,6 +218,10 @@ impl Resolve for Instruction {
         };
         ok
       },
+      Instruction::ImplicitReturnLast { value, .. } => {
+        value.resolve(mods)?;
+        ok
+      },
     }
   }
 
@@ -222,7 +229,8 @@ impl Resolve for Instruction {
     match self {
       Instruction::Literal(literal_instruction) => literal_instruction.ensure_resolved(compiler),
       Instruction::Block(block_instruction) => block_instruction.ensure_resolved(compiler),
-      Instruction::Return { value: Some(value), .. } => value.ensure_resolved(compiler),
+      | Instruction::Return { value: Some(value), .. }
+      | Instruction::ImplicitReturnLast { value, .. } => value.ensure_resolved(compiler),
       Instruction::Return { value: None, .. } => ok,
     }
   }

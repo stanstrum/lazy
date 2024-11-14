@@ -50,14 +50,13 @@ impl Resolve for RcCell<Type<Module>> {
     }
   }
 
-  fn ensure_resolved(&self, _compiler: &Compiler<DefaultWorkflow>) -> Result {
+  fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
     match &*self.borrow() {
       Type::Intrinsic { .. } => ok,
-      Type::Reference(reference) => match &*reference.borrow() {
-        Reference::Resolved(rc) => rc.ensure_resolved(_compiler),
-        Reference::Unresolved(_) => todo!(),
-      },
-      other => todo!("{other:#?}"),
+      Type::Reference(reference) => reference.ensure_resolved(compiler),
+      Type::TypeOfExpression { weak } => weak.upgrade().unwrap().ensure_resolved(compiler),
+      Type::Union(tys) => todo!(),
+      Type::UnresolvedInstrinsic { weak, parent } => todo!("error: unresolved"),
     }
   }
 }

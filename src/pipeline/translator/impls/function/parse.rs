@@ -30,7 +30,7 @@ impl BlockInstruction {
     compiler: &Compiler<DefaultWorkflow>,
     input: ast::BlockExpression<DefaultWorkflow>,
     parent: &WeakCell<FunctionBlock>,
-  ) -> Result<Self> {
+  ) -> Result<RcCell<Self>> {
     // TODO: bad
     let child_parent = parent
       .upgrade().unwrap()
@@ -73,25 +73,30 @@ impl BlockInstruction {
     let variables: Vec<Rc<std::cell::RefCell<Variable>>> =
       variables.into_iter().map(new_rc_cell).collect::<Vec<_>>();
 
-    let mut instructions = exprs
+    let instructions = exprs
       .into_iter()
       .map(|expr| translator.parse_scope(compiler, expr, &child_parent))
       .collect::<Result<Vec<_>>>()?;
 
-    if let Some(return_last) = input.return_last {
-      let return_last = translator.parse_scope(compiler, return_last, &child_parent)?;
-      instructions.push(new_rc_cell(Instruction::Return {
-        value: Some(return_last),
-        parent: parent.clone().into(),
-      }));
-    };
-
-    Ok(Self {
+    let block = new_rc_cell(Self {
       parent: parent.clone().into(),
       variables,
       instructions,
       span: input.span,
-    })
+    });
+
+    if let Some(return_last) = input.return_last {
+      let return_last = translator.parse_scope(compiler, return_last, &child_parent)?;
+      let implicit_return = new_rc_cell(Instruction::ImplicitReturnLast {
+        parent: parent.clone().into(),
+        block: block.clone().into(),
+        value: return_last,
+      });
+
+      block.borrow_mut().instructions.push(implicit_return);
+    };
+
+    Ok(block)
   }
 }
 

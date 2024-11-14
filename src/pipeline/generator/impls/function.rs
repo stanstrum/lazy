@@ -43,7 +43,7 @@ impl lang::Instruction {
       },
       lang::Instruction::Block(this) => {
         let mut scope = vec![];
-        for variable in this.variables.iter() {
+        for variable in this.borrow().variables.iter() {
           let variable = variable.borrow();
 
           // let name = variable.name.name.to_owned();
@@ -55,7 +55,7 @@ impl lang::Instruction {
           scope.push(ty);
         }
 
-        for instruction in this.instructions.iter() {
+        for instruction in this.borrow().instructions.iter() {
           lang::Instruction::generate_with_builder(&instruction, generator, builder)?;
         }
 
@@ -70,12 +70,11 @@ impl lang::Instruction {
           }
         };
 
-        dbg!(value);
-
         builder.build_return(value.as_ref().map(|x| x as _));
 
         Ok(None)
       },
+      lang::Instruction::ImplicitReturnLast { .. } => todo!(),
     }
   }
 }

@@ -51,10 +51,15 @@ pub(crate) struct BlockInstruction {
 #[derive(Debug)]
 pub(crate) enum Instruction {
   Literal(LiteralInstruction),
-  Block(BlockInstruction),
+  Block(RcCell<BlockInstruction>),
   Return {
     parent: OpaqueParent<WeakCell<FunctionBlock>>,
     value: Option<RcCell<Instruction>>,
+  },
+  ImplicitReturnLast {
+    parent: OpaqueParent<WeakCell<FunctionBlock>>,
+    block: OpaqueParent<RcCell<BlockInstruction>>,
+    value: RcCell<Instruction>,
   },
 }
 

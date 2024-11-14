@@ -83,10 +83,11 @@ impl SearchIn<FunctionBlock> for Instruction {
   fn parent(&self) -> Option<WeakCell<FunctionBlock>> {
     match self {
       Instruction::Literal(literal_instruction) => literal_instruction.parent(),
-      Instruction::Block(block_instruction) => block_instruction.parent(),
+      Instruction::Block(block_instruction) => block_instruction.scope_parent(),
       Instruction::Return { parent, .. } => {
         Some(parent.as_ref().clone())
       },
+      Instruction::ImplicitReturnLast { .. } => todo!(),
     }
   }
 

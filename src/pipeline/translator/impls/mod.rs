@@ -1,6 +1,7 @@
 mod function;
 mod module;
 mod r#type;
+mod instruction;
 
 use super::*;
 use crate::asterizer::ast;

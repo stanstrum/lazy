@@ -45,6 +45,13 @@ impl<'a, 'ctx> ContextOrRef<'a, 'ctx> {
       ContextOrRef::Ref(context) => context.void_type(),
     }
   }
+
+  pub(super) fn append_basic_block(&'ctx self, function: FunctionValue<'ctx>, name: &str) -> BasicBlock<'ctx> {
+    match self {
+      ContextOrRef::Context(context) => context.append_basic_block(function, name),
+      ContextOrRef::Ref(context) => context.append_basic_block(function, name),
+    }
+  }
 }
 
 impl<'ctx> GeneratorTypeMethods<'ctx> for GeneratorSuperType<'ctx> {

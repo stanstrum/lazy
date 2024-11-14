@@ -18,6 +18,9 @@ pub(crate) struct UnresolvedType<W: CompilerWorkflow> {
 #[allow(unused)]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum Intrinsic {
+  // A type for anything unknown, which absorbs type information from everywhere
+  // around itself
+  Unknown,
   // Void type for values that can never exist
   Void,
   // An 8-bit, unsigned integer

@@ -45,6 +45,8 @@ pub(crate) struct BlockInstruction {
   pub(crate) variables: Vec<RcCell<Variable>>,
   pub(crate) instructions: Vec<RcCell<Instruction>>,
   pub(crate) span: Span<DefaultWorkflow>,
+  pub(crate) out: RcCell<Type<Module>>,
+  pub(crate) generator_id: Option<usize>,
 }
 
 #[allow(unused)]
@@ -60,6 +62,7 @@ pub(crate) enum Instruction {
     parent: OpaqueParent<WeakCell<FunctionBlock>>,
     block: OpaqueParent<RcCell<BlockInstruction>>,
     value: RcCell<Instruction>,
+    out: RcCell<Type<Module>>,
   },
 }
 

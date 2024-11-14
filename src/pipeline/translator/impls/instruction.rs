@@ -47,6 +47,7 @@ impl BlockInstruction {
       };
     }
 
+    let module = child_parent.unwrap();
     let child_parent = Some(parent.clone());
     let variables: Vec<Rc<std::cell::RefCell<Variable>>> =
       variables.into_iter().map(new_rc_cell).collect::<Vec<_>>();
@@ -61,6 +62,8 @@ impl BlockInstruction {
       variables,
       instructions,
       span: input.span,
+      out: new_rc_cell(Type::new_intrinsic(Intrinsic::Unknown, module)),
+      generator_id: None,
     });
 
     if let Some(return_last) = input.return_last {
@@ -68,6 +71,7 @@ impl BlockInstruction {
       let implicit_return = new_rc_cell(Instruction::ImplicitReturnLast {
         parent: parent.clone().into(),
         block: block.clone().into(),
+        out: new_rc_cell(Type::OfExpression { weak: Rc::downgrade(&return_last) }),
         value: return_last,
       });
 

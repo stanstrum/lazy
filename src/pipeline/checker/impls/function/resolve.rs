@@ -16,7 +16,18 @@ impl Resolve for FunctionBlock {
   fn resolve(&self, mods: &mut Modifications) -> Result {
     for instruction in self.children.iter() {
       instruction.resolve(mods)?;
-    }
+
+      if let Instruction::Return { value, .. } = dbg!(&*instruction.borrow()) {
+        let x= self.parent().unwrap().upgrade().unwrap();
+        let return_ty = &x.borrow().return_ty;
+        if let Some(value) = value {
+          value.coerce_with(return_ty, mods)?;
+        } else {
+          let parent = Rc::downgrade(self.parent().unwrap().upgrade().unwrap().scope_parent().unwrap().upgrade().as_ref().unwrap()).into();
+          Type::Intrinsic { kind: Intrinsic::Void, parent }.coerce(return_ty, mods)?;
+        }
+      };
+    };
     ok
   }
 
@@ -109,8 +120,14 @@ impl Resolve for Instruction {
         };
         ok
       },
-      Instruction::ImplicitReturnLast { value, .. } => {
+      Instruction::ImplicitReturnLast { value, block, .. } => {
         value.resolve(mods)?;
+
+        block.as_ref().borrow().out.coerce(value, mods)?;
+
+        let with = value.borrow().type_of();
+        block.as_ref().borrow().out.coerce_with(&with, mods)?;
+
         ok
       },
     }

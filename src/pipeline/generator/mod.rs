@@ -5,8 +5,9 @@ use std::io::{Read, Write};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
+use inkwell::basic_block::BasicBlock;
 use inkwell::context::Context;
-use inkwell::values::FunctionValue;
+use inkwell::values::{FunctionValue, PointerValue};
 use tempfile::NamedTempFile;
 
 use crate::compiler::{
@@ -15,6 +16,12 @@ use crate::compiler::{
 use crate::translator::lang::{Module, RcCell};
 use crate::{enchant, ok, Result};
 
+#[derive(Debug)]
+pub(crate) struct BlockData {
+  block: BasicBlock<'static>,
+  result: Option<PointerValue<'static>>,
+}
+
 #[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Generator<W: CompilerWorkflow> {
@@ -22,6 +29,7 @@ pub(crate) struct Generator<W: CompilerWorkflow> {
   input: Option<RcCell<Module>>,
   context: Context,
   functions: Vec<FunctionValue<'static>>,
+  blocks: Vec<BlockData>,
 }
 
 #[allow(unused)]
@@ -41,6 +49,7 @@ impl Generate<DefaultWorkflow> for Generator<DefaultWorkflow> {
       handle,
       context: Context::create(),
       functions: vec![],
+      blocks: vec![],
     }
   }
 

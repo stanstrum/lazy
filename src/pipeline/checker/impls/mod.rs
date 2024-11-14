@@ -52,6 +52,11 @@ impl Resolve for RcCell<Type<Module>> {
 
   fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
     match &*self.borrow() {
+      Type::Intrinsic { kind, parent } if kind == &Intrinsic::Unknown => {
+        let span = parent.as_ref().upgrade().unwrap().borrow().span;
+        let span = compiler.span_to_read_span(span)?;
+        UnresolvedLiteralSnafu { span }.fail()?
+      },
       Type::Intrinsic { .. } => ok,
       Type::Reference(reference) => reference.ensure_resolved(compiler),
       Type::OfExpression { weak } => weak.upgrade().unwrap().ensure_resolved(compiler),
@@ -59,7 +64,7 @@ impl Resolve for RcCell<Type<Module>> {
       Type::UnresolvedInstrinsic { span, .. } => {
         let span = compiler.span_to_read_span(*span)?;
         UnresolvedLiteralSnafu { span }.fail()?
-      }
+      },
     }
   }
 }

@@ -11,6 +11,7 @@ impl TypeOf for lang::Intrinsic {
     #[allow(clippy::missing_transmute_annotations)]
     Ok(unsafe {
       std::mem::transmute(match self {
+        lang::Intrinsic::Unknown => unimplemented!(),
         lang::Intrinsic::Void => GeneratorSuperType::Void(context.void_type()),
         lang::Intrinsic::U8 => GeneratorSuperType::Basic(
           match &context {

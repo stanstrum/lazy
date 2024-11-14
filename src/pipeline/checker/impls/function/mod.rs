@@ -15,6 +15,29 @@ impl CoerceWith<Type<Module>> for LiteralInstruction {
   }
 }
 
+impl LiteralInstructionKind {
+  fn type_of<T: Into<OpaqueParent<WeakCell<Module>>>>(&self, parent: T) -> Type<Module> {
+    let parent = parent.into();
+
+    match self {
+      LiteralInstructionKind::Integer(_) => Type::new_union([
+        Type::new_intrinsic(Intrinsic::I8, parent.clone()),
+        Type::new_intrinsic(Intrinsic::I16, parent.clone()),
+        Type::new_intrinsic(Intrinsic::I32, parent.clone()),
+        Type::new_intrinsic(Intrinsic::I64, parent.clone()),
+        Type::new_intrinsic(Intrinsic::U8, parent.clone()),
+        Type::new_intrinsic(Intrinsic::U16, parent.clone()),
+        Type::new_intrinsic(Intrinsic::U32, parent.clone()),
+        Type::new_intrinsic(Intrinsic::U64, parent.clone()),
+        Type::new_intrinsic(Intrinsic::F32, parent.clone()),
+        Type::new_intrinsic(Intrinsic::F64, parent),
+      ]),
+      LiteralInstructionKind::Float(_) => todo!(),
+      LiteralInstructionKind::String(_) => todo!(),
+    }
+  }
+}
+
 impl CoerceWith<Type<Module>> for RcCell<Type<Module>> {
   fn coerce_with(&self, with: &Type<Module>, mods: &mut Modifications) -> Result {
     match (&*self.borrow(), with) {
@@ -33,37 +56,36 @@ impl CoerceWith<Type<Module>> for RcCell<Type<Module>> {
         };
       },
       (Type::Intrinsic { kind: a, .. }, Type::Intrinsic { kind: b, .. }) => {
-        if a != b {
+        if b == &Intrinsic::Unknown {
+          return ok;
+        };
+
+        if a == &Intrinsic::Unknown {
+          mods.push(Type::make_replace_type(self, with.clone()));
+        } else if a != b {
           panic!("coerce_with failed");
         };
       },
-      (Type::UnresolvedInstrinsic { weak, .. }, ..) => {
-        match weak.upgrade().unwrap().as_ref() {
+      (Type::UnresolvedInstrinsic { weak, .. }, _) => {
+        let kind = weak.upgrade().unwrap();
+        match *kind {
           LiteralInstructionKind::Integer(_) => {
             let Some(mut with) = with.make_wholly_unique() else {
               warn!("{}: couldn't resolve an intrinsic because the base isn't resolved yet", enchant!("coerce_with"));
               return ok;
             };
 
-            let mut union = Type::new_union([
-              Type::new_intrinsic(Intrinsic::I8, self.scope_parent().unwrap()),
-              Type::new_intrinsic(Intrinsic::I16, self.scope_parent().unwrap()),
-              Type::new_intrinsic(Intrinsic::I32, self.scope_parent().unwrap()),
-              Type::new_intrinsic(Intrinsic::I64, self.scope_parent().unwrap()),
-              Type::new_intrinsic(Intrinsic::U8, self.scope_parent().unwrap()),
-              Type::new_intrinsic(Intrinsic::U16, self.scope_parent().unwrap()),
-              Type::new_intrinsic(Intrinsic::U32, self.scope_parent().unwrap()),
-              Type::new_intrinsic(Intrinsic::U64, self.scope_parent().unwrap()),
-              Type::new_intrinsic(Intrinsic::F32, self.scope_parent().unwrap()),
-              Type::new_intrinsic(Intrinsic::F64, self.scope_parent().unwrap()),
-            ]);
+            let mut union = kind.type_of(self.scope_parent().unwrap());
             with.coerce_with_mut(&mut union)?;
 
-            mods.push(Type::make_coerce_type(self, with));
+            mods.push(Type::make_replace_type(self, with));
           },
           LiteralInstructionKind::Float(_) => todo!(),
           LiteralInstructionKind::String(_) => todo!(),
         };
+      },
+      (_, Type::UnresolvedInstrinsic { .. }) => {
+        warn!("{}: coerce_with: Type::UnresolvedIntrinsic", enchant!("stub"));
       },
       other => todo!("{other:#?}"),
     };
@@ -145,8 +167,25 @@ impl CoerceWith<RcCell<Type<Module>>> for RcCell<Instruction> {
   }
 }
 
+impl TypeOf for LiteralInstruction {
+  fn type_of(&self) -> Type<Module> {
+    Type::Reference(new_rc_cell(Reference::Resolved(self.ty.clone())))
+  }
+}
+
 impl TypeOf for Instruction {
   fn type_of(&self) -> Type<Module> {
-    todo!()
+    match self {
+      Instruction::Literal(literal_instruction) => literal_instruction.type_of(),
+      Instruction::Block(rc) => rc.borrow().type_of(),
+      Instruction::Return { parent, value } => todo!(),
+      Instruction::ImplicitReturnLast { parent, block, value, out } => todo!(),
+    }
+  }
+}
+
+impl TypeOf for BlockInstruction {
+  fn type_of(&self) -> Type<Module> {
+    Type::Reference(new_rc_cell(Reference::Resolved(self.out.clone())))
   }
 }

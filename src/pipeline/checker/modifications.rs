@@ -7,8 +7,8 @@ pub(crate) enum Modification {
     weak: WeakCell<Reference<Type<Module>, Module>>,
     value: Reference<Type<Module>, Module>,
   },
-  CoerceType {
-    reference: RcCell<Type<Module>>,
+  ReplaceType {
+    ty: RcCell<Type<Module>>,
     value: Type<Module>,
   },
 }
@@ -25,7 +25,7 @@ impl Modification {
       Modification::ResolveUnresolvedTypeModuleReference { weak, value } => {
         *weak.upgrade().unwrap().borrow_mut() = value;
       },
-      Modification::CoerceType { reference, value } => {
+      Modification::ReplaceType { ty: reference, value } => {
         *reference.borrow_mut() = value;
       },
     };

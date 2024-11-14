@@ -63,7 +63,11 @@ impl SearchIn<Function> for FunctionBlock {
   }
 }
 
-impl SearchIn<FunctionBlock> for BlockInstruction {}
+impl SearchIn<FunctionBlock> for BlockInstruction {
+  fn parent(&self) -> Option<WeakCell<FunctionBlock>> {
+    Some(self.parent.as_ref().clone())
+  }
+}
 impl SearchIn<FunctionBlock> for Instruction {
   fn parent(&self) -> Option<WeakCell<FunctionBlock>> {
     match self {

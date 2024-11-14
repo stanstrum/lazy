@@ -15,9 +15,9 @@ pub(crate) trait MakeModification<S: Scope, W: CompilerWorkflow = DefaultWorkflo
     todo!()
   }
 
-  fn make_coerce_type(this: &RcCell<Type<Module>>, value: Type<Module>) -> Modification {
-    Modification::CoerceType {
-      reference: this.clone(),
+  fn make_replace_type(this: &RcCell<Type<Module>>, value: Type<Module>) -> Modification {
+    Modification::ReplaceType {
+      ty: this.clone(),
       value,
     }
   }

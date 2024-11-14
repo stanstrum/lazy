@@ -3,6 +3,8 @@ use inkwell::{
   values::{BasicValue, BasicValueEnum},
 };
 
+use crate::translator::ScopeParent;
+
 use super::*;
 
 impl lang::LiteralInstruction {
@@ -34,9 +36,11 @@ impl lang::LiteralInstruction {
 impl lang::Instruction {
   fn generate_with_builder<'ctx, W: CompilerWorkflow>(
     this: &RcCell<Self>,
-    generator: &Generator<W>,
+    generator: &mut Generator<W>,
     builder: &Builder,
   ) -> Result<Option<BasicValueEnum<'ctx>>> {
+    let context = ContextOrRef::Context(&generator.context);
+
     match &*this.borrow() {
       lang::Instruction::Literal(literal) => {
         Ok(Some(literal.generate_with_builder(generator, builder)?))
@@ -46,18 +50,39 @@ impl lang::Instruction {
         for variable in this.borrow().variables.iter() {
           let variable = variable.borrow();
 
-          // let name = variable.name.name.to_owned();
-          let context = (&generator.context).into();
           let ty = variable.ty.g_type_of(context)?;
 
           builder.build_alloca(ty.as_basic_type_enum(), "alloca");
 
           scope.push(ty);
-        }
+        };
+
+        if this.borrow().generator_id.is_none() {
+          let id = this.scope_parent().unwrap()
+            .upgrade().unwrap()
+            .scope_parent().unwrap()
+            .upgrade().unwrap()
+            .borrow().generator_id.unwrap();
+          let function = generator.functions[id];
+
+          let block = context.append_basic_block(function, "early_return");
+          let out_ty = this.borrow().out.g_type_of(context)?;
+          let result = builder.build_alloca(out_ty.as_basic_type_enum(), "early_return_value");
+
+          this.borrow_mut().generator_id = Some(generator.blocks.len());
+          generator.blocks.push(unsafe { BlockData {
+            block: std::mem::transmute(block),
+            result: Some(std::mem::transmute(result)),
+          }});
+        };
 
         for instruction in this.borrow().instructions.iter() {
-          lang::Instruction::generate_with_builder(instruction, generator, builder)?;
-        }
+          let should_return = matches!(&*instruction.borrow(), lang::Instruction::ImplicitReturnLast { .. });
+          let result = lang::Instruction::generate_with_builder(instruction, generator, builder)?;
+          if should_return {
+            return Ok(result);
+          };
+        };
 
         Ok(None)
       },
@@ -74,7 +99,18 @@ impl lang::Instruction {
 
         Ok(None)
       },
-      lang::Instruction::ImplicitReturnLast { .. } => todo!(),
+      lang::Instruction::ImplicitReturnLast { value, block, .. } => {
+        let id = block.as_ref().borrow().generator_id.unwrap();
+
+        if let Some(value) = lang::Instruction::generate_with_builder(value, generator, builder)? {
+        let data = &generator.blocks[id];
+          builder.build_store(data.result.unwrap(), value);
+        };
+
+        // builder.build
+
+        Ok(None)
+      },
     }
   }
 }
@@ -84,9 +120,12 @@ impl lang::FunctionBlock {
     this: &RcCell<Self>,
     generator: &mut Generator<W>,
     function: &FunctionValue,
+    module: &inkwell::module::Module,
   ) -> Result {
-    let builder = generator.context.create_builder();
-    let basic_block = generator.context.append_basic_block(*function, "entry");
+    let context = module.get_context();
+
+    let builder = context.create_builder();
+    let basic_block = context.append_basic_block(*function, "entry");
     builder.position_at_end(basic_block);
 
     warn!("{}: generate_in_function", crate::enchant!("stub"));
@@ -139,9 +178,6 @@ impl lang::Function {
       function
     };
 
-    let result =
-      lang::FunctionBlock::generate_in_function(&this.borrow().body, generator, &function);
-
     // don't drop our value
     if should_push_value {
       generator.functions.push(unsafe {
@@ -149,6 +185,9 @@ impl lang::Function {
         std::mem::transmute(function)
       });
     };
+
+    let result =
+      lang::FunctionBlock::generate_in_function(&this.borrow().body, generator, &function, &module);
 
     result
   }

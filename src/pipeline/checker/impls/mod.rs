@@ -1,16 +1,24 @@
+mod function;
+mod instruction;
+mod module;
+mod ty;
+
 use std::rc::Weak;
 
 use super::*;
-
-mod function;
-mod module;
+use crate::translator::ScopeParent;
 
 pub(crate) use module::*;
+
+impl<C: CoerceWith<T>, T> CoerceWith<RcCell<T>> for C {
+  fn coerce_with(&self, with: &RcCell<T>, mods: &mut Modifications) -> Result {
+    self.coerce_with(&*with.borrow(), mods)
+  }
+}
 
 impl<V: SearchIn<S>, S: Scope> Resolve for RcCell<Reference<V, S>> {
   fn resolve(&self, mods: &mut Modifications) -> Result {
     self.get_and_maybe_modify(mods)?;
-
     ok
   }
 
@@ -29,42 +37,5 @@ impl<V: SearchIn<S>, S: Scope> Resolve for RcCell<Reference<V, S>> {
     };
 
     ok
-  }
-}
-
-impl GetAndMaybeModify<Type<Module>, Module> for RcCell<Type<Module>> {
-  fn get_and_maybe_modify(
-    &self,
-    _mods: &mut Modifications,
-  ) -> Result<Option<WeakCell<Type<Module>>>> {
-    todo!()
-  }
-}
-
-impl Resolve for RcCell<Type<Module>> {
-  fn resolve(&self, mods: &mut Modifications) -> Result {
-    match &*self.borrow() {
-      Type::Intrinsic { .. } => ok,
-      Type::Reference(reference) => reference.resolve(mods),
-      other => todo!("{other:#?}"),
-    }
-  }
-
-  fn ensure_resolved(&self, compiler: &Compiler<DefaultWorkflow>) -> Result {
-    match &*self.borrow() {
-      Type::Intrinsic { kind, parent } if kind == &Intrinsic::Unknown => {
-        let span = parent.as_ref().upgrade().unwrap().borrow().span;
-        let span = compiler.span_to_read_span(span)?;
-        UnresolvedLiteralSnafu { span }.fail()?
-      },
-      Type::Intrinsic { .. } => ok,
-      Type::Reference(reference) => reference.ensure_resolved(compiler),
-      Type::OfExpression { weak } => weak.upgrade().unwrap().ensure_resolved(compiler),
-      Type::Union(_) => todo!(),
-      Type::UnresolvedInstrinsic { span, .. } => {
-        let span = compiler.span_to_read_span(*span)?;
-        UnresolvedLiteralSnafu { span }.fail()?
-      },
-    }
   }
 }

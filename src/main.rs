@@ -3,92 +3,47 @@
 extern crate log;
 
 mod logger;
-
-mod arg_parser;
 mod help;
 
+mod arg_parser;
+mod pipeline;
 mod compiler;
 
-mod pipeline;
+#[cfg(test)] mod test;
 
 use std::process::ExitCode;
 
-use arg_parser::{error::*, CompilerOptions};
-use compiler::{error::CompilerError, workflow::DefaultWorkflow, Compiler, CompilerSettings};
+use arg_parser::error::*;
 pub(crate) use pipeline::*;
-
-use crate::help::LazyHelp;
+use compiler::{Compiler, workflow::DefaultWorkflow, error::CompilerError};
 
 pub(crate) type Result<T = ()> = std::result::Result<T, CompilerError>;
 
 #[allow(non_upper_case_globals)]
 pub(crate) const ok: Result = Ok(());
 
-/// Processes the parsed command-line arguments
-fn parse_compiler_settings() -> Result<CompilerSettings> {
-  let CompilerOptions {
-    help,
-    input_file,
-    output_file,
-    llc,
-    cc,
-    print_llvm,
-  } = arg_parser::parse()?;
-
-  if help {
-    return HelpSnafu.fail()?;
-  };
-
-  let Some(input_file) = input_file else {
-    return NoInputSnafu.fail()?;
-  };
-
-  Ok(CompilerSettings {
-    input_file,
-    output_file,
-    llc,
-    cc,
-    print_llvm,
-  })
-}
-
-/// Catch errors in a block so we can deal with them in one place in the main
-/// function
-fn error_harness() -> Result {
+fn main() -> ExitCode {
   logger::init();
 
-  let settings = parse_compiler_settings()?;
-  let mut compiler = Compiler::<DefaultWorkflow>::new(settings);
+  // The first argument is typically the executable path -- ignore that
+  let args = std::env::args().skip(1);
 
-  compiler.compile()?;
+  // Catch errors in a block so we can deal with them in one place
+  let error_harness = || {
+    let settings = arg_parser::parse(args)?;
+    let mut compiler = Compiler::<DefaultWorkflow>::new(settings)?;
 
-  ok
-}
+    compiler.compile()
+  };
 
-fn main() -> ExitCode {
   // If an error occurs at any point in the compilation, it bubbles up here
   let Err(err) = error_harness() else {
     // ... if there was none, just exit now
     return ExitCode::SUCCESS;
   };
 
-  // Decide how to present the error to the user; e.g.:
-  // the help flag should print the help text
-  let should_print_help_text = err.should_print_help_text();
-  let should_print_message = err.should_print_message();
-
-  if should_print_help_text {
-    help::print_help_text();
-
-    // Put a space between the help text and the error message for clarity
-    if should_print_message {
-      eprintln!();
-    };
-  };
-
-  if should_print_message {
-    help::print_message(err);
-  };
+  // Write the error to the logger
+  err.output_to_logger();
 
   // Since we have an error, return an error code so the caller is aware
   ExitCode::FAILURE

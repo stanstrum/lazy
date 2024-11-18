@@ -10,7 +10,8 @@ pub(crate) use module::*;
 pub(crate) use store::*;
 pub(crate) use traits::*;
 
-use crate::{enchant, ok, Result};
+use crate::{enchant, ok, HelpSnafu, NoInputSnafu, Result};
+use crate::arg_parser::CompilerOptions;
 
 /// Parsed CompilerOptions after default values and IO checks
 #[allow(unused)]
@@ -36,9 +37,38 @@ pub(super) struct Compiler<W: CompilerWorkflow> {
   pub(crate) context: inkwell::context::Context,
 }
 
+/// Processes the parsed command-line arguments
+fn parse_compiler_options(options: CompilerOptions) -> Result<CompilerSettings> {
+  let CompilerOptions {
+    help,
+    input_file,
+    output_file,
+    llc,
+    cc,
+    print_llvm,
+  } = options;
+
+  if help {
+    return HelpSnafu.fail()?;
+  };
+
+  let Some(input_file) = input_file else {
+    return NoInputSnafu.fail()?;
+  };
+
+  Ok(CompilerSettings {
+    input_file,
+    output_file,
+    llc,
+    cc,
+    print_llvm,
+  })
+}
+
 impl<W: CompilerWorkflow> Compiler<W> {
   /// Creates a new Compiler
-  pub(crate) fn new(settings: CompilerSettings) -> Self {
+  pub(crate) fn new(options: CompilerOptions) -> Result<Self> {
+    let settings = parse_compiler_options(options)?;
     let output_file = std::env::current_dir().unwrap().join(&settings.output_file);
 
     debug!(
@@ -61,11 +91,11 @@ impl<W: CompilerWorkflow> Compiler<W> {
       },
     );
 
-    Self {
+    Ok(Self {
       settings,
       store: CompilerStore::new(),
       context: inkwell::context::Context::create(),
-    }
+    })
   }
 
   /// Applies compilation steps as appropriate for a certain Handle until it

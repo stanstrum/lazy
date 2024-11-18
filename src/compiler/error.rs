@@ -7,6 +7,7 @@ use crate::{
   arg_parser::error::ArgumentError, asterizer::error::AsterizerError, checker::error::CheckerError,
   tokenizer::error::TokenError, Result,
 };
+use crate::help::LazyHelp;
 
 #[allow(unused)]
 /// Stores error information taken from a Span without the need for propagating
@@ -99,6 +100,28 @@ impl CatchStreamError for Char {
         .fail()?
       },
     }
+  }
+}
+
+impl CompilerError {
+  pub(crate) fn output_to_logger(self) {
+    // Decide how to present the error to the user; e.g.:
+    // the help flag should print the help text
+    let should_print_help_text = self.should_print_help_text();
+    let should_print_message = self.should_print_message();
+
+    if should_print_help_text {
+      crate::help::print_help_text();
+
+      // Put a space between the help text and the error message for clarity
+      if should_print_message {
+        eprintln!();
+      };
+    };
+
+    if should_print_message {
+      crate::help::print_message(self);
+    };
   }
 }
 

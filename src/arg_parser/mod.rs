@@ -41,10 +41,10 @@ fn default_option_resolve_path(path: Option<String>, default: &'static str) -> R
 }
 
 /// Parses command-line arguments into CompilerOptions, or returns an error
-pub(crate) fn parse() -> Result<CompilerOptions> {
+pub(crate) fn parse(args: impl IntoIterator<Item = impl Into<String>>) -> Result<CompilerOptions> {
   let mut parser = CompilerParser::new();
 
-  for argument in std::env::args().skip(1) {
+  for argument in args.into_iter().map(Into::into) {
     parser.parse_argument(argument)?;
   }
 

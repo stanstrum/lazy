@@ -70,19 +70,34 @@ impl<'a> ParseScope<'a> for FunctionBlock {
     }
 
     for expr in exprs {
-      let instruction = translator.parse_scope(compiler, expr, &child_parent)?;
+      let instruction = translator.parse_scope(
+        compiler,
+        expr,
+        &child_parent,
+      )?;
       this.borrow_mut().children.push(instruction);
     }
 
     if let Some(return_last) = input.return_last {
-      let instruction = Instruction::parse_scope(translator, compiler, return_last, &child_parent)?;
-      this
-        .borrow_mut()
-        .children
-        .push(new_rc_cell(Instruction::Return {
-          value: Some(instruction),
-          parent: Rc::downgrade(&this).into(),
-        }));
+      let instruction = Instruction::parse_scope(
+        translator,
+        compiler,
+        return_last,
+        &child_parent,
+      )?;
+      this.borrow_mut().children.push(new_rc_cell(Instruction::Return {
+        value: Some(instruction),
+        parent: Rc::downgrade(&this).into(),
+      }));
+    };
+
+    // If the block is still empty after all of that work, make sure to throw in
+    // a void return for LLVM to gnaw on
+    if this.borrow().children.is_empty() {
+      this.borrow_mut().children.push(new_rc_cell(Instruction::Return {
+        parent: Rc::downgrade(&this).into(),
+        value: None,
+      }));
     };
 
     Ok(this)

@@ -17,7 +17,7 @@ impl Resolve for FunctionBlock {
     for instruction in self.children.iter() {
       instruction.resolve(mods)?;
 
-      if let Instruction::Return { value, .. } = dbg!(&*instruction.borrow()) {
+      if let Instruction::Return { value, .. } = &*instruction.borrow() {
         let x= self.parent().unwrap().upgrade().unwrap();
         let return_ty = &x.borrow().return_ty;
         if let Some(value) = value {

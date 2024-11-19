@@ -41,11 +41,16 @@ impl colog::format::CologStyle for Logger {
 pub(super) fn init() {
   let mut builder = colog::basic_builder();
 
+  builder.is_test(cfg!(test));
   builder.filter_level(log::LevelFilter::Info);
   builder.parse_default_env();
 
   builder.format(colog::formatter(Logger));
-  builder.init();
+
+  if builder.try_init().is_err() {
+    error!("logger cannot be reinitialized");
+    return;
+  };
 
   debug!("initialized logger");
 }

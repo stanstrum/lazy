@@ -1,84 +1,106 @@
-use std::path::PathBuf;
-use std::process::{Command, Stdio};
+use std::path::{Path, PathBuf};
+use std::process::{Command, ExitStatus, Stdio};
 use tempfile::NamedTempFile;
 
 use crate::compiler::{Compiler, workflow::DefaultWorkflow};
 use crate::arg_parser;
 use crate::enchant;
 
-macro_rules! compile_test {
-  ($ident:ident) => {
-    compile_test!($ident = stringify!($ident));
+fn compile_file(input_path: &Path) -> PathBuf {
+  logger_init();
+
+  let input_path: std::borrow::Cow<'_, str> = input_path.to_string_lossy();
+
+  let output_file = NamedTempFile::new().expect("failed to make temp file")
+    .into_temp_path();
+  let output_path = output_file.to_string_lossy().into_owned();
+
+  let args = [
+    "--input", &input_path,
+    "--output", &output_path,
+    "--print-llvm",
+  ];
+
+  let error_harness = || {
+    let options = arg_parser::parse(args)?;
+    let mut compiler = Compiler::<DefaultWorkflow>::new(options)?;
+    compiler.compile()
   };
 
-  ($ident:ident = $test_name:expr) => {
-    #[test]
-    fn $ident() {
-      logger_init();
+  if let Err(err) = error_harness() {
+    let message = err.to_string();
 
-      let input_path = PathBuf::from(
-        concat!(env!("CARGO_MANIFEST_DIR"),
-        "/snippets/",
-        $test_name,
-        ".zy",
-      ));
-
-      let input_path = input_path.to_string_lossy();
-
-      let output_file = NamedTempFile::new().expect("failed to make temp file")
-        .into_temp_path();
-      let output_path = output_file.to_string_lossy().into_owned();
-
-      let args = [
-        "--input", &input_path,
-        "--output", &output_path,
-        "--print-llvm",
-      ];
-
-      let error_harness = || {
-        let options = arg_parser::parse(args)?;
-        let mut compiler = Compiler::<DefaultWorkflow>::new(options)?;
-        compiler.compile()
-      };
-
-      if let Err(err) = error_harness() {
-        let message = err.to_string();
-
-        err.output_to_logger();
-        panic!("compilation failed: {message}");
-      };
-
-      let executable = output_file.keep()
-        .expect("failed to keep temp file");
-
-      let mut command = Command::new(executable);
-      command.stderr(Stdio::piped());
-      command.stdout(std::io::stdout());
-
-      let mut child = command.spawn()
-        .expect("failed to spawn child process");
-      let id = child.id();
-
-      let exit_code = child.wait()
-        .expect("failed to wait on child process");
-
-      debug!("{}: {output_path}: process {id} returned {exit_code}", enchant!("test"));
-      assert!(exit_code.success(), "{output_path}: process {id} returned {exit_code}");
-    }
+    err.output_to_logger();
+    panic!("compilation failed: {message}");
   };
+
+  output_file.keep().expect("failed to keep temp file")
 }
 
-fn logger_init() {
-  static mut LOGGER_IS_INITIALZIED: bool = false;
-  eprintln!();
+fn run_executable(path: &Path) -> (u32, ExitStatus) {
+  let mut command = Command::new(&path);
+  command.stderr(Stdio::piped());
+  command.stdout(std::io::stdout());
 
+  let mut child = command.spawn()
+    .expect("failed to spawn child process");
+  let id = child.id();
+
+  let exit_code = child.wait()
+    .expect("failed to wait on child process");
+
+  (id, exit_code)
+}
+
+static mut LOGGER_IS_INITIALZIED: bool = false;
+fn logger_init() {
   unsafe {
     if LOGGER_IS_INITIALZIED {
       return;
     };
 
-    crate::logger::init();
     LOGGER_IS_INITIALZIED = true;
+    crate::logger::init();
+  };
+}
+
+macro_rules! compile_test {
+  ($ident:ident) => {
+    compile_test!($ident = stringify!($ident), 0);
+  };
+
+  ($ident:ident, $ret:expr) => {
+    compile_test!($ident = stringify!($ident), $ret);
+  };
+
+  ($ident:ident = $test_name:expr) => {
+    compile_test!($ident = $test_name, 0);
+  };
+
+  ($ident:ident = $test_name:expr, $ret:expr) => {
+    #[test]
+    fn $ident() {
+      let input_path = PathBuf::from(
+        concat!(
+          env!("CARGO_MANIFEST_DIR"),
+          "/snippets/",
+          $test_name,
+          ".zy",
+        )
+      );
+
+      let executable = compile_file(&input_path);
+      let executable_str = executable.to_string_lossy();
+
+      let (id, exit_code) = run_executable(&executable);
+
+      debug!("{}: {executable_str}: process {id} returned {exit_code}", enchant!("test"));
+
+      let code = exit_code.code()
+        .expect("expected an exit code from subprocess");
+
+      assert!(code == $ret, "child process returned an incorrect return code (expected {}, got {code})", $ret);
+    }
   };
 }
 
@@ -103,7 +125,7 @@ compile_test!(string_and_char_escapes = "17_string_and_char_escapes");
 compile_test!(control_flow = "18_control_flow");
 compile_test!(class_methods = "19_class_methods");
 compile_test!(hang = "20_hang");
-compile_test!(bare_bones);
+compile_test!(bare_bones, 48);
 compile_test!(counter);
 compile_test!(r#if = "if");
 compile_test!(message);

@@ -75,8 +75,8 @@ impl CoerceWith<Type<Module>> for RcCell<Type<Module>> {
               return ok;
             };
 
-            let mut union = kind.type_of(self.scope_parent().unwrap());
-            with.coerce_with_mut(&mut union)?;
+            let union = kind.type_of(self.scope_parent().unwrap());
+            with.coerce_with_mut(&union)?;
 
             mods.push(Type::make_replace_type(self, with));
           },

@@ -70,10 +70,13 @@ impl lang::Instruction {
           let result = builder.build_alloca(out_ty.as_basic_type_enum(), "early_return_value");
 
           this.borrow_mut().generator_id = Some(generator.blocks.len());
-          generator.blocks.push(unsafe { BlockData {
-            block: std::mem::transmute(block),
-            result: Some(std::mem::transmute(result)),
-          }});
+          generator.blocks.push(unsafe {
+            #[allow(clippy::missing_transmute_annotations)]
+            BlockData {
+              block: std::mem::transmute(block),
+              result: Some(std::mem::transmute(result)),
+            }
+          });
         };
 
         for instruction in this.borrow().instructions.iter() {
@@ -187,7 +190,7 @@ impl lang::Function {
     };
 
     let result =
-      lang::FunctionBlock::generate_in_function(&this.borrow().body, generator, &function, &module);
+      lang::FunctionBlock::generate_in_function(&this.borrow().body, generator, &function, module);
 
     result
   }

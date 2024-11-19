@@ -37,8 +37,8 @@ impl TypeOf for Instruction {
     match self {
       Instruction::Literal(literal_instruction) => literal_instruction.type_of(),
       Instruction::Block(rc) => rc.borrow().type_of(),
-      Instruction::Return { parent, value } => todo!(),
-      Instruction::ImplicitReturnLast { parent, block, value, out } => todo!(),
+      Instruction::Return { .. } => todo!(),
+      Instruction::ImplicitReturnLast { .. } => todo!(),
     }
   }
 }

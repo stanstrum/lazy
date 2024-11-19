@@ -16,13 +16,13 @@ use crate::compiler::{
 use crate::translator::lang::{Module, RcCell};
 use crate::{enchant, ok, Result};
 
+#[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct BlockData {
   block: BasicBlock<'static>,
   result: Option<PointerValue<'static>>,
 }
 
-#[allow(unused)]
 #[derive(Debug)]
 pub(crate) struct Generator<W: CompilerWorkflow> {
   handle: CompilerStoreHandle<W>,
@@ -30,13 +30,6 @@ pub(crate) struct Generator<W: CompilerWorkflow> {
   context: Context,
   functions: Vec<FunctionValue<'static>>,
   blocks: Vec<BlockData>,
-}
-
-#[allow(unused)]
-#[derive(Debug)]
-pub(crate) struct GeneratorModule {
-  context: Context,
-  module: inkwell::module::Module<'static>,
 }
 
 impl Generate<DefaultWorkflow> for Generator<DefaultWorkflow> {

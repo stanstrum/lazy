@@ -1,17 +1,18 @@
 use std::{io::Read, path::Path};
 
 use snafu::{whatever, Whatever};
+use token::Token;
 use utf8_read::Char;
 
 use super::*;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub(super) enum FileKind {
   EmbeddedStdSource,
   SourceFile,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub(super) struct LazyFile {
   pub kind: FileKind,
   pub path: PathBuf,
@@ -33,6 +34,27 @@ impl LazyFile {
     Self {
       kind: FileKind::SourceFile,
       path,
+    }
+  }
+
+  pub(super) fn solidify(&mut self) -> Result<(), Whatever> {
+    match &self.kind {
+      FileKind::EmbeddedStdSource => todo!(),
+      FileKind::SourceFile => {
+        if self.path.is_file() {
+          return Ok(());
+        };
+
+        if self.path.is_dir() {
+          self.path = self.path.join("index.zy");
+
+          if self.path.is_file() {
+            return Ok(());
+          };
+        };
+
+        whatever!("could not find module at {:?}", self.path);
+      },
     }
   }
 

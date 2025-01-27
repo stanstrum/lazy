@@ -1,25 +1,46 @@
 mod store;
 mod token;
 
+use std::clone;
 use std::collections::VecDeque;
+use std::fmt::Debug;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc::{channel, Receiver, Sender, TryRecvError};
+use std::sync::mpsc::{channel, Sender};
 use std::thread::JoinHandle;
 use std::time::Duration;
 
+use snafu::Whatever;
 use store::*;
 
 #[derive(Debug)]
 enum CompilerSignal {
+  RegisterFile { path: PathBuf },
   Finished { id: usize },
 }
 
+trait AgentDispatch: Send + Debug {
+  type Out;
+
+  fn run(self: Box<Self>, id: usize, tx: &Sender<CompilerSignal>) -> Self::Out;
+}
+
+type AgentSignal<Out = ()> = Box<dyn AgentDispatch<Out = Out>>;
+
 #[derive(Debug)]
-enum AgentSignal {
-  Compile { entry_point: PathBuf },
+struct Translate(LazyFile);
+
+impl AgentDispatch for Translate {
+  type Out = ();
+
+  fn run(self: Box<Self>, id: usize, tx: &Sender<CompilerSignal>) -> Self::Out {
+    let Translate(file) = *self;
+    let tokens: Vec<_> = token::tokenize(&file).unwrap().collect();
+    dbg!(tokens);
+
+    todo!();
+  }
 }
 
 struct Agent {
@@ -30,20 +51,18 @@ struct Agent {
 
 impl Agent {
   fn new(id: usize, agent_tx: &Sender<CompilerSignal>) -> Self {
+    println!("[main] starting worker thread #{id}");
+
     let (compiler_tx, agent_rx) = channel::<AgentSignal>();
+    let agent_tx = agent_tx.clone();
 
     let handle = std::thread::spawn(move || {
-      let _ = id;
-      let _ = agent_tx;
-
       println!("[thread #{id}] thread started");
 
       for job in agent_rx.iter() {
         println!("[thread #{id}] Job: {job:#?}");
 
-        match job {
-          _ => todo!(),
-        }
+        job.run(id, &agent_tx);
       }
     });
 
@@ -68,9 +87,27 @@ fn main() {
     .map(|_| None::<Agent>)
     .collect::<Vec<_>>();
 
-  let mut jobs = VecDeque::from([AgentSignal::Compile {
-    entry_point: input_path,
-  }]);
+  let mut files: Vec<LazyFile> = vec![];
+  let mut register_file = |mut file: LazyFile| -> Result<usize, Whatever> {
+    file.solidify()?;
+
+    for (id, existing_file) in files.iter().enumerate() {
+      if &file == existing_file {
+        return Ok(id);
+      };
+    }
+
+    files.push(file);
+    Ok(files.len() - 1)
+  };
+
+  let entry_id = register_file(LazyFile::new(input_path)).unwrap();
+  let entry = files[entry_id].clone();
+
+  let mut jobs: VecDeque<AgentSignal> = VecDeque::from([
+    // --
+    Box::new(Translate(entry)) as AgentSignal,
+  ]);
 
   let (agent_tx, compiler_rx) = channel::<CompilerSignal>();
 
@@ -95,6 +132,7 @@ fn main() {
         agent_signal_count += 1;
         agents[id].as_mut().unwrap().free = true;
       },
+      Some(CompilerSignal::RegisterFile { .. }) => todo!(),
       None => break,
     };
   }
@@ -109,13 +147,11 @@ fn main() {
     };
 
     if !agent.free {
-      eprintln!("[main] [ERR] thread #{id} is not free; this usually means that it has crashed");
+      eprintln!("[main] [ERR] thread #{id} is hung");
     };
 
     if agent.handle.join().is_err() {
-      eprintln!(
-        "[main] [ERR] thread #{id} couldn't be joined; this definitely means that it has crashed"
-      );
+      eprintln!("[main] [ERR] thread #{id} crashed");
     };
   }
 }

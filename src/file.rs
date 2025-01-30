@@ -1,7 +1,7 @@
 use std::{io::Read, path::Path};
 
+use include_directory::{include_directory, Dir, DirEntry};
 use snafu::{whatever, Whatever};
-use token::Token;
 use utf8_read::Char;
 
 use super::*;
@@ -19,17 +19,22 @@ pub(super) struct LazyFile {
 }
 
 fn get_stl_source(path: &Path) -> Option<&'static [u8]> {
-  // static STANDARD_LIBRARY: Dir<'_> =
-  // include_directory!("$CARGO_MANIFEST_DIR/std");
+  static STANDARD_LIBRARY: Dir<'_> = include_directory!("$CARGO_MANIFEST_DIR/std");
 
-  // let entry = STANDARD_LIBRARY.get_entry(path)?;
-
-  None?;
-
-  todo!()
+  match STANDARD_LIBRARY.get_entry(path)? {
+    DirEntry::File(file) => return Some(file.contents()),
+    DirEntry::Dir(dir) => dir.get_file("index.zy").map(|file| file.contents()),
+  }
 }
 
 impl LazyFile {
+  pub(super) fn standard_library() -> Self {
+    Self {
+      kind: FileKind::EmbeddedStdSource,
+      path: PathBuf::from("/"),
+    }
+  }
+
   pub(super) fn new(path: PathBuf) -> Self {
     Self {
       kind: FileKind::SourceFile,
@@ -55,13 +60,6 @@ impl LazyFile {
 
         whatever!("could not find module at {:?}", self.path);
       },
-    }
-  }
-
-  pub(super) fn standard_library() -> Self {
-    Self {
-      kind: FileKind::EmbeddedStdSource,
-      path: PathBuf::from("/"),
     }
   }
 

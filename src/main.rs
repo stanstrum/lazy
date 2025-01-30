@@ -1,7 +1,8 @@
-mod store;
+mod file;
 mod token;
 
-use std::clone;
+mod agent;
+
 use std::collections::VecDeque;
 use std::fmt::Debug;
 use std::fs::File;
@@ -11,8 +12,9 @@ use std::sync::mpsc::{channel, Sender};
 use std::thread::JoinHandle;
 use std::time::Duration;
 
+use agent::{Agent, AgentSignal};
+use file::*;
 use snafu::Whatever;
-use store::*;
 
 #[derive(Debug)]
 enum CompilerSignal {
@@ -20,63 +22,9 @@ enum CompilerSignal {
   Finished { id: usize },
 }
 
-trait AgentDispatch: Send + Debug {
-  type Out;
-
-  fn run(self: Box<Self>, id: usize, tx: &Sender<CompilerSignal>) -> Self::Out;
-}
-
-type AgentSignal<Out = ()> = Box<dyn AgentDispatch<Out = Out>>;
-
-#[derive(Debug)]
-struct Translate(LazyFile);
-
-impl AgentDispatch for Translate {
-  type Out = ();
-
-  fn run(self: Box<Self>, id: usize, tx: &Sender<CompilerSignal>) -> Self::Out {
-    let Translate(file) = *self;
-    let tokens: Vec<_> = token::tokenize(&file).unwrap().collect();
-    dbg!(tokens);
-
-    todo!();
-  }
-}
-
-struct Agent {
-  tx: Sender<AgentSignal>,
-  handle: JoinHandle<()>,
-  free: bool,
-}
-
-impl Agent {
-  fn new(id: usize, agent_tx: &Sender<CompilerSignal>) -> Self {
-    println!("[main] starting worker thread #{id}");
-
-    let (compiler_tx, agent_rx) = channel::<AgentSignal>();
-    let agent_tx = agent_tx.clone();
-
-    let handle = std::thread::spawn(move || {
-      println!("[thread #{id}] thread started");
-
-      for job in agent_rx.iter() {
-        println!("[thread #{id}] Job: {job:#?}");
-
-        job.run(id, &agent_tx);
-      }
-    });
-
-    Self {
-      free: true,
-      tx: compiler_tx,
-      handle,
-    }
-  }
-}
-
 fn main() {
   // "snippets/00_basic.zy"
-  let input_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("snippets/10_read_source.zy");
+  let input_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("snippets/00_basic.zy");
   let output_path = std::env::current_dir().unwrap().join("a.out");
 
   let overwrite = false;
@@ -106,7 +54,7 @@ fn main() {
 
   let mut jobs: VecDeque<AgentSignal> = VecDeque::from([
     // --
-    Box::new(Translate(entry)) as AgentSignal,
+    Box::new(agent::Translate(entry)) as AgentSignal,
   ]);
 
   let (agent_tx, compiler_rx) = channel::<CompilerSignal>();
@@ -127,7 +75,10 @@ fn main() {
       agent.tx.send(job).unwrap();
     }
 
-    match dbg!(compiler_rx.recv_timeout(Duration::from_millis(500)).ok()) {
+    // wait up to 500ms for a signal, otherwise consider it dead
+    let result = compiler_rx.recv_timeout(Duration::from_millis(500)).ok();
+
+    match dbg!(result) {
       Some(CompilerSignal::Finished { id }) => {
         agent_signal_count += 1;
         agents[id].as_mut().unwrap().free = true;
@@ -146,11 +97,14 @@ fn main() {
       continue;
     };
 
+    // agent never freed up before the compiler shut down
     if !agent.free {
-      eprintln!("[main] [ERR] thread #{id} is hung");
+      eprintln!("[main] [ERR] thread #{id} timed out");
     };
 
-    if agent.handle.join().is_err() {
+    // show this error after joining and only if we haven't seen the previous
+    // timeout error
+    if agent.handle.join().is_err() && agent.free {
       eprintln!("[main] [ERR] thread #{id} crashed");
     };
   }

@@ -1,8 +1,6 @@
 mod keyword;
 mod preprocessor;
 
-use snafu::Whatever;
-
 use super::*;
 
 #[derive(Debug)]
@@ -68,12 +66,7 @@ impl<T: Iterator<Item = (char, usize)>> Tokenizer<T> {
   pub(super) fn new(id: usize, iter: T) -> Self {
     Self {
       id,
-      mark: SourceMark {
-        line: 0,
-        column: 0,
-        start_of_line_byte: 0,
-        indentation_level: 0,
-      },
+      mark: SourceMark::default(),
       indent_buf: String::new(),
       iter,
       tokens: VecDeque::new(),
@@ -155,5 +148,16 @@ impl<T: Iterator<Item = (char, usize)>> Tokenizer<T> {
     }
 
     self.push_token(TokenKind::Whitespace(space), start);
+  }
+}
+
+impl Default for SourceMark {
+  fn default() -> Self {
+    Self {
+      line: 0,
+      column: 0,
+      start_of_line_byte: 0,
+      indentation_level: 0,
+    }
   }
 }

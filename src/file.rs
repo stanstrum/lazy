@@ -1,4 +1,8 @@
-use std::{io::Read, path::Path};
+use std::{
+  fmt::{Display, Pointer, Write},
+  io::Read,
+  path::Path,
+};
 
 use include_directory::{include_directory, Dir, DirEntry};
 use snafu::{whatever, Whatever};
@@ -12,10 +16,24 @@ pub(super) enum FileKind {
   SourceFile,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(PartialEq, Clone)]
 pub(super) struct LazyFile {
   pub kind: FileKind,
   pub path: PathBuf,
+}
+
+impl Debug for LazyFile {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match &self.kind {
+      FileKind::EmbeddedStdSource => f.write_fmt(format_args!(
+        "[module: res://{}",
+        self.path.to_string_lossy()
+      )),
+      FileKind::SourceFile => {
+        f.write_fmt(format_args!("[module: {}]", self.path.to_string_lossy()))
+      },
+    }
+  }
 }
 
 fn get_stl_source(path: &Path) -> Option<&'static [u8]> {

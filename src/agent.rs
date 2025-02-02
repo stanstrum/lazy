@@ -15,6 +15,15 @@ pub(super) trait AgentDispatch: Send + Debug {
 
 pub(super) type AgentSignal = Box<dyn AgentDispatch>;
 
+#[derive(Debug)]
+pub(super) struct AgentDie;
+
+impl AgentDispatch for AgentDie {
+  fn run(self: Box<Self>, _id: usize, _tx: &Sender<CompilerSignal>) {
+    std::process::exit(0);
+  }
+}
+
 impl Agent {
   pub(super) fn new(id: usize, agent_tx: &Sender<CompilerSignal>) -> Self {
     println!("[main] starting worker thread #{id}");
@@ -25,13 +34,15 @@ impl Agent {
     let handle = std::thread::spawn(move || {
       println!("[thread #{id}] thread started");
 
-      for job in agent_rx.iter() {
-        println!("[thread #{id}] Job: {job:#?}");
+      loop {
+        for job in agent_rx.try_iter() {
+          println!("[thread #{id}] Job: {job:?}");
 
-        job.run(id, &agent_tx);
+          job.run(id, &agent_tx);
+        }
+
+        agent_tx.send(CompilerSignal::Finished { id }).unwrap();
       }
-
-      agent_tx.send(CompilerSignal::Finished { id }).unwrap();
     });
 
     Self {

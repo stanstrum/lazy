@@ -10,6 +10,11 @@ pub struct Variable {
 }
 
 #[derive(Debug)]
+pub enum Expression {
+  Block(Block),
+}
+
+#[derive(Debug)]
 pub struct Block {
   variables: Vec<Variable>,
 }

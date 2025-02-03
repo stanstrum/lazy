@@ -23,6 +23,7 @@ enum CompilerSignal {
   RegisterFile { path: PathBuf },
   AgentError { id: usize, err: String },
   Finished { id: usize },
+  // Tokenized
 }
 
 fn main() -> Result<(), ()> {
@@ -84,7 +85,7 @@ fn main() -> Result<(), ()> {
     let result = compiler_rx.recv_timeout(Duration::from_millis(500)).ok();
 
     if result.is_some() {
-      println!("[main] compiler signal: {:?}", result.as_ref().unwrap());
+      // println!("[main] compiler signal: {:?}", result.as_ref().unwrap());
       agent_signal_count += 1;
     };
 
@@ -94,7 +95,7 @@ fn main() -> Result<(), ()> {
       },
       Some(CompilerSignal::RegisterFile { .. }) => todo!(),
       Some(CompilerSignal::AgentError { id, err }) => {
-        println!("[main] received fatal error from thread #{id}: {err:?}");
+        println!("[main] received error from thread #{id}: {err:?} ... shrug");
         agents[id].as_mut().unwrap().free = true;
         errors += 1;
       },

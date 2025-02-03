@@ -1,0 +1,10 @@
+[package]
+name = "lazym"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+include_directory = "0.1.1"
+snafu = "0.8.5"
+tokio = { version = "1.43.0", features = ["sync", "tokio-macros"] }
+utf8-read = "0.4.0"

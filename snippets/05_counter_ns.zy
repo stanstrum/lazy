@@ -1,0 +1,57 @@
+type str := &[]u32;
+
+namespace io {
+  struct Stdin {};
+
+  stdin -> Stdin {};
+
+  impl Stdin {
+    read_line:
+      dest: &super::str
+    {
+      /* todo */
+    };
+  };
+};
+
+namespace string {
+  impl &super::str {
+    len -> usize {};
+  };
+};
+
+namespace ToString {
+  str_to_num -> i32:
+    text: &super::str
+  {
+    mut acc: usize := 0;
+    mut ctr: usize := 0;
+
+    while ctr < text.len() {
+      ch := text[ctr];
+
+      if ch > b' ' && ch < b'~' {
+        acc += ch;
+      } else {
+        return 0;
+      };
+
+      ctr++;
+    };
+
+    ctr: i32
+  };
+};
+
+main {
+  mut buf: &str;
+  mut acc: usize := 0;
+
+  loop {
+    io::stdin().read_line(&mut buf);
+
+    acc += ToString::str_to_num(&buf);
+
+    io::println(acc.to_string());
+  };
+};

@@ -1,0 +1,35 @@
+str_to_num -> u32:
+  string: &str
+{
+  i: usize := 0;
+  sum: u32 := 0;
+
+  while i < (str.len)() {
+    // ch := *{ str.ptr + i };
+
+    // sum *= 10
+    // sum += {
+    //   if b"0" <= ch && ch <= b"9" {
+    //     ch - b"0"
+    //   } else {
+    //     return 0
+    //   }
+    // };
+  };
+
+  sum
+};
+
+main -> u32:
+  argc: u32,
+  argv: &[]str
+{
+  ctr: u32 := 0;
+
+  while true {
+    buf := io::stdin();
+    amt := str_to_num(buf);
+
+    println("Counter is {}", amt);
+  };
+};

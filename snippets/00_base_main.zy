@@ -1,0 +1,24 @@
+other_function -> bool:
+  argument_1: char,
+  argument_2: u8
+{
+  {};
+  {};
+  {
+    {
+      // test comment :)
+    };
+
+    {
+      // this should be parsed as the last expression
+      // and return
+      0
+    }
+
+    /* and this should be skipped */
+  }
+};
+
+main -> i32 {
+  0
+};

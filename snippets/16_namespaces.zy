@@ -1,0 +1,25 @@
+namespace Whatever {
+  export namespace Stuff {
+    template: T;
+    export do_stuff -> &str:
+      a: T,
+      b: T
+    {
+      s := "hello, world";
+
+      // defer! s {
+      //   drop! $;
+      // };
+    };
+  };
+
+  export namespace SomethingElse {
+    export class SomeClass {
+
+    };
+  };
+};
+
+main -> i32 {
+  0
+};

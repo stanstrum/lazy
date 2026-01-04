@@ -1,0 +1,26 @@
+main -> i32 {
+  a: i32 := 0 + 1;
+
+  0
+};
+
+interface IAdd {
+  iadd -> This:
+    rhs: This;
+};
+
+class i32 {
+  new -> This {
+    0
+  };
+};
+
+impl i32: IAdd {
+  iadd -> This:
+    rhs: This
+  {
+    // do stuff
+
+    ::new()
+  };
+};

@@ -1,0 +1,17 @@
+namespace Something {
+  type c_str := &[]u8;
+
+  struct HelloWorld {
+    a: u64,
+    text: c_str
+  };
+
+  struct Other {
+    a: u8,
+    b: u8
+  };
+};
+
+main -> i32 {
+  0
+};

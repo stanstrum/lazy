@@ -1,17 +1,14 @@
-namespace Something {
-  type c_str := &[]u8;
+namespace Something
+  type c_str := &[]u8
 
-  struct HelloWorld {
-    a: u64,
-    text: c_str
-  };
+  struct HelloWorld
+    u64 a
+    c_str text
 
-  struct Other {
-    a: u8,
-    b: u8
-  };
-};
+  struct Other
+    u8 a
+    u8 b
 
-main -> i32 {
+main -> i32
+
   0
-};

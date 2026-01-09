@@ -1,26 +1,24 @@
-/* Copyright (c) 2023, 2024 Stan Strum
+/* Copyright (c) 2023-2026 Stan Strum
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-import { libc::printf } from "std/index.zy";
+import { libc::printf } from "std/index.zy"
 
-struct Struct {
-  value: i32
-};
+struct Struct
+  i32 value
 
-main -> i32 {
-  a: Struct;
+main -> i32
+  Struct a;
 
   a.value = 1000;
 
   b := Struct { value: 337 };
 
-  printf(c"a.value = %d\n", a.value);
-  printf(c"b.value = %d\n", b.value);
-  printf(c"a.value + b.value = %d\n", a.value + b.value);
+  printf(c"a.value = %d\n", a.value)
+  printf(c"b.value = %d\n", b.value)
+  printf(c"a.value + b.value = %d\n", a.value + b.value)
 
   0
-};

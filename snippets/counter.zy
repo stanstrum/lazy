@@ -1,11 +1,11 @@
-str_to_num -> u32:
-  string: &str
-{
-  i: usize := 0;
-  sum: u32 := 0;
+str_to_num -> u32
+  &str string
 
-  while i < (str.len)() {
-    // ch := *{ str.ptr + i };
+  usize i := 0
+  u32 sum := 0
+
+  while i < str.len
+    // ch := *{ str.ptr + i }
 
     // sum *= 10
     // sum += {
@@ -14,22 +14,18 @@ str_to_num -> u32:
     //   } else {
     //     return 0
     //   }
-    // };
-  };
+    // }
 
   sum
-};
 
-main -> u32:
-  argc: u32,
-  argv: &[]str
-{
-  ctr: u32 := 0;
+main -> u32
+  u32 argc
+  &[]str argv
 
-  while true {
-    buf := io::stdin();
-    amt := str_to_num(buf);
+  u32 ctr := 0
 
-    println("Counter is {}", amt);
-  };
-};
+  while true
+    buf := io::stdin
+    amt := str_to_num(buf)
+
+    println("Counter is {}", amt)

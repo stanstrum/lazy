@@ -1,8 +1,9 @@
-extern printf -> i32:
-  format: &[]u8, ...;
+extern printf -> i32
+  &[]u8 format
+  ...
 
-main -> i32 {
-  printf(c"Hello, world!\n");
+main -> i32
+
+  printf(c"Hello, world!\n")
 
   0
-};

@@ -1,14 +1,13 @@
-/* Copyright (c) 2023, 2024 Stan Strum
+/* Copyright (c) 2023-2026 Stan Strum
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-import libc from "./libc.zy";
+import libc from "./libc.zy"
 
-template: T;
-struct Slice {
-  ptr: &[]T,
-  len: usize,
-};
+template T
+struct Slice
+  &[]T ptr
+  usize len

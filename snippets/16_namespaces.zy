@@ -1,25 +1,20 @@
-namespace Whatever {
-  export namespace Stuff {
-    template: T;
-    export do_stuff -> &str:
-      a: T,
-      b: T
-    {
-      s := "hello, world";
+namespace Whatever
+  export namespace Stuff
+    template<T>
+    export do_stuff -> &str
+      T a
+      T b
+
+      s := "hello, world"
 
       // defer! s {
-      //   drop! $;
+      //   drop! $
       // };
-    };
-  };
 
-  export namespace SomethingElse {
-    export class SomeClass {
+  export namespace SomethingElse
+    export class SomeClass
+      {}
 
-    };
-  };
-};
+main -> i32
 
-main -> i32 {
   0
-};

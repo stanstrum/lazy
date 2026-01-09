@@ -1,33 +1,33 @@
-type str := []u32;
+type str := []u32
 
-hello_explicit {
-  hello: &str := "hello";
-  hello_bytes: &[5]u8 := b"hello";
+hello_explicit
 
-  n1234: usize := 1234;
-  n5678: u64 := 5678;
+  hello: &str := "hello"
+  hello_bytes: &[5]u8 := b"hello"
+
+  n1234: usize := 1234
+  n5678: u64 := 5678
 
   // should fail
-  n256: u8 := 256;
-};
+  n256: u8 := 256
 
-implicit {
+implicit
+
   // should be Slice<char>
-  hello := "hello";
+  hello := "hello"
 
   // should be [5]u8
-  hello_bytes := b"hello";
+  hello_bytes := b"hello"
 
   // should be usize
-  // n1234 := 1234usize;
+  // n1234 := 1234usize
 
   // should be u64
-  // n5678 := 5678u64;
+  // n5678 := 5678u64
 
   // should fail
-  // n256 := 256u8;
-};
+  // n256 := 256u8
 
-main -> i32 {
+main -> i32
+
   0
-};

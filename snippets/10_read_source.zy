@@ -1,8 +1,8 @@
-extern malloc -> &[]u8:
-  size: usize
+extern malloc -> &[]u8
+  usize size
 
-extern free -> void:
-  ptr: &[]u8
+extern free -> void
+  &[]u8 ptr
 
 // this is not correct but since we're just using it for
 // the pointer, it should be okay -- effectively `void*`
@@ -11,48 +11,49 @@ type FILE := []u8
 type c_str := []u8
 
 // fs
-extern fopen -> &FILE:
-  filename: &c_str
-  mode: &c_str
+extern fopen -> &FILE
+  &c_str filename
+  &c_str mode
 
-extern fclose -> i32:
-  stream: &FILE
+extern fclose -> i32
+  &FILE stream
 
-extern fseek -> i32:
-  stream: &FILE
-  offset: i32
-  whence: i32
+extern fseek -> i32
+  &FILE stream
+  i32 offset
+  i32 whence
 
-extern ftell -> i32:
-  stream: &FILE
+extern ftell -> i32
+  &FILE stream
 
-extern fread -> usize:
-  ptr: &[]u8
-  size: usize
-  nmemb: usize
-  stream: &FILE
+extern fread -> usize
+  &[]u8 ptr
+  usize size
+  usize nmemb
+  &FILE stream
 
-extern puts -> i32:
-  s: &c_str
+extern puts -> i32
+  &c_str s
 
-extern printf -> i32:
-  format: &c_str, ...
+extern printf -> i32
+  &c_str format
+  ...
 
-read_file -> &[]u8:
-  path: &[]u8
-{
-  SEEK_SET: i32 := 0
-  SEEK_CUR: i32 := 1
-  SEEK_END: i32 := 2
+read_file -> &[]u8
+  &[]u8 path
 
-  f: &FILE := fopen(path, c"r")
+  i32 SEEK_SET := 0
+  i32 SEEK_CUR := 1
+  i32 SEEK_END := 2
+
+  &FILE f := fopen(path, c"r")
 
   fseek(f, 0, SEEK_END)
   fsize := ftell(f): usize
 
   fseek(f, 0, SEEK_SET)
 
-  string: &c_str := malloc(fsize + 1)
+  &c_str string := malloc(fsize + 1)
 
   fread(string, 1, fsize + 1, f)
   string[fsize] = 0
@@ -60,11 +61,10 @@ read_file -> &[]u8:
   fclose(f)
 
   string
-}
 
-main {
+main
+
   string := read_file(c"tests/10_read_source.zy")
 
   puts(string)
-  free(string);
-}
+  free(string)

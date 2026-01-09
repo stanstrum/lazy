@@ -1,11 +1,10 @@
-type c_str := []u8;
+type c_str := []u8
 
-main -> i32:
-  argc: i32,
-  argv: &[]&c_str,
-  envp: &[]&c_str
-{
+main -> i32
+  i32 argc
+  &[]&c_str argv
+  &[]&c_str envp
+
   a: i32 := 0;
 
   argc
-};

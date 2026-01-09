@@ -1,5 +1,5 @@
-type c_str := &[]u8;
+type c_str := &[]u8
 
-main -> i32 {
+main -> i32
+
   0
-};

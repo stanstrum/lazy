@@ -1,17 +1,15 @@
-main {
-  while true {
+main
+
+  while true
     1
-  };
 
-  do {
+  do
     true
-  } while false;
+  while false
 
-  until 17 + 6 {
-    A++;
-  };
+  until 17 + 6
+    A++
 
-  do {
-    1 + 1;
-  } until false;
-};
+  do
+    1 + 1
+  until false

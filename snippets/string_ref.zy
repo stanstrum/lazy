@@ -1,1 +1,1 @@
-hello: &str := "testing"
+&str hello := "testing"

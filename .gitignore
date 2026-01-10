@@ -1,5 +1,1 @@
-target/
-a.ll
-a.s
-a.o
-a.out
+/target

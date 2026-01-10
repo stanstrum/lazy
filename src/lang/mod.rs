@@ -1,7 +1,11 @@
 mod module;
 
+use std::path::PathBuf;
+use std::ops::{Index, IndexMut};
+use std::fs::File;
+
 use crate::string_pool::StringPool;
-use module::{
+pub use module::{
   Module,
   ModuleId,
   ModuleParent,
@@ -21,11 +25,11 @@ impl Lazy {
     }
   }
 
-  fn add_module(&mut self, module: Module) -> ModuleId {
+  pub fn add_file(&mut self, name: &str, path: PathBuf) -> ModuleId {
+    let name = self.pool.insert(name);
     let id = self.modules.len();
-
-    self.modules.push(module);
-
+    let parent = ModuleParent::Path { path, file: None };
+    self.modules.push(Module::new(name, parent));
     ModuleId(id)
   }
 
@@ -34,10 +38,10 @@ impl Lazy {
     let name = self.pool.get(module.name).collect::<String>();
 
     match &module.parent {
-      ModuleParent::Path => {
+      ModuleParent::Path { path, .. } => {
         format!(
           "[{} = {}]",
-          module.path.to_string_lossy().to_string(),
+          path.to_string_lossy().to_string(),
           name
         )
       },
@@ -47,5 +51,38 @@ impl Lazy {
       },
     }
   }
+
+  pub fn open_file(&mut self, mut id: ModuleId) -> &File {
+    // traverse parents until we get the root module with a
+    // PathBuf
+    loop {
+      match &self[id].parent {
+        ModuleParent::Path { .. } => break,
+        ModuleParent::Module(next_id) => id = *next_id,
+      };
+    };
+
+    // store and return the file handle
+    let ModuleParent::Path { path, file } =
+      &mut self[id].parent else { unreachable!(); };
+
+    file.get_or_insert_with(|| {
+      // TODO: error handling
+      File::open(path).expect("failed to open source file")
+    })
+  }
 }
 
+impl Index<ModuleId> for Lazy {
+  type Output = Module;
+
+  fn index(&self, ModuleId(index): ModuleId) -> &Self::Output {
+    self.modules.get(index).unwrap()
+  }
+}
+
+impl IndexMut<ModuleId> for Lazy {
+  fn index_mut(&mut self, ModuleId(index): ModuleId) -> &mut Self::Output {
+    self.modules.get_mut(index).unwrap()
+  }
+}

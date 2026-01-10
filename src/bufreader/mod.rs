@@ -1,14 +1,13 @@
 mod meta;
 
-use std::fs::File;
 use std::io::{BufReader, Read};
 use meta::Metadata;
 
 pub struct Utf8Error;
 
 #[derive(Debug)]
-pub struct BufferedUtf8MetadataReader<const N: usize> {
-  reader: BufReader<File>,
+pub struct BufferedUtf8MetadataReader<const N: usize, T: Read> {
+  reader: BufReader<T>,
   caret: usize,
   good_start: usize,
   buf_chars: usize,
@@ -17,8 +16,8 @@ pub struct BufferedUtf8MetadataReader<const N: usize> {
   pub meta: Metadata,
 }
 
-impl<const N: usize> BufferedUtf8MetadataReader<N> {
-  pub fn new(file: File) -> Self {
+impl<const N: usize, T: Read> BufferedUtf8MetadataReader<N, T> {
+  pub fn new(file: T) -> Self {
     let reader = BufReader::new(file);
 
     Self {
@@ -38,7 +37,7 @@ impl<const N: usize> BufferedUtf8MetadataReader<N> {
   }
 }
 
-impl<const N: usize> Iterator for BufferedUtf8MetadataReader<N> {
+impl<const N: usize, T: Read> Iterator for BufferedUtf8MetadataReader<N, T> {
   type Item = Result<char, Utf8Error>;
 
   fn next(&mut self) -> Option<Self::Item> {

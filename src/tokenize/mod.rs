@@ -6,12 +6,10 @@ use std::io::Read;
 use crate::lang::ModuleId;
 use crate::bufreader::{BufferedUtf8MetadataReader};
 use crate::string_pool::StringPool;
-use crate::tokenize::token::{GroupingKind, GroupingType};
-use token::{Keyword};
 
+use token::{GroupingKind, GroupingType, NumericKind, Keyword};
 pub use token::{Token, TokenSpan, Position};
 
-#[derive(Debug)]
 pub struct Tokenizer<'pool, const N: usize, T: Read> {
   pool: &'pool StringPool,
   id: ModuleId,
@@ -44,6 +42,24 @@ enum State {
     content: String,
     start: Position,
   },
+  MultilineComment {
+    content: String,
+    start: Position,
+  },
+  Numeric {
+    kind: Option<NumericKind>,
+    content: String,
+    start: Position,
+  },
+}
+
+fn trim_in_place(string: &mut String) {
+  // trim end
+  string.truncate(string.trim_end().len());
+
+  // trim beginning
+  let trim_chars = string.len() - string.trim_start().len();
+  string.replace_range(0..trim_chars, "");
 }
 
 impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
@@ -151,20 +167,30 @@ impl<'a, const N: usize, T: Read> Iterator for Tokenizer<'a, N, T> {
           let indentation = self.meta_reader.meta.whitespace as isize;
 
           loop {
-            if let Some(result) = self.meta_reader.next() {
-              let Ok(ch) = result else {
-                return Some(Err(Error::IO));
-              };
+            let Some(result) = self.meta_reader.next() else {
+              return None;
+            };
 
-              if !matches!(ch, ' ' | '\t') {
-                let difference = self.meta_reader.meta.whitespace as isize - indentation;
+            let Ok(ch) = result else {
+              return Some(Err(Error::IO));
+            };
 
-                self.push_here(Token::Indent(difference), self.pos());
-                self.retry(ch, State::Base);
-                break;
-              };
+            if !matches!(ch, ' ' | '\t') {
+              let difference = self.meta_reader.meta.whitespace as isize - indentation;
+
+              self.push_here(Token::Indent(difference), self.pos());
+              self.retry(ch, State::Base);
+              break;
             };
           };
+        },
+        // -> Numeric
+        (State::Base, '0'..='9') => {
+          self.retry(ch, State::Numeric {
+            kind: None,
+            content: String::new(),
+            start: self.pos(),
+          });
         },
         // Text
         (State::Text { content, .. },
@@ -214,6 +240,12 @@ impl<'a, const N: usize, T: Read> Iterator for Tokenizer<'a, N, T> {
                 start,
               });
             },
+            ("/*", _) => {
+              self.retry(ch, State::MultilineComment {
+                content: String::new(),
+                start,
+              });
+            }
             _ => todo!("operator {content:?} and {ch:?}"),
           }
         },
@@ -224,16 +256,55 @@ impl<'a, const N: usize, T: Read> Iterator for Tokenizer<'a, N, T> {
               unreachable!()
           };
 
-          // trim in place
-          let trim_chars = content.len() - content.trim_start().len();
-          content.replace_range(0..trim_chars, "");
-          content.truncate(content.trim_end().len());
+          trim_in_place(&mut content);
 
           self.push_here(Token::Comment(content), start);
           self.save(ch);
         },
         (State::LineComment { content, .. }, _) => {
           content.push(ch);
+        },
+        // Multiline comment
+        (State::MultilineComment { content, .. }, _) if content.ends_with("*/") => {
+          let State::MultilineComment { mut content, start } =
+            std::mem::replace(&mut self.state, State::Base) else {
+              unreachable!()
+          };
+
+          // this could just be an unwrap given the if-guard
+          if let Some(slice) = content.strip_suffix("*/") {
+            content.truncate(slice.len());
+          };
+          trim_in_place(&mut content);
+
+          self.push_here(Token::Comment(content), start);
+          self.save(ch);
+        },
+        (State::MultilineComment { content, .. }, _) => {
+          content.push(ch);
+        },
+        // Numeric
+        (State::Numeric { content, .. }, '0'..='9') => {
+          content.push(ch);
+        },
+        (State::Numeric { content, .. }, 'b' | 't' | 's' | 'o' | 'x' | 'r') if content == "0" => {
+          todo!("numeric base 0{ch}");
+        },
+        // -> Base
+        (State::Numeric { .. }, _) => {
+          let State::Numeric {
+            kind,
+            content,
+            start,
+          } = std::mem::replace(&mut self.state, State::Base) else {
+            unreachable!()
+          };
+
+          self.push_here(Token::Numeric {
+            kind: kind.unwrap_or(NumericKind::Decimal),
+            content,
+          }, start);
+          self.save(ch);
         },
         // Fallthrough
         other => todo!("tokenize state {other:?}"),

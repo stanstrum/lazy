@@ -6,7 +6,7 @@ mod tokenize;
 use lang::Lazy;
 
 use crate::bufreader::BufferedUtf8MetadataReader;
-use crate::tokenize::{Token, TokenSpan, Tokenizer};
+use crate::tokenize::{Token, Tokenizer};
 use crate::string_pool::StringPool;
 
 fn main() {
@@ -43,6 +43,5 @@ fn main() {
     };
   };
 
-  dbg!(tokenizer);
   dbg!(lazy);
 }

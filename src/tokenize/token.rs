@@ -45,6 +45,21 @@ pub enum Token {
   Whitespace,
   Indent(isize),
   Comment(String),
+  Numeric {
+    kind: NumericKind,
+    content: String,
+  },
+}
+
+#[derive(Debug)]
+pub enum NumericKind {
+  Binary,
+  Ternary,
+  Seximal,
+  Octal,
+  Decimal,
+  Hexadecimal,
+  Roman,
 }
 
 #[derive(Debug)]

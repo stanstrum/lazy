@@ -3,6 +3,7 @@ mod meta;
 use std::io::{BufReader, Read};
 pub use meta::Metadata;
 
+#[derive(Debug)]
 pub struct Utf8Error;
 
 #[derive(Debug)]

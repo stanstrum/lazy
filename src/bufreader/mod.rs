@@ -1,7 +1,7 @@
 mod meta;
 
 use std::io::{BufReader, Read};
-use meta::Metadata;
+pub use meta::Metadata;
 
 pub struct Utf8Error;
 

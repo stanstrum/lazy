@@ -3,7 +3,8 @@ pub struct Metadata {
   pub line: usize,
   pub column: usize,
   pub whitespace: usize,
-  reading_whitespace: bool,
+  pub position: usize,
+  pub reading_whitespace: bool,
   last_ch: Option<char>,
 }
 
@@ -13,6 +14,7 @@ impl Metadata {
       line: 1,
       column: 1,
       whitespace: 0,
+      position: 0,
       reading_whitespace: true,
       last_ch: None,
     }
@@ -22,6 +24,8 @@ impl Metadata {
     let Some(ch) = self.last_ch.replace(ch) else {
       return;
     };
+
+    self.position += 1;
 
     if ch == '\n' {
       self.line += 1;

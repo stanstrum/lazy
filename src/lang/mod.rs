@@ -12,15 +12,15 @@ pub use module::{
 };
 
 #[derive(Debug)]
-pub struct Lazy {
-  pool: StringPool,
+pub struct Lazy<'a> {
+  pub pool: &'a StringPool,
   modules: Vec<Module>,
 }
 
-impl Lazy {
-  pub fn new() -> Self {
+impl<'a> Lazy<'a> {
+  pub fn new(pool: &'a StringPool) -> Self {
     Self {
-      pool: StringPool::new(),
+      pool,
       modules: vec![],
     }
   }
@@ -73,7 +73,7 @@ impl Lazy {
   }
 }
 
-impl Index<ModuleId> for Lazy {
+impl<'a> Index<ModuleId> for Lazy<'a> {
   type Output = Module;
 
   fn index(&self, ModuleId(index): ModuleId) -> &Self::Output {
@@ -81,7 +81,7 @@ impl Index<ModuleId> for Lazy {
   }
 }
 
-impl IndexMut<ModuleId> for Lazy {
+impl<'a> IndexMut<ModuleId> for Lazy<'a> {
   fn index_mut(&mut self, ModuleId(index): ModuleId) -> &mut Self::Output {
     self.modules.get_mut(index).unwrap()
   }

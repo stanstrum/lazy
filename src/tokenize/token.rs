@@ -118,6 +118,7 @@ string_enum!(Keyword {
 pub enum Operator {
   RightArrow,
   Range,
+  DoubleColon,
 }
 
 /// Contains only the start position of a Span

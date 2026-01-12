@@ -118,20 +118,16 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
   stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<lang::function::Function>, Error> {
   let ret_mark = stream.mark();
-
-  let Some((_, start)) = stream.peek()? else {
-    stream.take_mark(ret_mark);
-    return Ok(None);
-  };
+  let start = stream.here()?;
 
   let Some(header) = make_function_header(lazy, stream)? else {
     stream.take_mark(ret_mark);
     return Ok(None);
   };
 
-  let Some((_, end)) = stream.peek()? else {
-    panic!("no end span");
-  };
+  let end = stream.here()?;
+
+  dbg!("todo: function body");
 
   Ok(Some(lang::function::Function {
     header,

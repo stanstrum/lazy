@@ -5,6 +5,9 @@ use crate::string_pool::PoolId;
 #[derive(Debug, Clone, Copy)]
 pub struct ModuleId(pub usize);
 
+#[derive(Debug, Clone, Copy)]
+pub struct FunctionId(pub usize);
+
 #[derive(Debug)]
 pub enum ModuleParent {
   Path {
@@ -18,6 +21,7 @@ pub enum ModuleParent {
 pub struct Module {
   pub name: PoolId,
   pub modules: Vec<ModuleId>,
+  pub functions: Vec<FunctionId>,
   pub parent: ModuleParent,
 }
 
@@ -26,6 +30,7 @@ impl Module {
     Self {
       name,
       modules: vec![],
+      functions: vec![],
       parent,
     }
   }

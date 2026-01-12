@@ -47,6 +47,8 @@ pub(super) fn make<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>
 ) -> Result<(), Error> {
+  let mut last_mark = None;
+
   loop {
     stream.skip_whitespace_and_comments()?;
 
@@ -54,12 +56,18 @@ pub(super) fn make<'pool, const N: usize, T: Read>(
       break;
     };
 
-    if let Some(function) = function::make_function(lazy, stream)? {
-      todo!("{function:?}");
+    let current_mark = stream.mark();
+    if dbg!(last_mark) == Some(dbg!(current_mark)) {
+      return stream.expected_here("a top-level structure");
     };
 
-    todo!("make_function loop")
+    last_mark = Some(current_mark);
+
+    if let Some(function) = function::make_function(lazy, stream)? {
+      lazy.add_function(stream.id, function);
+      continue;
+    };
   };
 
-  todo!("make")
+  Ok(())
 }

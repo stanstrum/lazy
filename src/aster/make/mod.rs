@@ -57,7 +57,7 @@ pub(super) fn make<'pool, const N: usize, T: Read>(
     };
 
     let current_mark = stream.mark();
-    if dbg!(last_mark) == Some(dbg!(current_mark)) {
+    if last_mark == Some(current_mark) {
       return stream.expected_here("a top-level structure");
     };
 

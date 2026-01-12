@@ -25,7 +25,8 @@ impl Metadata {
       return;
     };
 
-    self.position += 1;
+    // This is the _byte_ position, not character count
+    self.position += ch.len_utf8();
 
     if ch == '\n' {
       self.line += 1;

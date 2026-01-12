@@ -84,6 +84,10 @@ impl<'a, 'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
       None => Ok(None),
     }
   }
+
+  pub(super) fn examine_tokens(self) -> VecDeque<TokenSpan> {
+    self.queue
+  }
 }
 
 impl<'pool, const N: usize, T: Read> Iterator for Rereader<'pool, N, T> {

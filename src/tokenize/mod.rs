@@ -5,7 +5,7 @@ use std::collections::VecDeque;
 use std::io::Read;
 
 use crate::lang::module::ModuleId;
-use crate::bufreader::{BufferedUtf8MetadataReader};
+use crate::aster::bufreader::{BufferedUtf8MetadataReader};
 use crate::string_pool::StringPool;
 use crate::tokenize::token::{Operator, Position, Span, Token, TokenSpan};
 

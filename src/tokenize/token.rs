@@ -1,6 +1,6 @@
 use crate::lang::module::ModuleId;
 use crate::string_pool::{CommentId, PoolId};
-use crate::bufreader::Metadata;
+use crate::aster::bufreader::Metadata;
 
 macro_rules! string_enum {
   ($name:ident { $($entries:ident => $values:expr,)* }) => {

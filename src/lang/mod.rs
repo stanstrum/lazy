@@ -4,7 +4,6 @@ pub mod ty;
 
 use std::path::{Path, PathBuf};
 use std::ops::{Index, IndexMut};
-use std::fs::File;
 
 use crate::lang::module::{Module, ModuleId, ModuleParent};
 use crate::string_pool::StringPool;

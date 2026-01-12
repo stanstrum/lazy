@@ -1,10 +1,11 @@
 mod make;
+pub mod bufreader;
 mod rereader;
 
 use std::fs::File;
 
+use bufreader::BufferedUtf8MetadataReader;
 use crate::aster::rereader::Rereader;
-use crate::bufreader::BufferedUtf8MetadataReader;
 use crate::string_pool::StringPool;
 
 use crate::tokenize::{self, Tokenizer};

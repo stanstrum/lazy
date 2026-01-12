@@ -1,4 +1,3 @@
-mod bufreader;
 mod string_pool;
 mod lang;
 mod tokenize;

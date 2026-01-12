@@ -1,4 +1,4 @@
-use crate::lang::ModuleId;
+use crate::lang::module::ModuleId;
 use crate::string_pool::{CommentId, PoolId};
 use crate::bufreader::Metadata;
 
@@ -28,15 +28,16 @@ macro_rules! string_enum {
   };
 }
 
-#[derive(Debug, Clone)]
-pub struct TokenSpan {
-  pub tok: Token,
+#[derive(Debug, Clone, Copy)]
+pub struct Span {
   pub start: Position,
   pub end: Position,
   pub module: ModuleId,
 }
 
-#[derive(Debug, Clone)]
+pub type TokenSpan = (Token, Span);
+
+#[derive(Debug, Clone, Copy)]
 pub enum Token {
   Identifier(PoolId),
   Keyword(Keyword),
@@ -135,6 +136,16 @@ impl Position {
       line: meta.line,
       column: meta.column,
       indentation: meta.whitespace,
+    }
+  }
+}
+
+impl Span {
+  pub fn from_pair(module: ModuleId, start: Span, end: Span) -> Self {
+    Self {
+      start: start.start,
+      end: end.end,
+      module,
     }
   }
 }

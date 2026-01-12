@@ -1,15 +1,13 @@
-mod module;
+pub mod module;
+pub mod function;
+pub mod ty;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::ops::{Index, IndexMut};
 use std::fs::File;
 
+use crate::lang::module::{Module, ModuleId, ModuleParent};
 use crate::string_pool::StringPool;
-pub use module::{
-  Module,
-  ModuleId,
-  ModuleParent,
-};
 
 #[derive(Debug)]
 pub struct Lazy<'a> {
@@ -28,7 +26,7 @@ impl<'a> Lazy<'a> {
   pub fn add_file(&mut self, name: &str, path: PathBuf) -> ModuleId {
     let name = self.pool.insert(name);
     let id = self.modules.len();
-    let parent = ModuleParent::Path { path, file: None };
+    let parent = ModuleParent::Path { path, opened: false };
     self.modules.push(Module::new(name, parent));
     ModuleId(id)
   }
@@ -52,7 +50,7 @@ impl<'a> Lazy<'a> {
     }
   }
 
-  pub fn open_file(&mut self, mut id: ModuleId) -> &File {
+  pub fn get_path(&mut self, mut id: ModuleId) -> &Path {
     // traverse parents until we get the root module with a
     // PathBuf
     loop {
@@ -62,14 +60,14 @@ impl<'a> Lazy<'a> {
       };
     };
 
-    // store and return the file handle
-    let ModuleParent::Path { path, file } =
+    // store and mark the file handle as read
+    let ModuleParent::Path { path, opened } =
       &mut self[id].parent else { unreachable!(); };
 
-    file.get_or_insert_with(|| {
-      // TODO: error handling
-      File::open(path).expect("failed to open source file")
-    })
+    assert!(!*opened);
+    *opened = true;
+
+    path.as_path()
   }
 }
 

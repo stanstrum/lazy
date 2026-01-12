@@ -10,7 +10,7 @@ pub struct ModuleId(pub usize);
 pub enum ModuleParent {
   Path {
     path: PathBuf,
-    file: Option<File>,
+    opened: bool,
   },
   Module(ModuleId),
 }

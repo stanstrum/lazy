@@ -1,16 +1,15 @@
-mod token;
+pub mod token;
 mod numeric;
 
 use std::collections::VecDeque;
 use std::io::Read;
 
-use crate::lang::ModuleId;
+use crate::lang::module::ModuleId;
 use crate::bufreader::{BufferedUtf8MetadataReader};
 use crate::string_pool::StringPool;
-use crate::tokenize::token::Operator;
+use crate::tokenize::token::{Operator, Position, Span, Token, TokenSpan};
 
 use token::{GroupingKind, GroupingType, NumericKind, Keyword};
-pub use token::{Token, TokenSpan, Position};
 
 #[derive(Debug)]
 pub struct Tokenizer<'pool, const N: usize, T: Read> {
@@ -102,12 +101,12 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
   }
 
   fn push_here(&mut self, tok: Token, start: Position) {
-    self.toks.push_back(TokenSpan {
-      tok,
+    let span = Span {
       start,
       end: self.pos(),
       module: self.id,
-    });
+    };
+    self.toks.push_back((tok, span));
   }
 
   fn pos(&self) -> Position {
@@ -329,6 +328,7 @@ impl<'a, const N: usize, T: Read> Iterator for Tokenizer<'a, N, T> {
             Err(error) => return Some(Err(error)),
           };
 
+          self.push_here(tok, start);
           self.push_here(Token::Operator(Operator::Range), self.pos());
         },
         // -> Base

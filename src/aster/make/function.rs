@@ -1,0 +1,140 @@
+use std::io::Read;
+
+use crate::lang;
+use crate::tokenize::token::{Operator, Span, Token};
+use crate::aster::make::make_type;
+use crate::aster::Rereader;
+
+use super::Error;
+
+fn make_function_header<'pool, const N: usize, T: Read>(
+  lazy: &mut lang::Lazy<'pool>,
+  stream: &mut Rereader<'pool, N, T>,
+) -> Result<Option<lang::function::FunctionHeader>, Error> {
+  let ret_mark = stream.mark();
+
+  let Some((Token::Identifier(name), name_span)) = stream.ok_next()? else {
+    stream.take_mark(ret_mark);
+    return Ok(None);
+  };
+
+  stream.skip_whitespace_and_comments()?;
+
+  let ret_ty = {
+    if let Some((Token::Operator(Operator::RightArrow), _)) = stream.peek()? {
+      stream.seek();
+      stream.skip_whitespace_and_comments()?;
+
+      let Some(ret_ty) = make_type(lazy, stream)? else {
+        stream.take_mark(ret_mark);
+        return stream.expected_here("a return type");
+      };
+
+      Some(ret_ty)
+    } else {
+      None
+    }
+  };
+
+  stream.skip_whitespace_and_comments()?;
+
+  let Some((Token::Indent(1..), _)) = stream.ok_next()? else {
+    stream.take_mark(ret_mark);
+    return stream.expected_here("an indentation");
+  };
+
+  let mut arguments = vec![];
+  loop {
+    if let Some((Token::Indent(indent), indent_span)) = stream.peek()? {
+      stream.seek();
+
+      if indent != 0 {
+        stream.take_mark(ret_mark);
+        return Err(Error::Invalid {
+          what: "indentation (expected 0)",
+          at: indent_span,
+        });
+      };
+
+      break;
+    };
+
+    let arg_ty_span = stream.here()?;
+    let Some(arg_ty) = make_type(lazy, stream)? else {
+      stream.take_mark(ret_mark);
+      return stream.expected_here("a type");
+    };
+
+    if !stream.skip_whitespace_and_comments()? {
+      stream.take_mark(ret_mark);
+      return stream.expected_here("whitespace");
+    };
+
+    let Some((arg_name_token, arg_name_span)) = stream.ok_next()? else {
+      stream.take_mark(ret_mark);
+      return stream.expected_here("a token");
+    };
+
+    let Token::Identifier(arg_name) = arg_name_token else {
+      stream.take_mark(ret_mark);
+      return Err(Error::Expected {
+        what: "an identifier",
+        at: arg_name_span,
+      });
+    };
+
+    let span = Span::from_pair(stream.id, arg_ty_span, arg_name_span);
+    arguments.push(lang::function::FunctionArgument {
+      name: arg_name,
+      ty: arg_ty,
+      span,
+    });
+
+    let Some((Token::Indent(indent), indent_span)) = stream.ok_next()? else {
+      stream.take_mark(ret_mark);
+      return stream.expected_here("an indentation");
+    };
+
+    if indent != 0 {
+      stream.take_mark(ret_mark);
+      return Err(Error::Invalid {
+        what: "indentation (expected 0)",
+        at: indent_span,
+      });
+    };
+  };
+
+  let span = Span::from_pair(stream.id, name_span, stream.here()?);
+  Ok(Some(lang::function::FunctionHeader {
+    name,
+    ret_ty,
+    arguments,
+    span,
+  }))
+}
+
+pub(super) fn make_function<'pool, const N: usize, T: Read>(
+  lazy: &mut lang::Lazy<'pool>,
+  stream: &mut Rereader<'pool, N, T>,
+) -> Result<Option<lang::function::Function>, Error> {
+  let ret_mark = stream.mark();
+
+  let Some((_, start)) = stream.peek()? else {
+    stream.take_mark(ret_mark);
+    return Ok(None);
+  };
+
+  let Some(header) = make_function_header(lazy, stream)? else {
+    stream.take_mark(ret_mark);
+    return Ok(None);
+  };
+
+  let Some((_, end)) = stream.peek()? else {
+    panic!("no end span");
+  };
+
+  Ok(Some(lang::function::Function {
+    header,
+    span: Span::from_pair(stream.id, start, end),
+  }))
+}

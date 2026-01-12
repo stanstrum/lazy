@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Ref, RefCell};
 use std::collections::VecDeque;
 
 #[derive(Debug)]
@@ -12,10 +12,14 @@ pub struct PoolNode {
 
 pub struct StringPool {
   pub nodes: RefCell<Vec<PoolNode>>,
+  pub comments: RefCell<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PoolId(usize);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CommentId(usize);
 
 impl PoolNode {
   fn new(ch: char, parent: Option<usize>) -> Self {
@@ -60,7 +64,22 @@ impl StringPool {
   pub fn new() -> Self {
     Self {
       nodes: RefCell::new(vec![]),
+      comments: RefCell::new(vec![]),
     }
+  }
+
+  pub fn insert_comment(&self, comment: String) -> CommentId {
+    let id = CommentId(self.comments.borrow().len());
+    self.comments.borrow_mut().push(comment);
+
+    id
+  }
+
+  pub fn get_comment(&self, CommentId(id): CommentId) -> Ref<'_, String> {
+    Ref::map(
+      self.comments.borrow(),
+      |comments| comments.get(id).unwrap()
+    )
   }
 
   pub fn insert(&self, str: &str) -> PoolId {

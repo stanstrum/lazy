@@ -1,11 +1,11 @@
 use crate::lang::ModuleId;
-use crate::string_pool::PoolId;
+use crate::string_pool::{CommentId, PoolId};
 use crate::bufreader::Metadata;
 
 macro_rules! string_enum {
   ($name:ident { $($entries:ident => $values:expr,)* }) => {
-    #[derive(Debug)]
-    pub enum $name {
+  #[derive(Debug, Clone, Copy)]
+  pub enum $name {
       $($entries,)*
     }
 
@@ -28,7 +28,7 @@ macro_rules! string_enum {
   };
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TokenSpan {
   pub tok: Token,
   pub start: Position,
@@ -36,7 +36,7 @@ pub struct TokenSpan {
   pub module: ModuleId,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Token {
   Identifier(PoolId),
   Keyword(Keyword),
@@ -44,14 +44,14 @@ pub enum Token {
   Grouping(GroupingType),
   Whitespace,
   Indent(isize),
-  Comment(String),
+  Comment(CommentId),
   Numeric {
     kind: NumericKind,
-    content: String,
+    value: NumericValue,
   },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum NumericKind {
   Binary,
   Ternary,
@@ -62,13 +62,19 @@ pub enum NumericKind {
   Roman,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
+pub enum NumericValue {
+  U64(u64),
+  F64(f64),
+}
+
+#[derive(Debug, Clone, Copy)]
 pub enum GroupingType {
   Open(GroupingKind),
   Close(GroupingKind),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum GroupingKind {
   Parenthesis,
   Bracket,
@@ -107,9 +113,10 @@ string_enum!(Keyword {
   Type => "type",
 });
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Operator {
   RightArrow,
+  Range,
 }
 
 /// Contains only the start position of a Span

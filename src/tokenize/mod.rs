@@ -1,4 +1,5 @@
 mod token;
+mod numeric;
 
 use std::collections::VecDeque;
 use std::io::Read;
@@ -6,10 +7,12 @@ use std::io::Read;
 use crate::lang::ModuleId;
 use crate::bufreader::{BufferedUtf8MetadataReader};
 use crate::string_pool::StringPool;
+use crate::tokenize::token::Operator;
 
 use token::{GroupingKind, GroupingType, NumericKind, Keyword};
 pub use token::{Token, TokenSpan, Position};
 
+#[derive(Debug)]
 pub struct Tokenizer<'pool, const N: usize, T: Read> {
   pool: &'pool StringPool,
   id: ModuleId,
@@ -22,6 +25,7 @@ pub struct Tokenizer<'pool, const N: usize, T: Read> {
 #[derive(Debug)]
 pub enum Error {
   IO,
+  InvalidNumeric,
 }
 
 #[derive(Debug)]
@@ -258,7 +262,8 @@ impl<'a, const N: usize, T: Read> Iterator for Tokenizer<'a, N, T> {
 
           trim_in_place(&mut content);
 
-          self.push_here(Token::Comment(content), start);
+          let comment_id = self.pool.insert_comment(content);
+          self.push_here(Token::Comment(comment_id), start);
           self.save(ch);
         },
         (State::LineComment { content, .. }, _) => {
@@ -277,18 +282,54 @@ impl<'a, const N: usize, T: Read> Iterator for Tokenizer<'a, N, T> {
           };
           trim_in_place(&mut content);
 
-          self.push_here(Token::Comment(content), start);
+          let comment_id = self.pool.insert_comment(content);
+
+          self.push_here(Token::Comment(comment_id), start);
           self.save(ch);
         },
         (State::MultilineComment { content, .. }, _) => {
           content.push(ch);
         },
         // Numeric
-        (State::Numeric { content, .. }, '0'..='9') => {
+        (
+          State::Numeric { content, kind, ..},
+          'b' | 't' | 's' | 'o' | 'x' | 'r'
+        ) if kind.is_none() && content == "0" => {
+          content.clear();
+          *kind = Some(match ch {
+            'b' => NumericKind::Binary,
+            't' => NumericKind::Ternary,
+            's' => NumericKind::Seximal,
+            'o' => NumericKind::Octal,
+            'x' => NumericKind::Hexadecimal,
+            'r' => NumericKind::Roman,
+            _ => unreachable!("numeric code: {ch}"),
+          });
+        },
+        | (State::Numeric { content, kind: Some(NumericKind::Hexadecimal), .. }, 'a'..='f' | 'A'..='F')
+        | (State::Numeric { content, .. }, '0'..='9' ) => {
           content.push(ch);
         },
-        (State::Numeric { content, .. }, 'b' | 't' | 's' | 'o' | 'x' | 'r') if content == "0" => {
-          todo!("numeric base 0{ch}");
+        (State::Numeric { content, .. }, '.') if !content.contains('.') => {
+          content.push(ch);
+        },
+        (State::Numeric { content, .. }, '.') if content.ends_with('.') => {
+          content.pop();
+
+          let State::Numeric {
+            kind,
+            content,
+            start,
+          } = std::mem::replace(&mut self.state, State::Base) else {
+            unreachable!()
+          };
+
+          let tok = match self.parse_and_push(kind, &content) {
+            Ok(tok) => tok,
+            Err(error) => return Some(Err(error)),
+          };
+
+          self.push_here(Token::Operator(Operator::Range), self.pos());
         },
         // -> Base
         (State::Numeric { .. }, _) => {
@@ -300,10 +341,12 @@ impl<'a, const N: usize, T: Read> Iterator for Tokenizer<'a, N, T> {
             unreachable!()
           };
 
-          self.push_here(Token::Numeric {
-            kind: kind.unwrap_or(NumericKind::Decimal),
-            content,
-          }, start);
+          let tok = match self.parse_and_push(kind, &content) {
+            Ok(tok) => tok,
+            Err(error) => return Some(Err(error)),
+          };
+
+          self.push_here(tok, start);
           self.save(ch);
         },
         // Fallthrough

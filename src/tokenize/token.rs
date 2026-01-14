@@ -18,11 +18,11 @@ macro_rules! string_enum {
       }
     }
 
-    impl std::string::ToString for $name {
-      fn to_string(&self) -> String {
-        match self {
+    impl std::fmt::Display for $name {
+      fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
           $(Self::$entries => $values.into(),)*
-        }
+        })
       }
     }
   };

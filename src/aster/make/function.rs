@@ -51,7 +51,7 @@ fn make_function_header<'pool, const N: usize, T: Read>(
       match indent {
         1.. if arguments.is_empty() => break,
         0 => {},
-        other => {
+        _other => {
           stream.take_mark(ret_mark);
           return Err(Error::Invalid {
             what: "indentation (expected 0)",

@@ -51,7 +51,7 @@ impl<'a> Lazy<'a> {
       ModuleParent::Path { path, .. } => {
         format!(
           "[{} = {}]",
-          path.to_string_lossy().to_string(),
+          path.to_string_lossy(),
           name
         )
       },

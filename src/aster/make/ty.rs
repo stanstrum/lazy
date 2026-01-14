@@ -7,7 +7,7 @@ use crate::tokenize::token::{Operator, Token};
 use super::Error;
 
 pub(super) fn make_type<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  _lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<lang::ty::Type>, Error> {
   let ret_mark = stream.mark();

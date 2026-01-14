@@ -3,8 +3,7 @@ pub mod bufreader;
 mod rereader;
 
 use std::fs::File;
-use std::io::{BufReader, Read, Seek, SeekFrom};
-use std::usize;
+use std::io::{Read, Seek, SeekFrom};
 
 use bufreader::BufferedUtf8MetadataReader;
 use crate::aster::rereader::Rereader;
@@ -37,7 +36,7 @@ pub fn asterize<'pool>(lazy: &mut Lazy<'pool>, pool: &'pool StringPool, id: Modu
 
   if let Err(err) = make::make(lazy, &mut rereader) {
     let (what, at) = match &err {
-      Error::Token(error) => todo!(),
+      Error::Token(_error) => todo!(),
       Error::Expected { what, at } => (format!("expected {what}"), at),
       Error::Invalid { what, at } => (format!("invalid {what}"), at),
     };
@@ -45,13 +44,6 @@ pub fn asterize<'pool>(lazy: &mut Lazy<'pool>, pool: &'pool StringPool, id: Modu
     // Let's do some error printing!
     // Rip the tokens from the tokenizer -- this should drop the file handle
     let mut tokens = rereader.examine_tokens();
-
-    // Get the range that the queue covers -- we may have dropped some lines
-    // along the way
-    let (Some((_, front_span)), Some((_, back_span))) =
-      (tokens.front(), tokens.back()) else {
-        panic!("couldn't get tokens from tokenizer");
-    };
 
     let mut file = File::open(&path)
       .expect("failed to open source for error printing");
@@ -128,6 +120,7 @@ pub fn asterize<'pool>(lazy: &mut Lazy<'pool>, pool: &'pool StringPool, id: Modu
     let mut newlines_to_find = 2;
     let mut offset = 0;
     // Get that last line.  No newline will be added at the end.
+    #[allow(clippy::unbuffered_bytes)]
     let mut bytes = file.bytes();
     loop {
       let ch = match bytes.next() {

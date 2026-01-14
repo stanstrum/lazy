@@ -105,9 +105,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
           let indentation = self.meta_reader.meta.whitespace as isize;
 
           loop {
-            let Some(result) = self.meta_reader.next() else {
-              return None;
-            };
+            let result = self.meta_reader.next()?;
 
             let Ok(ch) = result else {
               return Some(Err(Error::IO));
@@ -139,7 +137,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
         },
         // -> Base
         (State::Text { content, start }, _) => {
-          let tok = if let Some(keyword) = Keyword::from_str(&content) {
+          let tok = if let Some(keyword) = Keyword::from_str(content) {
             Token::Keyword(keyword)
           } else {
             let id = self.pool.insert(content);

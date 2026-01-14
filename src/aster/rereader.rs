@@ -18,7 +18,7 @@ pub(super) struct Rereader<'pool, const N: usize, T: Read> {
   meta_reader: Tokenizer<'pool, N, T>,
 }
 
-impl<'a, 'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
+impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
   pub(super) fn new(stream: Tokenizer<'pool, N, T>, id: ModuleId) -> Self {
     Self {
       id,

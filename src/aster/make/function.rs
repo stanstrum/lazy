@@ -1,8 +1,9 @@
+use crate::line_dbg;
 use std::io::Read;
 
 use crate::lang;
 use crate::tokenize::token::{Operator, Span, Token};
-use crate::aster::make::make_type;
+use crate::aster::make::{expr, make_type};
 use crate::aster::Rereader;
 
 use super::Error;
@@ -38,9 +39,8 @@ fn make_function_header<'pool, const N: usize, T: Read>(
 
   stream.skip_whitespace_and_comments()?;
 
-  let Some((Token::Indent(1..), _)) = stream.ok_next()? else {
-    stream.take_mark(ret_mark);
-    return stream.expected_here("an indentation");
+  let Some((Token::Indent(0..), _)) = stream.ok_next()? else {
+    return stream.expected_here(line_dbg!("an indentation"));
   };
 
   let mut arguments = vec![];
@@ -48,12 +48,16 @@ fn make_function_header<'pool, const N: usize, T: Read>(
     if let Some((Token::Indent(indent), indent_span)) = stream.peek()? {
       stream.seek();
 
-      if indent != 0 {
-        stream.take_mark(ret_mark);
-        return Err(Error::Invalid {
-          what: "indentation (expected 0)",
-          at: indent_span,
-        });
+      match indent {
+        1.. if arguments.is_empty() => break,
+        0 => {},
+        other => {
+          stream.take_mark(ret_mark);
+          return Err(Error::Invalid {
+            what: "indentation (expected 0)",
+            at: indent_span,
+          });
+        },
       };
 
       break;
@@ -92,7 +96,7 @@ fn make_function_header<'pool, const N: usize, T: Read>(
 
     let Some((Token::Indent(indent), indent_span)) = stream.ok_next()? else {
       stream.take_mark(ret_mark);
-      return stream.expected_here("an indentation");
+      return stream.expected_here(line_dbg!("an indentation"));
     };
 
     if indent != 0 {
@@ -118,19 +122,43 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
   stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<lang::function::Function>, Error> {
   let ret_mark = stream.mark();
-  let start = stream.here()?;
 
   let Some(header) = make_function_header(lazy, stream)? else {
     stream.take_mark(ret_mark);
     return Ok(None);
   };
 
-  let end = stream.here()?;
+  let header_span = header.span;
 
-  dbg!("todo: function body");
+  let (mut function, body_id) = lang::function::Function::new(header);
 
-  Ok(Some(lang::function::Function {
-    header,
-    span: Span::from_pair(stream.id, start, end),
-  }))
+  let (start_indent, mut curr_indent) = (
+    header_span.start.indentation as isize,
+    header_span.end.indentation as isize,
+  );
+  loop {
+    if start_indent == curr_indent {
+      break;
+    };
+
+    if let Some(expr) = dbg!(expr::make_expr(lazy, stream, &mut function)?) {
+      function[body_id].children.push(expr);
+
+      stream.skip_whitespace_and_comments()?;
+
+      let Some((Token::Indent(indent), _)) = stream.peek()? else {
+        // stream.take_mark(ret_here)
+        return stream.expected_here(line_dbg!("a newline"));
+      };
+
+      curr_indent += indent;
+
+      stream.seek();
+      continue;
+    };
+
+    todo!("didn't make expr")
+  };
+
+  Ok(Some(function))
 }

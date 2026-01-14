@@ -35,6 +35,6 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
       NumericValue::U64(value)
     };
 
-    Ok(Token::Numeric { kind, value })
+    Ok(Token::Numeric(value))
   }
 }

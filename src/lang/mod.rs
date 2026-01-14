@@ -1,6 +1,7 @@
 pub mod module;
 pub mod function;
 pub mod ty;
+pub mod expr;
 
 use std::path::{Path, PathBuf};
 use std::ops::{Index, IndexMut};

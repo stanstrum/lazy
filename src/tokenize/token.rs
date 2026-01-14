@@ -46,10 +46,7 @@ pub enum Token {
   Whitespace,
   Indent(isize),
   Comment(CommentId),
-  Numeric {
-    kind: NumericKind,
-    value: NumericValue,
-  },
+  Numeric(NumericValue),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -131,7 +128,16 @@ pub struct Position {
 }
 
 impl Position {
-  pub fn new(meta: &Metadata) -> Self {
+  pub fn new() -> Self {
+    Self {
+      position: 0,
+      line: 1,
+      column: 1,
+      indentation: 0,
+    }
+  }
+
+  pub fn new_from_meta(meta: &Metadata) -> Self {
     Self {
       position: meta.position,
       line: meta.line,
@@ -148,5 +154,9 @@ impl Span {
       end: end.end,
       module,
     }
+  }
+
+  pub fn extend(&mut self, other: Span) {
+    assert!(self.module == other.module);
   }
 }

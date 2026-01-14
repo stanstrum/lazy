@@ -12,7 +12,7 @@ pub struct Mark(usize);
 #[derive(Debug)]
 pub(super) struct Rereader<'pool, const N: usize, T: Read> {
   pub id: ModuleId,
-  queue: VecDeque<TokenSpan>,
+  pub queue: VecDeque<TokenSpan>,
   base: usize,
   index: usize,
   meta_reader: Tokenizer<'pool, N, T>,

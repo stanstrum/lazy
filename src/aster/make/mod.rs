@@ -1,5 +1,6 @@
 mod ty;
 mod function;
+mod expr;
 
 use std::io::Read;
 
@@ -10,6 +11,13 @@ use crate::aster::make::ty::make_type;
 
 use super::Error;
 
+#[macro_export]
+macro_rules! line_dbg {
+  ($str:expr) => {
+    concat!("[\x1b[1;4m", file!(), ":", line!(), "\x1b[0;24m]: ", $str)
+  };
+}
+
 impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
   fn done(&mut self) -> Result<bool, Error> {
     Ok(self.peek()?.is_none())
@@ -19,7 +27,7 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
     let mut did_skip = false;
 
     loop {
-      let Some((Token::Whitespace, _)) = self.peek()? else {
+      let Some((Token::Whitespace | Token::Comment(_), _)) = self.peek()? else {
         break;
       };
 
@@ -31,8 +39,17 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
   }
 
   fn here(&mut self) -> Result<Span, Error> {
-    let (_, span) = self.peek()?.expect("Rereader::here peek for span");
-    Ok(span)
+    Ok(match self.peek()? {
+      Some((_, span)) => span,
+      _ => {
+        let (_, last_span) = self.queue.iter().last().expect("Rereader::here peek for span");
+        Span {
+          module: last_span.module,
+          start: last_span.end,
+          end: last_span.end,
+        }
+      },
+    })
   }
 
   fn expected_here<V>(&mut self, what: &'static str) -> Result<V, Error> {

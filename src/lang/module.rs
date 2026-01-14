@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use crate::string_pool::PoolId;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ModuleId(pub usize);
 
 #[derive(Debug, Clone, Copy)]

@@ -4,6 +4,7 @@ mod rereader;
 
 use std::fs::File;
 use std::io::{BufReader, Read, Seek, SeekFrom};
+use std::usize;
 
 use bufreader::BufferedUtf8MetadataReader;
 use crate::aster::rereader::Rereader;
@@ -112,17 +113,17 @@ pub fn asterize<'pool>(lazy: &mut Lazy<'pool>, pool: &'pool StringPool, id: Modu
     };
 
     // Go to that offset
-    let curr_position = file.seek(SeekFrom::Current(-offset)).expect("bad seek");
+    let curr_position = file.seek(SeekFrom::Current(-offset)).expect("bad seek") as usize;
 
     // Now we have the start of the line that precedes our error
-    let initial_bytes_len = at.end.position - curr_position as usize;
+    let initial_bytes_len = at.end.position - curr_position;
     let mut error_source_bytes = vec![0; initial_bytes_len];
 
     // No BufReader here since the buffer size is 8KiB.  I expect error spans
     // to be significantly less than this amount.  Read from our line before
     // until the end of the error.  After this, we'll read in the last line
     // manually
-    file.read_exact(&mut error_source_bytes).expect("failed to read error source");
+    file.read_exact(&mut error_source_bytes[1..]).expect("failed to read error source");
 
     let mut newlines_to_find = 2;
     let mut offset = 0;
@@ -146,7 +147,7 @@ pub fn asterize<'pool>(lazy: &mut Lazy<'pool>, pool: &'pool StringPool, id: Modu
         },
       };
 
-      let here = (curr_position + offset) as usize;
+      let here = curr_position + offset;
       while tokens.front().is_some_and(|(_, span)| span.start.position < here) {
         if let Some((_, front_span)) = tokens.pop_front() {
           if front_span.end.position == here {

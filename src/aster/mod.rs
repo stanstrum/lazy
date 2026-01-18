@@ -106,7 +106,8 @@ pub fn asterize<'pool>(lazy: &mut Lazy<'pool>, pool: &'pool StringPool, id: Modu
     };
 
     // Go to that offset
-    let curr_position = file.seek(SeekFrom::Current(-offset)).expect("bad seek") as usize;
+    let curr_position = file.seek(SeekFrom::Current(-offset))
+      .expect("bad seek") as usize;
 
     // Now we have the start of the line that precedes our error
     let initial_bytes_len = at.end.position - curr_position;
@@ -116,7 +117,8 @@ pub fn asterize<'pool>(lazy: &mut Lazy<'pool>, pool: &'pool StringPool, id: Modu
     // to be significantly less than this amount.  Read from our line before
     // until the end of the error.  After this, we'll read in the last line
     // manually
-    file.read_exact(&mut error_source_bytes[1..]).expect("failed to read error source");
+    file.read_exact(&mut error_source_bytes[1..])
+      .expect("failed to read error source");
 
     let mut newlines_to_find = 2;
     let mut offset = 0;

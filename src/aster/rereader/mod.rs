@@ -15,7 +15,8 @@ pub(super) struct Rereader<'pool, const N: usize, T: Read> {
   pub queue: VecDeque<TokenSpan>,
   base: usize,
   index: usize,
-  meta_reader: Tokenizer<'pool, N, T>,
+  stream: Tokenizer<'pool, N, T>,
+  indents: Vec<usize>,
 }
 
 impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
@@ -25,14 +26,15 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
       queue: VecDeque::new(),
       base: 0,
       index: 0,
-      meta_reader: stream,
+      stream,
+      indents: vec![],
     }
   }
 
   fn validate_index(&mut self) -> Result<Option<usize>, Error> {
     let index = self.index - self.base;
     while self.queue.len() < (index + 1) {
-      let Some(result) = self.meta_reader.next() else {
+      let Some(result) = self.stream.next() else {
         return Ok(None);
       };
 
@@ -69,12 +71,12 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
     };
 
     let tok = *self.queue.get(index).unwrap();
-    let peek = Ok(Some(tok));
-    dbg!(peek)
+    Ok(Some(tok))
   }
 
   pub(super) fn seek(&mut self) {
     self.index += 1;
+    println!("seek: {i}", i = self.index)
   }
 
   pub(super) fn ok_next(&mut self) -> Result<Option<TokenSpan>, Error> {
@@ -94,7 +96,7 @@ impl<'pool, const N: usize, T: Read> Iterator for Rereader<'pool, N, T> {
   type Item = Result<TokenSpan, Error>;
 
   fn next(&mut self) -> Option<Self::Item> {
-    let next = match self.validate_index() {
+    match self.validate_index() {
       Ok(Some(index)) => {
         let tok = *self.queue.get(index).unwrap();
         self.seek();
@@ -103,8 +105,6 @@ impl<'pool, const N: usize, T: Read> Iterator for Rereader<'pool, N, T> {
       },
       Ok(None) => None,
       Err(err) => Some(Err(err)),
-    };
-
-    dbg!(next)
+    }
   }
 }

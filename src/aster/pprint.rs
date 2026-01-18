@@ -4,7 +4,7 @@ use crate::string_pool::PoolId;
 use crate::lang::Lazy;
 use crate::lang::ty::Type;
 use crate::lang::module::Module;
-use crate::lang::function::{BlockId, Function};
+use crate::lang::function::Function;
 use crate::tokenize::token::NumericValue;
 
 pub trait Pretty {

@@ -121,8 +121,6 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<lang::function::Function>, Error> {
-  let ret_mark = stream.mark();
-
   let Some(header) = make_function_header(lazy, stream)? else {
     return Ok(None);
   };

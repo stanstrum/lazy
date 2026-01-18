@@ -31,34 +31,21 @@ impl Metadata {
     if ch == '\n' {
       self.line += 1;
       self.column = 1;
+
+      self.whitespace = 0;
       self.reading_whitespace = true;
 
       return;
     };
 
-    if !self.reading_whitespace {
-      self.column += 1;
-
-      return;
-    };
-
-    if matches!(ch, ' ' | '\t') {
-      if self.column == 1 {
-        self.whitespace = 1;
-      } else {
+    if self.reading_whitespace {
+      if matches!(ch, ' ' | '\n') {
         self.whitespace += 1;
+      } else {
+        self.reading_whitespace = false;
       };
-
-      self.column += 1;
-
-      return;
-    };
-
-    if self.column == 1 {
-      self.whitespace = 0;
     };
 
     self.column += 1;
-    self.reading_whitespace = false;
   }
 }

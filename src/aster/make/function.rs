@@ -55,7 +55,7 @@ fn make_function_header<'pool, const N: usize, T: Read>(
         _other => {
           stream.take_mark(ret_mark);
           return Err(Error::Invalid {
-            what: "indentation (expected 0)",
+            what: line_dbg!("indentation (expected 0)"),
             at: indent_span,
           });
         },
@@ -101,9 +101,8 @@ fn make_function_header<'pool, const N: usize, T: Read>(
     };
 
     if indent != 0 {
-      stream.take_mark(ret_mark);
       return Err(Error::Invalid {
-        what: "indentation (expected 0)",
+        what: line_dbg!("indentation (expected 0)"),
         at: indent_span,
       });
     };
@@ -125,7 +124,6 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
   let ret_mark = stream.mark();
 
   let Some(header) = make_function_header(lazy, stream)? else {
-    stream.take_mark(ret_mark);
     return Ok(None);
   };
 
@@ -159,7 +157,7 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
       continue;
     };
 
-    todo!("didn't make expr")
+    todo!("didn't make expr: {:?}", stream.peek()?)
   };
 
   Ok(Some(function))

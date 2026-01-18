@@ -108,6 +108,15 @@ impl<'a, const N: usize, T: Read> Iterator for Tokenizer<'a, N, T> {
       self.last_span = *span;
     };
 
+    // match &result {
+    //   Some(Ok((token, _))) => {
+    //     println!("{}: {token:?}", line_dbg!("yield token"));
+    //   },
+    //   other => {
+    //     println!("{}: {other:?}", line_dbg!("yield"))
+    //   },
+    // };
+
     result
   }
 }

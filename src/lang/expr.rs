@@ -10,7 +10,10 @@ pub struct BlockExpression {
 #[derive(Debug)]
 pub enum Expression {
   BlockExpression(BlockId),
-  Literal(NumericValue),
+  Literal {
+    value: NumericValue,
+    span: Span,
+  },
 }
 
 impl BlockExpression {

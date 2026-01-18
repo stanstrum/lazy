@@ -4,6 +4,7 @@ mod expr;
 
 use std::io::Read;
 
+use crate::aster::pprint::Pretty;
 use crate::lang;
 use crate::tokenize::token::{Span, Token};
 use crate::aster::Rereader;
@@ -67,6 +68,8 @@ pub(super) fn make<'pool, const N: usize, T: Read>(
   let mut last_mark = None;
 
   loop {
+    println!("{}", lazy[stream.id].print(lazy).collect::<Vec<String>>().join("\n"));
+
     stream.skip_whitespace_and_comments()?;
 
     if stream.done()? {

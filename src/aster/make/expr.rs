@@ -82,9 +82,9 @@ pub(super) fn make_literal<'pool, const N: usize, T: Read>(
   _lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<lang::expr::Expression>, Error> {
-  if let Some((Token::Numeric(value), _)) = stream.peek()? {
+  if let Some((Token::Numeric(value), span)) = stream.peek()? {
     stream.seek();
-    Ok(Some(lang::expr::Expression::Literal(value)))
+    Ok(Some(lang::expr::Expression::Literal { value, span }))
   } else {
     Ok(None)
   }

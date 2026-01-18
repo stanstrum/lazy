@@ -43,7 +43,7 @@ impl<'a> Lazy<'a> {
     function_id
   }
 
-  fn describe_module(&self, ModuleId(id): ModuleId) -> String {
+  pub fn describe_module(&self, ModuleId(id): ModuleId) -> String {
     let module = self.modules.get(id).unwrap();
     let name = self.pool.get(module.name).collect::<String>();
 

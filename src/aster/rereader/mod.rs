@@ -1,6 +1,8 @@
 use std::io::Read;
 use std::collections::VecDeque;
 
+use crate::line_dbg;
+use crate::tokenize::token::Token;
 use crate::tokenize::{Tokenizer, token::TokenSpan};
 use crate::lang::module::ModuleId;
 
@@ -33,17 +35,49 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
 
   fn validate_index(&mut self) -> Result<Option<usize>, Error> {
     let index = self.index - self.base;
+
     while self.queue.len() < (index + 1) {
-      let Some(result) = self.stream.next() else {
-        return Ok(None);
+      let mut are_indents = false;
+
+      loop {
+        let Some(result) = self.stream.next() else {
+          return Ok(None);
+        };
+
+        let tok = match result {
+          Ok(tok) => tok,
+          Err(err) => return Err(Error::Token(err)),
+        };
+
+        self.queue.push_back(tok);
+
+        if !matches!(tok, (Token::Indent(_), _)) {
+          break;
+        };
+
+        are_indents = true
       };
 
-      let tok = match result {
-        Ok(tok) => tok,
-        Err(err) => return Err(Error::Token(err)),
-      };
+      if are_indents {
+        let indents = self.queue.iter_mut()
+          .rev()
+          .skip(1)
+          .take_while(|(tok, _)| matches!(tok, Token::Indent(_)))
+          .map(|(tok, _)| {
+            let Token::Indent(diff) = tok else { unreachable!() };
+            diff
+          }).collect::<Vec<_>>();
 
-      self.queue.push_back(tok);
+        if indents.len() < 2 {
+          continue;
+        };
+
+        let sum = indents.iter().fold(0, |acc, x| acc + **x);
+
+        let (last, rest) = indents.split_last_mut().unwrap();
+        **last = sum;
+        rest.into_iter().for_each(|rest| **rest = 0);
+      };
     };
 
     Ok(Some(index))
@@ -76,7 +110,7 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
 
   pub(super) fn seek(&mut self) {
     self.index += 1;
-    println!("seek: {i}", i = self.index)
+    eprintln!("{}: {i}", line_dbg!("seek"), i = self.index)
   }
 
   pub(super) fn ok_next(&mut self) -> Result<Option<TokenSpan>, Error> {

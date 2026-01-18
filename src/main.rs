@@ -47,9 +47,10 @@ mod test {
     let file = std::fs::File::open(path).unwrap();
     let meta_reader= aster::bufreader::BufferedUtf8MetadataReader::<64, _>::new(file);
     let tokens = tokenize::Tokenizer::<'_, 64, _>::new(&pool, global, meta_reader);
+    let rereader = crate::aster::rereader::Rereader::new(tokens, global);
 
     let mut indentation = 0isize;
-    for (i, token) in tokens.enumerate() {
+    for (i, token) in rereader.enumerate() {
       let token = match token {
         Ok((token, _)) => token,
         Err(err) => panic!("err: {err:?}"),

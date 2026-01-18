@@ -10,7 +10,7 @@ use super::Error;
 pub struct Mark(usize);
 
 #[derive(Debug)]
-pub(super) struct Rereader<'pool, const N: usize, T: Read> {
+pub struct Rereader<'pool, const N: usize, T: Read> {
   pub id: ModuleId,
   pub queue: VecDeque<TokenSpan>,
   base: usize,
@@ -20,7 +20,7 @@ pub(super) struct Rereader<'pool, const N: usize, T: Read> {
 }
 
 impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
-  pub(super) fn new(stream: Tokenizer<'pool, N, T>, id: ModuleId) -> Self {
+  pub fn new(stream: Tokenizer<'pool, N, T>, id: ModuleId) -> Self {
     Self {
       id,
       queue: VecDeque::new(),

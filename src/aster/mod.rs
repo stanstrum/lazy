@@ -1,6 +1,6 @@
 mod make;
 pub mod bufreader;
-mod rereader;
+pub mod rereader;
 mod pprint;
 
 use std::fs::File;

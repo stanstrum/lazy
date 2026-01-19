@@ -11,6 +11,8 @@ use crate::aster::asterize;
 use crate::lang::module::ModuleId;
 use crate::string_pool::StringPool;
 
+use crate::aster::pprint::Pretty;
+
 fn setup(pool: &StringPool) -> (Lazy, ModuleId) {
   let mut lazy = Lazy::new(pool);
 
@@ -29,7 +31,10 @@ fn main() -> ExitCode {
     return ExitCode::FAILURE;
   };
 
-  dbg!(lazy);
+  dbg!(&lazy);
+
+  let source = lazy[global].print(&lazy).collect::<Vec<_>>().join("\n");
+  println!("{source}");
 
   ExitCode::SUCCESS
 }

@@ -129,8 +129,12 @@ impl Pretty for Module {
       format!("namespace {name} {{")
     ];
 
-    for id in self.modules.iter().cloned() {
+    for (i, id) in self.modules.iter().cloned().enumerate() {
       let module = &lazy[id];
+
+      if i != 0 {
+        lines.push("".into());
+      };
 
       lines.push(format!("  /* {} */", lazy.describe_module(id)));
       for line in module.print(lazy) {
@@ -138,8 +142,12 @@ impl Pretty for Module {
       };
     };
 
-    for id in self.functions.iter().cloned() {
+    for (i, id) in self.functions.iter().cloned().enumerate() {
       let function = &lazy[id];
+
+      if i != 0 {
+        lines.push("".into());
+      };
 
       for line in function.print(lazy) {
         lines.push(format!("  {line}"));

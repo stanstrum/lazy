@@ -38,7 +38,7 @@ pub enum Type {
 }
 
 impl Intrinsic {
-  fn try_from_str(str: &str) -> Option<Self> {
+  pub fn try_from_str(str: &str) -> Option<Self> {
     match str {
       "void" => Some(Self::Void),
       "u8" => Some(Self::U8),

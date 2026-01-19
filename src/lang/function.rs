@@ -16,7 +16,7 @@ pub struct FunctionArgument {
 #[derive(Debug)]
 pub struct FunctionHeader {
   pub name: PoolId,
-  pub ret_ty: Option<Type>,
+  pub ret_ty: Type,
   pub arguments: Vec<FunctionArgument>,
   pub span: Span,
 }

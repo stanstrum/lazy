@@ -2,12 +2,12 @@ mod string_pool;
 mod lang;
 mod tokenize;
 mod aster;
+mod resolve;
 
 use std::process::ExitCode;
 
 use lang::Lazy;
 
-use crate::aster::asterize;
 use crate::lang::module::ModuleId;
 use crate::string_pool::StringPool;
 
@@ -27,7 +27,11 @@ fn main() -> ExitCode {
   let pool = StringPool::new();
   let (mut lazy, global) = setup(&pool);
 
-  if asterize(&mut lazy, &pool, global).is_err() {
+  if aster::asterize(&mut lazy, &pool, global).is_err() {
+    return ExitCode::FAILURE;
+  };
+
+  if resolve::resolve(&mut lazy, &pool, global).is_err() {
     return ExitCode::FAILURE;
   };
 

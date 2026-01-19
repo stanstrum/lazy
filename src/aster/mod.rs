@@ -1,7 +1,7 @@
 mod make;
 pub mod bufreader;
 pub mod rereader;
-mod pprint;
+pub mod pprint;
 
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};

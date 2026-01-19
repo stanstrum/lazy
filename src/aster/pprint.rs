@@ -32,6 +32,7 @@ impl Pretty for Type {
           .collect::<Vec<_>>()
           .join("::")
       },
+      Type::Intrinsic { kind, .. } => kind.to_string(),
     }
   }
 }

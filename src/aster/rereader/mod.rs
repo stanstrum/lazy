@@ -36,12 +36,16 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
   fn validate_index(&mut self) -> Result<Option<usize>, Error> {
     let index = self.index - self.base;
 
-    while self.queue.len() < (index + 1) {
+    while self.queue.len() <= index {
       let mut are_indents = false;
 
       loop {
         let Some(result) = self.stream.next() else {
-          return Ok(None);
+          if are_indents {
+            break;
+          } else {
+            return Ok(None);
+          };
         };
 
         let tok = match result {
@@ -76,7 +80,7 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
 
         let (last, rest) = indents.split_last_mut().unwrap();
         **last = sum;
-        rest.into_iter().for_each(|rest| **rest = 0);
+        rest.iter_mut().for_each(|rest| **rest = 0);
       };
     };
 

@@ -104,19 +104,10 @@ impl<'a, const N: usize, T: Read> Iterator for Tokenizer<'a, N, T> {
   fn next(&mut self) -> Option<Self::Item> {
     let result = self.do_state();
 
-    if let Some(Ok((_, span))) = &result {
-      self.last_span = *span;
+    if let Some(Ok((_, span))) = result {
+      self.last_span = span;
     };
 
-    // match &result {
-    //   Some(Ok((token, _))) => {
-    //     println!("{}: {token:?}", line_dbg!("yield token"));
-    //   },
-    //   other => {
-    //     println!("{}: {other:?}", line_dbg!("yield"))
-    //   },
-    // };
-
-    result
+    result.or_else(|| self.end_indent())
   }
 }

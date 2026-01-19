@@ -60,7 +60,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
 
       let ch = match self.take() {
         Ok(Some(ch)) => ch,
-        Ok(None) => return self.end_indent(),
+        Ok(None) => return None,
         Err(_) => return Some(Err(Error::IO)),
       };
 

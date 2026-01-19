@@ -76,6 +76,11 @@ pub(super) fn make<'pool, const N: usize, T: Read>(
       break;
     };
 
+    if let Some((Token::Indent(0), _)) = stream.peek()? {
+      stream.seek();
+      continue;
+    };
+
     let current_mark = stream.mark();
     if last_mark == Some(current_mark) {
       return stream.expected_here(line_dbg!("a top-level structure"));

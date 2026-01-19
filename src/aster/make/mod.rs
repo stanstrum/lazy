@@ -88,7 +88,7 @@ pub(super) fn make<'pool, const N: usize, T: Read>(
 
     last_mark = Some(current_mark);
 
-    if let Some(function) = function::make_function(lazy, stream)? {
+    if let Some(function) = function::make_function(lazy, stream, stream.id)? {
       lazy.add_function(stream.id, function);
       continue;
     };

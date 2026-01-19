@@ -26,7 +26,7 @@ impl Pretty for Type {
 
   fn print(&self, lazy: &Lazy) -> Self::Out {
     match self {
-      Type::Unresolved(qualified) => {
+      Type::Unresolved { qualified, .. } => {
         qualified.parts.iter()
           .map(|x| x.print(lazy))
           .collect::<Vec<_>>()

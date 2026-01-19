@@ -1,5 +1,6 @@
 use std::fmt::{Display, Write};
 
+use crate::lang::module::ModuleId;
 use crate::tokenize::token::Span;
 use crate::string_pool::PoolId;
 
@@ -26,7 +27,10 @@ pub enum Intrinsic {
 
 #[derive(Debug)]
 pub enum Type {
-  Unresolved(Qualified),
+  Unresolved {
+    module: ModuleId,
+    qualified: Qualified,
+  },
   Intrinsic {
     kind: Intrinsic,
     span: Span,

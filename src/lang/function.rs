@@ -1,6 +1,7 @@
 use std::ops::{Index, IndexMut};
 
 use crate::lang::expr::BlockExpression;
+use crate::lang::module::ModuleId;
 use crate::lang::ty::Type;
 use crate::tokenize::token::Span;
 use crate::string_pool::PoolId;
@@ -25,6 +26,7 @@ pub struct BlockId(usize);
 
 #[derive(Debug)]
 pub struct Function {
+  pub parent: ModuleId,
   pub header: FunctionHeader,
   pub body: BlockId,
   pub blocks: Vec<BlockExpression>,
@@ -32,12 +34,13 @@ pub struct Function {
 }
 
 impl Function {
-  pub fn new(header: FunctionHeader) -> (Self, BlockId) {
+  pub fn new(parent: ModuleId, header: FunctionHeader) -> (Self, BlockId) {
     let temp_span = header.span;
     let blocks = vec![BlockExpression::new(temp_span)];
     let body = BlockId(0);
 
     let function = Self {
+      parent,
       header,
       body,
       blocks,

@@ -1,4 +1,5 @@
 use crate::aster::pprint::PrettyFunction;
+use crate::lang::module::ModuleId;
 use crate::line_dbg;
 use std::io::Read;
 
@@ -12,6 +13,7 @@ use super::Error;
 fn make_function_header<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
+  module: ModuleId,
 ) -> Result<Option<lang::function::FunctionHeader>, Error> {
   let ret_mark = stream.mark();
 
@@ -27,14 +29,17 @@ fn make_function_header<'pool, const N: usize, T: Read>(
       stream.seek();
       stream.skip_whitespace_and_comments()?;
 
-      let Some(ret_ty) = make_type(lazy, stream)? else {
+      let Some(ret_ty) = make_type(lazy, stream, module)? else {
         stream.take_mark(ret_mark);
         return stream.expected_here("a return type");
       };
 
-      Some(ret_ty)
+      ret_ty
     } else {
-      None
+      lang::ty::Type::Intrinsic {
+        kind: lang::ty::Intrinsic::Void,
+        span: name_span,
+      }
     }
   };
 
@@ -65,7 +70,7 @@ fn make_function_header<'pool, const N: usize, T: Read>(
     };
 
     let arg_ty_span = stream.here()?;
-    let Some(arg_ty) = make_type(lazy, stream)? else {
+    let Some(arg_ty) = make_type(lazy, stream, module)? else {
       stream.take_mark(ret_mark);
       return stream.expected_here("a type");
     };
@@ -120,14 +125,15 @@ fn make_function_header<'pool, const N: usize, T: Read>(
 pub(super) fn make_function<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
+  parent: ModuleId,
 ) -> Result<Option<lang::function::Function>, Error> {
-  let Some(header) = make_function_header(lazy, stream)? else {
+  let Some(header) = make_function_header(lazy, stream, parent)? else {
     return Ok(None);
   };
 
   let header_span = header.span;
 
-  let (mut function, body_id) = lang::function::Function::new(header);
+  let (mut function, body_id) = lang::function::Function::new(parent, header);
 
   let (start_indent, mut curr_indent) = (
     header_span.start.indentation as isize,

@@ -98,10 +98,8 @@ impl Pretty for Function {
     let mut lines = vec![];
     let mut first: String = self.header.name.print(lazy);
 
-    if let Some(ret_ty) = &self.header.ret_ty {
-      let ret_ty = ret_ty.print(lazy);
-      first.push_str(format!(" -> {ret_ty}").as_str());
-    };
+    let ret_ty = self.header.ret_ty.print(lazy);
+    first.push_str(format!(" -> {ret_ty}").as_str());
 
     lines.push(first);
 
@@ -112,9 +110,15 @@ impl Pretty for Function {
     };
 
     lines.push("".into());
-    let body_iter = self[self.body].print_with(self, lazy);
-    for line in body_iter {
-      lines.push(format!("  {line}"));
+    let block = &self[self.body];
+    if !block.children.is_empty() {
+      for child in block.children.iter() {
+        for line in child.print_with(self, lazy) {
+          lines.push(format!("  {line}"));
+        };
+      };
+    } else {
+      lines.push("{}".into());
     };
 
     lines.into_iter()
@@ -127,10 +131,10 @@ impl Pretty for Module {
   fn print(&self, lazy: &Lazy) -> Self::Out {
     let name = self.name.print(lazy);
     let mut lines = vec![
-      format!("namespace {name} {{")
+      format!("namespace {name}")
     ];
 
-    for (i, id) in self.modules.iter().cloned().enumerate() {
+    for (i, &id) in self.modules.iter().enumerate() {
       let module = &lazy[id];
 
       if i != 0 {
@@ -143,7 +147,7 @@ impl Pretty for Module {
       };
     };
 
-    for (i, id) in self.functions.iter().cloned().enumerate() {
+    for (i, &id) in self.functions.iter().enumerate() {
       let function = &lazy[id];
 
       if i != 0 {
@@ -153,12 +157,6 @@ impl Pretty for Module {
       for line in function.print(lazy) {
         lines.push(format!("  {line}"));
       };
-    };
-
-    if lines.len() == 1 {
-      lines.first_mut().unwrap().push('}');
-    } else {
-      lines.push("}".into());
     };
 
     lines.into_iter()

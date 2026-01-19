@@ -1,4 +1,3 @@
-use crate::aster::pprint::PrettyFunction;
 use crate::lang::module::ModuleId;
 use crate::line_dbg;
 use std::io::Read;

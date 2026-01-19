@@ -138,14 +138,13 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
       break;
     };
 
-    if let Some(expr) = dbg!(expr::make_expr(lazy, stream, &mut function)?) {
-      println!("{}", expr.print_with(&function, lazy).collect::<Vec<_>>().join("\n"));
+    if let Some(expr) = expr::make_expr(lazy, stream, &mut function)? {
+      // println!("{}", expr.print_with(&function, lazy).collect::<Vec<_>>().join("\n"));
       function[body_id].children.push(expr);
 
       stream.skip_whitespace_and_comments()?;
 
       let Some((Token::Indent(indent), _)) = stream.peek()? else {
-        // stream.take_mark(ret_here)
         return stream.expected_here(line_dbg!("a newline"));
       };
 
@@ -155,7 +154,7 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
       continue;
     };
 
-    todo!("didn't make expr: {:?}", stream.peek()?)
+    return stream.expected_here(line_dbg!("an expression"));
   };
 
   Ok(Some(function))

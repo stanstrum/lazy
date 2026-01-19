@@ -95,10 +95,10 @@ pub(super) fn make_expr<'pool, const N: usize, T: Read>(
   stream: &mut Rereader<'pool, N, T>,
   parent: &mut lang::function::Function,
 ) -> Result<Option<lang::expr::Expression>, Error> {
-  if let Some(block) = dbg!(make_block(lazy, stream, parent)?) {
+  if let Some(block) = make_block(lazy, stream, parent)? {
     let id = parent.add_block(block);
     Ok(Some(lang::expr::Expression::BlockExpression(id)))
-  } else if let Some(literal) = dbg!(make_literal(lazy, stream)?) {
+  } else if let Some(literal) = make_literal(lazy, stream)? {
     Ok(Some(literal))
   } else {
     Ok(None)

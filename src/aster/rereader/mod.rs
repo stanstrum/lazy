@@ -59,7 +59,7 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
       };
 
       if are_indents {
-        let indents = self.queue.iter_mut()
+        let mut indents = self.queue.iter_mut()
           .rev()
           .skip(1)
           .take_while(|(tok, _)| matches!(tok, Token::Indent(_)))
@@ -110,7 +110,7 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
 
   pub(super) fn seek(&mut self) {
     self.index += 1;
-    eprintln!("{}: {i}", line_dbg!("seek"), i = self.index)
+    // eprintln!("{}: {}", line_dbg!("seek"), self.index)
   }
 
   pub(super) fn ok_next(&mut self) -> Result<Option<TokenSpan>, Error> {

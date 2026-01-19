@@ -56,7 +56,8 @@ mod test {
         Err(err) => panic!("err: {err:?}"),
       };
 
-      print!("{i:<2}: [{indentation:>+3}] ");
+      let padding = " ".repeat(indentation as _);
+      print!("{i:<2}: [{indentation:>+3}] {padding}");
 
       match &token {
         tokenize::token::Token::Identifier(id) => println!("Identifier({:?})", pool.get(*id).collect::<String>()),

@@ -107,7 +107,7 @@ impl Pretty for Function {
     for argument in self.header.arguments.iter() {
       let ty = argument.ty.print(lazy);
       let name = argument.name.print(lazy);
-      lines.push(format!("{ty} {name}"));
+      lines.push(format!("  {ty} {name}"));
     };
 
     lines.push("".into());

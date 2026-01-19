@@ -68,7 +68,7 @@ pub(super) fn make<'pool, const N: usize, T: Read>(
   let mut last_mark = None;
 
   loop {
-    println!("{}", lazy[stream.id].print(lazy).collect::<Vec<String>>().join("\n"));
+    // println!("{}", lazy[stream.id].print(lazy).collect::<Vec<String>>().join("\n"));
 
     stream.skip_whitespace_and_comments()?;
 
@@ -78,7 +78,7 @@ pub(super) fn make<'pool, const N: usize, T: Read>(
 
     let current_mark = stream.mark();
     if last_mark == Some(current_mark) {
-      return stream.expected_here("a top-level structure");
+      return stream.expected_here(line_dbg!("a top-level structure"));
     };
 
     last_mark = Some(current_mark);

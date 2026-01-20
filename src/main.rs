@@ -35,7 +35,7 @@ fn main() -> ExitCode {
     return ExitCode::FAILURE;
   };
 
-  dbg!(&lazy);
+  // dbg!(&lazy);
 
   let source = lazy[global].print(&lazy).collect::<Vec<_>>().join("\n");
   println!("{source}");

@@ -1,7 +1,6 @@
 use std::io::Read;
 use std::collections::VecDeque;
 
-use crate::line_dbg;
 use crate::tokenize::token::Token;
 use crate::tokenize::{Tokenizer, token::TokenSpan};
 use crate::lang::module::ModuleId;

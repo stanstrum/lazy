@@ -12,7 +12,6 @@ pub struct FunctionId(pub usize);
 pub enum ModuleParent {
   Path {
     path: PathBuf,
-    opened: bool,
   },
   Module(ModuleId),
 }

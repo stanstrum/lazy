@@ -30,7 +30,7 @@ impl<'a> Lazy<'a> {
   pub fn add_file(&mut self, name: &str, path: PathBuf) -> ModuleId {
     let name = self.pool.insert(name);
     let id = ModuleId(self.modules.len());
-    let parent = ModuleParent::Path { path, opened: false };
+    let parent = ModuleParent::Path { path };
     self.modules.push(Module::new(name, parent));
     id
   }
@@ -63,7 +63,7 @@ impl<'a> Lazy<'a> {
     }
   }
 
-  pub fn get_path(&mut self, mut id: ModuleId) -> &Path {
+  pub fn get_path(&self, mut id: ModuleId) -> &Path {
     // traverse parents until we get the root module with a
     // PathBuf
     loop {
@@ -74,11 +74,9 @@ impl<'a> Lazy<'a> {
     };
 
     // store and mark the file handle as read
-    let ModuleParent::Path { path, opened } =
-      &mut self[id].parent else { unreachable!(); };
-
-    assert!(!*opened);
-    *opened = true;
+    let ModuleParent::Path { path } = &self[id].parent else {
+      unreachable!();
+    };
 
     path.as_path()
   }

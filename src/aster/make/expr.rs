@@ -22,17 +22,18 @@ fn make_block<'pool, const N: usize, T: Read>(
 
   let mut block = lang::expr::BlockExpression::new(temp_span);
 
-  match stream.ok_next()? {
+  match stream.peek()? {
     Some((Token::Grouping(GroupingType::Close(GroupingKind::Brace)), end_span)) => {
+      stream.seek();
       block.span.extend(end_span);
       return Ok(Some(block));
     },
-    Some((Token::Indent(1..), _)) => { /* continue */ },
+    Some((Token::Indent(1..), _)) => stream.seek(),
     Some((Token::Indent(..=0), _)) => todo!(),
     _other => {
-      // stream.take_mark(ret_mark);
+      stream.take_mark(ret_mark);
       return Err(Error::Invalid {
-        what: "block (expected close brace or newline)",
+        what: line_dbg!("block (expected close brace or newline)"),
         at: stream.here()?,
       });
     },

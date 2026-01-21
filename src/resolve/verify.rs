@@ -1,4 +1,5 @@
 use crate::lang::span::GetSpan;
+use crate::line_dbg;
 use crate::tokenize::token::Span;
 use crate::resolve::reference::{Reference, TypeReference};
 use crate::lang::{self, Lazy};
@@ -15,7 +16,10 @@ fn verify_type(lazy: &Lazy, reference: TypeReference) -> Result<(), Error> {
   let ty = reference.rget_from(lazy);
 
   match ty {
-    lang::ty::Type::Unresolved { .. } => Err(Error::Unresolved { what: "type", at: ty.get_span() }),
+    lang::ty::Type::Unresolved { .. } => Err(Error::Unresolved {
+      what: line_dbg!("type"),
+      at: ty.get_span(),
+    }),
     lang::ty::Type::Intrinsic { .. } => Ok(()),
   }
 }

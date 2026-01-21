@@ -1,4 +1,15 @@
+use std::cmp::Ordering;
+
+use crate::lang::module::ModulePath;
+use crate::tokenize::token::{Token, TokenSpan};
+
 use super::*;
+
+macro_rules! colorize {
+  ($color:expr) => {
+    concat!("\x1b[", stringify!($color), "m")
+  };
+}
 
 struct LineYielder {
   reader: BufReader<File>,
@@ -51,8 +62,10 @@ pub fn print_message(lazy: &Lazy, message: PrintableMesage) {
   let mut out = vec![];
 
   // "info: this is a message"
-  writeln!(&mut out, "{level}: {desc}",
+  writeln!(&mut out, "{bold}{level}{clear}: {desc}",
+    bold = colorize!(1),
     level = message.level.to_string().to_lowercase(),
+    clear = colorize!(0),
     desc = message.description,
   ).unwrap();
 
@@ -61,14 +74,81 @@ pub fn print_message(lazy: &Lazy, message: PrintableMesage) {
   };
 
   let out = std::str::from_utf8(&out).expect("output parsed as utf-8");
-  println!("{out}");
+  print!("{out}");
+}
+
+struct Colorizer<'a> {
+  tokens: &'a [TokenSpan],
+}
+
+impl<'a> Colorizer<'a> {
+  fn colorize(token: &Token) -> &'static str {
+    match token {
+      Token::Identifier(_) => colorize!(93),
+      Token::Keyword(_) => colorize!(91),
+      Token::Operator(_) => colorize!(97),
+      Token::Grouping(_) => colorize!(94),
+      Token::Whitespace => colorize!(0),
+      Token::Indent(_) => colorize!(36),
+      Token::Comment(_) => colorize!(37),
+      Token::Numeric(_) => colorize!(34),
+    }
+  }
+
+  fn find_token_by(&mut self, line: usize, column: usize) -> Option<&TokenSpan> {
+    let offset = self.tokens.iter()
+      .position(|(_, span)| span.start.line == line)?;
+
+    self.tokens = &self.tokens[offset..];
+
+    let tok_iter = self.tokens.iter()
+      .take_while(|(_, span)| span.start.line == line);
+    for token_span @ (_, span) in tok_iter {
+      if column < span.start.column {
+        continue;
+      };
+
+      if column >= span.end.column {
+        continue;
+      };
+
+      return Some(token_span);
+    };
+
+    None
+  }
+
+  fn write(&mut self, mut out: impl Write, line: usize, text: &str) {
+    let mut column = 1;
+    while column <= text.len() {
+      if let Some((token, span)) = self.find_token_by(line, column) {
+        let color = Self::colorize(token);
+        write!(out, "{color}").unwrap();
+
+        let length = span.end.column - column;
+
+        write!(out, "{}", &text[(column - 1)..][..length]).unwrap();
+        write!(out, colorize!(0)).unwrap();
+        column += length;
+
+        continue;
+      };
+
+      write!(out, "{}", text.chars().nth(column - 1).unwrap()).unwrap();
+      column += 1;
+    };
+  }
 }
 
 fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec<MessageSection>) {
   // Open and create a reader for this module's source file
-  let path = lazy.get_path(range.module).path.as_path();
+  let ModulePath { path, tokens } = lazy.get_path(range.module);
   let file = File::open(path).unwrap();
   let mut reader = BufReader::new(file);
+
+  // Get reference to the tokens saved by the asterizer
+  let tokens = &lazy[*tokens];
+  let mut colorizer = Colorizer { tokens };
 
   // We'll track where we are in the file once we start
   // moving around for coloring the code, printing the
@@ -122,9 +202,13 @@ fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec
     while yielder.line < section.span.start.line &&
       let Some(line_text) = yielder.next()
     {
-      writeln!(out, " {line:>number_length$} | {line_text}",
+      write!(out, " {bold}{line:>number_length$} |{clear} ",
+        bold = colorize!(1),
         line = yielder.line,
+        clear = colorize!(0),
       ).unwrap();
+      colorizer.write(&mut *out, yielder.line, &line_text);
+      writeln!(out).unwrap();
     };
 
     // Sanity check, that we are where we think we are
@@ -136,22 +220,27 @@ fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec
       let line = yielder.line;
       let line_text = yielder.next().expect("yield line");
       let line_text = line_text.trim_end_matches(['\r', '\n']);
-      writeln!(out, " {line:>number_length$} | {line_text}").unwrap();
+      write!(out, " {bold}{line:>number_length$} |{clear} ",
+        bold = colorize!(1),
+        clear = colorize!(0),
+      ).unwrap();
+      colorizer.write(&mut *out, line, line_text);
+      writeln!(out).unwrap();
 
       let line_length = line_text.len();
       let squiggle_start = match line.cmp(&section.span.start.line) {
-        std::cmp::Ordering::Less => panic!("out of bounds"),
-        std::cmp::Ordering::Equal => section.span.start.column,
-        std::cmp::Ordering::Greater => 1,
+        Ordering::Less => panic!("out of bounds"),
+        Ordering::Equal => section.span.start.column,
+        Ordering::Greater => 1,
       };
 
       let squiggle_end = match line.cmp(&section.span.end.line) {
-        std::cmp::Ordering::Less => line_length,
-        std::cmp::Ordering::Equal => section.span.end.column,
-        std::cmp::Ordering::Greater => panic!("out of bounds"),
+        Ordering::Less => line_length,
+        Ordering::Equal => section.span.end.column,
+        Ordering::Greater => panic!("out of bounds"),
       };
 
-      let squiggle_text = (1..squiggle_end).map(|column| {
+      let mut squiggle_text = (1..squiggle_end).map(|column| {
         if (squiggle_start..squiggle_end).contains(&column) {
           '^'
         } else {
@@ -159,7 +248,15 @@ fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec
         }
       }).collect::<String>();
 
-      writeln!(out, " {number_padding} | {squiggle_text} {msg}", msg = section.text).unwrap();
+      if squiggle_start == squiggle_end {
+        squiggle_text.push('^');
+      };
+
+      writeln!(out, " {number_padding} {bold}|{clear} {squiggle_text} {msg}",
+        bold = colorize!(1),
+        clear = colorize!(0),
+        msg = section.text,
+      ).unwrap();
     };
   };
 }

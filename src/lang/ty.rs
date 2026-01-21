@@ -13,6 +13,7 @@ pub struct Qualified {
 #[derive(Debug)]
 pub enum Intrinsic {
   Void,
+  Bool,
   U8,
   U16,
   U32,
@@ -41,6 +42,7 @@ impl Intrinsic {
   pub fn try_from_str(str: &str) -> Option<Self> {
     match str {
       "void" => Some(Self::Void),
+      "bool" => Some(Self::Bool),
       "u8" => Some(Self::U8),
       "u16" => Some(Self::U16),
       "u32" => Some(Self::U32),
@@ -60,6 +62,7 @@ impl Display for Intrinsic {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     f.write_str(match self {
       Intrinsic::Void => "void",
+      Intrinsic::Bool => "bool",
       Intrinsic::U8 => "u8",
       Intrinsic::U16 => "u16",
       Intrinsic::U32 => "u32",

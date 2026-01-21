@@ -1,5 +1,5 @@
 mod reference;
-mod verify;
+pub mod verify;
 mod task;
 
 use std::collections::VecDeque;

@@ -3,6 +3,7 @@ mod lang;
 mod tokenize;
 mod aster;
 mod resolve;
+mod error;
 
 use std::process::ExitCode;
 
@@ -27,20 +28,33 @@ fn main() -> ExitCode {
   let pool = StringPool::new();
   let (mut lazy, global) = setup(&pool);
 
-  if aster::asterize(&mut lazy, &pool, global).is_err() {
-    return ExitCode::FAILURE;
-  };
+  let error_handler: Result<(), error::PrintableMesage> = 'error: {
+    if let Err(err) = aster::asterize(&mut lazy, &pool, global) {
+      break 'error Err(err.into());
+    };
 
-  if resolve::resolve(&mut lazy, &pool, global).is_err() {
-    return ExitCode::FAILURE;
+    if let Err(err) = resolve::resolve(&mut lazy, &pool, global) {
+      break 'error Err(err.into());
+    };
+
+    Ok(())
   };
 
   // dbg!(&lazy);
 
-  let source = lazy[global].print(&lazy).collect::<Vec<_>>().join("\n");
+  let source = lazy[global].print(&lazy)
+    .map(|s| format!(line_dbg!("{}"), s))
+    .collect::<Vec<_>>()
+    .join("\n");
   println!("{source}");
 
-  ExitCode::SUCCESS
+  match error_handler {
+    Ok(()) => ExitCode::SUCCESS,
+    Err(message) => {
+      error::print_message(&lazy, message);
+      ExitCode::FAILURE
+    },
+  }
 }
 
 #[cfg(test)]

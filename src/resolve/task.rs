@@ -15,7 +15,7 @@ pub(super) fn execute<'pool>(
   pool: &'pool StringPool,
   task: Task,
 ) -> Result<(), Error> {
-  match dbg!(task) {
+  match task {
     Task::ReplaceType(reference, replace) => {
       *reference.rget_from_mut(lazy) = replace;
     },

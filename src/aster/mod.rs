@@ -28,11 +28,18 @@ pub enum Error {
 }
 
 pub fn asterize<'pool>(lazy: &mut Lazy<'pool>, pool: &'pool StringPool, id: ModuleId) -> Result<(), Error> {
-  let path = lazy.get_path(id).to_owned();
-  let file = File::open(&path).expect("failed to open path");
+  let path = lazy.get_path(id).path.as_path();
+  let file = File::open(path).expect("failed to open path");
   let meta_reader = BufferedUtf8MetadataReader::<64, _>::new(file);
   let tokenizer = Tokenizer::new(pool, id, meta_reader);
   let mut rereader = Rereader::new(tokenizer, id);
 
-  make::make(lazy, &mut rereader)
+  let result = make::make(lazy, &mut rereader);
+
+  let tokens_id = lazy.get_path(id).tokens;
+  for token_span in rereader.examine_tokens() {
+    lazy[tokens_id].push(token_span);
+  };
+
+  result
 }

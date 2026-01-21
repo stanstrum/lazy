@@ -6,13 +6,20 @@ use crate::string_pool::PoolId;
 pub struct ModuleId(pub usize);
 
 #[derive(Debug, Clone, Copy)]
+pub struct TokensId(pub usize);
+
+#[derive(Debug, Clone, Copy)]
 pub struct FunctionId(pub usize);
 
 #[derive(Debug)]
+pub struct ModulePath {
+  pub path: PathBuf,
+  pub tokens: TokensId,
+}
+
+#[derive(Debug)]
 pub enum ModuleParent {
-  Path {
-    path: PathBuf,
-  },
+  Path(ModulePath),
   Module(ModuleId),
 }
 

@@ -14,7 +14,6 @@ pub struct Mark(usize);
 pub struct Rereader<'pool, const N: usize, T: Read> {
   pub id: ModuleId,
   pub queue: VecDeque<TokenSpan>,
-  base: usize,
   index: usize,
   stream: Tokenizer<'pool, N, T>,
   indents: Vec<usize>,
@@ -25,7 +24,6 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
     Self {
       id,
       queue: VecDeque::new(),
-      base: 0,
       index: 0,
       stream,
       indents: vec![],
@@ -33,7 +31,7 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
   }
 
   fn validate_index(&mut self) -> Result<Option<usize>, Error> {
-    let index = self.index - self.base;
+    let index = self.index;
 
     while self.queue.len() <= index {
       let mut are_indents = false;
@@ -92,14 +90,6 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
 
   pub(super) fn take_mark(&mut self, Mark(index): Mark) {
     self.index = index;
-  }
-
-  pub(super) fn skip_to(&mut self, Mark(index): Mark) {
-    for _ in 0..index {
-      self.queue.pop_front();
-    };
-
-    self.base += index;
   }
 
   pub(super) fn peek(&mut self) -> Result<Option<TokenSpan>, Error> {

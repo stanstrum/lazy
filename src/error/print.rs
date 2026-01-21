@@ -66,7 +66,7 @@ pub fn print_message(lazy: &Lazy, message: PrintableMesage) {
 
 fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec<MessageSection>) {
   // Open and create a reader for this module's source file
-  let path = lazy.get_path(range.module);
+  let path = lazy.get_path(range.module).path.as_path();
   let file = File::open(path).unwrap();
   let mut reader = BufReader::new(file);
 
@@ -106,7 +106,7 @@ fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec
     let this_line = section.span.start.line;
 
     writeln!(out, "  --> {path}:{line}:{col}",
-      path = lazy.get_path(section.span.module).to_string_lossy(),
+      path = lazy.get_path(section.span.module).path.to_string_lossy(),
       line = this_line,
       col = section.span.start.column,
     ).unwrap();

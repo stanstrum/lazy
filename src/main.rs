@@ -64,8 +64,8 @@ mod test {
   #[test]
   fn debug_tokens() {
     let pool = StringPool::new();
-    let (mut lazy, global) = setup(&pool);
-    let path = lazy.get_path(global);
+    let (lazy, global) = setup(&pool);
+    let path = lazy.get_path(global).path.as_path();
 
     let file = std::fs::File::open(path).unwrap();
     let meta_reader= aster::bufreader::BufferedUtf8MetadataReader::<64, _>::new(file);

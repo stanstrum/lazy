@@ -4,18 +4,20 @@ pub mod ty;
 pub mod expr;
 pub mod span;
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::ops::{Index, IndexMut};
 
 use crate::lang::function::Function;
-use crate::lang::module::{FunctionId, Module, ModuleId, ModuleParent};
+use crate::lang::module::{FunctionId, Module, ModuleId, ModuleParent, ModulePath, TokensId};
 use crate::string_pool::StringPool;
+use crate::tokenize::token;
 
 #[derive(Debug)]
 pub struct Lazy<'a> {
   pub pool: &'a StringPool,
   modules: Vec<Module>,
   functions: Vec<Function>,
+  tokens: Vec<Vec<token::TokenSpan>>,
 }
 
 impl<'a> Lazy<'a> {
@@ -24,15 +26,18 @@ impl<'a> Lazy<'a> {
       pool,
       modules: vec![],
       functions: vec![],
+      tokens: vec![],
     }
   }
 
   pub fn add_file(&mut self, name: &str, path: PathBuf) -> ModuleId {
     let name = self.pool.insert(name);
-    let id = ModuleId(self.modules.len());
-    let parent = ModuleParent::Path { path };
+    let module = ModuleId(self.modules.len());
+    let tokens = TokensId(self.tokens.len());
+    let parent = ModuleParent::Path(ModulePath { path, tokens });
+    self.tokens.push(vec![]);
     self.modules.push(Module::new(name, parent));
-    id
+    module
   }
 
   pub fn add_function(&mut self, module_id: ModuleId, function: Function) -> FunctionId {
@@ -49,7 +54,7 @@ impl<'a> Lazy<'a> {
     let name = self.pool.get(module.name).collect::<String>();
 
     match &module.parent {
-      ModuleParent::Path { path, .. } => {
+      ModuleParent::Path(ModulePath { path, .. }) => {
         format!(
           "[{} = {}]",
           path.to_string_lossy(),
@@ -63,7 +68,7 @@ impl<'a> Lazy<'a> {
     }
   }
 
-  pub fn get_path(&self, mut id: ModuleId) -> &Path {
+  pub fn get_path(&self, mut id: ModuleId) -> &ModulePath {
     // traverse parents until we get the root module with a
     // PathBuf
     loop {
@@ -74,11 +79,11 @@ impl<'a> Lazy<'a> {
     };
 
     // store and mark the file handle as read
-    let ModuleParent::Path { path } = &self[id].parent else {
+    let ModuleParent::Path(path) = &self[id].parent else {
       unreachable!();
     };
 
-    path.as_path()
+    path
   }
 }
 
@@ -107,5 +112,19 @@ impl<'a> Index<FunctionId> for Lazy<'a> {
 impl<'a> IndexMut<FunctionId> for Lazy<'a> {
   fn index_mut(&mut self, FunctionId(index): FunctionId) -> &mut Self::Output {
     self.functions.get_mut(index).unwrap()
+  }
+}
+
+impl<'a> Index<TokensId> for Lazy<'a> {
+  type Output = Vec<token::TokenSpan>;
+
+  fn index(&self, TokensId(index): TokensId) -> &Self::Output {
+    self.tokens.get(index).unwrap()
+  }
+}
+
+impl<'a> IndexMut<TokensId> for Lazy<'a> {
+  fn index_mut(&mut self, TokensId(index): TokensId) -> &mut Self::Output {
+    self.tokens.get_mut(index).unwrap()
   }
 }

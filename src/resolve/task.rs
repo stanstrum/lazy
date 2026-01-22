@@ -1,5 +1,3 @@
-use crate::string_pool::StringPool;
-
 use crate::lang::{self, Lazy};
 use crate::resolve::reference::{Reference, TypeReference};
 
@@ -12,7 +10,6 @@ pub enum Task {
 
 pub(super) fn execute<'pool>(
   lazy: &mut Lazy<'pool>,
-  pool: &'pool StringPool,
   task: Task,
 ) -> Result<(), Error> {
   match task {

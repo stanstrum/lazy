@@ -1,4 +1,5 @@
 use crate::tokenize::token::{NumericValue, Span};
+use crate::lang::ty::Type;
 use crate::lang::function::BlockId;
 
 #[derive(Debug)]
@@ -13,6 +14,7 @@ pub enum Expression {
   Literal {
     value: NumericValue,
     span: Span,
+    out: Type,
   },
 }
 

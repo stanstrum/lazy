@@ -5,14 +5,15 @@ use crate::lang::ty::Type;
 
 use super::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum TypeReference {
-  ReturnTypeOf(FunctionId),
+  ReturnTypeOf(lang::module::FunctionId),
   ArgumentOf {
-    function: FunctionId,
+    function: lang::module::FunctionId,
     index: usize,
   },
 }
+
 
 impl<'a> Reference<'a> for ModuleId {
   type Parent<'b> = Lazy<'b>;

@@ -1,8 +1,10 @@
 use std::fmt::Display;
 
+use crate::string_pool::PoolId;
+
 use crate::lang::module::ModuleId;
 use crate::tokenize::token::Span;
-use crate::string_pool::PoolId;
+use crate::resolve::reference::TypeReference;
 
 #[derive(Debug)]
 pub struct Qualified {
@@ -34,6 +36,13 @@ pub enum Type {
   },
   Intrinsic {
     kind: Intrinsic,
+    span: Span,
+  },
+  Deferred(TypeReference),
+  WeakInteger {
+    span: Span,
+  },
+  WeakFloat {
     span: Span,
   },
 }

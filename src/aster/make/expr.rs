@@ -2,7 +2,7 @@ use std::io::Read;
 
 use crate::{lang, line_dbg};
 use crate::aster::Rereader;
-use crate::tokenize::token::{GroupingKind, GroupingType, Token};
+use crate::tokenize::token::{self, GroupingKind, GroupingType, Token};
 
 use super::Error;
 
@@ -13,11 +13,11 @@ fn make_block<'pool, const N: usize, T: Read>(
 ) -> Result<Option<lang::expr::BlockExpression>, Error> {
   let ret_mark = stream.mark();
 
-  let Some((Token::Grouping(GroupingType::Open(GroupingKind::Brace)), temp_span)) = stream.ok_next()? else {
-    stream.take_mark(ret_mark);
+  let Some((Token::Grouping(GroupingType::Open(GroupingKind::Brace)), temp_span)) = stream.peek()? else {
     return Ok(None);
   };
 
+  stream.seek();
   stream.skip_whitespace_and_comments()?;
 
   let mut block = lang::expr::BlockExpression::new(temp_span);
@@ -85,7 +85,13 @@ pub(super) fn make_literal<'pool, const N: usize, T: Read>(
 ) -> Result<Option<lang::expr::Expression>, Error> {
   if let Some((Token::Numeric(value), span)) = stream.peek()? {
     stream.seek();
-    Ok(Some(lang::expr::Expression::Literal { value, span }))
+
+    let out = match value {
+      token::NumericValue::U64(_) => lang::ty::Type::WeakInteger { span },
+      token::NumericValue::F64(_) => lang::ty::Type::WeakFloat { span },
+    };
+
+    Ok(Some(lang::expr::Expression::Literal { value, span, out }))
   } else {
     Ok(None)
   }
@@ -97,8 +103,8 @@ pub(super) fn make_expr<'pool, const N: usize, T: Read>(
   parent: &mut lang::function::Function,
 ) -> Result<Option<lang::expr::Expression>, Error> {
   if let Some(block) = make_block(lazy, stream, parent)? {
-    let id = parent.add_block(block);
-    Ok(Some(lang::expr::Expression::BlockExpression(id)))
+    let block = parent.add_block(block);
+    Ok(Some(lang::expr::Expression::BlockExpression(block)))
   } else if let Some(literal) = make_literal(lazy, stream)? {
     Ok(Some(literal))
   } else {

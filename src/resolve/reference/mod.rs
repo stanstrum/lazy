@@ -1,6 +1,8 @@
 mod impls;
 pub use impls::*;
 
+use crate::lang;
+
 pub trait Store<'a, R: Reference<'a>> {
   fn rget(&'a self, reference: &R) -> &'a R::Out;
   fn rget_mut(&'a mut self, reference: &R) -> &'a mut R::Out;
@@ -23,4 +25,3 @@ pub trait Reference<'a> {
   fn rget_from(&self, parent: &'a Self::Parent<'_>) -> &'a Self::Out;
   fn rget_from_mut(&self, parent: &'a mut Self::Parent<'_>) -> &'a mut Self::Out;
 }
-

@@ -33,7 +33,7 @@ fn main() -> ExitCode {
       break 'error Err(err.into());
     };
 
-    if let Err(err) = resolve::resolve(&mut lazy, &pool, global) {
+    if let Err(err) = resolve::resolve(&mut lazy, global) {
       break 'error Err(err.into());
     };
 

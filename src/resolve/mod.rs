@@ -67,7 +67,7 @@ fn resolve_block_expr<'pool>(
   tasks: &mut VecDeque<Task>,
 ) -> Result<bool, Error> {
   let mut did_work = false;
-  let ret_ty = lang::ty::Type::Deferred(TypeReference::ReturnTypeOf(function));
+  // let ret_ty = lang::ty::Type::Deferred(TypeReference::ReturnTypeOf(function));
 
   let children = lazy[function][block].children.len();
   for index in 0..children {
@@ -88,7 +88,7 @@ fn resolve_block_expr<'pool>(
     if !SHOWN {
       print_message(lazy, PrintableMesage {
         level: crate::error::Level::Warn,
-        force: false,
+        _force: false,
         description: line_dbg!("stub: check for last-return").into(),
         contents: crate::error::MessageContents::WithinSource {
           range,

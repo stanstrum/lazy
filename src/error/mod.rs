@@ -12,6 +12,7 @@ pub use print::print_message;
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 #[repr(u8)]
+#[allow(unused)]
 pub enum Level {
   Debug,
   Info,
@@ -22,7 +23,7 @@ pub enum Level {
 #[derive(Debug)]
 pub struct PrintableMesage {
   pub level: Level,
-  pub force: bool,
+  pub _force: bool,
   pub description: String,
   pub contents: MessageContents,
 }
@@ -68,7 +69,7 @@ impl From<crate::aster::Error> for PrintableMesage {
       crate::aster::Error::Token(error) => error.into(),
       crate::aster::Error::Expected { what, at } => Self {
         level: Level::Error,
-        force: true,
+        _force: true,
         description: format!("expected {what}"),
         contents: MessageContents::WithinSource {
           range: at,
@@ -80,7 +81,7 @@ impl From<crate::aster::Error> for PrintableMesage {
       },
       crate::aster::Error::Invalid { what, at } => Self {
         level: Level::Error,
-        force: true,
+        _force: true,
         description: format!("invalid {what}"),
         contents: MessageContents::WithinSource {
           range: at,
@@ -99,7 +100,7 @@ impl From<crate::resolve::verify::Error> for PrintableMesage {
     match value {
       crate::resolve::verify::Error::Unresolved { what, at } => Self {
         level: Level::Error,
-        force: true,
+        _force: true,
         description: format!("verify: unresolved {what}"),
         contents: MessageContents::WithinSource {
           range: at,

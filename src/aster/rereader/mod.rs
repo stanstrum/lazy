@@ -16,7 +16,6 @@ pub struct Rereader<'pool, const N: usize, T: Read> {
   pub queue: VecDeque<TokenSpan>,
   index: usize,
   stream: Tokenizer<'pool, N, T>,
-  indents: Vec<usize>,
 }
 
 impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
@@ -26,7 +25,6 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
       queue: VecDeque::new(),
       index: 0,
       stream,
-      indents: vec![],
     }
   }
 

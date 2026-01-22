@@ -40,11 +40,13 @@ pub type TokenSpan = (Token, Span);
 #[derive(Debug, Clone, Copy)]
 pub enum Token {
   Identifier(PoolId),
+  #[allow(unused)]
   Keyword(Keyword),
   Operator(Operator),
   Grouping(GroupingType),
   Whitespace,
   Indent(isize),
+  #[allow(unused)]
   Comment(CommentId),
   Numeric(NumericValue),
 }

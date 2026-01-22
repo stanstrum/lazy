@@ -14,7 +14,7 @@ pub trait GetSpan {
 impl GetSpan for Module {
   type Parent<'a> = Lazy<'a>;
 
-  fn get_span(&self, lazy: &Lazy) -> Span {
+  fn get_span(&self, _lazy: &Lazy) -> Span {
     todo!()
   }
 }
@@ -22,7 +22,7 @@ impl GetSpan for Module {
 impl GetSpan for Function {
   type Parent<'a> = Lazy<'a>;
 
-  fn get_span(&self, lazy: &Lazy) -> Span {
+  fn get_span(&self, _lazy: &Lazy) -> Span {
     todo!()
   }
 }
@@ -30,7 +30,7 @@ impl GetSpan for Function {
 impl GetSpan for Type {
   type Parent<'a> = Lazy<'a>;
 
-  fn get_span(&self, lazy: &Lazy) -> Span {
+  fn get_span(&self, _lazy: &Lazy) -> Span {
     match self {
       Type::Unresolved { qualified, .. } => qualified.span,
       Type::Deferred(_) => todo!(),
@@ -44,7 +44,7 @@ impl GetSpan for Type {
 impl GetSpan for Intrinsic {
   type Parent<'a> = Lazy<'a>;
 
-  fn get_span(&self, lazy: &Lazy) -> Span {
+  fn get_span(&self, _lazy: &Lazy) -> Span {
     todo!()
   }
 }
@@ -63,7 +63,7 @@ impl GetSpan for Expression {
 impl GetSpan for BlockExpression {
   type Parent<'a> = ();
 
-  fn get_span(&self, parent: &()) -> Span {
+  fn get_span(&self, _parent: &()) -> Span {
     self.span
   }
 }

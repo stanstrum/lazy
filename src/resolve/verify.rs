@@ -69,7 +69,7 @@ fn verify_function(lazy: &Lazy, function: lang::module::FunctionId) -> Result<()
 
   print_message(lazy, PrintableMesage {
     level: Level::Warn,
-    force: false,
+    _force: false,
     description: line_dbg!("stub: verify return-last").into(),
     contents: MessageContents::WithinSource {
       range: last_span,

@@ -1,4 +1,4 @@
-use std::cell::{Ref, RefCell};
+use std::cell::RefCell;
 use std::collections::VecDeque;
 
 #[derive(Debug)]
@@ -75,12 +75,12 @@ impl StringPool {
     id
   }
 
-  pub fn get_comment(&self, CommentId(id): CommentId) -> Ref<'_, String> {
-    Ref::map(
-      self.comments.borrow(),
-      |comments| comments.get(id).unwrap()
-    )
-  }
+  // pub fn get_comment(&self, CommentId(id): CommentId) -> Ref<'_, String> {
+  //   Ref::map(
+  //     self.comments.borrow(),
+  //     |comments| comments.get(id).unwrap()
+  //   )
+  // }
 
   pub fn insert(&self, str: &str) -> PoolId {
     assert!(!str.is_empty(), "str may not be empty");

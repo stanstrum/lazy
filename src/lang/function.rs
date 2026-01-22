@@ -1,10 +1,9 @@
 use std::ops::{Index, IndexMut};
 
-use crate::lang::expr::{BlockExpression, Expression};
+use crate::lang::expr::BlockExpression;
 use crate::lang::module::{ModuleId, Name};
 use crate::lang::ty::Type;
 use crate::tokenize::token::Span;
-use crate::string_pool::PoolId;
 
 #[derive(Debug)]
 pub struct FunctionArgument {

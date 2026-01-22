@@ -51,7 +51,7 @@ impl Iterator for LineYielder {
 
     buffer.truncate(buffer.trim_end_matches(['\r', '\n']).len());
 
-    *dbg!(&mut self.line) += 1;
+    self.line += 1;
     Some(buffer)
   }
 }

@@ -5,6 +5,7 @@ mod r#typeof;
 
 use std::collections::VecDeque;
 
+use crate::resolve::reference::ExpressionReference;
 use crate::{error::*, line_dbg};
 use crate::lang::{self, Lazy};
 use crate::lang::span::GetSpan;
@@ -50,13 +51,11 @@ fn resolve_type<'pool>(
 
 fn resolve_expr<'pool>(
   lazy: &mut Lazy<'pool>,
-  function: lang::module::FunctionId,
-  block: lang::function::BlockId,
-  index: usize,
+  reference: ExpressionReference,
   tasks: &mut VecDeque<Task>,
 ) -> Result<bool, Error> {
-  match lazy[function][block].children.get(index).unwrap() {
-    lang::expr::Expression::BlockExpression(block) => resolve_block_expr(lazy, function, *block, tasks),
+  match reference.rget_from(lazy) {
+    lang::expr::Expression::BlockExpression(block) => resolve_block_expr(lazy, reference.function, *block, tasks),
     lang::expr::Expression::Literal { .. } => Ok(false),
   }
 }
@@ -72,7 +71,8 @@ fn resolve_block_expr<'pool>(
 
   let children = lazy[function][block].children.len();
   for index in 0..children {
-    did_work |= resolve_expr(lazy, function, block, index, tasks)?;
+    let reference = ExpressionReference { function, block, index };
+    did_work |= resolve_expr(lazy, reference, tasks)?;
   };
 
   let block = &lazy[function][block];

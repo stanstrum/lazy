@@ -1,6 +1,7 @@
 use crate::lang::Lazy;
+use crate::lang::expr::Expression;
 use crate::lang::module::{FunctionId, Module, ModuleId};
-use crate::lang::function::Function;
+use crate::lang::function::{BlockId, Function};
 use crate::lang::ty::Type;
 
 use super::*;
@@ -14,6 +15,12 @@ pub enum TypeReference {
   },
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct ExpressionReference {
+  pub function: FunctionId,
+  pub block: BlockId,
+  pub index: usize,
+}
 
 impl<'a> Reference<'a> for ModuleId {
   type Parent<'b> = Lazy<'b>;
@@ -81,5 +88,18 @@ impl<'a> Reference<'a> for TypeReference {
           .ty
       },
     }
+  }
+}
+
+impl<'a> Reference<'a> for ExpressionReference {
+  type Parent<'b> = Lazy<'b>;
+  type Out = Expression;
+
+  fn rget_from(&self, parent: &'a Self::Parent<'_>) -> &'a Self::Out {
+    parent[self.function][self.block].children.get(self.index).unwrap()
+  }
+
+  fn rget_from_mut(&self, parent: &'a mut Self::Parent<'_>) -> &'a mut Self::Out {
+    parent[self.function][self.block].children.get_mut(self.index).unwrap()
   }
 }

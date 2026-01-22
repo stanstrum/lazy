@@ -1,5 +1,0 @@
-export type char := u32;
-export type bool := u8;
-
-export type usize := u64;
-export type isize := i64;

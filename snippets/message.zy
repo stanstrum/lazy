@@ -1,4 +1,0 @@
-main {
-  // the following line should have a note on it
-  src := "hello";
-};

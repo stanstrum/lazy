@@ -1,9 +1,0 @@
-namespace something {
-  do_stuff -> i32 {
-    0
-  };
-};
-
-main -> i32 {
-  0
-};

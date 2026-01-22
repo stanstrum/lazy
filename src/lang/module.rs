@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use crate::string_pool::PoolId;
+use crate::tokenize::token::Span;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ModuleId(pub usize);
@@ -29,6 +30,12 @@ pub struct Module {
   pub modules: Vec<ModuleId>,
   pub functions: Vec<FunctionId>,
   pub parent: ModuleParent,
+}
+
+#[derive(Debug)]
+pub struct Name {
+  pub id: PoolId,
+  pub span: Span,
 }
 
 impl Module {

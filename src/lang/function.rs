@@ -1,21 +1,21 @@
 use std::ops::{Index, IndexMut};
 
-use crate::lang::expr::BlockExpression;
-use crate::lang::module::ModuleId;
+use crate::lang::expr::{BlockExpression, Expression};
+use crate::lang::module::{ModuleId, Name};
 use crate::lang::ty::Type;
 use crate::tokenize::token::Span;
 use crate::string_pool::PoolId;
 
 #[derive(Debug)]
 pub struct FunctionArgument {
-  pub name: PoolId,
+  pub name: Name,
   pub ty: Type,
   pub span: Span,
 }
 
 #[derive(Debug)]
 pub struct FunctionHeader {
-  pub name: PoolId,
+  pub name: Name,
   pub ret_ty: Type,
   pub arguments: Vec<FunctionArgument>,
   pub span: Span,

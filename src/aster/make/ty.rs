@@ -15,7 +15,8 @@ pub(super) fn make_type<'pool, const N: usize, T: Read>(
   let ret_mark = stream.mark();
 
   if let Some((Token::Identifier(first), first_span)) = stream.peek()? {
-    let mut parts = vec![first];
+    let first_name = lang::module::Name { id: first, span: first_span };
+    let mut parts = vec![first_name];
     stream.seek();
 
     let ret_mark = stream.mark();

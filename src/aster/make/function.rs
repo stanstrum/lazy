@@ -1,4 +1,4 @@
-use crate::lang::module::ModuleId;
+use crate::lang::module::{ModuleId, Name};
 use crate::line_dbg;
 use std::io::Read;
 
@@ -16,10 +16,11 @@ fn make_function_header<'pool, const N: usize, T: Read>(
 ) -> Result<Option<lang::function::FunctionHeader>, Error> {
   let ret_mark = stream.mark();
 
-  let Some((Token::Identifier(name), name_span)) = stream.ok_next()? else {
-    stream.take_mark(ret_mark);
+  let Some((Token::Identifier(name), name_span)) = stream.peek()? else {
     return Ok(None);
   };
+  stream.seek();
+  let name = Name { id: name, span: name_span };
 
   stream.skip_whitespace_and_comments()?;
 
@@ -94,7 +95,7 @@ fn make_function_header<'pool, const N: usize, T: Read>(
 
     let span = Span::from_pair(stream.id, arg_ty_span, arg_name_span);
     arguments.push(lang::function::FunctionArgument {
-      name: arg_name,
+      name: lang::module::Name { id: arg_name, span: arg_name_span },
       ty: arg_ty,
       span,
     });

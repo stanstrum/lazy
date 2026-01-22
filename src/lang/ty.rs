@@ -1,14 +1,12 @@
 use std::fmt::Display;
 
-use crate::string_pool::PoolId;
-
-use crate::lang::module::ModuleId;
+use crate::lang::module::{ModuleId, Name};
 use crate::tokenize::token::Span;
 use crate::resolve::reference::TypeReference;
 
 #[derive(Debug)]
 pub struct Qualified {
-  pub parts: Vec<PoolId>,
+  pub parts: Vec<Name>,
   pub span: Span,
 }
 

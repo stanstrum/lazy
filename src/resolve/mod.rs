@@ -24,8 +24,8 @@ fn resolve_type<'pool>(
 ) -> Result<bool, Error> {
   match reference.rget_from(lazy) {
     lang::ty::Type::Unresolved { qualified, .. } if qualified.parts.len() == 1 => {
-      let first_id = qualified.parts.first().unwrap();
-      let first = lazy.pool.get(*first_id).collect::<String>();
+      let first_id = qualified.parts.first().unwrap().id;
+      let first = lazy.pool.get(first_id).collect::<String>();
 
       if let Some(kind) = lang::ty::Intrinsic::try_from_str(&first) {
         tasks.push_back(Task::ReplaceType(reference, lang::ty::Type::Intrinsic {

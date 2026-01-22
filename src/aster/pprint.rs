@@ -3,7 +3,7 @@ use crate::string_pool::PoolId;
 
 use crate::lang::Lazy;
 use crate::lang::ty::Type;
-use crate::lang::module::Module;
+use crate::lang::module::{Module, Name};
 use crate::lang::function::Function;
 use crate::tokenize::token::NumericValue;
 
@@ -91,6 +91,14 @@ impl Pretty for FunctionAnd<'_, BlockExpression> {
     };
 
     lines.into_iter()
+  }
+}
+
+impl Pretty for Name {
+  type Out = String;
+
+  fn print(&self, lazy: &Lazy) -> Self::Out {
+    self.id.print(lazy)
   }
 }
 

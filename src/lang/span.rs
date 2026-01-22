@@ -1,3 +1,4 @@
+use crate::lang::Lazy;
 use crate::{tokenize::token::Span};
 use crate::lang::ty::{Intrinsic, Type};
 use crate::lang::module::Module;
@@ -5,22 +6,64 @@ use crate::lang::function::Function;
 use crate::lang::expr::{BlockExpression, Expression};
 
 pub trait GetSpan {
-  fn get_span(&self) -> Span {
+  type Parent<'a>;
+
+  fn get_span(&self, parent: &Self::Parent<'_>) -> Span;
+}
+
+impl GetSpan for Module {
+  type Parent<'a> = Lazy<'a>;
+
+  fn get_span(&self, lazy: &Lazy) -> Span {
     todo!()
   }
 }
 
-impl GetSpan for Module {}
-impl GetSpan for Function {}
+impl GetSpan for Function {
+  type Parent<'a> = Lazy<'a>;
+
+  fn get_span(&self, lazy: &Lazy) -> Span {
+    todo!()
+  }
+}
+
 impl GetSpan for Type {
-  fn get_span(&self) -> Span {
+  type Parent<'a> = Lazy<'a>;
+
+  fn get_span(&self, lazy: &Lazy) -> Span {
     match self {
       Type::Unresolved { qualified, .. } => qualified.span,
-      Type::Intrinsic { span, .. } => *span,
+      Type::Deferred(_) => todo!(),
+      | Type::Intrinsic { span, .. }
+      | Type::WeakInteger { span }
+      | Type::WeakFloat { span } => *span,
     }
   }
 }
 
-impl GetSpan for Intrinsic {}
-impl GetSpan for Expression {}
-impl GetSpan for BlockExpression {}
+impl GetSpan for Intrinsic {
+  type Parent<'a> = Lazy<'a>;
+
+  fn get_span(&self, lazy: &Lazy) -> Span {
+    todo!()
+  }
+}
+
+impl GetSpan for Expression {
+  type Parent<'a> = Function;
+
+  fn get_span(&self, parent: &Function) -> Span {
+    match self {
+      Expression::BlockExpression(id) => parent[*id].get_span(&()),
+      Expression::Literal { span, .. } => *span,
+    }
+  }
+}
+
+impl GetSpan for BlockExpression {
+  type Parent<'a> = ();
+
+  fn get_span(&self, parent: &()) -> Span {
+    self.span
+  }
+}

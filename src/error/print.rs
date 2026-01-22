@@ -1,10 +1,11 @@
 use std::cmp::Ordering;
 
 use crate::lang::module::ModulePath;
-use crate::tokenize::token::{Token, TokenSpan};
+use crate::tokenize::token::{Position, Token, TokenSpan};
 
 use super::*;
 
+#[macro_export]
 macro_rules! colorize {
   ($color:expr) => {
     concat!("\x1b[", stringify!($color), "m")
@@ -25,6 +26,11 @@ impl LineYielder {
       finished: false,
     }
   }
+
+  fn rewind(&mut self, pos: Position) {
+    seek::find_starting_newline(&mut self.reader, pos.position);
+    self.line = pos.line;
+  }
 }
 
 impl Iterator for LineYielder {
@@ -43,7 +49,9 @@ impl Iterator for LineYielder {
       self.finished = true;
     };
 
-    self.line += 1;
+    buffer.truncate(buffer.trim_end_matches(['\r', '\n']).len());
+
+    *dbg!(&mut self.line) += 1;
     Some(buffer)
   }
 }
@@ -62,9 +70,9 @@ pub fn print_message(lazy: &Lazy, message: PrintableMesage) {
   let mut out = vec![];
 
   // "info: this is a message"
-  writeln!(&mut out, "{bold}{level}{clear}: {desc}",
+  writeln!(&mut out, "{bold}{level}{clear} {desc}",
     bold = colorize!(1),
-    level = message.level.to_string().to_lowercase(),
+    level = message.level,
     clear = colorize!(0),
     desc = message.description,
   ).unwrap();
@@ -183,11 +191,14 @@ fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec
 
   // Print each section
   for section in sections.iter() {
-    let this_line = section.span.start.line;
+
+    if yielder.line > section.span.start.line {
+      yielder.rewind(section.span.start);
+    };
 
     writeln!(out, "  --> {path}:{line}:{col}",
       path = lazy.get_path(section.span.module).path.to_string_lossy(),
-      line = this_line,
+      line = section.span.start.line,
       col = section.span.start.column,
     ).unwrap();
 
@@ -199,12 +210,11 @@ fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec
     };
 
     // Print the padding line(s) until we arrive
-    while yielder.line < section.span.start.line &&
+    while let line = yielder.line && line < section.span.start.line &&
       let Some(line_text) = yielder.next()
     {
-      write!(out, " {bold}{line:>number_length$} |{clear} ",
+      write!(out, " {line:>number_length$} {bold}|{clear} ",
         bold = colorize!(1),
-        line = yielder.line,
         clear = colorize!(0),
       ).unwrap();
       colorizer.write(&mut *out, yielder.line, &line_text);
@@ -219,12 +229,11 @@ fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec
     for _ in 0..=lines_to_print {
       let line = yielder.line;
       let line_text = yielder.next().expect("yield line");
-      let line_text = line_text.trim_end_matches(['\r', '\n']);
       write!(out, " {bold}{line:>number_length$} |{clear} ",
         bold = colorize!(1),
         clear = colorize!(0),
       ).unwrap();
-      colorizer.write(&mut *out, line, line_text);
+      colorizer.write(&mut *out, line, &line_text);
       writeln!(out).unwrap();
 
       let line_length = line_text.len();
@@ -255,7 +264,7 @@ fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec
       writeln!(out, " {number_padding} {bold}|{clear} {squiggle_text} {msg}",
         bold = colorize!(1),
         clear = colorize!(0),
-        msg = section.text,
+        msg = if line == section.span.end.line { &section.text } else { "" },
       ).unwrap();
     };
   };

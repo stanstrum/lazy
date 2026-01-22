@@ -4,6 +4,7 @@ mod print;
 use std::io::{BufRead, BufReader, Write};
 use std::fs::File;
 
+use crate::colorize;
 use crate::lang::module::ModuleId;
 use crate::{lang::Lazy, tokenize::token::Span};
 
@@ -43,7 +44,12 @@ pub struct MessageSection {
 
 impl std::fmt::Display for Level {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(f, "{self:?}")
+    f.write_str(match self {
+      Level::Debug => concat!(colorize!(7), colorize!(3), "debug", colorize!(0)),
+      Level::Info => concat!(colorize!(7), colorize!(92), "info", colorize!(0)),
+      Level::Warn => concat!(colorize!(7), colorize!(93), "warn", colorize!(0)),
+      Level::Error => concat!(colorize!(7), colorize!(91), "error", colorize!(0)),
+    })
   }
 }
 

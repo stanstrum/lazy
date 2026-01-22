@@ -33,6 +33,9 @@ impl Pretty for Type {
           .join("::")
       },
       Type::Intrinsic { kind, .. } => kind.to_string(),
+      Type::Deferred(_) => todo!(),
+      Type::WeakFloat { .. } => "{float}".into(),
+      Type::WeakInteger { .. } => "{weak integer}".into(),
     }
   }
 }

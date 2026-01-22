@@ -158,5 +158,6 @@ impl Span {
 
   pub fn extend(&mut self, other: Span) {
     assert!(self.module == other.module);
+    self.end = other.end;
   }
 }

@@ -1,32 +1,33 @@
 mod string_pool;
+
 mod lang;
 mod tokenize;
 mod aster;
 mod resolve;
+
 mod error;
+mod settings;
 
 use std::process::ExitCode;
 
 use lang::Lazy;
 
-use crate::lang::module::ModuleId;
 use crate::string_pool::StringPool;
 
 use crate::aster::pprint::Pretty;
 
-fn setup(pool: &StringPool) -> (Lazy, ModuleId) {
-  let mut lazy = Lazy::new(pool);
-
-  let cwd = std::env::current_dir().expect("cwd failed");
-  let input_path = cwd.join("snippets/00_base_main.zy");
-  let global = lazy.add_file("global", input_path);
-
-  (lazy, global)
-}
-
 fn main() -> ExitCode {
+  let args = std::env::args();
+  let (settings, verb) = match settings::parse_and_display(args) {
+    Ok(settings) => settings,
+    Err(exit_code) => return exit_code,
+  };
+
   let pool = StringPool::new();
-  let (mut lazy, global) = setup(&pool);
+  let mut lazy = Lazy::new(&pool, settings);
+
+  let path = lazy.settings.input_path.to_owned();
+  let global = lazy.add_file("global", path);
 
   let error_handler: Result<(), error::PrintableMesage> = 'error: {
     if let Err(err) = aster::asterize(&mut lazy, &pool, global) {
@@ -37,16 +38,23 @@ fn main() -> ExitCode {
       break 'error Err(err.into());
     };
 
+    println!("todo: typeck");
+    println!("todo: generate");
+
+    match verb {
+      settings::Verb::Check => {
+        let source = lazy[global].print(&lazy)
+          .map(|s| format!(line_dbg!("{}"), s))
+          .collect::<Vec<_>>()
+          .join("\n");
+        println!("{source}");
+      },
+      settings::Verb::Build => todo!("build"),
+      settings::Verb::Run => todo!("run"),
+    };
+
     Ok(())
   };
-
-  // dbg!(&lazy);
-
-  let source = lazy[global].print(&lazy)
-    .map(|s| format!(line_dbg!("{}"), s))
-    .collect::<Vec<_>>()
-    .join("\n");
-  println!("{source}");
 
   match error_handler {
     Ok(()) => ExitCode::SUCCESS,
@@ -59,12 +67,25 @@ fn main() -> ExitCode {
 
 #[cfg(test)]
 mod test {
+  use std::path::PathBuf;
+  use crate::settings::Settings;
+  use crate::error::Level;
+
   use super::*;
 
   #[test]
   fn debug_tokens() {
+    let settings = Settings {
+      executable: "lazy:test".into(),
+      input_path: PathBuf::from("snippets/00_base_main.zy"),
+      output_path: "a.out".into(),
+      log_level: Level::Debug,
+    };
+
     let pool = StringPool::new();
-    let (lazy, global) = setup(&pool);
+    let mut lazy = Lazy::new(&pool, settings);
+
+    let global = lazy.add_file("global", lazy.settings.input_path.to_owned());
     let path = lazy.get_path(global).path.as_path();
 
     let file = std::fs::File::open(path).unwrap();

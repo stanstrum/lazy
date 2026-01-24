@@ -7,23 +7,27 @@ pub mod span;
 use std::path::PathBuf;
 use std::ops::{Index, IndexMut};
 
+use crate::settings::Settings;
+use crate::string_pool::StringPool;
+
 use crate::lang::function::Function;
 use crate::lang::module::{FunctionId, Module, ModuleId, ModuleParent, ModulePath, TokensId};
-use crate::string_pool::StringPool;
 use crate::tokenize::token;
 
 #[derive(Debug)]
 pub struct Lazy<'a> {
   pub pool: &'a StringPool,
+  pub settings: Settings,
   modules: Vec<Module>,
   functions: Vec<Function>,
   tokens: Vec<Vec<token::TokenSpan>>,
 }
 
 impl<'a> Lazy<'a> {
-  pub fn new(pool: &'a StringPool) -> Self {
+  pub fn new(pool: &'a StringPool, settings: Settings) -> Self {
     Self {
       pool,
+      settings,
       modules: vec![],
       functions: vec![],
       tokens: vec![],

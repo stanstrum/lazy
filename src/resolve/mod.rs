@@ -88,7 +88,7 @@ fn resolve_block_expr<'pool>(
     if !SHOWN {
       print_message(lazy, PrintableMesage {
         level: crate::error::Level::Warn,
-        _force: false,
+        force: false,
         description: line_dbg!("stub: check for last-return").into(),
         contents: crate::error::MessageContents::WithinSource {
           range,

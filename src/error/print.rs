@@ -58,13 +58,13 @@ impl Iterator for LineYielder {
 
 pub fn print_message(lazy: &Lazy, message: PrintableMesage) {
   // TODO: Add settings (incl. log level) to `Lazy`
-  //
-  // // If this message isn't being force-printed, check if we
-  // // should actually print it
-  // if !message.force && message.level < lazy.settings.log_level {
-  //   // Don't print.
-  //   return;
-  // };
+
+  // If this message isn't being force-printed, check if we
+  // should actually print it
+  if !message.force && message.level < lazy.settings.log_level {
+    // Don't print.
+    return;
+  };
 
   // Output buffer for building the message
   let mut out = vec![];

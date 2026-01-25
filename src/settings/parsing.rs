@@ -111,7 +111,7 @@ pub(super) fn digest(executable: &str, argv: impl Iterator<Item = String>) -> Re
   };
 
   let output_path = output_path.unwrap_or_else(|| PathBuf::from("./a.out"));
-  let log_level = log_level.unwrap_or(Level::Debug);
+  let log_level = log_level.unwrap_or(Level::Warn);
 
   let settings = Settings {
     executable,

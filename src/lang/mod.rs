@@ -7,7 +7,9 @@ pub mod span;
 use std::path::PathBuf;
 use std::ops::{Index, IndexMut};
 
+use crate::error::Level;
 use crate::settings::Settings;
+use crate::settings::format::format_argument;
 use crate::string_pool::StringPool;
 
 use crate::lang::function::Function;
@@ -25,6 +27,16 @@ pub struct Lazy<'a> {
 
 impl<'a> Lazy<'a> {
   pub fn new(pool: &'a StringPool, settings: Settings) -> Self {
+    let level = Level::Debug;
+
+    if level >= settings.log_level {
+      let argv = settings.argv.iter()
+        .map(|arg| format_argument(arg))
+        .collect::<Vec<_>>()
+        .join(" ");
+      eprintln!("\x1b[94;7mdebug\x1b[0m: {argv}");
+    };
+
     Self {
       pool,
       settings,

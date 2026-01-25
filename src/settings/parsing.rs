@@ -21,9 +21,10 @@ pub(super) fn digest(executable: &str, argv: impl Iterator<Item = String>) -> Re
   let mut output_path = None;
 
   let mut position = 0;
-  let mut argv = (1..).zip(argv).map(|(i, arg)| {
-    position = i;
-    arg
+  let mut result = vec![executable.to_owned()];
+  let mut argv = argv.inspect(|arg| {
+    result.push(arg.to_owned());
+    position += 1;
   });
 
   let executable = executable.to_owned();
@@ -117,6 +118,7 @@ pub(super) fn digest(executable: &str, argv: impl Iterator<Item = String>) -> Re
     input_path,
     output_path,
     log_level,
+    argv: result,
   };
 
   Ok((settings, verb))

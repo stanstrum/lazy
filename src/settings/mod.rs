@@ -1,4 +1,4 @@
-mod format;
+pub mod format;
 mod parsing;
 mod info;
 
@@ -13,6 +13,7 @@ pub struct Settings {
   pub input_path: PathBuf,
   pub output_path: PathBuf,
   pub log_level: Level,
+  pub argv: Vec<String>,
 }
 
 #[derive(Debug)]

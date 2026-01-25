@@ -38,9 +38,6 @@ fn main() -> ExitCode {
       break 'error Err(err.into());
     };
 
-    println!("todo: typeck");
-    println!("todo: generate");
-
     match verb {
       settings::Verb::Check => {
         let source = lazy[global].print(&lazy)
@@ -49,8 +46,11 @@ fn main() -> ExitCode {
           .join("\n");
         println!("{source}");
       },
-      settings::Verb::Build => todo!("build"),
-      settings::Verb::Run => todo!("run"),
+      | settings::Verb::Build
+      | settings::Verb::Run => {
+        todo!("typeck");
+        // todo!("generate");
+      },
     };
 
     Ok(())
@@ -80,6 +80,7 @@ mod test {
       input_path: PathBuf::from("snippets/00_base_main.zy"),
       output_path: "a.out".into(),
       log_level: Level::Debug,
+      argv: vec!["lazy:test", "ck:test", "snippets/00_base_main.zy"].into_iter().map(String::from).collect()
     };
 
     let pool = StringPool::new();

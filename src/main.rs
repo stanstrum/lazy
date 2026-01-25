@@ -18,7 +18,11 @@ use crate::aster::pprint::Pretty;
 
 fn main() -> ExitCode {
   let args = std::env::args();
-  let (settings, verb) = match settings::parse_and_display(args) {
+  run_with(args.into_iter())
+}
+
+fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
+    let (settings, verb) = match settings::parse_and_display(args) {
     Ok(settings) => settings,
     Err(exit_code) => return exit_code,
   };

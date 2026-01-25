@@ -197,7 +197,18 @@ fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec
     };
 
     writeln!(out, "  --> {path}:{line}:{col}",
-      path = lazy.get_path(section.span.module).path.to_string_lossy(),
+      path = {
+        let mut path = lazy.get_path(section.span.module).path.as_path();
+
+        if
+          let Some(parent) = lazy.settings.input_path.parent() &&
+          let Ok(stripped) = path.strip_prefix(parent)
+        {
+          path = stripped;
+        };
+
+        path.to_string_lossy()
+      },
       line = section.span.start.line,
       col = section.span.start.column,
     ).unwrap();

@@ -69,16 +69,19 @@ fn resolve_block_expr<'pool>(
   let mut did_work = false;
   // let ret_ty = lang::ty::Type::Deferred(TypeReference::ReturnTypeOf(function));
 
-  let children = lazy[function][block].children.len();
-  for index in 0..children {
-    let reference = ExpressionReference { function, block, index };
+  for index in lazy[function][block].children.clone() {
+    let reference = ExpressionReference { function, index };
     did_work |= resolve_expr(lazy, reference, tasks)?;
   };
 
   let block = &lazy[function][block];
   let block_span = block.span;
   let children = &block.children;
-  let span = children.last().map(|child| child.get_span(&lazy[function])).unwrap_or(block_span);
+  let span = children.last()
+    .map(|&child| {
+      let parent = &lazy[function];
+      parent[child].get_span(parent)
+    }).unwrap_or(block_span);
   let mut range = lazy[function].span.to_owned();
   range.extend(span);
 

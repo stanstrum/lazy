@@ -65,7 +65,8 @@ fn make_block<'pool, const N: usize, T: Read>(
       return stream.expected_here(line_dbg!("an expression"));
     };
 
-    block.children.push(expr);
+    let id = parent.add_expr(expr);
+    block.children.push(id);
   };
 
   let Some((Token::Grouping(GroupingType::Close(GroupingKind::Brace)), end_span)) = stream.peek()? else {

@@ -2,7 +2,7 @@ use crate::error::{Level, MessageContents, MessageSection, PrintableMesage, prin
 use crate::lang::span::GetSpan;
 use crate::line_dbg;
 use crate::tokenize::token::Span;
-use crate::resolve::reference::{Reference, TypeReference};
+use crate::resolve::reference::{ExpressionReference, Reference, TypeReference};
 use crate::lang::{self, Lazy};
 
 #[derive(Debug)]
@@ -34,18 +34,18 @@ fn verify_type(lazy: &Lazy, reference: TypeReference) -> Result<(), Error> {
   }
 }
 
-fn verify_expr(lazy: &Lazy, function: lang::module::FunctionId, block: lang::function::BlockId, index: usize) -> Result<(), Error> {
-  match &lazy[function][block].children[index] {
-    lang::expr::Expression::BlockExpression(block) => verify_block(lazy, function, *block),
+fn verify_expr(lazy: &Lazy, reference: ExpressionReference) -> Result<(), Error> {
+  match reference.rget_from(lazy) {
+    lang::expr::Expression::BlockExpression(block) => verify_block(lazy, reference.function, *block),
     lang::expr::Expression::Literal { .. } => Ok(()),
   }
 }
 
 fn verify_block(lazy: &Lazy, function: lang::module::FunctionId, block: lang::function::BlockId) -> Result<(), Error> {
-  let children_count = lazy[function][block].children.len();
+  let children = lazy[function][block].children.clone();
 
-  for index in 0..children_count {
-    verify_expr(lazy, function, block, index)?;
+  for index in children {
+    verify_expr(lazy, ExpressionReference { function, index })?;
   };
 
   Ok(())
@@ -64,7 +64,7 @@ fn verify_function(lazy: &Lazy, function: lang::module::FunctionId) -> Result<()
   verify_block(lazy, function, body)?;
 
   let last_span = function_ref[body].children.last()
-    .map(|child| child.get_span(function_ref))
+    .map(|child| function_ref[*child].get_span(function_ref))
     .unwrap_or(function_ref[body].span);
 
   print_message(lazy, PrintableMesage {

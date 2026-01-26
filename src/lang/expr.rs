@@ -1,10 +1,10 @@
 use crate::tokenize::token::{NumericValue, Span};
 use crate::lang::ty::Type;
-use crate::lang::function::BlockId;
+use crate::lang::function::{BlockId, ExprId};
 
 #[derive(Debug)]
 pub struct BlockExpression {
-  pub children: Vec<Expression>,
+  pub children: Vec<ExprId>,
   pub span: Span,
 }
 

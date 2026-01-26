@@ -78,8 +78,8 @@ impl Pretty for FunctionAnd<'_, BlockExpression> {
     let (function, block) = self;
     let mut lines = vec!["{".into()];
 
-    for child in block.children.iter() {
-      for line in child.print_with(function, lazy) {
+    for &child in block.children.iter() {
+      for line in function[child].print_with(function, lazy) {
         lines.push(format!("  {line}"));
       };
     };
@@ -123,8 +123,8 @@ impl Pretty for Function {
     lines.push("".into());
     let block = &self[self.body];
     if !block.children.is_empty() {
-      for child in block.children.iter() {
-        for line in child.print_with(self, lazy) {
+      for &child in block.children.iter() {
+        for line in self[child].print_with(self, lazy) {
           lines.push(format!("  {line}"));
         };
       };

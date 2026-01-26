@@ -146,7 +146,7 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
 
     if let Some(expr) = expr::make_expr(lazy, stream, &mut function)? {
       // println!("{}", expr.print_with(&function, lazy).collect::<Vec<_>>().join("\n"));
-      function[body_id].children.push(expr);
+      function.add_expr_to_block(body_id, expr);
 
       stream.skip_whitespace_and_comments()?;
 

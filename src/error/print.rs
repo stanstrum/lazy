@@ -15,6 +15,7 @@ macro_rules! colorize {
 struct LineYielder {
   reader: BufReader<File>,
   line: usize,
+  indentation: usize,
   finished: bool,
 }
 
@@ -23,6 +24,7 @@ impl LineYielder {
     Self {
       reader,
       line,
+      indentation: 0,
       finished: false,
     }
   }
@@ -50,6 +52,10 @@ impl Iterator for LineYielder {
     };
 
     buffer.truncate(buffer.trim_end_matches(['\r', '\n']).len());
+
+    self.indentation = buffer.chars()
+      .position(|ch| !matches!(ch, ' ' | '\t'))
+      .unwrap_or(0);
 
     self.line += 1;
     Some(buffer)
@@ -260,17 +266,16 @@ fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec
         Ordering::Greater => panic!("out of bounds"),
       };
 
-      let mut squiggle_text = (1..squiggle_end).map(|column| {
-        if (squiggle_start..squiggle_end).contains(&column) {
+      let squiggle_text = (1..=squiggle_end).map(|column| {
+        if
+          column > yielder.indentation &&
+          (squiggle_start..=squiggle_end).contains(&column)
+        {
           '^'
         } else {
           ' '
         }
       }).collect::<String>();
-
-      if squiggle_start == squiggle_end {
-        squiggle_text.push('^');
-      };
 
       writeln!(out, " {number_padding} {bold}|{clear} {squiggle_text} {msg}",
         bold = colorize!(1),

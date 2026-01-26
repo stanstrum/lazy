@@ -115,9 +115,12 @@ string_enum!(Keyword {
 
 #[derive(Debug, Clone, Copy)]
 pub enum Operator {
-  RightArrow,
   Range,
+  // TODO: these are actually punctuation, perhaps break them out into their
+  //       own subvariant
+  RightArrow,
   DoubleColon,
+  Semicolon,
 }
 
 /// Contains only the start position of a Span

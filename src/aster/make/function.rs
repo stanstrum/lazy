@@ -1,26 +1,56 @@
-use crate::lang::module::{ModuleId, Name};
+use crate::lang::span::GetSpan;
 use crate::line_dbg;
-use std::io::Read;
 
-use crate::lang;
-use crate::tokenize::token::{Operator, Span, Token};
-use crate::aster::make::{expr, make_type};
-use crate::aster::Rereader;
+use crate::lang::module::ModuleId;
+use crate::tokenize::token::Operator;
 
-use super::Error;
+use std::cmp::Ordering;
+use super::*;
+
+fn make_function_argument<'pool, const N: usize, T: Read>(
+  lazy: &mut lang::Lazy<'pool>,
+  stream: &mut Rereader<'pool, N, T>,
+  parent: ModuleId,
+) -> Result<Option<lang::function::FunctionArgument>, Error> {
+  let Some(ty) = ty::make_type(lazy, stream, parent)? else {
+    return Ok(None);
+  };
+
+  if !stream.skip_whitespace_and_comments()? {
+    return stream.expected_here(line_dbg!("whitespace"));
+  };
+
+  let Some((Token::Identifier(id), name_span)) = stream.peek()? else {
+    return stream.expected_here(line_dbg!("an identifier"));
+  };
+  stream.seek();
+
+  let name = lang::module::Name { id, span: name_span };
+
+  let mut span = ty.get_span(lazy);
+  span.extend(name_span);
+
+  Ok(Some(lang::function::FunctionArgument {
+    name,
+    ty,
+    span,
+  }))
+}
 
 fn make_function_header<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  module: ModuleId,
+  parent: ModuleId,
 ) -> Result<Option<lang::function::FunctionHeader>, Error> {
-  let ret_mark = stream.mark();
-
-  let Some((Token::Identifier(name), name_span)) = stream.peek()? else {
+  let Some((Token::Identifier(name_id), name_span)) = stream.peek()? else {
     return Ok(None);
   };
   stream.seek();
-  let name = Name { id: name, span: name_span };
+
+  let name = lang::module::Name {
+    id: name_id,
+    span: name_span,
+  };
 
   stream.skip_whitespace_and_comments()?;
 
@@ -29,9 +59,8 @@ fn make_function_header<'pool, const N: usize, T: Read>(
       stream.seek();
       stream.skip_whitespace_and_comments()?;
 
-      let Some(ret_ty) = make_type(lazy, stream, module)? else {
-        stream.take_mark(ret_mark);
-        return stream.expected_here("a return type");
+      let Some(ret_ty) = ty::make_type(lazy, stream, parent)? else {
+        return stream.expected_here(line_dbg!("a return type"));
       };
 
       ret_ty
@@ -45,75 +74,35 @@ fn make_function_header<'pool, const N: usize, T: Read>(
 
   stream.skip_whitespace_and_comments()?;
 
-  let Some((Token::Indent(0..), _)) = stream.ok_next()? else {
-    return stream.expected_here(line_dbg!("an indentation"));
+  let Some((Token::Indent(1..), _)) = stream.peek()? else {
+    return stream.expected_here(line_dbg!("a positive indent"));
   };
+  stream.seek();
 
   let mut arguments = vec![];
   loop {
-    if let Some((Token::Indent(indent), indent_span)) = stream.peek()? {
+    if let Some((Token::Indent(0), _)) = stream.peek()? {
       stream.seek();
-
-      match indent {
-        1.. if arguments.is_empty() => break,
-        0 => {},
-        _other => {
-          stream.take_mark(ret_mark);
-          return Err(Error::Invalid {
-            what: line_dbg!("indentation (expected 0)"),
-            at: indent_span,
-          });
-        },
-      };
-
       break;
     };
 
-    let arg_ty_span = stream.here()?;
-    let Some(arg_ty) = make_type(lazy, stream, module)? else {
-      stream.take_mark(ret_mark);
-      return stream.expected_here("a type");
+    stream.skip_whitespace_and_comments()?;
+
+    let Some(argument) = make_function_argument(lazy, stream, parent)? else {
+      return stream.expected_here(line_dbg!("a function argument"));
     };
 
-    if !stream.skip_whitespace_and_comments()? {
-      stream.take_mark(ret_mark);
-      return stream.expected_here("whitespace");
-    };
+    arguments.push(argument);
 
-    let Some((arg_name_token, arg_name_span)) = stream.ok_next()? else {
-      stream.take_mark(ret_mark);
-      return stream.expected_here("a token");
+    let Some((Token::Indent(0), _)) = stream.peek()? else {
+      return stream.expected_here(line_dbg!("a newline (0 indent)"));
     };
-
-    let Token::Identifier(arg_name) = arg_name_token else {
-      stream.take_mark(ret_mark);
-      return Err(Error::Expected {
-        what: line_dbg!("an identifier"),
-        at: arg_name_span,
-      });
-    };
-
-    let span = Span::from_pair(stream.id, arg_ty_span, arg_name_span);
-    arguments.push(lang::function::FunctionArgument {
-      name: lang::module::Name { id: arg_name, span: arg_name_span },
-      ty: arg_ty,
-      span,
-    });
-
-    let Some((Token::Indent(indent), indent_span)) = stream.ok_next()? else {
-      stream.take_mark(ret_mark);
-      return stream.expected_here(line_dbg!("an indentation"));
-    };
-
-    if indent != 0 {
-      return Err(Error::Invalid {
-        what: line_dbg!("indentation (expected 0)"),
-        at: indent_span,
-      });
-    };
+    stream.seek();
   };
 
-  let span = Span::from_pair(stream.id, name_span, stream.here()?);
+  let mut span = name_span;
+  span.end = stream.here()?.start;
+
   Ok(Some(lang::function::FunctionHeader {
     name,
     ret_ty,
@@ -131,37 +120,57 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
     return Ok(None);
   };
 
-  let header_span = header.span;
+  let (mut function, body) = lang::function::Function::new(parent, header);
 
-  let (mut function, body_id) = lang::function::Function::new(parent, header);
-
-  let (start_indent, mut curr_indent) = (
-    header_span.start.indentation as isize,
-    header_span.end.indentation as isize,
-  );
   loop {
-    if start_indent == curr_indent {
-      break;
-    };
+    stream.skip_whitespace_and_comments()?;
 
-    if let Some(expr) = expr::make_expr(lazy, stream, &mut function)? {
-      // println!("{}", expr.print_with(&function, lazy).collect::<Vec<_>>().join("\n"));
-      function.add_expr_to_block(body_id, expr);
-
-      stream.skip_whitespace_and_comments()?;
-
-      let Some((Token::Indent(indent), _)) = stream.peek()? else {
-        return stream.expected_here(line_dbg!("a newline"));
+    if let Some((Token::Indent(indent), _)) = stream.peek()? {
+      match indent.cmp(&0) {
+        Ordering::Less => {
+          stream.seek();
+          break;
+        },
+        Ordering::Equal => {
+          stream.seek();
+          continue;
+        },
+        Ordering::Greater => {
+          return Err(Error::Invalid {
+            what: line_dbg!("a newline (0 or negative indent)"),
+            at: stream.here()?,
+          });
+        },
       };
-
-      curr_indent += indent;
-
-      stream.seek();
-      continue;
     };
 
-    return stream.expected_here(line_dbg!("an expression"));
+    let Some(expr) = expr::make_expr(lazy, stream, &mut function)? else {
+      return stream.expected_here(line_dbg!("an expression"));
+    };
+    function.add_expr_to_block(expr, body);
+
+    stream.skip_whitespace_and_comments()?;
+
+    let Some((Token::Indent(indent), _)) = stream.peek()? else {
+      return stream.expected_here(line_dbg!("a newline"));
+    };
+
+    match indent.cmp(&0) {
+      Ordering::Less => {
+        stream.seek();
+        break;
+      },
+      Ordering::Equal => {
+        stream.seek();
+      },
+      Ordering::Greater => return Err(Error::Invalid {
+        what: line_dbg!("a newline (0 or negative indent)"),
+        at: stream.here()?,
+      }),
+    };
   };
+
+  function.span.end = stream.here()?.start;
 
   Ok(Some(function))
 }

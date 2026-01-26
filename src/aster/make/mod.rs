@@ -1,11 +1,12 @@
 mod ty;
 mod function;
 mod expr;
+mod structure;
 
 use std::io::Read;
 
 use crate::lang;
-use crate::tokenize::token::{Span, Token};
+use crate::tokenize::token::{Span, Token, TokenSpan};
 use crate::aster::Rereader;
 use crate::aster::make::ty::make_type;
 
@@ -55,7 +56,7 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
     Ok(Indenter(peek_span.start.indentation))
   }
 
-  fn done(&mut self) -> Result<bool, Error> {
+  fn is_done(&mut self) -> Result<bool, Error> {
     Ok(self.peek()?.is_none())
   }
 
@@ -100,14 +101,10 @@ pub(super) fn make<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>
 ) -> Result<(), Error> {
-  let mut last_mark = None;
-
   loop {
-    // println!("{}", lazy[stream.id].print(lazy).collect::<Vec<String>>().join("\n"));
-
     stream.skip_whitespace_and_comments()?;
 
-    if stream.done()? {
+    if stream.is_done()? {
       break;
     };
 
@@ -116,16 +113,13 @@ pub(super) fn make<'pool, const N: usize, T: Read>(
       continue;
     };
 
-    let current_mark = stream.mark();
-    if last_mark == Some(current_mark) {
+    let Some(structure) = structure::make_structure(lazy, stream, stream.id)? else {
       return stream.expected_here(line_dbg!("a top-level structure"));
     };
 
-    last_mark = Some(current_mark);
-
-    if let Some(function) = function::make_function(lazy, stream, stream.id)? {
-      lazy.add_function(stream.id, function);
-      continue;
+    match structure {
+      structure::Structure::Function(function) =>
+        lazy.add_function(stream.id, function),
     };
   };
 

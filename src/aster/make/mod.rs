@@ -18,7 +18,43 @@ macro_rules! line_dbg {
   };
 }
 
+#[derive(Debug)]
+struct Indenter(pub usize);
+
+impl Indenter {
+  fn peek<'pool, const N: usize, T: Read>(
+    &self, stream: &mut Rereader<'pool, N, T>
+  ) -> Result<Option<TokenSpan>, Error> {
+    let Some(peek @ (_, span)) = stream.peek()? else {
+      return Ok(None);
+    };
+
+    if span.start.indentation < self.0 {
+      return Ok(None);
+    };
+
+    Ok(Some(peek))
+  }
+
+  fn next<'pool, const N: usize, T: Read>(
+    &self, stream: &mut Rereader<'pool, N, T>
+  ) -> Result<Option<TokenSpan>, Error> {
+    let peek = self.peek(stream)?;
+
+    if peek.is_some() {
+      stream.seek();
+    };
+
+    Ok(peek)
+  }
+}
+
 impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
+  fn indenter_here(&mut self) -> Result<Indenter, Error> {
+    let (_, peek_span) = self.peek()?.expect("there to be another token");
+    Ok(Indenter(peek_span.start.indentation))
+  }
+
   fn done(&mut self) -> Result<bool, Error> {
     Ok(self.peek()?.is_none())
   }

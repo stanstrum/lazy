@@ -34,6 +34,9 @@ impl GetSpan for Type {
     match self {
       Type::Unresolved { qualified, .. } => qualified.span,
       Type::Deferred(_) => todo!(),
+      | Type::ReferenceTo { span, .. }
+      | Type::SizedArrayOf { span, .. }
+      | Type::UnsizedArrayOf { span, .. }
       | Type::Intrinsic { span, .. }
       | Type::WeakInteger { span }
       | Type::WeakFloat { span } => *span,

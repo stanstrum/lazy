@@ -80,7 +80,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
           });
         },
         // -> Operator
-        (State::Base, '-' | '/' | ':') => {
+        (State::Base, '-' | '/' | ':' | '&') => {
           self.retry(ch, State::Operator {
             start: self.pos(),
             content: String::new(),
@@ -172,6 +172,8 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
             // :=
             | ("", ':')
             | (":", '=')
+            // &
+            | ("", '&')
               => content.push(ch),
             ("->", _) => {
               self.push_here(Token::Operator(Operator::RightArrow), start);
@@ -181,6 +183,10 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
               self.push_here(Token::Operator(Operator::Bollocks), start);
               self.retry(ch, State::Base);
             },
+            ("&", _) => {
+              self.push_here(Token::Operator(Operator::SingleAnd), start);
+              self.retry(ch, State::Base);
+            }
             ("//", _) => {
               self.retry(ch, State::LineComment {
                 content: String::new(),

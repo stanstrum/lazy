@@ -47,6 +47,9 @@ impl Pretty for Type {
       Type::Deferred(_) => todo!(),
       Type::WeakFloat { .. } => "{float}".into(),
       Type::WeakInteger { .. } => "{weak integer}".into(),
+      Type::ReferenceTo { ty, .. } => format!("&{}", ty.print(lazy)),
+      Type::SizedArrayOf { ty, size, .. } => format!("[{size}]{}", ty.print(lazy)),
+      Type::UnsizedArrayOf { ty, .. } => format!("[]{}", ty.print(lazy)),
     }
   }
 }

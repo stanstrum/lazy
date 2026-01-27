@@ -1,4 +1,5 @@
 use crate::lang::module::ModuleId;
+use crate::lang::span::GetSpan;
 use crate::line_dbg;
 use crate::tokenize::token::Operator;
 
@@ -65,15 +66,36 @@ fn make_qualified<'pool, const N: usize, T: Read>(
   }))
 }
 
+fn make_reference_to<'pool, const N: usize, T: Read>(
+  lazy: &mut lang::Lazy<'pool>,
+  stream: &mut Rereader<'pool, N, T>,
+  module: ModuleId,
+) -> Result<Option<lang::ty::Type>, Error> {
+  let Some((Token::Operator(Operator::SingleAnd), mut span)) = stream.peek()? else {
+    return Ok(None);
+  };
+  stream.seek();
+  stream.skip_whitespace_and_comments()?;
+
+  let Some(ty) = make_type(lazy, stream, module)?.map(Box::new) else {
+    return stream.expected_here(line_dbg!("a type"))?;
+  };
+
+  span.extend(ty.get_span(lazy));
+
+  Ok(Some(lang::ty::Type::ReferenceTo { ty, span }))
+}
+
 pub(super) fn make_type<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: ModuleId,
 ) -> Result<Option<lang::ty::Type>, Error> {
-  #[allow(clippy::manual_map)]
-  Ok(if let Some(qualified) = make_qualified(lazy, stream)? {
-    Some(lang::ty::Type::Unresolved { module, qualified })
+  if let Some(qualified) = make_qualified(lazy, stream)? {
+    Ok(Some(lang::ty::Type::Unresolved { module, qualified }))
+  } else if let Some(reference_to) = make_reference_to(lazy, stream, module)? {
+    Ok(Some(reference_to))
   } else {
-    None
-  })
+    Ok(None)
+  }
 }

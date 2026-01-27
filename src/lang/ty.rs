@@ -44,6 +44,19 @@ pub enum Type {
   WeakFloat {
     span: Span,
   },
+  ReferenceTo {
+    ty: Box<Type>,
+    span: Span,
+  },
+  UnsizedArrayOf {
+    ty: Box<Type>,
+    span: Span,
+  },
+  SizedArrayOf {
+    ty: Box<Type>,
+    size: u64,
+    span: Span,
+  },
 }
 
 impl Intrinsic {

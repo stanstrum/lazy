@@ -20,7 +20,7 @@ pub enum Error {
 
 fn resolve_type<'pool>(
   lazy: &mut Lazy<'pool>,
-  reference: TypeReference,
+  reference: &TypeReference,
   tasks: &mut VecDeque<Task>,
 ) -> Result<bool, Error> {
   match reference.rget_from(lazy) {
@@ -29,10 +29,13 @@ fn resolve_type<'pool>(
       let first = lazy.pool.get(first_id).collect::<String>();
 
       if let Some(kind) = lang::ty::Intrinsic::try_from_str(&first) {
-        tasks.push_back(Task::ReplaceType(reference, lang::ty::Type::Intrinsic {
-          kind,
-          span: qualified.span,
-        }));
+        tasks.push_back(Task::ReplaceType(
+          reference.to_owned(),
+          lang::ty::Type::Intrinsic {
+            kind,
+            span: qualified.span,
+          }
+        ));
 
         Ok(true)
       } else {
@@ -42,10 +45,15 @@ fn resolve_type<'pool>(
     lang::ty::Type::Unresolved { .. } => todo!(),
     lang::ty::Type::Intrinsic { .. } => Ok(false),
     lang::ty::Type::Deferred(reference) => {
-      resolve_type(lazy, *reference, tasks)
+      resolve_type(lazy, &reference.to_owned(), tasks)
     },
     lang::ty::Type::WeakInteger { .. } => Ok(false),
     lang::ty::Type::WeakFloat { .. } => Ok(false),
+    lang::ty::Type::ReferenceTo { .. } => {
+      resolve_type(lazy, &TypeReference::Dereference(Box::new(reference.to_owned())), tasks)
+    },
+    | lang::ty::Type::SizedArrayOf { .. }
+    | lang::ty::Type::UnsizedArrayOf { .. } => todo!(),
   }
 }
 
@@ -122,12 +130,12 @@ fn resolve_function<'pool>(
 ) -> Result<bool, Error> {
   let mut did_work = false;
 
-  did_work |= resolve_type(lazy, TypeReference::ReturnTypeOf(function), tasks)?;
+  did_work |= resolve_type(lazy, &TypeReference::ReturnTypeOf(function), tasks)?;
 
   let arguments_count = lazy[function].header.arguments.len();
   for index in 0..arguments_count {
     let reference = TypeReference::ArgumentOf { function, index };
-    did_work |= resolve_type(lazy, reference, tasks)?;
+    did_work |= resolve_type(lazy, &reference, tasks)?;
   };
 
   did_work |= resolve_block_expr(lazy, function, lazy[function].body, tasks)?;
@@ -137,16 +145,20 @@ fn resolve_function<'pool>(
 
 fn resolve_module<'pool>(
   lazy: &mut Lazy<'pool>,
-  id: lang::module::ModuleId,
+  module: lang::module::ModuleId,
   tasks: &mut VecDeque<Task>
 ) -> Result<bool, Error> {
   let mut did_work = false;
 
-  for func_id in lazy[id].functions.clone() {
+  for index in 0..lazy[module].aliases.len() {
+    did_work |= resolve_type(lazy, &TypeReference::Alias { module, index }, tasks)?;
+  };
+
+  for func_id in lazy[module].functions.clone() {
     did_work |= resolve_function(lazy, func_id, tasks)?;
   };
 
-  for child_id in lazy[id].modules.clone() {
+  for child_id in lazy[module].modules.clone() {
     did_work |= resolve_module(lazy, child_id, tasks)?;
   };
 

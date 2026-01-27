@@ -6,11 +6,17 @@ use crate::lang::ty::Type;
 
 use super::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum TypeReference {
   ReturnTypeOf(lang::module::FunctionId),
   ArgumentOf {
     function: lang::module::FunctionId,
+    index: usize,
+  },
+  Dereference(Box<TypeReference>),
+  // Should this be an AliasId or maybe AliasReference?
+  Alias {
+    module: ModuleId,
     index: usize,
   },
 }
@@ -67,6 +73,16 @@ impl<'a> Reference<'a> for TypeReference {
           .get(*index).unwrap()
           .ty
       },
+      TypeReference::Dereference(inner) => {
+        let Type::ReferenceTo { ty, .. } = inner.rget_from(parent) else {
+          unreachable!();
+        };
+
+        ty.as_ref()
+      },
+      TypeReference::Alias { module, index } => {
+        &parent[*module].aliases.get(*index).unwrap().ty
+      },
     }
   }
 
@@ -85,6 +101,16 @@ impl<'a> Reference<'a> for TypeReference {
           .arguments
           .get_mut(*index).unwrap()
           .ty
+      },
+      TypeReference::Dereference(inner) => {
+        let Type::ReferenceTo { ty, .. } = inner.rget_from_mut(parent) else {
+          unreachable!();
+        };
+
+        ty.as_mut()
+      },
+      TypeReference::Alias { module, index } => {
+        &mut parent[*module].aliases.get_mut(*index).unwrap().ty
       },
     }
   }

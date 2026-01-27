@@ -1,9 +1,9 @@
-use crate::error::{Level, MessageContents, MessageSection, PrintableMesage, print_message};
-use crate::lang::span::GetSpan;
 use crate::line_dbg;
+use crate::error::*;
+
 use crate::tokenize::token::Span;
+use crate::lang::{self, Lazy, span::GetSpan};
 use crate::resolve::reference::{ExpressionReference, Reference, TypeReference};
-use crate::lang::{self, Lazy};
 
 #[derive(Debug)]
 pub enum Error {
@@ -13,7 +13,7 @@ pub enum Error {
   },
 }
 
-fn verify_type(lazy: &Lazy, reference: TypeReference) -> Result<(), Error> {
+fn verify_type(lazy: &Lazy, reference: &TypeReference) -> Result<(), Error> {
   let ty = reference.rget_from(lazy);
 
   match ty {
@@ -22,7 +22,7 @@ fn verify_type(lazy: &Lazy, reference: TypeReference) -> Result<(), Error> {
       at: ty.get_span(lazy),
     }),
     lang::ty::Type::Intrinsic { .. } => Ok(()),
-    lang::ty::Type::Deferred(reference) => verify_type(lazy, *reference),
+    lang::ty::Type::Deferred(reference) => verify_type(lazy, reference),
     lang::ty::Type::WeakInteger { span } => Err(Error::Unresolved {
       what: line_dbg!("integer"),
       at: *span,
@@ -31,6 +31,15 @@ fn verify_type(lazy: &Lazy, reference: TypeReference) -> Result<(), Error> {
       what: line_dbg!("float"),
       at: *span,
     }),
+    lang::ty::Type::ReferenceTo { .. } => {
+      verify_type(lazy, &TypeReference::Dereference(Box::new(reference.to_owned())))
+    },
+    lang::ty::Type::SizedArrayOf { .. } => {
+      todo!()
+    },
+    lang::ty::Type::UnsizedArrayOf { .. } => {
+      todo!()
+    },
   }
 }
 
@@ -52,11 +61,11 @@ fn verify_block(lazy: &Lazy, function: lang::module::FunctionId, block: lang::fu
 }
 
 fn verify_function(lazy: &Lazy, function: lang::module::FunctionId) -> Result<(), Error> {
-  verify_type(lazy, TypeReference::ReturnTypeOf(function))?;
+  verify_type(lazy, &TypeReference::ReturnTypeOf(function))?;
 
   let arguments_count = lazy[function].header.arguments.len();
   for index in 0..arguments_count {
-    verify_type(lazy, TypeReference::ArgumentOf { function, index })?;
+    verify_type(lazy, &TypeReference::ArgumentOf { function, index })?;
   };
 
   let function_ref = &lazy[function];
@@ -83,13 +92,17 @@ fn verify_function(lazy: &Lazy, function: lang::module::FunctionId) -> Result<()
   Ok(())
 }
 
-pub(super) fn verify_module(lazy: &Lazy, id: lang::module::ModuleId) -> Result<(), Error> {
-  for &id in lazy[id].modules.iter() {
-    verify_module(lazy, id)?;
+pub(super) fn verify_module(lazy: &Lazy, module: lang::module::ModuleId) -> Result<(), Error> {
+  for index in 0..lazy[module].aliases.len() {
+    verify_type(lazy, &TypeReference::Alias { module, index })?;
   };
 
-  for &id in lazy[id].functions.iter() {
-    verify_function(lazy, id)?;
+  for &module in lazy[module].modules.iter() {
+    verify_module(lazy, module)?;
+  };
+
+  for &function in lazy[module].functions.iter() {
+    verify_function(lazy, function)?;
   };
 
   Ok(())

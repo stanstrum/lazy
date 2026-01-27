@@ -6,6 +6,7 @@ use crate::lang::function::{BlockId, ExprId};
 pub struct BlockExpression {
   pub children: Vec<ExprId>,
   pub span: Span,
+  pub returns_last: bool,
 }
 
 #[derive(Debug)]
@@ -23,6 +24,7 @@ impl BlockExpression {
     Self {
       children: vec![],
       span,
+      returns_last: false,
     }
   }
 }

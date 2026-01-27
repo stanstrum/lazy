@@ -1,8 +1,10 @@
+use std::cmp::Ordering;
 use std::io::Read;
 
+use crate::error::{Level, MessageContents, PrintableMesage};
 use crate::{lang, line_dbg};
 use crate::aster::Rereader;
-use crate::tokenize::token::{self, GroupingKind, GroupingType, Token};
+use crate::tokenize::token::{self, GroupingKind, GroupingType, Operator, Token};
 
 use super::Error;
 
@@ -11,50 +13,48 @@ fn make_block<'pool, const N: usize, T: Read>(
   stream: &mut Rereader<'pool, N, T>,
   parent: &mut lang::function::Function,
 ) -> Result<Option<lang::expr::BlockExpression>, Error> {
-  let ret_mark = stream.mark();
+  let indenter = stream.indenter_here()?;
 
-  let Some((Token::Grouping(GroupingType::Open(GroupingKind::Brace)), temp_span)) = stream.peek()? else {
-    return Ok(None);
+  let Some((Token::Grouping(GroupingType::Open(GroupingKind::Brace)), span)) = stream.peek()? else {
+    return Ok(None)
   };
 
   stream.seek();
   stream.skip_whitespace_and_comments()?;
 
-  let mut block = lang::expr::BlockExpression::new(temp_span);
+  let mut block = lang::expr::BlockExpression::new(span);
 
-  match stream.peek()? {
-    Some((Token::Grouping(GroupingType::Close(GroupingKind::Brace)), end_span)) => {
-      stream.seek();
-      block.span.extend(end_span);
-      return Ok(Some(block));
-    },
-    Some((Token::Indent(1..), _)) => stream.seek(),
-    Some((Token::Indent(..=0), _)) => todo!(),
-    _other => {
-      stream.take_mark(ret_mark);
-      return Err(Error::Invalid {
-        what: line_dbg!("block (expected close brace or newline)"),
-        at: stream.here()?,
-      });
-    },
+  stream.skip_whitespace_and_comments()?;
+
+  if let Some((Token::Grouping(GroupingType::Close(GroupingKind::Brace)), end)) = stream.peek()? {
+    stream.seek();
+    block.span.extend(end);
+
+    return Ok(Some(block));
   };
 
+  let Some((Token::Indent(0..), _)) = indenter.peek(stream)? else {
+    return stream.expected_here(line_dbg!("a newline (positive indent)"));
+  };
+  stream.seek();
+
+  let mut non_return_last = None;
   loop {
     stream.skip_whitespace_and_comments()?;
 
-    if let Some((Token::Indent(indent_level), _)) = stream.peek()? {
-      match indent_level {
-        0 => {
-          stream.seek();
-          continue;
-        },
-        ..0 => {
+    if let Some((Token::Indent(indent), _)) = indenter.peek(stream)? {
+      match indent.cmp(&0) {
+        Ordering::Less => {
           stream.seek();
           break;
         },
-        _ => {
+        Ordering::Equal => {
+          stream.seek();
+          continue;
+        },
+        Ordering::Greater => {
           return Err(Error::Invalid {
-            what: line_dbg!("indent (expecte"),
+            what: line_dbg!("newline (positive indent)"),
             at: stream.here()?,
           });
         },
@@ -64,17 +64,56 @@ fn make_block<'pool, const N: usize, T: Read>(
     let Some(expr) = make_expr(lazy, stream, parent)? else {
       return stream.expected_here(line_dbg!("an expression"));
     };
-
     let id = parent.add_expr(expr);
     block.children.push(id);
+
+    dbg!(indenter.peek(stream)?);
+
+    stream.skip_whitespace_and_comments()?;
+
+    if let Some((Token::Operator(Operator::Semicolon), _)) = indenter.peek(stream)? {
+      stream.seek();
+      non_return_last = Some(id);
+
+      stream.skip_whitespace_and_comments()?;
+    };
+
+    dbg!(stream.peek()?);
+    let Some((Token::Indent(indent), _)) = indenter.peek(stream)? else {
+      return stream.expected_here(line_dbg!("a newline"));
+    };
+    stream.seek();
+
+    match indent.cmp(&0) {
+      Ordering::Less => {
+        stream.seek();
+        break;
+      },
+      Ordering::Equal => {
+        stream.seek();
+      },
+      Ordering::Greater => {
+        return Err(Error::Invalid {
+          what: line_dbg!("newline (positive indent)"),
+          at: stream.here()?,
+        });
+      },
+    };
   };
 
-  let Some((Token::Grouping(GroupingType::Close(GroupingKind::Brace)), end_span)) = stream.peek()? else {
-    return stream.expected_here(line_dbg!("close brace"));
+  stream.skip_whitespace_and_comments()?;
+
+  let Some((Token::Grouping(GroupingType::Close(GroupingKind::Brace)), end)) = indenter.peek(stream)? else {
+    return stream.expected_here(line_dbg!("a closing brace"));
   };
   stream.seek();
 
-  block.span.extend(end_span);
+  block.span.extend(end);
+
+  if let Some(id) = non_return_last {
+    let does_not_return_last = id == *block.children.last().unwrap();
+    block.returns_last = !does_not_return_last;
+  };
 
   Ok(Some(block))
 }

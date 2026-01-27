@@ -20,7 +20,7 @@ pub struct FunctionHeader {
   pub span: Span,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ExprId(usize);
 
 #[derive(Debug, Clone, Copy)]

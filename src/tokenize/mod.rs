@@ -57,7 +57,10 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
       None
     } else {
       self.ended = true;
-      Some(Ok((Token::Indent(-self.indentation), self.last_span)))
+      let mut span = self.last_span;
+      span.start.indentation = 0;
+      span.end.indentation = 0;
+      Some(Ok((Token::Indent(-self.indentation), span)))
     }
   }
 

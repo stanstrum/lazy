@@ -62,20 +62,31 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
           .rev()
           .skip(1)
           .take_while(|(tok, _)| matches!(tok, Token::Indent(_)))
-          .map(|(tok, _)| {
+          .map(|(tok, span)| {
             let Token::Indent(diff) = tok else { unreachable!() };
-            diff
+            (diff, span)
           }).collect::<Vec<_>>();
 
         if indents.len() < 2 {
           continue;
         };
 
-        let sum = indents.iter().fold(0, |acc, x| acc + **x);
+        let sum = indents.iter()
+          .fold(0,
+            |acc, (indent, _)| acc + **indent
+          );
 
-        let (last, rest) = indents.split_last_mut().unwrap();
+        let ((last, last_span), rest) = indents.split_last_mut().unwrap();
+        let replace_indentation = rest.first().unwrap().1.start.indentation;
+        last_span.start.indentation = replace_indentation;
+        last_span.end.indentation = replace_indentation;
+
         **last = sum;
-        rest.iter_mut().for_each(|rest| **rest = 0);
+        rest.iter_mut().for_each(|(rest, rest_span)| {
+          **rest = 0;
+          rest_span.start.indentation = replace_indentation;
+          rest_span.end.indentation = replace_indentation;
+        });
       };
     };
 

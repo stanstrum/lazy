@@ -75,8 +75,8 @@ fn debug_tokens() {
 
   let mut indentation = 0isize;
   for (i, token) in rereader.enumerate() {
-    let token = match token {
-      Ok((token, _)) => token,
+    let (token, span) = match token {
+      Ok(token) => token,
       Err(err) => panic!("err: {err:?}"),
     };
 
@@ -84,12 +84,16 @@ fn debug_tokens() {
     print!("{i:<2}: [{indentation:>+3}] {padding}");
 
     match &token {
-      tokenize::token::Token::Identifier(id) => println!("Identifier({:?})", pool.get(*id).collect::<String>()),
-      other => println!("{other:?}"),
+      tokenize::token::Token::Identifier(id) => print!("Identifier({:?})", pool.get(*id).collect::<String>()),
+      other => print!("{other:?}"),
     };
 
+
     if let tokenize::token::Token::Indent(difference) = token {
+      print!(" (indent: {})", span.start.indentation);
       indentation += difference;
     };
+
+    println!();
   };
 }

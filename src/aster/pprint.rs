@@ -101,6 +101,10 @@ impl Pretty for FunctionAnd<'_, BlockExpression> {
     if lines.len() == 1 {
       lines.first_mut().unwrap().push('}');
     } else {
+      if !block.returns_last {
+        lines.last_mut().unwrap().push(';');
+      };
+
       lines.push("}".into());
     };
 
@@ -141,6 +145,10 @@ impl Pretty for Function {
         for line in self[child].print_with(self, lazy) {
           lines.push(format!("  {line}"));
         };
+      };
+
+      if !block.returns_last {
+        lines.last_mut().unwrap().push(';');
       };
     } else {
       lines.push("{}".into());

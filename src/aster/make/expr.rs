@@ -108,10 +108,9 @@ fn make_block<'pool, const N: usize, T: Read>(
 
   block.span.extend(end);
 
-  if let Some(id) = non_return_last {
-    let does_not_return_last = id == *block.children.last().unwrap();
-    block.returns_last = !does_not_return_last;
-  };
+  block.returns_last = !non_return_last.is_some_and(
+    |id| id == *block.children.last().unwrap()
+  );
 
   Ok(Some(block))
 }

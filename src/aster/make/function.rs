@@ -114,6 +114,7 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
   };
 
   let (mut function, body) = lang::function::Function::new(parent, header);
+  let mut non_return_last = None;
 
   loop {
     stream.skip_whitespace_and_comments()?;
@@ -140,9 +141,16 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
     let Some(expr) = expr::make_expr(lazy, stream, &mut function)? else {
       return stream.expected_here(line_dbg!("an expression"));
     };
-    function.add_expr_to_block(expr, body);
+    let id = function.add_expr_to_block(expr, body);
 
     stream.skip_whitespace_and_comments()?;
+
+    if let Some((Token::Operator(Operator::Semicolon), _)) = stream.peek()? {
+      stream.seek();
+      stream.skip_whitespace_and_comments()?;
+
+      non_return_last = Some(id);
+    };
 
     let Some((Token::Indent(indent), _)) = stream.peek()? else {
       return stream.expected_here(line_dbg!("a newline"));
@@ -156,12 +164,18 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
       Ordering::Equal => {
         stream.seek();
       },
-      Ordering::Greater => return Err(Error::Invalid {
-        what: line_dbg!("a newline (0 or negative indent)"),
-        at: stream.here()?,
-      }),
+      Ordering::Greater => {
+        return Err(Error::Invalid {
+          what: line_dbg!("a newline (0 or negative indent)"),
+          at: stream.here()?,
+        });
+      },
     };
   };
+
+  function[body].returns_last = !non_return_last.is_some_and(
+    |id| id == *function[body].children.last().unwrap()
+  );
 
   function.span.end = stream.here()?.start;
 

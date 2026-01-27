@@ -76,18 +76,20 @@ fn verify_function(lazy: &Lazy, function: lang::module::FunctionId) -> Result<()
     .map(|child| function_ref[*child].get_span(function_ref))
     .unwrap_or(function_ref[body].span);
 
-  print_message(lazy, PrintableMesage {
-    level: Level::Warn,
-    force: false,
-    description: line_dbg!("stub: verify return-last").into(),
-    contents: MessageContents::WithinSource {
-      range: last_span,
-      sections: vec![MessageSection {
-        text: "here".into(),
-        span: last_span,
-      }],
-    },
-  });
+  if function_ref[body].returns_last {
+    print_message(lazy, PrintableMesage {
+      level: Level::Warn,
+      force: false,
+      description: line_dbg!("stub: verify return-last").into(),
+      contents: MessageContents::WithinSource {
+        range: last_span,
+        sections: vec![MessageSection {
+          text: "here".into(),
+          span: last_span,
+        }],
+      },
+    })
+  };
 
   Ok(())
 }

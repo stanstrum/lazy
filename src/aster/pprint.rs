@@ -27,10 +27,21 @@ impl Pretty for Type {
   fn print(&self, lazy: &Lazy) -> Self::Out {
     match self {
       Type::Unresolved { qualified, .. } => {
-        qualified.parts.iter()
-          .map(|x| x.print(lazy))
-          .collect::<Vec<_>>()
-          .join("::")
+        let mut out = String::new();
+
+        if qualified.implicit {
+          out += "::";
+        };
+
+        for (i, part) in qualified.parts.iter().enumerate() {
+          if i != 0 {
+            out += "::";
+          };
+
+          out += part.id.print(lazy).as_str();
+        };
+
+        out
       },
       Type::Intrinsic { kind, .. } => kind.to_string(),
       Type::Deferred(_) => todo!(),

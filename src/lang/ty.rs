@@ -6,6 +6,7 @@ use crate::resolve::reference::TypeReference;
 
 #[derive(Debug)]
 pub struct Qualified {
+  pub implicit: bool,
   pub parts: Vec<Name>,
   pub span: Span,
 }

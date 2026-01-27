@@ -1,7 +1,6 @@
 use std::cmp::Ordering;
 use std::io::Read;
 
-use crate::error::{Level, MessageContents, PrintableMesage};
 use crate::{lang, line_dbg};
 use crate::aster::Rereader;
 use crate::tokenize::token::{self, GroupingKind, GroupingType, Operator, Token};
@@ -67,7 +66,7 @@ fn make_block<'pool, const N: usize, T: Read>(
     let id = parent.add_expr(expr);
     block.children.push(id);
 
-    dbg!(indenter.peek(stream)?);
+    indenter.peek(stream)?;
 
     stream.skip_whitespace_and_comments()?;
 
@@ -78,11 +77,10 @@ fn make_block<'pool, const N: usize, T: Read>(
       stream.skip_whitespace_and_comments()?;
     };
 
-    dbg!(stream.peek()?);
+    stream.peek()?;
     let Some((Token::Indent(indent), _)) = indenter.peek(stream)? else {
       return stream.expected_here(line_dbg!("a newline"));
     };
-    stream.seek();
 
     match indent.cmp(&0) {
       Ordering::Less => {

@@ -145,6 +145,12 @@ impl Pretty for Module {
       format!("namespace {name}")
     ];
 
+    for alias in self.aliases.iter() {
+      let name = alias.name.print(lazy);
+      let ty = alias.ty.print(lazy);
+      lines.push(format!("  type {name} := {ty}"));
+    };
+
     for (i, &id) in self.modules.iter().enumerate() {
       let module = &lazy[id];
 

@@ -97,6 +97,18 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
   }
 }
 
+fn make_name<'pool, const N: usize, T: Read>(
+  lazy: &mut lang::Lazy<'pool>,
+  stream: &mut Rereader<'pool, N, T>
+) -> Result<Option<lang::module::Name>, Error> {
+  let Some((Token::Identifier(id), span)) = stream.peek()? else {
+    return Ok(None);
+  };
+  stream.seek();
+
+  Ok(Some(lang::module::Name { id, span }))
+}
+
 pub(super) fn make<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>
@@ -118,8 +130,12 @@ pub(super) fn make<'pool, const N: usize, T: Read>(
     };
 
     match structure {
-      structure::Structure::Function(function) =>
-        lazy.add_function(stream.id, function),
+      structure::Structure::Function(function) => {
+        lazy.add_function(stream.id, function);
+      },
+      structure::Structure::TypeAlias(alias) => {
+        lazy[stream.id].aliases.push(alias);
+      },
     };
   };
 

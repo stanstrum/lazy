@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use crate::lang::ty::Type;
 use crate::string_pool::PoolId;
 use crate::tokenize::token::Span;
 
@@ -30,6 +31,15 @@ pub struct Module {
   pub modules: Vec<ModuleId>,
   pub functions: Vec<FunctionId>,
   pub parent: ModuleParent,
+  pub aliases: Vec<TypeAlias>,
+}
+
+
+#[derive(Debug)]
+pub struct TypeAlias {
+  pub name: Name,
+  pub ty: Type,
+  pub span: Span,
 }
 
 #[derive(Debug)]
@@ -45,6 +55,7 @@ impl Module {
       modules: vec![],
       functions: vec![],
       parent,
+      aliases: vec![],
     }
   }
 }

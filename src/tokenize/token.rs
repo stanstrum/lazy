@@ -121,6 +121,7 @@ pub enum Operator {
   RightArrow,
   DoubleColon,
   Semicolon,
+  Bollocks,
 }
 
 /// Contains only the start position of a Span

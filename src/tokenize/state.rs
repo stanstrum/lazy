@@ -80,7 +80,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
           });
         },
         // -> Operator
-        (State::Base, '-' | '/') => {
+        (State::Base, '-' | '/' | ':') => {
           self.retry(ch, State::Operator {
             start: self.pos(),
             content: String::new(),
@@ -162,14 +162,23 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
         (State::Operator { content, start }, _) => {
           let start = *start;
           match (content.as_str(), ch) {
+            // ->
             | ("", '-')
             | ("-", '>')
+            // // and /*
             | ("", '/')
             | ("/", '/')
             | ("/", '*')
+            // :=
+            | ("", ':')
+            | (":", '=')
               => content.push(ch),
             ("->", _) => {
               self.push_here(Token::Operator(Operator::RightArrow), start);
+              self.retry(ch, State::Base);
+            },
+            (":=", _) => {
+              self.push_here(Token::Operator(Operator::Bollocks), start);
               self.retry(ch, State::Base);
             },
             ("//", _) => {
@@ -183,7 +192,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
                 content: String::new(),
                 start,
               });
-            }
+            },
             _ => todo!("operator {content:?} and {ch:?}"),
           }
         },

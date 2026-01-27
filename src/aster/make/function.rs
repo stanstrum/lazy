@@ -20,15 +20,13 @@ fn make_function_argument<'pool, const N: usize, T: Read>(
     return stream.expected_here(line_dbg!("whitespace"));
   };
 
-  let Some((Token::Identifier(id), name_span)) = stream.peek()? else {
+  let Some(name) = make_name(lazy, stream)? else {
     return stream.expected_here(line_dbg!("an identifier"));
   };
   stream.seek();
 
-  let name = lang::module::Name { id, span: name_span };
-
   let mut span = ty.get_span(lazy);
-  span.extend(name_span);
+  span.extend(name.span);
 
   Ok(Some(lang::function::FunctionArgument {
     name,
@@ -42,14 +40,8 @@ fn make_function_header<'pool, const N: usize, T: Read>(
   stream: &mut Rereader<'pool, N, T>,
   parent: ModuleId,
 ) -> Result<Option<lang::function::FunctionHeader>, Error> {
-  let Some((Token::Identifier(name_id), name_span)) = stream.peek()? else {
+  let Some(name) = make_name(lazy, stream)? else {
     return Ok(None);
-  };
-  stream.seek();
-
-  let name = lang::module::Name {
-    id: name_id,
-    span: name_span,
   };
 
   stream.skip_whitespace_and_comments()?;
@@ -67,7 +59,7 @@ fn make_function_header<'pool, const N: usize, T: Read>(
     } else {
       lang::ty::Type::Intrinsic {
         kind: lang::ty::Intrinsic::Void,
-        span: name_span,
+        span: name.span,
       }
     }
   };
@@ -100,7 +92,7 @@ fn make_function_header<'pool, const N: usize, T: Read>(
     stream.seek();
   };
 
-  let mut span = name_span;
+  let mut span = name.span;
   span.end = stream.here()?.start;
 
   Ok(Some(lang::function::FunctionHeader {

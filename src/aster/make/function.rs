@@ -23,7 +23,6 @@ fn make_function_argument<'pool, const N: usize, T: Read>(
   let Some(name) = make_name(lazy, stream)? else {
     return stream.expected_here(line_dbg!("an identifier"));
   };
-  stream.seek();
 
   let mut span = ty.get_span(lazy);
   span.extend(name.span);
@@ -83,6 +82,8 @@ fn make_function_header<'pool, const N: usize, T: Read>(
     let Some(argument) = make_function_argument(lazy, stream, parent)? else {
       return stream.expected_here(line_dbg!("a function argument"));
     };
+
+    stream.skip_whitespace_and_comments()?;
 
     arguments.push(argument);
 

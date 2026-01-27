@@ -56,6 +56,7 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
   stream: &mut Rereader<'pool, N, T>,
   parent: ModuleId,
 ) -> Result<Option<Structure>, Error> {
+  #[allow(clippy::manual_map)]
   Ok(if let Some(function) = function::make_function(lazy, stream, parent)? {
     Some(Structure::Function(function))
   } else if let Some(alias) = make_type_alias(lazy, stream, parent)? {

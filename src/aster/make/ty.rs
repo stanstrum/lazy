@@ -70,6 +70,7 @@ pub(super) fn make_type<'pool, const N: usize, T: Read>(
   stream: &mut Rereader<'pool, N, T>,
   module: ModuleId,
 ) -> Result<Option<lang::ty::Type>, Error> {
+  #[allow(clippy::manual_map)]
   Ok(if let Some(qualified) = make_qualified(lazy, stream)? {
     Some(lang::ty::Type::Unresolved { module, qualified })
   } else {

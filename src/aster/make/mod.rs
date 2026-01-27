@@ -8,7 +8,6 @@ use std::io::Read;
 use crate::lang;
 use crate::tokenize::token::{Span, Token, TokenSpan};
 use crate::aster::Rereader;
-use crate::aster::make::ty::make_type;
 
 use super::Error;
 
@@ -76,16 +75,18 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
   }
 
   fn here(&mut self) -> Result<Span, Error> {
-    Ok(match self.peek()? {
-      Some((_, span)) => span,
-      _ => {
-        let (_, last_span) = self.queue.iter().last().expect("Rereader::here peek for span");
-        Span {
-          module: last_span.module,
-          start: last_span.end,
-          end: last_span.end,
-        }
-      },
+    if let Some((_, span)) = self.peek()? {
+      return Ok(span);
+    };
+
+    let (_, last_span) = self.queue.iter()
+      .last()
+      .expect("Rereader::here peek for span");
+
+    Ok(Span {
+      module: last_span.module,
+      start: last_span.end,
+      end: last_span.end,
     })
   }
 

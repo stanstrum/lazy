@@ -79,7 +79,6 @@ fn make_block<'pool, const N: usize, T: Read>(
   Ok(Some(block))
 }
 
-
 pub(super) fn make_literal<'pool, const N: usize, T: Read>(
   _lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,

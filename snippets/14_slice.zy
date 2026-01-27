@@ -13,7 +13,7 @@ extern printf -> i32
 
 template<T>
 struct Slice
-  &[]T ptr,
+  &[]T ptr
   usize len
 
 main -> i32

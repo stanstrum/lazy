@@ -257,25 +257,32 @@ fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec
       let squiggle_start = match line.cmp(&section.span.start.line) {
         Ordering::Less => panic!("out of bounds"),
         Ordering::Equal => section.span.start.column,
-        Ordering::Greater => 1,
+        Ordering::Greater => yielder.indentation + 1,
       };
 
       let squiggle_end = match line.cmp(&section.span.end.line) {
-        Ordering::Less => line_length,
+        Ordering::Less => {
+          if line_length != 0 {
+            line_length + 1
+          } else {
+            0
+          }
+        },
         Ordering::Equal => section.span.end.column,
         Ordering::Greater => panic!("out of bounds"),
       };
 
-      let squiggle_text = (1..=squiggle_end).map(|column| {
-        if
-          column > yielder.indentation &&
-          (squiggle_start..=squiggle_end).contains(&column)
-        {
+      let mut squiggle_text = (1..squiggle_end).map(|column| {
+        if (squiggle_start..squiggle_end).contains(&column) {
           '^'
         } else {
           ' '
         }
       }).collect::<String>();
+
+      if squiggle_start == squiggle_end {
+        squiggle_text.push('^');
+      };
 
       writeln!(out, " {number_padding} {bold}|{clear} {squiggle_text} {msg}",
         bold = colorize!(1),

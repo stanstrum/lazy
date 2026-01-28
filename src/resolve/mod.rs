@@ -59,12 +59,12 @@ fn resolve_type<'pool>(
         .position(|alias| alias.name.id == last.id)
       {
         tasks.push_back(
-          Task::ReplaceType(
+          Task::ResolveQualified(
             reference.to_owned(),
-            lang::ty::Type::Deferred(TypeReference::Alias {
+            TypeReference::Alias {
               module: here,
               index,
-            })
+            },
           )
         );
 
@@ -74,7 +74,7 @@ fn resolve_type<'pool>(
       Ok(false)
     },
     lang::ty::Type::Intrinsic { .. } => Ok(false),
-    lang::ty::Type::Deferred(reference) => {
+    lang::ty::Type::Deferred { reference, .. } => {
       resolve_type(lazy, &reference.to_owned(), tasks)
     },
     lang::ty::Type::WeakInteger { .. } => Ok(false),

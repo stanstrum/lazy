@@ -30,10 +30,10 @@ impl GetSpan for Function {
 impl GetSpan for Type {
   type Parent<'a> = Lazy<'a>;
 
-  fn get_span(&self, _lazy: &Lazy) -> Span {
+  fn get_span(&self, parent: &Lazy) -> Span {
     match self {
       Type::Unresolved { qualified, .. } => qualified.span,
-      Type::Deferred(_) => todo!(),
+      Type::Deferred { original, .. } => original.get_span(parent),
       | Type::ReferenceTo { span, .. }
       | Type::SizedArrayOf { span, .. }
       | Type::UnsizedArrayOf { span, .. }

@@ -42,7 +42,7 @@ pub struct TypeAlias {
   pub span: Span,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Name {
   pub id: PoolId,
   pub span: Span,

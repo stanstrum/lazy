@@ -22,7 +22,7 @@ fn verify_type(lazy: &Lazy, reference: &TypeReference) -> Result<(), Error> {
       at: ty.get_span(lazy),
     }),
     lang::ty::Type::Intrinsic { .. } => Ok(()),
-    lang::ty::Type::Deferred(reference) => verify_type(lazy, reference),
+    lang::ty::Type::Deferred { reference, .. } => verify_type(lazy, reference),
     lang::ty::Type::WeakInteger { span } => Err(Error::Unresolved {
       what: line_dbg!("integer"),
       at: *span,

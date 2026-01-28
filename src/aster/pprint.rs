@@ -45,7 +45,12 @@ impl Pretty for Type {
         out
       },
       Type::Intrinsic { kind, .. } => kind.to_string(),
-      Type::Deferred(reference) => reference.rget_from(lazy).print(lazy),
+      Type::Deferred { original, reference } => {
+        format!("/* {deferred} */ {original}",
+          deferred = reference.rget_from(lazy).print(lazy),
+          original = original.print(lazy),
+        )
+      },
       Type::WeakFloat { .. } => "{float}".into(),
       Type::WeakInteger { .. } => "{weak integer}".into(),
       Type::ReferenceTo { ty, .. } => format!("&{}", ty.print(lazy)),

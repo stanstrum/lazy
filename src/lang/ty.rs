@@ -4,14 +4,14 @@ use crate::lang::module::{ModuleId, Name};
 use crate::tokenize::token::Span;
 use crate::resolve::reference::TypeReference;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Qualified {
   pub implicit: bool,
   pub parts: Vec<Name>,
   pub span: Span,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Intrinsic {
   Void,
   Bool,
@@ -27,7 +27,7 @@ pub enum Intrinsic {
   F64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Type {
   Unresolved {
     module: ModuleId,
@@ -37,7 +37,10 @@ pub enum Type {
     kind: Intrinsic,
     span: Span,
   },
-  Deferred(TypeReference),
+  Deferred {
+    original: Box<Type>,
+    reference: TypeReference,
+  },
   WeakInteger {
     span: Span,
   },

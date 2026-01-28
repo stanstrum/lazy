@@ -24,25 +24,55 @@ fn resolve_type<'pool>(
   tasks: &mut VecDeque<Task>,
 ) -> Result<bool, Error> {
   match reference.rget_from(lazy) {
-    lang::ty::Type::Unresolved { qualified, .. } if qualified.parts.len() == 1 => {
-      let first_id = qualified.parts.first().unwrap().id;
-      let first = lazy.pool.get(first_id).collect::<String>();
+    lang::ty::Type::Unresolved { qualified, module } => {
+      if !qualified.implicit && qualified.parts.len() == 1 {
+        let first_id = qualified.parts.first().unwrap().id;
+        let first = lazy.pool.get(first_id).collect::<String>();
 
-      if let Some(kind) = lang::ty::Intrinsic::try_from_str(&first) {
-        tasks.push_back(Task::ReplaceType(
-          reference.to_owned(),
-          lang::ty::Type::Intrinsic {
-            kind,
-            span: qualified.span,
-          }
-        ));
+        if let Some(kind) = lang::ty::Intrinsic::try_from_str(&first) {
+          tasks.push_back(Task::ReplaceType(
+            reference.to_owned(),
+            lang::ty::Type::Intrinsic {
+              kind,
+              span: qualified.span,
+            }
+          ));
 
-        Ok(true)
-      } else {
-        Ok(false)
-      }
+          return Ok(true);
+        };
+      };
+
+      let mut here = *module;
+      let (last, rest) = qualified.parts.split_last().unwrap();
+      'next: for part in rest {
+        for &candidate in lazy[here].modules.iter() {
+          if lazy[candidate].name == part.id {
+            here = candidate;
+            continue 'next;
+          };
+        };
+
+        return Ok(false);
+      };
+
+      if let Some(index) = lazy[here].aliases.iter()
+        .position(|alias| alias.name.id == last.id)
+      {
+        tasks.push_back(
+          Task::ReplaceType(
+            reference.to_owned(),
+            lang::ty::Type::Deferred(TypeReference::Alias {
+              module: here,
+              index,
+            })
+          )
+        );
+
+        return Ok(true);
+      };
+
+      Ok(false)
     },
-    lang::ty::Type::Unresolved { .. } => todo!(),
     lang::ty::Type::Intrinsic { .. } => Ok(false),
     lang::ty::Type::Deferred(reference) => {
       resolve_type(lazy, &reference.to_owned(), tasks)

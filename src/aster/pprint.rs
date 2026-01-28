@@ -1,4 +1,5 @@
 use crate::lang::expr::{BlockExpression, Expression};
+use crate::resolve::reference::Reference;
 use crate::string_pool::PoolId;
 
 use crate::lang::Lazy;
@@ -44,7 +45,7 @@ impl Pretty for Type {
         out
       },
       Type::Intrinsic { kind, .. } => kind.to_string(),
-      Type::Deferred(_) => todo!(),
+      Type::Deferred(reference) => reference.rget_from(lazy).print(lazy),
       Type::WeakFloat { .. } => "{float}".into(),
       Type::WeakInteger { .. } => "{weak integer}".into(),
       Type::ReferenceTo { ty, .. } => format!("&{}", ty.print(lazy)),

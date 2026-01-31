@@ -1,4 +1,5 @@
 use crate::lang::Lazy;
+use crate::resolve::reference::Reference;
 use crate::{tokenize::token::Span};
 use crate::lang::ty::{Intrinsic, Type};
 use crate::lang::module::Module;
@@ -33,13 +34,14 @@ impl GetSpan for Type {
   fn get_span(&self, parent: &Lazy) -> Span {
     match self {
       Type::Unresolved { qualified, .. } => qualified.span,
-      Type::Deferred { original, .. } => original.get_span(parent),
+      Type::Resolved { original, .. } => original.get_span(parent),
       | Type::ReferenceTo { span, .. }
       | Type::SizedArrayOf { span, .. }
       | Type::UnsizedArrayOf { span, .. }
       | Type::Intrinsic { span, .. }
       | Type::WeakInteger { span }
       | Type::WeakFloat { span } => *span,
+      Type::Reference(reference) => reference.rget_from(parent).get_span(parent),
     }
   }
 }

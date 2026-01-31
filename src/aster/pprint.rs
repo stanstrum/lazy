@@ -27,6 +27,7 @@ impl Pretty for Type {
 
   fn print(&self, lazy: &Lazy) -> Self::Out {
     match self {
+      Type::Reference(reference) => reference.rget_from(lazy).print(lazy),
       Type::Unresolved { qualified, .. } => {
         let mut out = String::new();
 
@@ -45,7 +46,7 @@ impl Pretty for Type {
         out
       },
       Type::Intrinsic { kind, .. } => kind.to_string(),
-      Type::Deferred { original, reference } => {
+      Type::Resolved { original, reference } => {
         format!("/* {deferred} */ {original}",
           deferred = reference.rget_from(lazy).print(lazy),
           original = original.print(lazy),

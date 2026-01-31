@@ -2,10 +2,12 @@ pub mod reference;
 pub mod verify;
 mod task;
 mod r#typeof;
+mod coerce;
 
 use std::collections::VecDeque;
 
 use crate::resolve::reference::ExpressionReference;
+use crate::tokenize::token::Span;
 use crate::{error::*, line_dbg};
 use crate::lang::{self, Lazy};
 use crate::lang::span::GetSpan;
@@ -31,6 +33,7 @@ fn resolve_type<'pool>(
   tasks: &mut VecDeque<Task>,
 ) -> Result<bool, Box<Error>> {
   match reference.rget_from(lazy) {
+    lang::ty::Type::Reference(reference) => resolve_type(lazy, &reference.to_owned(), tasks),
     lang::ty::Type::Unresolved { qualified, module } => {
       if !qualified.implicit && qualified.parts.len() == 1 {
         let first_id = qualified.parts.first().unwrap().id;
@@ -81,7 +84,7 @@ fn resolve_type<'pool>(
       Ok(false)
     },
     lang::ty::Type::Intrinsic { .. } => Ok(false),
-    lang::ty::Type::Deferred { reference, .. } => {
+    lang::ty::Type::Resolved { reference, .. } => {
       resolve_type(lazy, &reference.to_owned(), tasks)
     },
     lang::ty::Type::WeakInteger { .. } => Ok(false),

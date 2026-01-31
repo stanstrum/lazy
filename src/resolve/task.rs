@@ -20,7 +20,7 @@ pub(super) fn execute<'pool>(
     Task::ResolveQualified(dest, reference) => {
       let dest = dest.rget_from_mut(lazy);
 
-      *dest = lang::ty::Type::Deferred {
+      *dest = lang::ty::Type::Resolved {
         original: Box::new(dest.to_owned()),
         reference
       };

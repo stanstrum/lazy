@@ -29,6 +29,9 @@ fn verify_type(lazy: &Lazy, reference: &TypeReference) -> Result<(), Box<Error>>
     lang::ty::Type::UnsizedArrayOf { .. } => {
       todo!()
     },
+    lang::ty::Type::Reference { .. } => {
+      todo!()
+    },
   }
 }
 
@@ -66,19 +69,16 @@ fn verify_function(lazy: &Lazy, function: lang::module::FunctionId) -> Result<()
     .map(|child| function_ref[*child].get_span(function_ref))
     .unwrap_or(function_ref[body].span);
 
-  if function_ref[body].returns_last {
-    print_message(lazy, PrintableMesage {
-      level: Level::Warn,
-      force: false,
-      description: line_dbg!("stub: verify return-last").into(),
-      contents: MessageContents::WithinSource {
-        range: last_span,
-        sections: vec![MessageSection {
-          text: "here".into(),
-          span: last_span,
-        }],
-      },
-    })
+  if !function_ref[body].returns_last {
+    coerce::assert_assignable(lazy, &ret_ty, &lang::ty::Type::Intrinsic {
+      kind: lang::ty::Intrinsic::Void,
+      span: function_ref.header.ret_ty.get_span(lazy),
+    })?;
+  } else {
+    let last_expr = function_ref[body].children.last().unwrap();
+    let expr_type = type_of_expect(lazy, function, *last_expr)?;
+
+    coerce::assert_assignable(lazy, &ret_ty, &expr_type)?;
   };
 
   Ok(())

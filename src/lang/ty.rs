@@ -29,6 +29,7 @@ pub enum Intrinsic {
 
 #[derive(Debug, Clone)]
 pub enum Type {
+  Reference(TypeReference),
   Unresolved {
     module: ModuleId,
     qualified: Qualified,
@@ -37,7 +38,7 @@ pub enum Type {
     kind: Intrinsic,
     span: Span,
   },
-  Deferred {
+  Resolved {
     original: Box<Type>,
     reference: TypeReference,
   },

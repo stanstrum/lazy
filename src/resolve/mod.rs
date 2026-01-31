@@ -15,7 +15,14 @@ use reference::{Reference, TypeReference};
 
 #[derive(Debug)]
 pub enum Error {
-  Verify(verify::Error),
+  Incompatible {
+    what: TypeReference,
+    to: lang::ty::Type,
+  },
+  Unresolved {
+    what: PrintableMessage,
+    at: PrintableMessage,
+  },
 }
 
 fn resolve_type<'pool>(
@@ -127,7 +134,7 @@ fn resolve_block_expr<'pool>(
     static mut SHOWN: bool = false;
 
     if !SHOWN {
-      print_message(lazy, PrintableMesage {
+      print_message(lazy, PrintableMessage {
         level: crate::error::Level::Warn,
         force: false,
         description: line_dbg!("stub: check for last-return").into(),
@@ -207,9 +214,7 @@ pub fn resolve<'pool>(
     };
   };
 
-  if let Err(err) = verify::verify_module(lazy, entry) {
-    return Err(Error::Verify(err));
-  };
+  verify::verify_module(lazy, entry)?;
 
   Ok(())
 }

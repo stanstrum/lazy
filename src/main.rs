@@ -33,7 +33,7 @@ fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
   let path = lazy.settings.input_path.to_owned();
   let global = lazy.add_file("global", path);
 
-  let error_handler: Result<(), error::PrintableMesage> = 'error: {
+  let error_handler: Result<(), error::PrintableMessage> = 'error: {
     if let Err(err) = aster::asterize(&mut lazy, &pool, global) {
       break 'error Err(err.into());
     };

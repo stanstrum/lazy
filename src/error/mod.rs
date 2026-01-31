@@ -21,7 +21,7 @@ pub enum Level {
 }
 
 #[derive(Debug)]
-pub struct PrintableMesage {
+pub struct PrintableMessage {
   pub level: Level,
   pub force: bool,
   pub description: String,
@@ -54,7 +54,7 @@ impl std::fmt::Display for Level {
   }
 }
 
-impl From<crate::tokenize::Error> for PrintableMesage {
+impl From<crate::tokenize::Error> for PrintableMessage {
   fn from(value: crate::tokenize::Error) -> Self {
     match value {
       crate::tokenize::Error::IO => todo!(),
@@ -63,7 +63,7 @@ impl From<crate::tokenize::Error> for PrintableMesage {
   }
 }
 
-impl From<crate::aster::Error> for PrintableMesage {
+impl From<crate::aster::Error> for PrintableMessage {
   fn from(value: crate::aster::Error) -> Self {
     match value {
       crate::aster::Error::Token(error) => error.into(),
@@ -95,10 +95,10 @@ impl From<crate::aster::Error> for PrintableMesage {
   }
 }
 
-impl From<crate::resolve::verify::Error> for PrintableMesage {
-  fn from(value: crate::resolve::verify::Error) -> Self {
+impl From<crate::resolve::Error> for PrintableMessage {
+  fn from(value: crate::resolve::Error) -> Self {
     match value {
-      crate::resolve::verify::Error::Unresolved { what, at } => Self {
+      crate::resolve::Error::Unresolved { what, at } => Self {
         level: Level::Error,
         force: true,
         description: format!("verify: unresolved {what}"),
@@ -110,14 +110,17 @@ impl From<crate::resolve::verify::Error> for PrintableMesage {
           }],
         },
       },
-    }
-  }
-}
-
-impl From<crate::resolve::Error> for PrintableMesage {
-  fn from(value: crate::resolve::Error) -> Self {
-    match value {
-      crate::resolve::Error::Verify(error) => error.into(),
+      crate::resolve::Error::Incompatible { what, to } => {
+        Self {
+          level: Level::Error,
+          force: false,
+          description: "incompatible types".into(),
+          contents: MessageContents::WithinSource {
+            range: to.get_span(parent),
+            sections: (),
+          },
+        },
+      },
     }
   }
 }

@@ -62,7 +62,7 @@ impl Iterator for LineYielder {
   }
 }
 
-pub fn print_message(lazy: &Lazy, message: PrintableMesage) {
+pub fn print_message(lazy: &Lazy, message: PrintableMessage) {
   // TODO: Add settings (incl. log level) to `Lazy`
 
   // If this message isn't being force-printed, check if we

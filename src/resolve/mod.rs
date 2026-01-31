@@ -29,7 +29,7 @@ fn resolve_type<'pool>(
   lazy: &mut Lazy<'pool>,
   reference: &TypeReference,
   tasks: &mut VecDeque<Task>,
-) -> Result<bool, Error> {
+) -> Result<bool, Box<Error>> {
   match reference.rget_from(lazy) {
     lang::ty::Type::Unresolved { qualified, module } => {
       if !qualified.implicit && qualified.parts.len() == 1 {
@@ -98,7 +98,7 @@ fn resolve_expr<'pool>(
   lazy: &mut Lazy<'pool>,
   reference: ExpressionReference,
   tasks: &mut VecDeque<Task>,
-) -> Result<bool, Error> {
+) -> Result<bool, Box<Error>> {
   match reference.rget_from(lazy) {
     lang::expr::Expression::BlockExpression(block) => resolve_block_expr(lazy, reference.function, *block, tasks),
     lang::expr::Expression::Literal { .. } => Ok(false),
@@ -110,7 +110,7 @@ fn resolve_block_expr<'pool>(
   function: lang::module::FunctionId,
   block: lang::function::BlockId,
   tasks: &mut VecDeque<Task>,
-) -> Result<bool, Error> {
+) -> Result<bool, Box<Error>> {
   let mut did_work = false;
   // let ret_ty = lang::ty::Type::Deferred(TypeReference::ReturnTypeOf(function));
 
@@ -164,7 +164,7 @@ fn resolve_function<'pool>(
   lazy: &mut Lazy<'pool>,
   function: lang::module::FunctionId,
   tasks: &mut VecDeque<Task>,
-) -> Result<bool, Error> {
+) -> Result<bool, Box<Error>> {
   let mut did_work = false;
 
   did_work |= resolve_type(lazy, &TypeReference::ReturnTypeOf(function), tasks)?;
@@ -184,7 +184,7 @@ fn resolve_module<'pool>(
   lazy: &mut Lazy<'pool>,
   module: lang::module::ModuleId,
   tasks: &mut VecDeque<Task>
-) -> Result<bool, Error> {
+) -> Result<bool, Box<Error>> {
   let mut did_work = false;
 
   for index in 0..lazy[module].aliases.len() {
@@ -205,7 +205,7 @@ fn resolve_module<'pool>(
 pub fn resolve<'pool>(
   lazy: &mut Lazy<'pool>,
   entry: lang::module::ModuleId,
-) -> Result<(), Error> {
+) -> Result<(), Box<Error>> {
   let mut tasks = VecDeque::new();
 
   while resolve_module(lazy, entry, &mut tasks)? {

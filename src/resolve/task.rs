@@ -12,7 +12,7 @@ pub enum Task {
 pub(super) fn execute<'pool>(
   lazy: &mut Lazy<'pool>,
   task: Task,
-) -> Result<(), Error> {
+) -> Result<(), Box<Error>> {
   match task {
     Task::ReplaceType(dest, replace) => {
       *dest.rget_from_mut(lazy) = replace;

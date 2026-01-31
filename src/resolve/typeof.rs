@@ -6,6 +6,6 @@ use crate::resolve::reference::TypeReference;
 
 use super::Error;
 
-pub fn type_of(lazy: &Lazy, reference: TypeReference, tasks: &mut VecDeque<Task>) -> Result<Option<lang::ty::Type>, Error> {
   todo!()
+pub fn is_assignable(lazy: &Lazy, what: &TypeReference, ty: &lang::ty::Type) -> Result<Option<bool>, Box<Error>> {
 }

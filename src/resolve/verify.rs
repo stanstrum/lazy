@@ -1,36 +1,25 @@
-use crate::line_dbg;
-use crate::error::*;
+use crate::resolve::r#typeof::{type_of, type_of_expect};
 
-use crate::tokenize::token::Span;
-use crate::lang::{self, Lazy, span::GetSpan};
-use crate::resolve::reference::{ExpressionReference, Reference, TypeReference};
+use super::*;
 
-#[derive(Debug)]
-pub enum Error {
-  Unresolved {
-    what: &'static str,
-    at: Span,
-  },
-}
-
-fn verify_type(lazy: &Lazy, reference: &TypeReference) -> Result<(), Error> {
+fn verify_type(lazy: &Lazy, reference: &TypeReference) -> Result<(), Box<Error>> {
   let ty = reference.rget_from(lazy);
 
   match ty {
-    lang::ty::Type::Unresolved { .. } => Err(Error::Unresolved {
+    lang::ty::Type::Unresolved { .. } => Err(Box::new(Error::Unresolved {
       what: line_dbg!("type"),
       at: ty.get_span(lazy),
-    }),
+    })),
     lang::ty::Type::Intrinsic { .. } => Ok(()),
-    lang::ty::Type::Deferred { reference, .. } => verify_type(lazy, reference),
-    lang::ty::Type::WeakInteger { span } => Err(Error::Unresolved {
+    lang::ty::Type::Resolved { reference, .. } => verify_type(lazy, reference),
+    lang::ty::Type::WeakInteger { span } => Err(Box::new(Error::Unresolved {
       what: line_dbg!("integer"),
       at: *span,
-    }),
-    lang::ty::Type::WeakFloat { span } => Err(Error::Unresolved {
+    })),
+    lang::ty::Type::WeakFloat { span } => Err(Box::new(Error::Unresolved {
       what: line_dbg!("float"),
       at: *span,
-    }),
+    })),
     lang::ty::Type::ReferenceTo { .. } => {
       verify_type(lazy, &TypeReference::Dereference(Box::new(reference.to_owned())))
     },
@@ -43,14 +32,14 @@ fn verify_type(lazy: &Lazy, reference: &TypeReference) -> Result<(), Error> {
   }
 }
 
-fn verify_expr(lazy: &Lazy, reference: ExpressionReference) -> Result<(), Error> {
+fn verify_expr(lazy: &Lazy, reference: ExpressionReference) -> Result<(), Box<Error>> {
   match reference.rget_from(lazy) {
     lang::expr::Expression::BlockExpression(block) => verify_block(lazy, reference.function, *block),
     lang::expr::Expression::Literal { .. } => Ok(()),
   }
 }
 
-fn verify_block(lazy: &Lazy, function: lang::module::FunctionId, block: lang::function::BlockId) -> Result<(), Error> {
+fn verify_block(lazy: &Lazy, function: lang::module::FunctionId, block: lang::function::BlockId) -> Result<(), Box<Error>> {
   let children = lazy[function][block].children.clone();
 
   for index in children {
@@ -60,8 +49,9 @@ fn verify_block(lazy: &Lazy, function: lang::module::FunctionId, block: lang::fu
   Ok(())
 }
 
-fn verify_function(lazy: &Lazy, function: lang::module::FunctionId) -> Result<(), Error> {
-  verify_type(lazy, &TypeReference::ReturnTypeOf(function))?;
+fn verify_function(lazy: &Lazy, function: lang::module::FunctionId) -> Result<(), Box<Error>> {
+  let ret_ty = TypeReference::ReturnTypeOf(function);
+  verify_type(lazy, &ret_ty)?;
 
   let arguments_count = lazy[function].header.arguments.len();
   for index in 0..arguments_count {
@@ -94,7 +84,7 @@ fn verify_function(lazy: &Lazy, function: lang::module::FunctionId) -> Result<()
   Ok(())
 }
 
-pub(super) fn verify_module(lazy: &Lazy, module: lang::module::ModuleId) -> Result<(), Error> {
+pub(super) fn verify_module(lazy: &Lazy, module: lang::module::ModuleId) -> Result<(), Box<Error>> {
   for index in 0..lazy[module].aliases.len() {
     verify_type(lazy, &TypeReference::Alias { module, index })?;
   };

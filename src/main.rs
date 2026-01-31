@@ -39,7 +39,7 @@ fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
     };
 
     if let Err(err) = resolve::resolve(&mut lazy, global) {
-      break 'error Err(err.into());
+      break 'error Err((*err).into());
     };
 
     match verb {

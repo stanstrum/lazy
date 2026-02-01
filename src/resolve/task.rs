@@ -1,31 +1,58 @@
+use std::collections::VecDeque;
+
 use crate::lang::{self, Lazy};
 use crate::resolve::reference::{Reference, TypeReference};
 
 use super::Error;
 
-#[derive(Debug)]
-pub enum Task {
-  ReplaceType(TypeReference, lang::ty::Type),
-  ResolveQualified(TypeReference, TypeReference),
+pub(super) trait DoTask: std::fmt::Debug {
+  fn into_task<'a>(self) -> Task<dyn DoTask + 'a> where Self: Sized + 'a {
+    Task {
+      this: Box::new(self),
+      and_then: vec![],
+    }
+  }
+
+  fn apply(self: Box<Self>, lazy: &mut Lazy, tasks: &mut Tasks) -> Result<(), Box<Error>>;
 }
 
-pub(super) fn execute<'pool>(
-  lazy: &mut Lazy<'pool>,
-  task: Task,
-) -> Result<(), Box<Error>> {
-  match task {
-    Task::ReplaceType(dest, replace) => {
-      *dest.rget_from_mut(lazy) = replace;
-    },
-    Task::ResolveQualified(dest, reference) => {
-      let dest = dest.rget_from_mut(lazy);
+pub(super) type Tasks = VecDeque<Task<dyn DoTask>>;
 
-      *dest = lang::ty::Type::Resolved {
-        original: Box::new(dest.to_owned()),
-        reference
-      };
-    },
-  };
+#[derive(Debug)]
+pub(super) struct Task<T: DoTask + ?Sized> {
+  pub this: Box<T>,
+  pub and_then: Vec<Task<dyn DoTask>>,
+}
 
-  Ok(())
+#[derive(Debug)]
+pub(super) struct ReplaceType {
+  pub dest: TypeReference,
+  pub src: lang::ty::Type,
+}
+
+#[derive(Debug)]
+pub(super) struct ResolveQualified {
+  pub dest: TypeReference,
+  pub reference: TypeReference,
+}
+
+impl DoTask for ReplaceType {
+  fn apply(self: Box<Self>, lazy: &mut Lazy, _tasks: &mut Tasks) -> Result<(), Box<Error>> {
+    *self.dest.rget_from_mut(lazy) = self.src;
+
+    Ok(())
+  }
+}
+
+impl DoTask for ResolveQualified {
+  fn apply(self: Box<Self>, lazy: &mut Lazy, _tasks: &mut Tasks) -> Result<(), Box<Error>> {
+    let dest = self.dest.rget_from_mut(lazy);
+
+    *dest = lang::ty::Type::Resolved {
+      original: Box::new(dest.to_owned()),
+      reference: self.reference,
+    };
+
+    Ok(())
+  }
 }

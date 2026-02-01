@@ -1,7 +1,7 @@
 use crate::lang::Lazy;
-use crate::lang::expr::Expression;
+use crate::lang::expr::{BlockExpression, Expression};
 use crate::lang::module::{FunctionId, Module, ModuleId};
-use crate::lang::function::{ExprId, Function};
+use crate::lang::function::{BlockId, ExprId, Function};
 use crate::lang::ty::Type;
 
 use super::*;
@@ -25,6 +25,12 @@ pub enum TypeReference {
 pub struct ExpressionReference {
   pub function: FunctionId,
   pub index: ExprId,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct BlockReference {
+  pub function: FunctionId,
+  pub block: BlockId,
 }
 
 impl<'a> Reference<'a> for ModuleId {
@@ -126,5 +132,18 @@ impl<'a> Reference<'a> for ExpressionReference {
 
   fn rget_from_mut(&self, parent: &'a mut Self::Parent<'_>) -> &'a mut Self::Out {
     &mut parent[self.function][self.index]
+  }
+}
+
+impl<'a> Reference<'a> for BlockReference {
+  type Parent<'b> = Lazy<'b>;
+  type Out = BlockExpression;
+
+  fn rget_from(&self, parent: &'a Self::Parent<'_>) -> &'a Self::Out {
+    &parent[self.function][self.block]
+  }
+
+  fn rget_from_mut(&self, parent: &'a mut Self::Parent<'_>) -> &'a mut Self::Out {
+    &mut parent[self.function][self.block]
   }
 }

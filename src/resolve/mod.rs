@@ -135,32 +135,24 @@ fn resolve_block_expr<'pool>(
   let mut range = lazy[function].span.to_owned();
   range.extend(span);
 
-  unsafe {
-    static mut SHOWN: bool = false;
-
-    if !SHOWN {
-      print_message(lazy, PrintableMessage {
-        level: crate::error::Level::Warn,
-        force: false,
-        description: line_dbg!("stub: check for last-return").into(),
-        contents: crate::error::MessageContents::WithinSource {
-          range,
-          sections: vec![
-            MessageSection {
-              text: "in this function".into(),
-              span: lazy[function].header.name.span,
-            },
-            MessageSection {
-              text: "here".into(),
-              span,
-            }
-          ],
+  print_message(lazy, PrintableMessage {
+    level: crate::error::Level::Warn,
+    force: false,
+    description: line_dbg!("stub: check for last-return").into(),
+    contents: crate::error::MessageContents::WithinSource {
+      range,
+      sections: vec![
+        MessageSection {
+          text: "in this function".into(),
+          span: lazy[function].header.name.span,
         },
-      });
-
-      SHOWN = true;
-    };
-  };
+        MessageSection {
+          text: "here".into(),
+          span,
+        }
+      ],
+    },
+  });
 
   Ok(did_work)
 }

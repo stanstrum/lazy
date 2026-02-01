@@ -18,12 +18,14 @@ use reference::{Reference, TypeReference};
 #[derive(Debug)]
 pub enum Error {
   Incompatible {
-    what: TypeReference,
-    to: lang::ty::Type,
+    what: String,
+    what_span: Span,
+    to: String,
+    to_span: Span,
   },
   Unresolved {
-    what: PrintableMessage,
-    at: PrintableMessage,
+    what: &'static str,
+    at: Span,
   },
 }
 

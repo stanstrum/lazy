@@ -111,16 +111,46 @@ impl From<crate::resolve::Error> for PrintableMessage {
           }],
         },
       },
-      crate::resolve::Error::Incompatible { what, to } => {
+      crate::resolve::Error::Incompatible { what, what_span, to, to_span } => {
+        // TODO: this is just a stopgap.  need to allow multipart
+        //       PrintableMessages that have parts across files
+
+        assert!(what_span.module == to_span.module,
+          "messages must have parts from the same file (for now)"
+        );
+
+        let range = Span {
+          module: what_span.module,
+          start: if what_span.start.position < to_span.start.position {
+            what_span.start
+          } else {
+            to_span.start
+          },
+          end: if what_span.end.position > to_span.end.position {
+            what_span.end
+          } else {
+            to_span.end
+          },
+        };
+
         Self {
           level: Level::Error,
           force: false,
           description: "incompatible types".into(),
           contents: MessageContents::WithinSource {
-            range: to.get_span(parent),
-            sections: (),
+            range,
+            sections: vec![
+              MessageSection {
+                text: format!("{what} is incompatible with {to}"),
+                span: what_span,
+              },
+              MessageSection {
+                text: format!("{to} originates here"),
+                span: to_span,
+              },
+            ],
           },
-        },
+        }
       },
     }
   }

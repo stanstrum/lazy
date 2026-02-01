@@ -1,5 +1,5 @@
 use crate::lang::expr::{BlockExpression, Expression};
-use crate::resolve::reference::Reference;
+use crate::resolve::reference::{Reference, TypeReference};
 use crate::string_pool::PoolId;
 
 use crate::lang::Lazy;
@@ -22,12 +22,20 @@ impl Pretty for PoolId {
   }
 }
 
+impl Pretty for TypeReference {
+  type Out = String;
+
+  fn print(&self, lazy: &Lazy) -> Self::Out {
+    self.rget_from(lazy).print(lazy)
+  }
+}
+
 impl Pretty for Type {
   type Out = String;
 
   fn print(&self, lazy: &Lazy) -> Self::Out {
     match self {
-      Type::Reference(reference) => reference.rget_from(lazy).print(lazy),
+      Type::Reference(reference) => reference.print(lazy),
       Type::Unresolved { qualified, .. } => {
         let mut out = String::new();
 
@@ -48,7 +56,7 @@ impl Pretty for Type {
       Type::Intrinsic { kind, .. } => kind.to_string(),
       Type::Resolved { original, reference } => {
         format!("/* {deferred} */ {original}",
-          deferred = reference.rget_from(lazy).print(lazy),
+          deferred = reference.print(lazy),
           original = original.print(lazy),
         )
       },

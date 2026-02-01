@@ -1,3 +1,4 @@
+use crate::aster::pprint::Pretty;
 use crate::lang::module::FunctionId;
 use crate::lang::function::ExprId;
 
@@ -7,8 +8,10 @@ pub(super) fn assert_assignable(lazy: &Lazy, what: &TypeReference, ty: &lang::ty
   match r#typeof::is_assignable(lazy, what, ty)? {
     Some(true) => Ok(()),
     Some(false) => Err(Box::new(Error::Incompatible {
-      what: what.to_owned(),
-      to: ty.to_owned(),
+      what: what.print(lazy),
+      what_span: what.get_span(lazy),
+      to: ty.print(lazy),
+      to_span: ty.get_span(lazy),
     })),
     None => Err(Box::new(Error::Unresolved {
       what: "type",

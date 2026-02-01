@@ -7,17 +7,17 @@ fn verify_type(lazy: &Lazy, reference: &TypeReference) -> Result<(), Box<Error>>
 
   match ty {
     lang::ty::Type::Unresolved { .. } => Err(Box::new(Error::Unresolved {
-      what: line_dbg!("type"),
+      what: line_dbg!("type").into(),
       at: ty.get_span(lazy),
     })),
     lang::ty::Type::Intrinsic { .. } => Ok(()),
     lang::ty::Type::Resolved { reference, .. } => verify_type(lazy, reference),
     lang::ty::Type::WeakInteger { span } => Err(Box::new(Error::Unresolved {
-      what: line_dbg!("integer"),
+      what: line_dbg!("integer").into(),
       at: *span,
     })),
     lang::ty::Type::WeakFloat { span } => Err(Box::new(Error::Unresolved {
-      what: line_dbg!("float"),
+      what: line_dbg!("float").into(),
       at: *span,
     })),
     lang::ty::Type::ReferenceTo { .. } => {

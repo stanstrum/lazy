@@ -1,6 +1,6 @@
 use crate::lang::Lazy;
-use crate::resolve::reference::Reference;
-use crate::{tokenize::token::Span};
+use crate::resolve::reference::{Reference, TypeReference};
+use crate::tokenize::token::Span;
 use crate::lang::ty::{Intrinsic, Type};
 use crate::lang::module::Module;
 use crate::lang::function::Function;
@@ -28,6 +28,14 @@ impl GetSpan for Function {
   }
 }
 
+impl GetSpan for TypeReference {
+  type Parent<'a> = Lazy<'a>;
+
+  fn get_span(&self, parent: &Self::Parent<'_>) -> Span {
+    self.rget_from(parent).get_span(parent)
+  }
+}
+
 impl GetSpan for Type {
   type Parent<'a> = Lazy<'a>;
 
@@ -41,7 +49,7 @@ impl GetSpan for Type {
       | Type::Intrinsic { span, .. }
       | Type::WeakInteger { span }
       | Type::WeakFloat { span } => *span,
-      Type::Reference(reference) => reference.rget_from(parent).get_span(parent),
+      Type::Reference(reference) => reference.get_span(parent),
     }
   }
 }

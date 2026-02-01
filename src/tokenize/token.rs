@@ -155,13 +155,17 @@ impl Position {
 }
 
 impl Span {
-  // pub fn from_pair(module: ModuleId, start: Span, end: Span) -> Self {
-  //   Self {
-  //     start: start.start,
-  //     end: end.end,
-  //     module,
-  //   }
-  // }
+  pub fn from_pair(start: Span, end: Span) -> Self {
+    assert!(start.module == end.module,
+      "from_pair requires the pair of spans be from the same file"
+    );
+
+    Self {
+      start: start.start,
+      end: end.end,
+      module: start.module,
+    }
+  }
 
   pub fn extend(&mut self, other: Span) {
     assert!(self.module == other.module);

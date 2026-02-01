@@ -19,6 +19,8 @@ pub enum TypeReference {
     module: ModuleId,
     index: usize,
   },
+  Expression(ExpressionReference),
+  Block(BlockReference),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -89,6 +91,7 @@ impl<'a> Reference<'a> for TypeReference {
       TypeReference::Alias { module, index } => {
         &parent[*module].aliases.get(*index).unwrap().ty
       },
+      _ => todo!(),
     }
   }
 
@@ -118,6 +121,7 @@ impl<'a> Reference<'a> for TypeReference {
       TypeReference::Alias { module, index } => {
         &mut parent[*module].aliases.get_mut(*index).unwrap().ty
       },
+      _ => todo!(),
     }
   }
 }

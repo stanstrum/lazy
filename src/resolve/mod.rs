@@ -6,10 +6,11 @@ mod coerce;
 
 use std::collections::VecDeque;
 
-use crate::resolve::reference::ExpressionReference;
+use crate::resolve::coerce::IsResolved;
+use crate::resolve::reference::{BlockReference, ExpressionReference};
 use crate::resolve::task::{DoTask, Tasks};
 use crate::tokenize::token::Span;
-use crate::{error::*, line_dbg};
+use crate::line_dbg;
 use crate::lang::{self, Lazy};
 use crate::lang::span::GetSpan;
 
@@ -94,8 +95,7 @@ fn resolve_type<'pool>(
     lang::ty::Type::ReferenceTo { .. } => {
       resolve_type(lazy, &TypeReference::Dereference(Box::new(reference.to_owned())), tasks)
     },
-    | lang::ty::Type::SizedArrayOf { .. }
-    | lang::ty::Type::UnsizedArrayOf { .. } => todo!(),
+    _ => todo!(),
   }
 }
 

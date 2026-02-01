@@ -23,15 +23,7 @@ fn verify_type(lazy: &Lazy, reference: &TypeReference) -> Result<(), Box<Error>>
     lang::ty::Type::ReferenceTo { .. } => {
       verify_type(lazy, &TypeReference::Dereference(Box::new(reference.to_owned())))
     },
-    lang::ty::Type::SizedArrayOf { .. } => {
-      todo!()
-    },
-    lang::ty::Type::UnsizedArrayOf { .. } => {
-      todo!()
-    },
-    lang::ty::Type::Reference { .. } => {
-      todo!()
-    },
+    _ => todo!(),
   }
 }
 

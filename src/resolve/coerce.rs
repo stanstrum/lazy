@@ -1,6 +1,6 @@
 use crate::aster::pprint::Pretty;
-use crate::lang::module::FunctionId;
-use crate::lang::function::ExprId;
+// use crate::lang::module::FunctionId;
+// use crate::lang::function::ExprId;
 
 use super::*;
 
@@ -20,13 +20,13 @@ pub(super) fn assert_assignable(lazy: &Lazy, what: &TypeReference, ty: &lang::ty
   }
 }
 
-pub(super) fn assert_assignable_expr(lazy: &Lazy, function: FunctionId, expr: ExprId, ty: &lang::ty::Type) -> Result<(), Box<Error>> {
-  match &lazy[function][expr] {
-    lang::expr::Expression::BlockExpression(block_id) => todo!(),
-    lang::expr::Expression::Literal { value, span, out } => todo!(),
-  }
-}
+// pub(super) fn assert_assignable_expr(lazy: &Lazy, function: FunctionId, expr: ExprId, ty: &lang::ty::Type) -> Result<(), Box<Error>> {
+//   match &lazy[function][expr] {
+//     lang::expr::Expression::BlockExpression(block_id) => todo!(),
+//     lang::expr::Expression::Literal { value, span, out } => todo!(),
+//   }
+// }
 
-pub(super) fn coerce(lazy: &Lazy, what: &TypeReference, to: lang::ty::Type) -> Result<(), Box<Error>> {
-  todo!()
-}
+// pub(super) fn coerce(lazy: &Lazy, what: &TypeReference, to: lang::ty::Type) -> Result<(), Box<Error>> {
+//   todo!()
+// }

@@ -1,4 +1,4 @@
-use crate::resolve::r#typeof::{type_of, type_of_expect};
+use crate::resolve::r#typeof::type_of_expect;
 
 use super::*;
 
@@ -7,17 +7,17 @@ fn verify_type(lazy: &Lazy, reference: &TypeReference) -> Result<(), Box<Error>>
 
   match ty {
     lang::ty::Type::Unresolved { .. } => Err(Box::new(Error::Unresolved {
-      what: line_dbg!("type").into(),
+      what: line_dbg!("type"),
       at: ty.get_span(lazy),
     })),
     lang::ty::Type::Intrinsic { .. } => Ok(()),
     lang::ty::Type::Resolved { reference, .. } => verify_type(lazy, reference),
     lang::ty::Type::WeakInteger { span } => Err(Box::new(Error::Unresolved {
-      what: line_dbg!("integer").into(),
+      what: line_dbg!("integer"),
       at: *span,
     })),
     lang::ty::Type::WeakFloat { span } => Err(Box::new(Error::Unresolved {
-      what: line_dbg!("float").into(),
+      what: line_dbg!("float"),
       at: *span,
     })),
     lang::ty::Type::ReferenceTo { .. } => {
@@ -65,9 +65,9 @@ fn verify_function(lazy: &Lazy, function: lang::module::FunctionId) -> Result<()
   let body = function_ref.body;
   verify_block(lazy, function, body)?;
 
-  let last_span = function_ref[body].children.last()
-    .map(|child| function_ref[*child].get_span(function_ref))
-    .unwrap_or(function_ref[body].span);
+  // let last_span = function_ref[body].children.last()
+  //   .map(|child| function_ref[*child].get_span(function_ref))
+  //   .unwrap_or(function_ref[body].span);
 
   if !function_ref[body].returns_last {
     coerce::assert_assignable(lazy, &ret_ty, &lang::ty::Type::Intrinsic {

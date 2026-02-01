@@ -24,7 +24,7 @@ fn make_type_alias<'pool, const N: usize, T: Read>(
     return stream.expected_here(line_dbg!("whitespace"));
   };
 
-  let Some(name) = make_name(lazy, stream)? else {
+  let Some(name) = make_name(stream)? else {
     return stream.expected_here(line_dbg!("a name"));
   };
 

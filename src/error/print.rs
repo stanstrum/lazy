@@ -83,9 +83,11 @@ pub fn print_message(lazy: &Lazy, message: PrintableMessage) {
     desc = message.description,
   ).unwrap();
 
-  if let MessageContents::WithinSource { range, sections } = message.contents {
-    print_sections(&mut out, lazy, range, sections);
-  };
+  // if
+  let MessageContents::WithinSource { range, sections } = message.contents;
+  // {
+  // };
+  print_sections(&mut out, lazy, range, sections);
 
   let out = std::str::from_utf8(&out).expect("output parsed as utf-8");
   print!("{out}");

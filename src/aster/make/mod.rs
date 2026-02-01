@@ -36,17 +36,17 @@ impl Indenter {
     Ok(Some(peek))
   }
 
-  fn next<'pool, const N: usize, T: Read>(
-    &self, stream: &mut Rereader<'pool, N, T>
-  ) -> Result<Option<TokenSpan>, Error> {
-    let peek = self.peek(stream)?;
+  // fn next<'pool, const N: usize, T: Read>(
+  //   &self, stream: &mut Rereader<'pool, N, T>
+  // ) -> Result<Option<TokenSpan>, Error> {
+  //   let peek = self.peek(stream)?;
 
-    if peek.is_some() {
-      stream.seek();
-    };
+  //   if peek.is_some() {
+  //     stream.seek();
+  //   };
 
-    Ok(peek)
-  }
+  //   Ok(peek)
+  // }
 }
 
 impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
@@ -99,7 +99,6 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
 }
 
 fn make_name<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>
 ) -> Result<Option<lang::module::Name>, Error> {
   let Some((Token::Identifier(id), span)) = stream.peek()? else {

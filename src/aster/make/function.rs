@@ -20,7 +20,7 @@ fn make_function_argument<'pool, const N: usize, T: Read>(
     return stream.expected_here(line_dbg!("whitespace"));
   };
 
-  let Some(name) = make_name(lazy, stream)? else {
+  let Some(name) = make_name(stream)? else {
     return stream.expected_here(line_dbg!("an identifier"));
   };
 
@@ -39,7 +39,7 @@ fn make_function_header<'pool, const N: usize, T: Read>(
   stream: &mut Rereader<'pool, N, T>,
   parent: ModuleId,
 ) -> Result<Option<lang::function::FunctionHeader>, Error> {
-  let Some(name) = make_name(lazy, stream)? else {
+  let Some(name) = make_name(stream)? else {
     return Ok(None);
   };
 

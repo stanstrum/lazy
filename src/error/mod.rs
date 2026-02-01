@@ -5,8 +5,6 @@ use std::io::{BufRead, BufReader, Write};
 use std::fs::File;
 
 use crate::colorize;
-use crate::lang::module::ModuleId;
-use crate::lang::span::GetSpan;
 use crate::{lang::Lazy, tokenize::token::Span};
 
 pub use print::print_message;
@@ -35,7 +33,7 @@ pub enum MessageContents {
     range: Span,
     sections: Vec<MessageSection>,
   },
-  File(ModuleId),
+  // File(ModuleId),
 }
 
 #[derive(Debug)]

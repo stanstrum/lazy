@@ -6,7 +6,6 @@ use crate::tokenize::token::Operator;
 use super::*;
 
 fn make_qualified<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<lang::ty::Qualified>, Error> {
   let ret_mark = stream.mark();
@@ -28,7 +27,7 @@ fn make_qualified<'pool, const N: usize, T: Read>(
     mark = stream.mark();
 
     stream.skip_whitespace_and_comments()?;
-    let Some(name) = make_name(lazy, stream)? else {
+    let Some(name) = make_name(stream)? else {
       if expected {
         return stream.expected_here(line_dbg!("an identifier"));
       } else {
@@ -91,7 +90,7 @@ pub(super) fn make_type<'pool, const N: usize, T: Read>(
   stream: &mut Rereader<'pool, N, T>,
   module: ModuleId,
 ) -> Result<Option<lang::ty::Type>, Error> {
-  if let Some(qualified) = make_qualified(lazy, stream)? {
+  if let Some(qualified) = make_qualified(stream)? {
     Ok(Some(lang::ty::Type::Unresolved { module, qualified }))
   } else if let Some(reference_to) = make_reference_to(lazy, stream, module)? {
     Ok(Some(reference_to))

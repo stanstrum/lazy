@@ -111,8 +111,8 @@ fn make_block<'pool, const N: usize, T: Read>(
 
   let span = Span::from_pair(start, end);
 
-  let returns_last = !non_return_last.is_some_and(
-    |id| id == *children.last().unwrap()
+  let returns_last = non_return_last.is_some_and(
+    |id| id != *children.last().unwrap()
   );
 
   Ok(Some(parent.add_block(lang::expr::BlockExpression {

@@ -18,7 +18,7 @@ impl<'a, R: Reference<'a>> Store<'a, R> for R::Parent<'_> {
   }
 }
 
-pub trait Reference<'a> {
+pub trait Reference<'a>: std::fmt::Debug {
   type Parent<'b>;
   type Out;
 

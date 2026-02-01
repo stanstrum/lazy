@@ -1,4 +1,6 @@
 use crate::aster::pprint::Pretty;
+use crate::lang::expr::BlockExpression;
+use crate::lang::ty::Type;
 // use crate::lang::module::FunctionId;
 // use crate::lang::function::ExprId;
 
@@ -27,6 +29,53 @@ pub(super) fn assert_assignable(lazy: &Lazy, what: &TypeReference, ty: &lang::ty
 //   }
 // }
 
-// pub(super) fn coerce(lazy: &Lazy, what: &TypeReference, to: lang::ty::Type) -> Result<(), Box<Error>> {
-//   todo!()
-// }
+pub(super) trait IsResolved {
+  fn is_resolved(&self, lazy: &Lazy) -> Result<bool, Box<Error>>;
+}
+
+impl IsResolved for Type {
+  fn is_resolved(&self, lazy: &Lazy) -> Result<bool, Box<Error>> {
+    todo!()
+  }
+}
+
+impl IsResolved for BlockExpression {
+  fn is_resolved(&self, lazy: &Lazy) -> Result<bool, Box<Error>> {
+    let Some(out) = &self.out else {
+      return Ok(false);
+    };
+
+    out.is_resolved(lazy)
+  }
+}
+
+pub(super) trait Coerce<R: for<'a> Reference<'a, Out = Self>>: std::fmt::Debug {
+  fn coerce(&self, lazy: &Lazy, reference: &R, to: &TypeReference, tasks: &mut Tasks) -> Result<(), Box<Error>>;
+}
+
+impl Coerce<TypeReference> for Type {
+  fn coerce(&self, lazy: &Lazy, reference: &TypeReference, to: &TypeReference, tasks: &mut Tasks) -> Result<(), Box<Error>> {
+    todo!()
+  }
+}
+
+impl Coerce<BlockReference> for BlockExpression {
+  fn coerce(&self, lazy: &Lazy, reference: &BlockReference, to: &TypeReference, tasks: &mut Tasks) -> Result<(), Box<Error>> {
+    let Some(out) = &self.out else {
+      let mut resolve_block_return = task::ResolveBlockReturn {
+        reference: reference.to_owned(),
+      }.into_task();
+
+      resolve_block_return.and_then.push(Box::new(task::CoerceReference {
+        dest: reference.to_owned(),
+        reference: to.to_owned(),
+      }));
+
+      tasks.push_back(resolve_block_return);
+
+      return Ok(())
+    };
+
+    out.coerce(lazy, &TypeReference::Block(reference.to_owned()), to, tasks)
+  }
+}

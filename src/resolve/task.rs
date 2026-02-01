@@ -21,7 +21,7 @@ pub(super) type Tasks = VecDeque<Task<dyn DoTask>>;
 #[derive(Debug)]
 pub(super) struct Task<T: DoTask + ?Sized> {
   pub this: Box<T>,
-  pub and_then: Vec<Task<dyn DoTask>>,
+  pub and_then: Vec<Box<dyn DoTask>>,
 }
 
 #[derive(Debug)]

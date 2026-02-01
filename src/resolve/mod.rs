@@ -209,7 +209,10 @@ pub fn resolve<'pool>(
   while resolve_module(lazy, entry, &mut tasks)? {
     while let Some(task) = tasks.pop_front() {
       task.this.apply(lazy, &mut tasks)?;
-      tasks.extend(task.and_then);
+
+      for this in task.and_then.into_iter() {
+        tasks.push_back(task::Task { this, and_then: vec![] });
+      };
     };
   };
 

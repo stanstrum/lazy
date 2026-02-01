@@ -7,6 +7,10 @@ use crate::resolve::reference::{Reference, TypeReference};
 
 use super::Error;
 
+pub trait TypeOf {
+  fn type_of(&self, lazy: &Lazy) -> Result<Option<lang::ty::Type>, Box<Error>>;
+}
+
 pub fn is_assignable(lazy: &Lazy, what: &TypeReference, ty: &lang::ty::Type) -> Result<Option<bool>, Box<Error>> {
   match what.rget_from(lazy) {
     lang::ty::Type::Unresolved { .. } => Ok(None),

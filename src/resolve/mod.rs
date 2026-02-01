@@ -117,16 +117,16 @@ fn resolve_block_expr<'pool>(
   tasks: &mut Tasks,
 ) -> Result<bool, Box<Error>> {
   let mut did_work = false;
-  // let ret_ty = lang::ty::Type::Deferred(TypeReference::ReturnTypeOf(function));
+  let ret_ty = TypeReference::ReturnTypeOf(function);
 
   for index in lazy[function][block].children.clone() {
     let reference = ExpressionReference { function, index };
     did_work |= resolve_expr(lazy, reference, tasks)?;
   };
 
-  let block = &lazy[function][block];
-  let block_span = block.span;
-  let children = &block.children;
+  let block_ref = &lazy[function][block];
+  let block_span = block_ref.span;
+  let children = &block_ref.children;
   let span = children.last()
     .map(|&child| {
       let parent = &lazy[function];
@@ -135,25 +135,31 @@ fn resolve_block_expr<'pool>(
   let mut range = lazy[function].span.to_owned();
   range.extend(span);
 
-  // coerce::coerce(lazy, what, to)
-  print_message(lazy, PrintableMessage {
-    level: crate::error::Level::Warn,
-    force: false,
-    description: line_dbg!("stub: check for last-return").into(),
-    contents: crate::error::MessageContents::WithinSource {
-      range,
-      sections: vec![
-        MessageSection {
-          text: "in this function".into(),
-          span: lazy[function].header.name.span,
-        },
-        MessageSection {
-          text: "here".into(),
-          span,
-        }
-      ],
-    },
-  });
+  if !block_ref.is_resolved(lazy)? {
+    tasks.push_back(task::CoerceReference {
+      dest: BlockReference { function, block },
+      reference: ret_ty,
+    }.into_task());
+  };
+
+  // print_message(lazy, PrintableMessage {
+  //   level: crate::error::Level::Warn,
+  //   force: false,
+  //   description: line_dbg!("stub: check for last-return").into(),
+  //   contents: crate::error::MessageContents::WithinSource {
+  //     range,
+  //     sections: vec![
+  //       MessageSection {
+  //         text: "in this function".into(),
+  //         span: lazy[function].header.name.span,
+  //       },
+  //       MessageSection {
+  //         text: "here".into(),
+  //         span,
+  //       }
+  //     ],
+  //   },
+  // });
 
   Ok(did_work)
 }

@@ -7,6 +7,7 @@ pub struct BlockExpression {
   pub children: Vec<ExprId>,
   pub span: Span,
   pub returns_last: bool,
+  pub out: Option<Type>,
 }
 
 #[derive(Debug)]
@@ -25,6 +26,7 @@ impl BlockExpression {
       children: vec![],
       span,
       returns_last: false,
+      out: None,
     }
   }
 }

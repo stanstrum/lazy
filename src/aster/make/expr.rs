@@ -30,6 +30,7 @@ fn make_block<'pool, const N: usize, T: Read>(
       children: vec![],
       span: Span::from_pair(start, end),
       returns_last: false,
+      out: None,
     })));
   };
 
@@ -118,6 +119,7 @@ fn make_block<'pool, const N: usize, T: Read>(
     children,
     span,
     returns_last,
+    out: None,
   })))
 }
 

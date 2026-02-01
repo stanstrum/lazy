@@ -3,7 +3,7 @@ use std::io::Read;
 
 use crate::{lang, line_dbg};
 use crate::aster::Rereader;
-use crate::tokenize::token::{self, GroupingKind, GroupingType, Operator, Token};
+use crate::tokenize::token::{self, GroupingKind, GroupingType, Operator, Span, Token};
 
 use super::Error;
 
@@ -11,25 +11,26 @@ fn make_block<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   parent: &mut lang::function::Function,
-) -> Result<Option<lang::expr::BlockExpression>, Error> {
+) -> Result<Option<lang::function::BlockId>, Error> {
   let indenter = stream.indenter_here()?;
 
-  let Some((Token::Grouping(GroupingType::Open(GroupingKind::Brace)), span)) = stream.peek()? else {
+  let Some((Token::Grouping(GroupingType::Open(GroupingKind::Brace)), start)) = stream.peek()? else {
     return Ok(None)
   };
 
   stream.seek();
   stream.skip_whitespace_and_comments()?;
 
-  let mut block = lang::expr::BlockExpression::new(span);
-
   stream.skip_whitespace_and_comments()?;
 
   if let Some((Token::Grouping(GroupingType::Close(GroupingKind::Brace)), end)) = stream.peek()? {
     stream.seek();
-    block.span.extend(end);
 
-    return Ok(Some(block));
+    return Ok(Some(parent.add_block(lang::expr::BlockExpression {
+      children: vec![],
+      span: Span::from_pair(start, end),
+      returns_last: false,
+    })));
   };
 
   let Some((Token::Indent(0..), _)) = indenter.peek(stream)? else {
@@ -37,6 +38,7 @@ fn make_block<'pool, const N: usize, T: Read>(
   };
   stream.seek();
 
+  let mut children = vec![];
   let mut non_return_last = None;
   loop {
     stream.skip_whitespace_and_comments()?;
@@ -64,7 +66,7 @@ fn make_block<'pool, const N: usize, T: Read>(
       return stream.expected_here(line_dbg!("an expression"));
     };
     let id = parent.add_expr(expr);
-    block.children.push(id);
+    children.push(id);
 
     indenter.peek(stream)?;
 
@@ -106,13 +108,17 @@ fn make_block<'pool, const N: usize, T: Read>(
   };
   stream.seek();
 
-  block.span.extend(end);
+  let span = Span::from_pair(start, end);
 
-  block.returns_last = !non_return_last.is_some_and(
-    |id| id == *block.children.last().unwrap()
+  let returns_last = !non_return_last.is_some_and(
+    |id| id == *children.last().unwrap()
   );
 
-  Ok(Some(block))
+  Ok(Some(parent.add_block(lang::expr::BlockExpression {
+    children,
+    span,
+    returns_last,
+  })))
 }
 
 pub(super) fn make_literal<'pool, const N: usize, T: Read>(
@@ -139,7 +145,6 @@ pub(super) fn make_expr<'pool, const N: usize, T: Read>(
   parent: &mut lang::function::Function,
 ) -> Result<Option<lang::expr::Expression>, Error> {
   if let Some(block) = make_block(lazy, stream, parent)? {
-    let block = parent.add_block(block);
     Ok(Some(lang::expr::Expression::BlockExpression(block)))
   } else if let Some(literal) = make_literal(lazy, stream)? {
     Ok(Some(literal))

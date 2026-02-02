@@ -4,7 +4,7 @@ mod print;
 use std::io::{BufRead, BufReader, Write};
 use std::fs::File;
 
-use crate::colorize;
+use crate::{colorize, line_dbg};
 use crate::{lang::Lazy, tokenize::token::Span};
 
 pub use print::print_message;
@@ -134,7 +134,7 @@ impl From<crate::resolve::Error> for PrintableMessage {
         Self {
           level: Level::Error,
           force: false,
-          description: "incompatible types".into(),
+          description: line_dbg!("incompatible types").into(),
           contents: MessageContents::WithinSource {
             range,
             sections: vec![

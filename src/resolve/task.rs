@@ -38,11 +38,6 @@ pub(super) struct ResolveQualified {
 }
 
 #[derive(Debug)]
-pub(super) struct ResolveBlockReturn {
-  pub reference: BlockReference,
-}
-
-#[derive(Debug)]
 pub(super) struct CoerceReference<R: for<'a> Reference<'a, Out = C>, C: Coerce<R>> {
   pub dest: R,
   pub reference: TypeReference,
@@ -63,28 +58,6 @@ impl DoTask for ResolveQualified {
     *dest = lang::ty::Type::Resolved {
       original: Box::new(dest.to_owned()),
       reference: self.reference,
-    };
-
-    Ok(())
-  }
-}
-
-impl DoTask for ResolveBlockReturn {
-  fn apply(self: Box<Self>, lazy: &mut Lazy, tasks: &mut Tasks) -> Result<(), Box<Error>> {
-    let block_ref = self.reference.rget_from_mut(lazy);
-
-    if block_ref.out.is_none() {
-      block_ref.out = Some(if dbg!(&block_ref).returns_last {
-        let &index = block_ref.children.last().unwrap();
-        let reference = ExpressionReference { function: self.reference.function, index };
-
-        lang::ty::Type::Reference(TypeReference::Expression(reference))
-      } else {
-        lang::ty::Type::Intrinsic {
-          kind: lang::ty::Intrinsic::Void,
-          span: block_ref.span,
-        }
-      });
     };
 
     Ok(())

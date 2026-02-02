@@ -1,9 +1,7 @@
-use crate::lang::function::ExprId;
-use crate::lang::module::FunctionId;
 use crate::lang::span::GetSpan;
 use crate::lang::{self, Lazy};
 use crate::line_dbg;
-use crate::resolve::reference::{Reference, TypeReference};
+use crate::resolve::reference::{ExpressionReference, Reference, TypeReference};
 
 use super::Error;
 

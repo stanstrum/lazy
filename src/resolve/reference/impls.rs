@@ -97,11 +97,11 @@ impl<'a> Reference<'a> for TypeReference {
       },
       TypeReference::Expression(expression) => {
         match expression.rget_from(parent) {
-          Expression::BlockExpression(block_id) => todo!(),
-          Expression::Literal { value, span, out } => todo!(),
+          Expression::BlockExpression(_) => todo!(),
+          Expression::Literal { .. } => todo!(),
         }
       },
-      other => todo!("rget_from: {other:#?}"),
+      // other => todo!("rget_from: {other:#?}"),
     }
   }
 

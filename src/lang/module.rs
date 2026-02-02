@@ -52,9 +52,9 @@ impl Module {
   pub fn new(name: PoolId, parent: ModuleParent) -> Self {
     Self {
       name,
+      parent,
       modules: vec![],
       functions: vec![],
-      parent,
       aliases: vec![],
     }
   }

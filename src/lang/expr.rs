@@ -7,7 +7,7 @@ pub struct BlockExpression {
   pub children: Vec<ExprId>,
   pub span: Span,
   pub returns_last: bool,
-  pub out: Option<Type>,
+  pub out: Type,
 }
 
 #[derive(Debug)]
@@ -21,12 +21,12 @@ pub enum Expression {
 }
 
 impl BlockExpression {
-  pub fn new(span: Span) -> Self {
+  pub fn new(span: Span, out: Type) -> Self {
     Self {
       children: vec![],
       span,
       returns_last: false,
-      out: None,
+      out,
     }
   }
 }

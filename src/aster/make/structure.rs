@@ -6,7 +6,7 @@ use super::*;
 
 #[derive(Debug)]
 pub enum Structure {
-  Function(lang::function::Function),
+  Function(lang::module::FunctionId),
   TypeAlias(lang::module::TypeAlias),
 }
 

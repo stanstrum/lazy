@@ -61,21 +61,6 @@ impl Coerce<TypeReference> for Type {
 
 impl Coerce<BlockReference> for BlockExpression {
   fn coerce(&self, lazy: &Lazy, reference: &BlockReference, to: &TypeReference, tasks: &mut Tasks) -> Result<(), Box<Error>> {
-    let Some(out) = &self.out else {
-      let mut resolve_block_return = task::ResolveBlockReturn {
-        reference: reference.to_owned(),
-      }.into_task();
-
-      resolve_block_return.and_then.push(Box::new(task::CoerceReference {
-        dest: reference.to_owned(),
-        reference: to.to_owned(),
-      }));
-
-      tasks.push_back(resolve_block_return);
-
-      return Ok(())
-    };
-
-    out.coerce(lazy, &TypeReference::Block(reference.to_owned()), to, tasks)
+    self.out.coerce(lazy, &TypeReference::Block(reference.to_owned()), to, tasks)
   }
 }

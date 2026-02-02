@@ -108,13 +108,15 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   parent: ModuleId,
-) -> Result<Option<lang::function::Function>, Error> {
+) -> Result<Option<lang::module::FunctionId>, Error> {
   let Some(header) = make_function_header(lazy, stream, parent)? else {
     return Ok(None);
   };
 
-  let (mut function, body) = lang::function::Function::new(parent, header);
+  let (function, body) = lang::function::Function::new(parent, header);
   let mut non_return_last = None;
+
+  let function_id = lazy.add_function(parent, function);
 
   loop {
     stream.skip_whitespace_and_comments()?;
@@ -138,10 +140,10 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
       };
     };
 
-    let Some(expr) = expr::make_expr(lazy, stream, &mut function)? else {
+    let Some(expr) = expr::make_expr(lazy, stream, function_id)? else {
       return stream.expected_here(line_dbg!("an expression"));
     };
-    let id = function.add_expr_to_block(expr, body);
+    let id = lazy[function_id].add_expr_to_block(expr, body);
 
     stream.skip_whitespace_and_comments()?;
 
@@ -173,11 +175,11 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
     };
   };
 
-  function[body].returns_last = !non_return_last.is_some_and(
-    |id| id == *function[body].children.last().unwrap()
+  lazy[function_id][body].returns_last = !non_return_last.is_some_and(
+    |id| id == *lazy[function_id][body].children.last().unwrap()
   );
 
-  function.span.end = stream.here()?.start;
+  lazy[function_id].span.end = stream.here()?.start;
 
-  Ok(Some(function))
+  Ok(Some(function_id))
 }

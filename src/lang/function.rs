@@ -39,7 +39,13 @@ pub struct Function {
 impl Function {
   pub fn new(parent: ModuleId, header: FunctionHeader) -> (Self, BlockId) {
     let temp_span = header.span;
-    let blocks = vec![BlockExpression::new(temp_span)];
+    let blocks = vec![BlockExpression::new(
+      temp_span,
+      Type::Intrinsic {
+        kind: crate::lang::ty::Intrinsic::Void,
+        span: temp_span,
+      },
+    )];
     let body = BlockId(0);
 
     let function = Self {

@@ -65,6 +65,7 @@ impl Pretty for Type {
       Type::ReferenceTo { ty, .. } => format!("&{}", ty.print(lazy)),
       Type::SizedArrayOf { ty, size, .. } => format!("[{size}]{}", ty.print(lazy)),
       Type::UnsizedArrayOf { ty, .. } => format!("[]{}", ty.print(lazy)),
+      _ => todo!(),
     }
   }
 }

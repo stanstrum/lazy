@@ -50,6 +50,7 @@ impl GetSpan for Type {
       | Type::WeakInteger { span }
       | Type::WeakFloat { span } => *span,
       Type::Reference(reference) => reference.get_span(parent),
+      _ => todo!(),
     }
   }
 }

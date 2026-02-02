@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::lang::module::{ModuleId, Name};
 use crate::tokenize::token::Span;
-use crate::resolve::reference::TypeReference;
+use crate::resolve::reference::{BlockReference, ExpressionReference, TypeReference};
 
 #[derive(Debug, Clone)]
 pub struct Qualified {
@@ -11,7 +11,7 @@ pub struct Qualified {
   pub span: Span,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Intrinsic {
   Void,
   Bool,
@@ -61,6 +61,8 @@ pub enum Type {
     size: u64,
     span: Span,
   },
+  Expression(ExpressionReference),
+  Block(BlockReference),
 }
 
 impl Intrinsic {

@@ -91,7 +91,17 @@ impl<'a> Reference<'a> for TypeReference {
       TypeReference::Alias { module, index } => {
         &parent[*module].aliases.get(*index).unwrap().ty
       },
-      _ => todo!(),
+      TypeReference::Block(block) => {
+        let block = block.rget_from(parent);
+        &block.out
+      },
+      TypeReference::Expression(expression) => {
+        match expression.rget_from(parent) {
+          Expression::BlockExpression(block_id) => todo!(),
+          Expression::Literal { value, span, out } => todo!(),
+        }
+      },
+      other => todo!("rget_from: {other:#?}"),
     }
   }
 

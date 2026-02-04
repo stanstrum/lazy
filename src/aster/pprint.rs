@@ -65,7 +65,12 @@ impl Pretty for Type {
       Type::ReferenceTo { ty, .. } => format!("&{}", ty.print(lazy)),
       Type::SizedArrayOf { ty, size, .. } => format!("[{size}]{}", ty.print(lazy)),
       Type::UnsizedArrayOf { ty, .. } => format!("[]{}", ty.print(lazy)),
-      _ => todo!(),
+      Type::Expression(expression) => {
+        let fname = lazy[expression.function].header.name.print(lazy);
+        let index = expression.index;
+        format!("/* typeof {fname}:{index:?} */")
+      },
+      other => todo!("{other:?}"),
     }
   }
 }
@@ -91,11 +96,13 @@ impl Pretty for FunctionAnd<'_, Expression> {
       Expression::BlockExpression(block_id) => {
         function[*block_id].print_with(function, lazy)
       },
-      Expression::Literal { value: NumericValue::F64(value), .. } => {
-        vec![format!("{value}")].into_iter()
+      Expression::Literal { value: NumericValue::F64(value), out, .. } => {
+        let ty = out.print(lazy);
+        vec![format!("{value} /* {ty} */")].into_iter()
       },
-      Expression::Literal { value: NumericValue::U64(value), .. } => {
-        vec![format!("{value}")].into_iter()
+      Expression::Literal { value: NumericValue::U64(value), out, .. } => {
+        let ty = out.print(lazy);
+        vec![format!("{value} /* {ty} */")].into_iter()
       },
     }
   }

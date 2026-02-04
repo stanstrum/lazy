@@ -1,3 +1,5 @@
+type char := u8
+
 other_function -> bool
   char argument_1
   u8 argument_2

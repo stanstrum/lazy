@@ -131,7 +131,10 @@ impl<'a> Reference<'a> for TypeReference {
       TypeReference::Alias { module, index } => {
         &mut parent[*module].aliases.get_mut(*index).unwrap().ty
       },
-      _ => todo!(),
+      TypeReference::Block(block) => {
+        &mut block.rget_from_mut(parent).out
+      },
+      other => todo!("{other:?}"),
     }
   }
 }

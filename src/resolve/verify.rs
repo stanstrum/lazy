@@ -67,8 +67,8 @@ fn verify_function(lazy: &Lazy, function: lang::module::FunctionId) -> Result<()
       span: function_ref.header.ret_ty.get_span(lazy),
     })?;
   } else {
-    let last_expr = function_ref[body].children.last().unwrap();
-    let expr_type = type_of_expect(lazy, function, *last_expr)?;
+    let &index = function_ref[body].children.last().unwrap();
+    let expr_type = type_of_expect(lazy, &ExpressionReference { function, index })?;
 
     coerce::assert_assignable(lazy, &ret_ty, &expr_type)?;
   };

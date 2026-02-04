@@ -6,7 +6,7 @@ mod coerce;
 
 use std::collections::VecDeque;
 
-use crate::resolve::coerce::IsResolved;
+use crate::resolve::coerce::{Coerce, IsResolved};
 use crate::resolve::reference::{BlockReference, ExpressionReference};
 use crate::resolve::task::{DoTask, Tasks};
 use crate::tokenize::token::Span;
@@ -171,7 +171,8 @@ fn resolve_function<'pool>(
 ) -> Result<bool, Box<Error>> {
   let mut did_work = false;
 
-  did_work |= resolve_type(lazy, &TypeReference::ReturnTypeOf(function), tasks)?;
+  let ret_ty = TypeReference::ReturnTypeOf(function);
+  did_work |= resolve_type(lazy, &ret_ty, tasks)?;
 
   let arguments_count = lazy[function].header.arguments.len();
   for index in 0..arguments_count {
@@ -180,6 +181,10 @@ fn resolve_function<'pool>(
   };
 
   did_work |= resolve_block_expr(lazy, function, lazy[function].body, tasks)?;
+
+  let block = lazy[function].body;
+  let block_reference = BlockReference { function, block };
+  lazy[function][block].coerce(lazy, &block_reference, &ret_ty, tasks)?;
 
   Ok(did_work)
 }
@@ -214,6 +219,7 @@ pub fn resolve<'pool>(
 
   while resolve_module(lazy, entry, &mut tasks)? {
     while let Some(task) = tasks.pop_front() {
+      dbg!(&task);
       task.this.apply(lazy, &mut tasks)?;
 
       for this in task.and_then.into_iter() {

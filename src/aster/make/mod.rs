@@ -131,9 +131,7 @@ pub(super) fn make<'pool, const N: usize, T: Read>(
     };
 
     match structure {
-      structure::Structure::Function(function) => {
-        lazy.add_function(stream.id, function);
-      },
+      structure::Structure::Function(_) => {},
       structure::Structure::TypeAlias(alias) => {
         lazy[stream.id].aliases.push(alias);
       },

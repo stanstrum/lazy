@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use crate::lang::{self, Lazy};
 use crate::resolve::coerce::Coerce;
-use crate::resolve::reference::{BlockReference, ExpressionReference, Reference, TypeReference};
+use crate::resolve::reference::{Reference, TypeReference};
 
 use super::Error;
 

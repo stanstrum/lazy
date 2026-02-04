@@ -1,3 +1,5 @@
+use crate::lang::Lazy;
+use crate::resolve::reference::{BlockReference, ExpressionReference, Reference};
 use crate::tokenize::token::{NumericValue, Span};
 use crate::lang::ty::Type;
 use crate::lang::function::{BlockId, ExprId};
@@ -28,5 +30,19 @@ impl BlockExpression {
       returns_last: false,
       out,
     }
+  }
+}
+
+impl BlockReference {
+  pub fn get_return_last(&self, lazy: &Lazy) -> Option<ExpressionReference> {
+    let block = self.rget_from(lazy);
+
+    if !block.returns_last {
+      return None;
+    };
+
+    let &index = block.children.last().unwrap();
+
+    Some(ExpressionReference { function: self.function, index })
   }
 }

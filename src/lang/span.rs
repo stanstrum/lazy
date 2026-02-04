@@ -50,7 +50,11 @@ impl GetSpan for Type {
       | Type::WeakInteger { span }
       | Type::WeakFloat { span } => *span,
       Type::Reference(reference) => reference.get_span(parent),
-      _ => todo!(),
+      Type::Expression(reference) => {
+        let function = &parent[reference.function];
+        reference.rget_from(parent).get_span(function)
+      },
+      other => todo!("{other:?}"),
     }
   }
 }

@@ -1,8 +1,8 @@
 use std::fmt::Display;
 
-use crate::lang::module::{ModuleId, Name};
+use crate::lang::module::{Name};
+use crate::lang::reference::{ModuleReference};
 use crate::tokenize::token::Span;
-use crate::resolve::reference::{BlockReference, ExpressionReference, TypeReference};
 
 #[derive(Debug, Clone)]
 pub struct Qualified {
@@ -29,19 +29,19 @@ pub enum Intrinsic {
 
 #[derive(Debug, Clone)]
 pub enum Type {
-  Reference(TypeReference),
+  // Reference(TypeReference),
   Unresolved {
-    module: ModuleId,
+    module: ModuleReference,
     qualified: Qualified,
   },
   Intrinsic {
     kind: Intrinsic,
     span: Span,
   },
-  Resolved {
-    original: Box<Type>,
-    reference: TypeReference,
-  },
+  // Resolved {
+  //   original: Box<Type>,
+  //   reference: TypeReference,
+  // },
   WeakInteger {
     span: Span,
   },
@@ -61,8 +61,8 @@ pub enum Type {
     size: u64,
     span: Span,
   },
-  Expression(ExpressionReference),
-  Block(BlockReference),
+  // Expression(ExpressionReference),
+  // Block(BlockReference),
 }
 
 impl Intrinsic {

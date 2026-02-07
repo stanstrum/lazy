@@ -1,7 +1,8 @@
 use std::ops::{Index, IndexMut};
 
 use crate::lang::expr::{BlockExpression, Expression};
-use crate::lang::module::{ModuleId, Name};
+use crate::lang::module::Name;
+use crate::lang::reference::{BlockReference, ModuleReference};
 use crate::lang::ty::Type;
 use crate::tokenize::token::Span;
 
@@ -23,41 +24,42 @@ pub struct FunctionHeader {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ExprId(usize);
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BlockId(usize);
 
 #[derive(Debug)]
 pub struct Function {
-  pub parent: ModuleId,
+  pub parent: ModuleReference,
   pub header: FunctionHeader,
-  pub body: BlockId,
+  pub body: BlockReference,
   pub blocks: Vec<BlockExpression>,
   pub exprs: Vec<Expression>,
   pub span: Span,
 }
 
 impl Function {
-  pub fn new(parent: ModuleId, header: FunctionHeader) -> (Self, BlockId) {
-    let temp_span = header.span;
-    let blocks = vec![BlockExpression::new(
-      temp_span,
-      Type::Intrinsic {
-        kind: crate::lang::ty::Intrinsic::Void,
-        span: temp_span,
-      },
-    )];
-    let body = BlockId(0);
+  pub fn new(parent: ModuleReference, header: FunctionHeader) -> Self {
+    todo!()
+    // let temp_span = header.span;
+    // let blocks = vec![BlockExpression::new(
+    //   temp_span,
+    //   Type::Intrinsic {
+    //     kind: crate::lang::ty::Intrinsic::Void,
+    //     span: temp_span,
+    //   },
+    // )];
+    // let body = BlockId(0);
 
-    let function = Self {
-      parent,
-      header,
-      body,
-      blocks,
-      exprs: vec![],
-      span: temp_span,
-    };
+    // let function = Self {
+    //   parent,
+    //   header,
+    //   body,
+    //   blocks,
+    //   exprs: vec![],
+    //   span: temp_span,
+    // };
 
-    (function, body)
+    // (function, body)
   }
 
   pub fn add_block(&mut self, block: BlockExpression) -> BlockId {

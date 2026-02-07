@@ -1,4 +1,3 @@
-use crate::lang::module::ModuleId;
 use crate::lang::span::GetSpan;
 use crate::line_dbg;
 use crate::tokenize::token::Operator;
@@ -68,7 +67,7 @@ fn make_qualified<'pool, const N: usize, T: Read>(
 fn make_reference_to<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  module: ModuleId,
+  module: lang::reference::ModuleReference,
 ) -> Result<Option<lang::ty::Type>, Error> {
   let Some((Token::Operator(Operator::SingleAnd), mut span)) = stream.peek()? else {
     return Ok(None);
@@ -88,7 +87,7 @@ fn make_reference_to<'pool, const N: usize, T: Read>(
 pub(super) fn make_type<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  module: ModuleId,
+  module: lang::reference::ModuleReference,
 ) -> Result<Option<lang::ty::Type>, Error> {
   if let Some(qualified) = make_qualified(stream)? {
     Ok(Some(lang::ty::Type::Unresolved { module, qualified }))

@@ -1,4 +1,4 @@
-use crate::lang::module::ModuleId;
+use crate::lang::reference::ModuleReference;
 use crate::string_pool::{CommentId, PoolId};
 use crate::aster::bufreader::Metadata;
 
@@ -32,7 +32,7 @@ macro_rules! string_enum {
 pub struct Span {
   pub start: Position,
   pub end: Position,
-  pub module: ModuleId,
+  pub module: ModuleReference,
 }
 
 pub type TokenSpan = (Token, Span);

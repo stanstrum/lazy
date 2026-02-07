@@ -1,20 +1,20 @@
 use crate::line_dbg;
-use crate::lang::{module::ModuleId, span::GetSpan};
+use crate::lang::span::GetSpan;
 use crate::tokenize::token::{Keyword, Operator};
 
 use super::*;
 
 #[derive(Debug)]
 pub enum Structure {
-  Function(lang::module::FunctionId),
-  TypeAlias(lang::module::TypeAlias),
+  Function(lang::reference::FunctionReference),
+  TypeAlias(lang::reference::AliasReference),
 }
 
 fn make_type_alias<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  parent: ModuleId,
-) -> Result<Option<lang::module::TypeAlias>, Error> {
+  parent: lang::reference::ModuleReference,
+) -> Result<Option<lang::reference::AliasReference>, Error> {
   let Some((Token::Keyword(Keyword::Type), start_span)) = stream.peek()? else {
     return Ok(None);
   };
@@ -44,24 +44,21 @@ fn make_type_alias<'pool, const N: usize, T: Read>(
   let mut span = start_span;
   span.extend(ty.get_span(lazy));
 
-  Ok(Some(lang::module::TypeAlias {
-    name,
-    ty,
-    span,
-  }))
+  lazy.rget(parent);
+
+  Ok(Some(todo!()))
 }
 
 pub(super) fn make_structure<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  parent: ModuleId,
+  parent: lang::reference::ModuleReference,
 ) -> Result<Option<Structure>, Error> {
-  #[allow(clippy::manual_map)]
-  Ok(if let Some(function) = function::make_function(lazy, stream, parent)? {
-    Some(Structure::Function(function))
+  if let Some(function) = function::make_function(lazy, stream, parent)? {
+    Ok(Some(Structure::Function(function)))
   } else if let Some(alias) = make_type_alias(lazy, stream, parent)? {
-    Some(Structure::TypeAlias(alias))
+    Ok(Some(Structure::TypeAlias(alias)))
   } else {
-    None
-  })
+    Ok(None)
+  }
 }

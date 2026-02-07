@@ -1,7 +1,6 @@
 use crate::lang::span::GetSpan;
 use crate::line_dbg;
 
-use crate::lang::module::ModuleId;
 use crate::tokenize::token::Operator;
 
 use std::cmp::Ordering;
@@ -10,7 +9,7 @@ use super::*;
 fn make_function_argument<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  parent: ModuleId,
+  parent: lang::reference::ModuleReference,
 ) -> Result<Option<lang::function::FunctionArgument>, Error> {
   let Some(ty) = ty::make_type(lazy, stream, parent)? else {
     return Ok(None);
@@ -37,7 +36,7 @@ fn make_function_argument<'pool, const N: usize, T: Read>(
 fn make_function_header<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  parent: ModuleId,
+  parent: lang::reference::ModuleReference,
 ) -> Result<Option<lang::function::FunctionHeader>, Error> {
   let Some(name) = make_name(stream)? else {
     return Ok(None);
@@ -107,13 +106,13 @@ fn make_function_header<'pool, const N: usize, T: Read>(
 pub(super) fn make_function<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  parent: ModuleId,
-) -> Result<Option<lang::module::FunctionId>, Error> {
+  parent: lang::reference::ModuleReference,
+) -> Result<Option<lang::reference::FunctionReference>, Error> {
   let Some(header) = make_function_header(lazy, stream, parent)? else {
     return Ok(None);
   };
 
-  let (function, body) = lang::function::Function::new(parent, header);
+  let function = lang::function::Function::new(parent, header);
   let mut non_return_last = None;
 
   let function_id = lazy.add_function(parent, function);
@@ -143,7 +142,7 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
     let Some(expr) = expr::make_expr(lazy, stream, function_id)? else {
       return stream.expected_here(line_dbg!("an expression"));
     };
-    let id = lazy[function_id].add_expr_to_block(expr, body);
+    let id = todo!() /* lazy.rget_mut(function_id).add_expr_to_block(expr, body) */;
 
     stream.skip_whitespace_and_comments()?;
 
@@ -175,11 +174,12 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
     };
   };
 
-  lazy[function_id][body].returns_last = !non_return_last.is_some_and(
-    |id| id == *lazy[function_id][body].children.last().unwrap()
-  );
+  todo!();
+  // lazy[function_id][body].returns_last = !non_return_last.is_some_and(
+  //   |id| id == *lazy[function_id][body].children.last().unwrap()
+  // );
 
-  lazy[function_id].span.end = stream.here()?.start;
+  // lazy[function_id].span.end = stream.here()?.start;
 
   Ok(Some(function_id))
 }

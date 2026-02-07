@@ -7,6 +7,7 @@ use std::io::Read;
 
 use crate::aster::pprint::Pretty;
 use crate::lang;
+use crate::lang::reference::Store;
 use crate::tokenize::token::{Span, Token, TokenSpan};
 use crate::aster::Rereader;
 
@@ -126,15 +127,13 @@ pub(super) fn make<'pool, const N: usize, T: Read>(
       continue;
     };
 
-    let Some(structure) = structure::make_structure(lazy, stream, stream.id)? else {
+    let Some(structure) = structure::make_structure(lazy, stream, stream.module)? else {
       return stream.expected_here(line_dbg!("a top-level structure"));
     };
 
     match structure {
       structure::Structure::Function(_) => {},
-      structure::Structure::TypeAlias(alias) => {
-        lazy[stream.id].aliases.push(alias);
-      },
+      structure::Structure::TypeAlias(_) => {},
     };
   };
 

@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 
 use crate::lang::module::ModulePath;
+use crate::lang::reference::Store;
 use crate::tokenize::token::{Position, Token, TokenSpan};
 
 use super::*;
@@ -163,7 +164,7 @@ fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec
   let mut reader = BufReader::new(file);
 
   // Get reference to the tokens saved by the asterizer
-  let tokens = &lazy[*tokens];
+  let tokens = lazy.rget(*tokens);
   let mut colorizer = Colorizer { tokens };
 
   // We'll track where we are in the file once we start

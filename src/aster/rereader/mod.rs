@@ -1,9 +1,7 @@
 use std::io::Read;
 use std::collections::VecDeque;
 
-use crate::tokenize::token::Token;
-use crate::tokenize::{Tokenizer, token::TokenSpan};
-use crate::lang::module::ModuleId;
+use crate::{lang::reference::ModuleReference, tokenize::{Tokenizer, token::{Token, TokenSpan}}};
 
 use super::Error;
 
@@ -12,16 +10,16 @@ pub struct Mark(usize);
 
 #[derive(Debug)]
 pub struct Rereader<'pool, const N: usize, T: Read> {
-  pub id: ModuleId,
+  pub module: ModuleReference,
   pub queue: VecDeque<TokenSpan>,
   index: usize,
   stream: Tokenizer<'pool, N, T>,
 }
 
 impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
-  pub fn new(stream: Tokenizer<'pool, N, T>, id: ModuleId) -> Self {
+  pub fn new(stream: Tokenizer<'pool, N, T>, module: ModuleReference) -> Self {
     Self {
-      id,
+      module,
       queue: VecDeque::new(),
       index: 0,
       stream,

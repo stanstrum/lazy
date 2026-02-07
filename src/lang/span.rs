@@ -1,5 +1,4 @@
 use crate::lang::Lazy;
-use crate::resolve::reference::{Reference, TypeReference};
 use crate::tokenize::token::Span;
 use crate::lang::ty::{Intrinsic, Type};
 use crate::lang::module::Module;
@@ -28,13 +27,13 @@ impl GetSpan for Function {
   }
 }
 
-impl GetSpan for TypeReference {
-  type Parent<'a> = Lazy<'a>;
+// impl GetSpan for TypeReference {
+//   type Parent<'a> = Lazy<'a>;
 
-  fn get_span(&self, parent: &Self::Parent<'_>) -> Span {
-    self.rget_from(parent).get_span(parent)
-  }
-}
+//   fn get_span(&self, parent: &Self::Parent<'_>) -> Span {
+//     self.rget_from(parent).get_span(parent)
+//   }
+// }
 
 impl GetSpan for Type {
   type Parent<'a> = Lazy<'a>;
@@ -42,19 +41,19 @@ impl GetSpan for Type {
   fn get_span(&self, parent: &Lazy) -> Span {
     match self {
       Type::Unresolved { qualified, .. } => qualified.span,
-      Type::Resolved { original, .. } => original.get_span(parent),
+      // Type::Resolved { original, .. } => original.get_span(parent),
       | Type::ReferenceTo { span, .. }
       | Type::SizedArrayOf { span, .. }
       | Type::UnsizedArrayOf { span, .. }
       | Type::Intrinsic { span, .. }
       | Type::WeakInteger { span }
       | Type::WeakFloat { span } => *span,
-      Type::Reference(reference) => reference.get_span(parent),
-      Type::Expression(reference) => {
-        let function = &parent[reference.function];
-        reference.rget_from(parent).get_span(function)
-      },
-      other => todo!("{other:?}"),
+      // Type::Reference(reference) => reference.get_span(parent),
+      // Type::Expression(reference) => {
+      //   let function = &parent[reference.function];
+      //   reference.rget_from(parent).get_span(function)
+      // },
+      // other => todo!("{other:?}"),
     }
   }
 }

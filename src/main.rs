@@ -3,7 +3,6 @@ mod string_pool;
 mod lang;
 mod tokenize;
 mod aster;
-mod resolve;
 
 mod error;
 mod settings;
@@ -12,6 +11,7 @@ use std::process::ExitCode;
 
 use lang::Lazy;
 
+use crate::lang::reference::Store;
 use crate::string_pool::StringPool;
 
 use crate::aster::pprint::Pretty;
@@ -38,13 +38,13 @@ fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
       break 'error Err(err.into());
     };
 
-    if let Err(err) = resolve::resolve(&mut lazy, global) {
-      break 'error Err((*err).into());
-    };
+    // if let Err(err) = resolve::resolve(&mut lazy, global) {
+    //   break 'error Err((*err).into());
+    // };
 
     match verb {
       settings::Verb::Check => {
-        let source = lazy[global].print(&lazy)
+        let source = lazy.rget(global).print(&lazy)
           .map(|s| format!(line_dbg!("{}"), s))
           .collect::<Vec<_>>()
           .join("\n");

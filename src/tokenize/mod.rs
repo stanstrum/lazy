@@ -5,7 +5,7 @@ mod state;
 use std::collections::VecDeque;
 use std::io::Read;
 
-use crate::lang::module::ModuleId;
+use crate::lang::reference::ModuleReference;
 use crate::aster::bufreader::{BufferedUtf8MetadataReader};
 use crate::string_pool::StringPool;
 
@@ -15,7 +15,7 @@ use token::{Position, Span, Token, TokenSpan};
 #[derive(Debug)]
 pub struct Tokenizer<'pool, const N: usize, T: Read> {
   pool: &'pool StringPool,
-  id: ModuleId,
+  module: ModuleReference,
   meta_reader: BufferedUtf8MetadataReader<N, T>,
   state: State,
   next: Option<char>,
@@ -32,12 +32,12 @@ pub enum Error {
 }
 
 impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
-  pub fn new(pool: &'pool StringPool, id: ModuleId, meta_reader: BufferedUtf8MetadataReader<N, T>) -> Self {
+  pub fn new(pool: &'pool StringPool, module: ModuleReference, meta_reader: BufferedUtf8MetadataReader<N, T>) -> Self {
     let start_and_end = Position::new();
 
     Self {
       pool,
-      id,
+      module,
       meta_reader,
       state: State::Base,
       next: None,
@@ -45,7 +45,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
       indentation: 0,
       ended: false,
       last_span: Span {
-        module: id,
+        module,
         start: start_and_end,
         end: start_and_end,
       },
@@ -91,7 +91,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
     let span = Span {
       start,
       end: self.pos(),
-      module: self.id,
+      module: self.module,
     };
     self.toks.push_back((tok, span));
   }

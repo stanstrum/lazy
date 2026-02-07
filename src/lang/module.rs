@@ -1,17 +1,12 @@
 use std::path::PathBuf;
 
+use crate::lang::reference::{ModuleReference, FunctionReference};
 use crate::lang::ty::Type;
 use crate::string_pool::PoolId;
 use crate::tokenize::token::Span;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct ModuleId(pub usize);
-
 #[derive(Debug, Clone, Copy)]
 pub struct TokensId(pub usize);
-
-#[derive(Debug, Clone, Copy)]
-pub struct FunctionId(pub usize);
 
 #[derive(Debug)]
 pub struct ModulePath {
@@ -22,14 +17,14 @@ pub struct ModulePath {
 #[derive(Debug)]
 pub enum ModuleParent {
   Path(ModulePath),
-  Module(ModuleId),
+  Module(ModuleReference),
 }
 
 #[derive(Debug)]
 pub struct Module {
   pub name: PoolId,
-  pub modules: Vec<ModuleId>,
-  pub functions: Vec<FunctionId>,
+  pub modules: Vec<ModuleReference>,
+  pub functions: Vec<FunctionReference>,
   pub parent: ModuleParent,
   pub aliases: Vec<TypeAlias>,
 }

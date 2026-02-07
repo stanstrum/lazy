@@ -1,5 +1,5 @@
 use crate::lang::expr::{BlockExpression, Expression};
-use crate::resolve::reference::{Reference, TypeReference};
+use crate::lang::reference::Store;
 use crate::string_pool::PoolId;
 
 use crate::lang::Lazy;
@@ -22,20 +22,20 @@ impl Pretty for PoolId {
   }
 }
 
-impl Pretty for TypeReference {
-  type Out = String;
+// impl Pretty for TypeReference {
+//   type Out = String;
 
-  fn print(&self, lazy: &Lazy) -> Self::Out {
-    self.rget_from(lazy).print(lazy)
-  }
-}
+//   fn print(&self, lazy: &Lazy) -> Self::Out {
+//     self.rget_from(lazy).print(lazy)
+//   }
+// }
 
 impl Pretty for Type {
   type Out = String;
 
   fn print(&self, lazy: &Lazy) -> Self::Out {
     match self {
-      Type::Reference(reference) => reference.print(lazy),
+      // Type::Reference(reference) => reference.print(lazy),
       Type::Unresolved { qualified, .. } => {
         let mut out = String::new();
 
@@ -54,23 +54,23 @@ impl Pretty for Type {
         out
       },
       Type::Intrinsic { kind, .. } => kind.to_string(),
-      Type::Resolved { original, reference } => {
-        format!("/* {deferred} */ {original}",
-          deferred = reference.print(lazy),
-          original = original.print(lazy),
-        )
-      },
+      // Type::Resolved { original, reference } => {
+      //   format!("/* {deferred} */ {original}",
+      //     deferred = reference.print(lazy),
+      //     original = original.print(lazy),
+      //   )
+      // },
       Type::WeakFloat { .. } => "{float}".into(),
       Type::WeakInteger { .. } => "{weak integer}".into(),
       Type::ReferenceTo { ty, .. } => format!("&{}", ty.print(lazy)),
       Type::SizedArrayOf { ty, size, .. } => format!("[{size}]{}", ty.print(lazy)),
       Type::UnsizedArrayOf { ty, .. } => format!("[]{}", ty.print(lazy)),
-      Type::Expression(expression) => {
-        let fname = lazy[expression.function].header.name.print(lazy);
-        let index = expression.index;
-        format!("/* typeof {fname}:{index:?} */")
-      },
-      other => todo!("{other:?}"),
+      // Type::Expression(expression) => {
+      //   let fname = lazy[expression.function].header.name.print(lazy);
+      //   let index = expression.index;
+      //   format!("/* typeof {fname}:{index:?} */")
+      // },
+      // other => todo!("{other:?}"),
     }
   }
 }
@@ -162,7 +162,7 @@ impl Pretty for Function {
     };
 
     lines.push("".into());
-    let block = &self[self.body];
+    let block = lazy.rget(self.body);
     if !block.children.is_empty() {
       for &child in block.children.iter() {
         for line in self[child].print_with(self, lazy) {
@@ -196,27 +196,27 @@ impl Pretty for Module {
       lines.push(format!("  type {name} := {ty}"));
     };
 
-    for (i, &id) in self.modules.iter().enumerate() {
-      let module = &lazy[id];
+    for (i, &module) in self.modules.iter().enumerate() {
+      let module_ref = lazy.rget(module);
 
       if i != 0 {
         lines.push("".into());
       };
 
-      lines.push(format!("  /* {} */", lazy.describe_module(id)));
-      for line in module.print(lazy) {
+      lines.push(format!("  /* {} */", lazy.describe_module(module)));
+      for line in module_ref.print(lazy) {
         lines.push(format!("  {line}"));
       };
     };
 
-    for (i, &id) in self.functions.iter().enumerate() {
-      let function = &lazy[id];
+    for (i, &function) in self.functions.iter().enumerate() {
+      let function_ref = lazy.rget(function);
 
       if i != 0 {
         lines.push("".into());
       };
 
-      for line in function.print(lazy) {
+      for line in function_ref.print(lazy) {
         lines.push(format!("  {line}"));
       };
     };

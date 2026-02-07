@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::io::Read;
 
-use crate::resolve::reference::ExpressionReference;
+use crate::lang::reference::Store;
 use crate::{lang, line_dbg};
 use crate::aster::Rereader;
 use crate::tokenize::token::{self, GroupingKind, GroupingType, Operator, Span, Token};
@@ -11,7 +11,7 @@ use super::Error;
 fn make_block<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  function: lang::module::FunctionId,
+  function: lang::reference::FunctionReference,
 ) -> Result<Option<lang::function::BlockId>, Error> {
   let indenter = stream.indenter_here()?;
 
@@ -29,7 +29,7 @@ fn make_block<'pool, const N: usize, T: Read>(
 
     let span = Span::from_pair(start, end);
 
-    return Ok(Some(lazy[function].add_block(lang::expr::BlockExpression {
+    return Ok(Some(lazy.rget_mut(function).add_block(lang::expr::BlockExpression {
       children: vec![],
       span: Span::from_pair(start, end),
       returns_last: false,
@@ -69,7 +69,7 @@ fn make_block<'pool, const N: usize, T: Read>(
     let Some(expr) = make_expr(lazy, stream, function)? else {
       return stream.expected_here(line_dbg!("an expression"));
     };
-    let id = lazy[function].add_expr(expr);
+    let id = lazy.rget_mut(function).add_expr(expr);
     children.push(id);
 
     indenter.peek(stream)?;
@@ -118,7 +118,7 @@ fn make_block<'pool, const N: usize, T: Read>(
     |id| id == *children.last().unwrap()
   );
 
-  let out = if returns_last {
+  let out = todo!() /* if returns_last {
     let &index = lazy[function][lazy[function].body].children.last().unwrap();
     let reference = ExpressionReference { function, index };
     lang::ty::Type::Expression(reference)
@@ -127,9 +127,9 @@ fn make_block<'pool, const N: usize, T: Read>(
       kind: lang::ty::Intrinsic::Void,
       span,
     }
-  };
+  } */;
 
-  Ok(Some(lazy[function].add_block(lang::expr::BlockExpression {
+  Ok(Some(lazy.rget_mut(function).add_block(lang::expr::BlockExpression {
     children,
     span,
     returns_last,
@@ -158,7 +158,7 @@ pub(super) fn make_literal<'pool, const N: usize, T: Read>(
 pub(super) fn make_expr<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  function: lang::module::FunctionId,
+  function: lang::reference::FunctionReference,
 ) -> Result<Option<lang::expr::Expression>, Error> {
   if let Some(block) = make_block(lazy, stream, function)? {
     Ok(Some(lang::expr::Expression::BlockExpression(block)))

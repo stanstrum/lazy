@@ -12,6 +12,7 @@ pub struct Qualified {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[allow(unused)]
 pub enum Intrinsic {
   Void,
   Bool,

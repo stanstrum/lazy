@@ -3,7 +3,7 @@ mod impls;
 use crate::lang::Lazy;
 use crate::lang::expr::{BlockExpression, Expression};
 use crate::lang::function::{BlockId, ExprId, Function};
-use crate::lang::module::{Module, TokensId, TypeAlias};
+use crate::lang::module::{Module, TokensId, TypeAlias, TypePartId};
 use crate::tokenize::token::TokenSpan;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -22,8 +22,12 @@ pub struct BlockReference(pub FunctionReference, pub BlockId);
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ExpressionReference(pub FunctionReference, pub ExprId);
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TypePartReference(pub ModuleReference, pub TypePartId);
+
 #[derive(Debug)]
 pub enum TypeReference {
+  Part(TypePartReference),
   ReturnTypeOf(FunctionReference),
 }
 

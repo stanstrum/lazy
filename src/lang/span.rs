@@ -1,4 +1,5 @@
 use crate::lang::Lazy;
+use crate::lang::reference::{Reference, TypePartReference};
 use crate::tokenize::token::Span;
 use crate::lang::ty::{Intrinsic, Type};
 use crate::lang::module::Module;
@@ -34,6 +35,14 @@ impl GetSpan for Function {
 //     self.rget_from(parent).get_span(parent)
 //   }
 // }
+
+impl GetSpan for TypePartReference {
+  type Parent<'a> = Lazy<'a>;
+
+  fn get_span(&self, parent: &Self::Parent<'_>) -> Span {
+    self.rget_from(parent).get_span(parent)
+  }
+}
 
 impl GetSpan for Type {
   type Parent<'a> = Lazy<'a>;

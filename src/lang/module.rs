@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
-use crate::lang::reference::{ModuleReference, FunctionReference};
+use crate::lang::Lazy;
+use crate::lang::reference::{FunctionReference, ModuleReference, Reference, TypePartReference};
 use crate::lang::ty::Type;
 use crate::string_pool::PoolId;
 use crate::tokenize::token::Span;
@@ -20,6 +21,9 @@ pub enum ModuleParent {
   Module(ModuleReference),
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TypePartId(pub usize);
+
 #[derive(Debug)]
 pub struct Module {
   pub name: PoolId,
@@ -27,8 +31,8 @@ pub struct Module {
   pub functions: Vec<FunctionReference>,
   pub parent: ModuleParent,
   pub aliases: Vec<TypeAlias>,
+  pub type_parts: Vec<Type>,
 }
-
 
 #[derive(Debug)]
 pub struct TypeAlias {
@@ -51,6 +55,18 @@ impl Module {
       modules: vec![],
       functions: vec![],
       aliases: vec![],
+      type_parts: vec![],
     }
+  }
+}
+
+impl ModuleReference {
+  pub fn add_type_part(&self, part: Type, lazy: &mut Lazy) -> TypePartReference {
+    let module_ref = self.rget_from_mut(lazy);
+
+    let id = TypePartId(module_ref.type_parts.len());
+    module_ref.type_parts.push(part);
+
+    TypePartReference(*self, id)
   }
 }

@@ -1,5 +1,5 @@
 use crate::lang::expr::{BlockExpression, Expression};
-use crate::lang::reference::Store;
+use crate::lang::reference::{Reference, Store, TypePartReference};
 use crate::string_pool::PoolId;
 
 use crate::lang::Lazy;
@@ -29,6 +29,14 @@ impl Pretty for PoolId {
 //     self.rget_from(lazy).print(lazy)
 //   }
 // }
+
+impl Pretty for TypePartReference {
+  type Out = String;
+
+  fn print(&self, lazy: &Lazy) -> Self::Out {
+    self.rget_from(lazy).print(lazy)
+  }
+}
 
 impl Pretty for Type {
   type Out = String;

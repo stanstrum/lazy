@@ -1,3 +1,5 @@
+use crate::lang::ty::Type;
+
 use super::*;
 
 impl<'a> Store<ModuleReference> for Lazy<'a> {
@@ -69,5 +71,17 @@ impl<'a> Store<TokensId> for Lazy<'a> {
 
   fn rget_mut(&mut self, TokensId(index): TokensId) -> &mut Self::Out {
     self.tokens.get_mut(index).unwrap()
+  }
+}
+
+impl<'a> Store<TypePartReference> for Lazy<'a> {
+  type Out = Type;
+
+  fn rget(&self, TypePartReference(module, TypePartId(index)): TypePartReference) -> &Self::Out {
+    self.rget(module).type_parts.get(index).unwrap()
+  }
+
+  fn rget_mut(&mut self, TypePartReference(module, TypePartId(index)): TypePartReference) -> &mut Self::Out {
+    self.rget_mut(module).type_parts.get_mut(index).unwrap()
   }
 }

@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use crate::lang::module::{Name};
-use crate::lang::reference::{ExpressionReference, ModuleReference};
+use crate::lang::reference::{ExpressionReference, ModuleReference, TypePartReference};
 use crate::tokenize::token::Span;
 
 #[derive(Debug, Clone)]
@@ -49,15 +49,15 @@ pub enum Type {
     span: Span,
   },
   ReferenceTo {
-    ty: Box<Type>,
+    ty: TypePartReference,
     span: Span,
   },
   UnsizedArrayOf {
-    ty: Box<Type>,
+    ty: TypePartReference,
     span: Span,
   },
   SizedArrayOf {
-    ty: Box<Type>,
+    ty: TypePartReference,
     size: u64,
     span: Span,
   },

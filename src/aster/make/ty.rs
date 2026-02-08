@@ -75,9 +75,11 @@ fn make_reference_to<'pool, const N: usize, T: Read>(
   stream.seek();
   stream.skip_whitespace_and_comments()?;
 
-  let Some(ty) = make_type(lazy, stream, module)?.map(Box::new) else {
+  let Some(ty) = make_type(lazy, stream, module)? else {
     return stream.expected_here(line_dbg!("a type"))?;
   };
+
+  let ty = module.add_type_part(ty, lazy);
 
   span.extend(ty.get_span(lazy));
 

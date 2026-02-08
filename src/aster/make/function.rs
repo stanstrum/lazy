@@ -1,3 +1,4 @@
+use crate::lang::reference::{ExpressionReference, FunctionReference, Reference};
 use crate::lang::span::GetSpan;
 use crate::line_dbg;
 
@@ -112,10 +113,8 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
     return Ok(None);
   };
 
-  let function = lang::function::Function::new(parent, header);
+  let function = lazy.create_function(parent, header);
   let mut non_return_last = None;
-
-  let function_id = lazy.add_function(parent, function);
 
   loop {
     stream.skip_whitespace_and_comments()?;
@@ -139,10 +138,14 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
       };
     };
 
-    let Some(expr) = expr::make_expr(lazy, stream, function_id)? else {
+    let Some(expr) = expr::make_expr(lazy, stream, function)? else {
       return stream.expected_here(line_dbg!("an expression"));
     };
-    let id = todo!() /* lazy.rget_mut(function_id).add_expr_to_block(expr, body) */;
+
+    let id = {
+      let function_ref = lazy.rget_mut(function);
+      function_ref.add_expr_to_block(expr, function_ref.body)
+    };
 
     stream.skip_whitespace_and_comments()?;
 
@@ -174,12 +177,13 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
     };
   };
 
-  todo!();
-  // lazy[function_id][body].returns_last = !non_return_last.is_some_and(
-  //   |id| id == *lazy[function_id][body].children.last().unwrap()
-  // );
+  if let Some(ExpressionReference(_, last_id)) = function.last_expr(lazy) {
+    function.get_body_mut(lazy).returns_last = !non_return_last.is_some_and(
+      |id| id == last_id
+    );
+  };
 
-  // lazy[function_id].span.end = stream.here()?.start;
+  function.rget_from_mut(lazy).span.end = stream.here()?.start;
 
-  Ok(Some(function_id))
+  Ok(Some(function))
 }

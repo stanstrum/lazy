@@ -1,38 +1,6 @@
-use crate::lang::Lazy;
-use crate::lang::expr::{BlockExpression, Expression};
-use crate::lang::function::{BlockId, ExprId, Function};
-use crate::lang::module::{Module, TokensId, TypeAlias};
-use crate::tokenize::token::TokenSpan;
+use super::*;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct FunctionReference(pub usize);
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct AliasReference(pub ModuleReference, pub usize);
-
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct ModuleReference(pub usize);
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct BlockReference(pub FunctionReference, pub BlockId);
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct ExpressionReference(pub FunctionReference, pub ExprId);
-
-#[derive(Debug)]
-pub enum TypeReference {
-  ReturnTypeOf(FunctionReference),
-}
-
-pub trait Store<'a, Item> where Self: 'a {
-  type Out: 'a;
-
-  fn rget(&self, key: Item) -> &Self::Out;
-  fn rget_mut(&mut self, key: Item) -> &mut Self::Out;
-}
-
-impl<'a> Store<'a, ModuleReference> for Lazy<'a> {
+impl<'a> Store<ModuleReference> for Lazy<'a> {
   type Out = Module;
 
   fn rget(&self, ModuleReference(index): ModuleReference) -> &Self::Out {
@@ -44,7 +12,7 @@ impl<'a> Store<'a, ModuleReference> for Lazy<'a> {
   }
 }
 
-impl<'a> Store<'a, AliasReference> for Lazy<'a> {
+impl<'a> Store<AliasReference> for Lazy<'a> {
   type Out = TypeAlias;
 
   fn rget(&self, AliasReference(module, index): AliasReference) -> &Self::Out {
@@ -56,7 +24,7 @@ impl<'a> Store<'a, AliasReference> for Lazy<'a> {
   }
 }
 
-impl<'a> Store<'a, FunctionReference> for Lazy<'a> {
+impl<'a> Store<FunctionReference> for Lazy<'a> {
   type Out = Function;
 
   fn rget(&self, FunctionReference(index): FunctionReference) -> &Self::Out {
@@ -68,7 +36,7 @@ impl<'a> Store<'a, FunctionReference> for Lazy<'a> {
   }
 }
 
-impl<'a> Store<'a, BlockReference> for Lazy<'a> {
+impl<'a> Store<BlockReference> for Lazy<'a> {
   type Out = BlockExpression;
 
   fn rget(&self, BlockReference(function, id): BlockReference) -> &Self::Out {
@@ -80,7 +48,7 @@ impl<'a> Store<'a, BlockReference> for Lazy<'a> {
   }
 }
 
-impl<'a> Store<'a, ExpressionReference> for Lazy<'a> {
+impl<'a> Store<ExpressionReference> for Lazy<'a> {
   type Out = Expression;
 
   fn rget(&self, ExpressionReference(function, id): ExpressionReference) -> &Self::Out {
@@ -92,7 +60,7 @@ impl<'a> Store<'a, ExpressionReference> for Lazy<'a> {
   }
 }
 
-impl<'a> Store<'a, TokensId> for Lazy<'a> {
+impl<'a> Store<TokensId> for Lazy<'a> {
   type Out = Vec<TokenSpan>;
 
   fn rget(&self, TokensId(index): TokensId) -> &Self::Out {

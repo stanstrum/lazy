@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use crate::lang::module::{Name};
-use crate::lang::reference::{ModuleReference};
+use crate::lang::reference::{ExpressionReference, ModuleReference};
 use crate::tokenize::token::Span;
 
 #[derive(Debug, Clone)]
@@ -61,7 +61,7 @@ pub enum Type {
     size: u64,
     span: Span,
   },
-  // Expression(ExpressionReference),
+  Expression(ExpressionReference),
   // Block(BlockReference),
 }
 

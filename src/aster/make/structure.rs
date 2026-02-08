@@ -1,3 +1,4 @@
+use crate::lang::reference::AliasReference;
 use crate::line_dbg;
 use crate::lang::span::GetSpan;
 use crate::tokenize::token::{Keyword, Operator};
@@ -44,9 +45,17 @@ fn make_type_alias<'pool, const N: usize, T: Read>(
   let mut span = start_span;
   span.extend(ty.get_span(lazy));
 
-  lazy.rget(parent);
+  // TODO: put this into a method
+  let index = lazy.rget(parent).aliases.len();
+  let alias_reference = AliasReference(parent, index);
 
-  Ok(Some(todo!()))
+  lazy.rget_mut(parent).aliases.push(lang::module::TypeAlias {
+    name,
+    span,
+    ty,
+  });
+
+  Ok(Some(alias_reference))
 }
 
 pub(super) fn make_structure<'pool, const N: usize, T: Read>(

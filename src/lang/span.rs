@@ -53,7 +53,7 @@ impl GetSpan for Type {
       //   let function = &parent[reference.function];
       //   reference.rget_from(parent).get_span(function)
       // },
-      // other => todo!("{other:?}"),
+      other => todo!("{other:?}"),
     }
   }
 }

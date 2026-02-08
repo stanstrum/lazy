@@ -70,7 +70,7 @@ impl Pretty for Type {
       //   let index = expression.index;
       //   format!("/* typeof {fname}:{index:?} */")
       // },
-      // other => todo!("{other:?}"),
+      other => todo!("{other:?}"),
     }
   }
 }

@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::io::Read;
 
-use crate::lang::reference::Store;
+use crate::lang::reference::{ExpressionReference, Store};
 use crate::{lang, line_dbg};
 use crate::aster::Rereader;
 use crate::tokenize::token::{self, GroupingKind, GroupingType, Operator, Span, Token};
@@ -118,16 +118,18 @@ fn make_block<'pool, const N: usize, T: Read>(
     |id| id == *children.last().unwrap()
   );
 
-  let out = todo!() /* if returns_last {
-    let &index = lazy[function][lazy[function].body].children.last().unwrap();
-    let reference = ExpressionReference { function, index };
+  let out = if returns_last {
+    let function_ref = lazy.rget(function);
+    let body = lazy.rget(function_ref.body);
+    let &index = body.children.last().unwrap();
+    let reference = ExpressionReference(function, index);
     lang::ty::Type::Expression(reference)
   } else {
     lang::ty::Type::Intrinsic {
       kind: lang::ty::Intrinsic::Void,
       span,
     }
-  } */;
+  };
 
   Ok(Some(lazy.rget_mut(function).add_block(lang::expr::BlockExpression {
     children,

@@ -12,7 +12,7 @@ use crate::settings::Settings;
 use crate::settings::format::format_argument;
 use crate::string_pool::StringPool;
 
-use crate::lang::function::Function;
+use crate::lang::function::{Function, FunctionHeader};
 use crate::lang::module::{Module, ModuleParent, ModulePath, TokensId};
 use crate::lang::reference::{FunctionReference, ModuleReference, Store};
 use crate::tokenize::token;
@@ -57,8 +57,9 @@ impl<'a> Lazy<'a> {
     module
   }
 
-  pub fn add_function(&mut self, module: ModuleReference, function: Function) -> FunctionReference {
+  pub fn create_function(&mut self, module: ModuleReference, header: FunctionHeader) -> FunctionReference {
     let function_id = FunctionReference(self.functions.len());
+    let function = Function::new(function_id, module, header);
 
     self.functions.push(function);
     self.rget_mut(module).functions.push(function_id);

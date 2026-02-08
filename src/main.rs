@@ -3,6 +3,7 @@ mod string_pool;
 mod lang;
 mod tokenize;
 mod aster;
+mod resolve;
 
 mod error;
 mod settings;

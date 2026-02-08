@@ -2,7 +2,7 @@ use std::ops::{Index, IndexMut};
 
 use crate::lang::expr::{BlockExpression, Expression};
 use crate::lang::module::Name;
-use crate::lang::reference::{BlockReference, ModuleReference};
+use crate::lang::reference::{BlockReference, FunctionReference, ModuleReference};
 use crate::lang::ty::Type;
 use crate::tokenize::token::Span;
 
@@ -38,28 +38,27 @@ pub struct Function {
 }
 
 impl Function {
-  pub fn new(parent: ModuleReference, header: FunctionHeader) -> Self {
-    todo!()
-    // let temp_span = header.span;
-    // let blocks = vec![BlockExpression::new(
-    //   temp_span,
-    //   Type::Intrinsic {
-    //     kind: crate::lang::ty::Intrinsic::Void,
-    //     span: temp_span,
-    //   },
-    // )];
-    // let body = BlockId(0);
+  pub fn new(function: FunctionReference, parent: ModuleReference, header: FunctionHeader) -> Self {
+    let temp_span = header.span;
+    let blocks = vec![BlockExpression::new(
+      temp_span,
+      Type::Intrinsic {
+        kind: crate::lang::ty::Intrinsic::Void,
+        span: temp_span,
+      },
+    )];
+    let body = BlockReference(function, BlockId(0));
 
-    // let function = Self {
-    //   parent,
-    //   header,
-    //   body,
-    //   blocks,
-    //   exprs: vec![],
-    //   span: temp_span,
-    // };
+    let function = Self {
+      parent,
+      header,
+      body,
+      blocks,
+      exprs: vec![],
+      span: temp_span,
+    };
 
-    // (function, body)
+    function
   }
 
   pub fn add_block(&mut self, block: BlockExpression) -> BlockId {
@@ -76,7 +75,11 @@ impl Function {
     id
   }
 
-  pub fn add_expr_to_block(&mut self, expr: Expression, block: BlockId) -> ExprId {
+  pub fn add_expr_to_block(&mut self, expr: Expression, BlockReference(function, block): BlockReference) -> ExprId {
+    assert!(function == self.body.0,
+      "cannot add an expression using another function's BlockReference",
+    );
+
     let id = self.add_expr(expr);
     self[block].children.push(id);
 

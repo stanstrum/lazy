@@ -4,7 +4,7 @@ mod print;
 use std::io::{BufRead, BufReader, Write};
 use std::fs::File;
 
-use crate::{colorize, line_dbg};
+use crate::colorize;
 use crate::{lang::Lazy, tokenize::token::Span};
 
 pub use print::print_message;

@@ -1,4 +1,3 @@
-use crate::lang::Lazy;
 use crate::tokenize::token::{NumericValue, Span};
 use crate::lang::ty::Type;
 use crate::lang::function::{BlockId, ExprId};

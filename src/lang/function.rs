@@ -49,16 +49,14 @@ impl Function {
     )];
     let body = BlockReference(function, BlockId(0));
 
-    let function = Self {
+    Self {
       parent,
       header,
       body,
       blocks,
       exprs: vec![],
       span: temp_span,
-    };
-
-    function
+    }
   }
 
   pub fn add_block(&mut self, block: BlockExpression) -> BlockId {

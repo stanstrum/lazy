@@ -5,7 +5,6 @@ mod structure;
 
 use std::io::Read;
 
-use crate::aster::pprint::Pretty;
 use crate::lang;
 use crate::lang::reference::Store;
 use crate::tokenize::token::{Span, Token, TokenSpan};

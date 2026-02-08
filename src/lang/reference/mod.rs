@@ -54,9 +54,9 @@ impl FunctionReference {
     self.rget_from(lazy).body
   }
 
-  pub fn get_body<'a>(&self, lazy: &'a Lazy) -> &'a BlockExpression {
-    self.body(lazy).rget_from(lazy)
-  }
+  // pub fn get_body<'a>(&self, lazy: &'a Lazy) -> &'a BlockExpression {
+  //   self.body(lazy).rget_from(lazy)
+  // }
 
   pub fn get_body_mut<'a>(&self, lazy: &'a mut Lazy) -> &'a mut BlockExpression {
     self.body(lazy).rget_from_mut(lazy)

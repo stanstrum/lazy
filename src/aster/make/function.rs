@@ -1,4 +1,4 @@
-use crate::lang::reference::{ExpressionReference, FunctionReference, Reference};
+use crate::lang::reference::{ExpressionReference, Reference};
 use crate::lang::span::GetSpan;
 use crate::line_dbg;
 

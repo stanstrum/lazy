@@ -66,23 +66,23 @@ pub enum Type {
 }
 
 impl Intrinsic {
-  pub fn try_from_str(str: &str) -> Option<Self> {
-    match str {
-      "void" => Some(Self::Void),
-      "bool" => Some(Self::Bool),
-      "u8" => Some(Self::U8),
-      "u16" => Some(Self::U16),
-      "u32" => Some(Self::U32),
-      "u64" => Some(Self::U64),
-      "i8" => Some(Self::I8),
-      "i16" => Some(Self::I16),
-      "i32" => Some(Self::I32),
-      "i64" => Some(Self::I64),
-      "f32" => Some(Self::F32),
-      "f64" => Some(Self::F64),
-      _ => None,
-    }
-  }
+  // pub fn try_from_str(str: &str) -> Option<Self> {
+  //   match str {
+  //     "void" => Some(Self::Void),
+  //     "bool" => Some(Self::Bool),
+  //     "u8" => Some(Self::U8),
+  //     "u16" => Some(Self::U16),
+  //     "u32" => Some(Self::U32),
+  //     "u64" => Some(Self::U64),
+  //     "i8" => Some(Self::I8),
+  //     "i16" => Some(Self::I16),
+  //     "i32" => Some(Self::I32),
+  //     "i64" => Some(Self::I64),
+  //     "f32" => Some(Self::F32),
+  //     "f64" => Some(Self::F64),
+  //     _ => None,
+  //   }
+  // }
 }
 
 impl Display for Intrinsic {

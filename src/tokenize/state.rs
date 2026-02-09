@@ -102,7 +102,8 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
         },
         // -> Newline
         (State::Base, '\n') => {
-          let indentation = self.meta_reader.meta.whitespace as isize;
+          let indentation = self.override_indentation.take()
+            .unwrap_or(self.meta_reader.meta.whitespace) as isize;
 
           loop {
             let result = self.meta_reader.next()?;
@@ -239,6 +240,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
 
           let comment_id = self.pool.insert_comment(content);
 
+          self.override_indentation.get_or_insert(start.indentation);
           self.push_here(Token::Comment(comment_id), start);
           self.save(ch);
         },

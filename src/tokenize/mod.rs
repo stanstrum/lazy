@@ -23,6 +23,7 @@ pub struct Tokenizer<'pool, const N: usize, T: Read> {
   indentation: isize,
   ended: bool,
   last_span: Span,
+  override_indentation: Option<usize>,
 }
 
 #[derive(Debug)]
@@ -49,6 +50,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
         start: start_and_end,
         end: start_and_end,
       },
+      override_indentation: None,
     }
   }
 

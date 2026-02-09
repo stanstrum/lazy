@@ -5,8 +5,9 @@ mod structure;
 
 use std::io::Read;
 
+use crate::error::{Level, MessageContents, MessageSection, PrintableMessage, print_message};
 use crate::lang;
-use crate::lang::reference::Store;
+use crate::lang::reference::{Reference, Store};
 use crate::tokenize::token::{Span, Token, TokenSpan};
 use crate::aster::Rereader;
 
@@ -128,11 +129,6 @@ pub(super) fn make<'pool, const N: usize, T: Read>(
 
     let Some(structure) = structure::make_structure(lazy, stream, stream.module)? else {
       return stream.expected_here(line_dbg!("a top-level structure"));
-    };
-
-    match structure {
-      structure::Structure::Function(_) => {},
-      structure::Structure::TypeAlias(_) => {},
     };
   };
 

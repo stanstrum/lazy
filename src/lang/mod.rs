@@ -73,10 +73,19 @@ impl<'a> Lazy<'a> {
 
     match &module.parent {
       ModuleParent::Path(ModulePath { path, .. }) => {
+        let mut path = path.as_path();
+
+        if
+          let Some(parent) = self.settings.input_path.parent() &&
+          let Ok(stripped) = path.strip_prefix(parent)
+        {
+          path = stripped;
+        };
+
         format!(
-          "[{} = {}]",
+          "[{}:{}]",
+          name,
           path.to_string_lossy(),
-          name
         )
       },
       ModuleParent::Module(parent) => {

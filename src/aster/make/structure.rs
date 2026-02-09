@@ -64,10 +64,57 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
   parent: lang::reference::ModuleReference,
 ) -> Result<Option<Structure>, Error> {
   if let Some(function) = function::make_function(lazy, stream, parent)? {
-    Ok(Some(Structure::Function(function)))
-  } else if let Some(alias) = make_type_alias(lazy, stream, parent)? {
-    Ok(Some(Structure::TypeAlias(alias)))
-  } else {
-    Ok(None)
-  }
+    let name = &function.rget_from(lazy).header.name;
+    let (name, span) = (
+      lazy.pool.get(name.id).collect::<String>(),
+      name.span,
+    );
+
+    let module_name = lazy.describe_module(stream.module);
+
+    print_message(lazy, PrintableMessage {
+      level: Level::Debug,
+      force: false,
+      description: format!("parsed a function: {module_name}::{name}"),
+      contents: MessageContents::WithinSource {
+        range: span,
+        sections: vec![MessageSection {
+          text: "here".into(),
+          span,
+        }],
+      },
+    });
+
+    return Ok(Some(Structure::Function(function)))
+  };
+
+  if let Some(alias) = make_type_alias(lazy, stream, parent)? {
+    let alias_ref = alias.rget_from(lazy);
+    let name = lazy.pool.get(alias_ref.name.id).collect::<String>();
+
+    let module_name = lazy.describe_module(stream.module);
+
+    print_message(lazy, PrintableMessage {
+      level: Level::Debug,
+      force: false,
+      description: format!("parsed a type alias: {module_name}::{name}"),
+      contents: MessageContents::WithinSource {
+        range: alias_ref.span,
+        sections: vec![
+          MessageSection {
+            text: "here".into(),
+            span: alias_ref.name.span,
+          },
+          MessageSection {
+            text: "the type".into(),
+            span: alias_ref.ty.get_span(lazy),
+          },
+        ],
+      },
+    });
+
+    return Ok(Some(Structure::TypeAlias(alias)))
+  };
+
+  Ok(None)
 }

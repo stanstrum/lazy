@@ -141,10 +141,9 @@ fn make_array_of<'pool, const N: usize, T: Read>(
   let mut span = start;
   span.extend(ty.get_span(lazy));
 
-  Ok(Some(if let Some(size) = size {
-    lang::ty::Type::SizedArrayOf { ty, size, span }
-  } else {
-    lang::ty::Type::UnsizedArrayOf { ty, span }
+  Ok(Some(match size {
+    Some(size) => lang::ty::Type::SizedArrayOf { ty, size, span },
+    None => lang::ty::Type::UnsizedArrayOf { ty, span }
   }))
 }
 

@@ -151,10 +151,10 @@ pub(super) fn make_literal<'pool, const N: usize, T: Read>(
       token::NumericValue::F64(_) => lang::ty::Type::WeakFloat { span },
     };
 
-    Ok(Some(lang::expr::Expression::Literal { value, span, out }))
-  } else {
-    Ok(None)
-  }
+    return Ok(Some(lang::expr::Expression::Literal { value, span, out }));
+  };
+
+  Ok(None)
 }
 
 pub(super) fn make_expr<'pool, const N: usize, T: Read>(
@@ -163,10 +163,12 @@ pub(super) fn make_expr<'pool, const N: usize, T: Read>(
   function: lang::reference::FunctionReference,
 ) -> Result<Option<lang::expr::Expression>, Error> {
   if let Some(block) = make_block(lazy, stream, function)? {
-    Ok(Some(lang::expr::Expression::BlockExpression(block)))
-  } else if let Some(literal) = make_literal(lazy, stream)? {
-    Ok(Some(literal))
-  } else {
-    Ok(None)
-  }
+    return Ok(Some(lang::expr::Expression::BlockExpression(block)));
+  };
+
+  if let Some(literal) = make_literal(lazy, stream)? {
+    return Ok(Some(literal));
+  };
+
+  Ok(None)
 }

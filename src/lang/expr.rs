@@ -1,6 +1,14 @@
+use crate::lang::module::Name;
 use crate::tokenize::token::{NumericValue, Span};
 use crate::lang::ty::Type;
 use crate::lang::function::{BlockId, ExprId};
+
+#[derive(Debug)]
+pub struct Variable {
+  pub name: Name,
+  pub ty: Type,
+  pub span: Span,
+}
 
 #[derive(Debug)]
 pub struct BlockExpression {
@@ -8,6 +16,7 @@ pub struct BlockExpression {
   pub span: Span,
   pub returns_last: bool,
   pub out: Type,
+  pub variables: Vec<Variable>,
 }
 
 #[derive(Debug)]
@@ -27,6 +36,7 @@ impl BlockExpression {
       span,
       returns_last: false,
       out,
+      variables: vec![],
     }
   }
 }

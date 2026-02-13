@@ -114,6 +114,7 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
   };
 
   let function = lazy.create_function(parent, header);
+  let body = lazy.rget(function).body;
   let mut non_return_last = None;
 
   loop {
@@ -138,14 +139,18 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
       };
     };
 
-    let Some(expr) = expr::make_expr(lazy, stream, function)? else {
+    let expr = if let Some(expr) = expr::make_expr(lazy, stream, parent, function)? {
+      Some(expr)
+    } else if let Some((variable, expr)) = expr::variable::make_assignment(lazy, stream, parent, function)? {
+      body.rget_from_mut(lazy).variables.push(variable);
+      expr
+    } else {
       return stream.expected_here(line_dbg!("an expression"));
     };
 
-    let id = {
-      let function_ref = lazy.rget_mut(function);
-      function_ref.add_expr_to_block(expr, function_ref.body)
-    };
+    let id = expr.map(|expr| {
+      lazy.rget_mut(function).add_expr_to_block(expr, body)
+    });
 
     stream.skip_whitespace_and_comments()?;
 
@@ -153,7 +158,9 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
       stream.seek();
       stream.skip_whitespace_and_comments()?;
 
-      non_return_last = Some(id);
+      if id.is_some() {
+        non_return_last = id;
+      };
     };
 
     let Some((Token::Indent(indent), _)) = stream.peek()? else {

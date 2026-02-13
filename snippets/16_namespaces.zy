@@ -1,6 +1,6 @@
 namespace Whatever
   export namespace Stuff
-    template<T>
+    template T
     export do_stuff -> &str
       T a
       T b

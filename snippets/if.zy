@@ -2,9 +2,9 @@ main -> i32
 
   if 1
     1
-  else if 2
+  elif 2
     2
-  else if 3
+  elif 3
     3
   else
     4

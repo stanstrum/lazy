@@ -5,6 +5,6 @@ main -> i32
   &[]&c_str argv
   &[]&c_str envp
 
-  a: i32 := 0;
+  i32 a := 0;
 
   argc

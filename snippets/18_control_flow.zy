@@ -3,13 +3,11 @@ main
   while true
     1
 
-  do
+  do while false
     true
-  while false
 
   until 17 + 6
     A++
 
-  do
+  do until false
     1 + 1
-  until false

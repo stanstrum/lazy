@@ -1,22 +1,22 @@
-template<T>
+template T
 export interface Add
   public add -> T
     T lhs
     T rhs
 
-template<T>
+template T
 export interface Sub
   public sub -> T
     T lhs
     T rhs
 
-template<T>
+template T
 export interface IMul
   public imul -> T
     T lhs
     T rhs
 
-template<T>
+template T
 export interface IDiv
   public idiv -> T
     T lhs
@@ -28,32 +28,32 @@ impl u8: IArithmetic
   add -> u8
     u8 lhs
     u8 rhs
-  llvm
+  llvm ::
     %tmp1 = add u8 %lhs, %rhs
     ret u8 %tmp1
 
   sub -> u8
     u8 lhs
     u8 rhs
-  llvm
+  llvm ::
     %tmp1 = sub u8 %lhs, %rhs
     ret u8 %tmp1
 
   imul -> u8
     u8 lhs
     u8 rhs
-  llvm
+  llvm ::
     %tmp1 = imul u8 %lhs, %rhs
     ret u8 %tmp1
 
   idiv -> u8
     u8 lhs
     u8 rhs
-  llvm
+  llvm ::
     %tmp1 = idiv u8 %lhs, %rhs
     ret u8 %tmp1
 
-template<T extends std::ops::Multiply>
+template T extends std::ops::Multiply
 interface Double
   public double -> T
     &this
@@ -68,7 +68,7 @@ interface Double
 test double
   mut f32 s := 40
 
-  b := s.double()
+  :: b := s.double()
   s = b
 
   s |>= $.double()

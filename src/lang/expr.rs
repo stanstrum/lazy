@@ -1,5 +1,6 @@
 use crate::lang::module::Name;
-use crate::tokenize::token::{NumericValue, Span};
+use crate::string_pool::StringId;
+use crate::tokenize::token::{NumericValue, Span, StringKind};
 use crate::lang::ty::Type;
 use crate::lang::function::{BlockId, ExprId};
 

@@ -4,8 +4,8 @@ type c_str := []u8
 println -> usize
   &str text
 
-  sz1 := write(text)
-  sz2 := write(b"\n")
+  :: sz1 := write(text)
+  :: sz2 := write(b"\n")
 
   sz1 + sz2
 

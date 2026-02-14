@@ -1,7 +1,9 @@
 use std::io::Read;
 use std::collections::VecDeque;
 
-use crate::{lang::reference::ModuleReference, tokenize::{Tokenizer, token::{Token, TokenSpan}}};
+use crate::tokenize::Tokenizer;
+use crate::tokenize::token::{Token, TokenSpan};
+use crate::lang::reference::ModuleReference;
 
 use super::Error;
 

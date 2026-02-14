@@ -137,6 +137,17 @@ impl Pretty for FunctionAnd<'_, BlockExpression> {
     let (function, block) = self;
     let mut lines = vec!["{".into()];
 
+    for variable in block.variables.iter() {
+      let ty = variable.ty.print(lazy);
+      let name = variable.name.print(lazy);
+
+      lines.push(format!("  {ty} {name}"));
+    };
+
+    if !block.variables.is_empty() {
+      lines.push("".into());
+    };
+
     for &child in block.children.iter() {
       for line in function[child].print_with(function, lazy) {
         lines.push(format!("  {line}"));
@@ -185,6 +196,18 @@ impl Pretty for Function {
 
     lines.push("".into());
     let block = lazy.rget(self.body);
+
+    for variable in block.variables.iter() {
+      let ty = variable.ty.print(lazy);
+      let name = variable.name.print(lazy);
+
+      lines.push(format!("  {ty} {name} // decl"));
+    };
+
+    if !block.variables.is_empty() {
+      lines.push("".into());
+    };
+
     if !block.children.is_empty() {
       for &child in block.children.iter() {
         for line in self[child].print_with(self, lazy) {

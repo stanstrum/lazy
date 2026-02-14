@@ -25,14 +25,14 @@ fn make_qualified<'pool, const N: usize, T: Read>(
   let mut parts = vec![];
   let mut expected = false;
   loop {
-    mark = stream.mark();
+    // mark = stream.mark();
 
-    stream.skip_whitespace_and_comments()?;
+    // stream.skip_whitespace_and_comments()?;
     let Some(name) = make_name(stream)? else {
       if expected {
         return stream.expected_here(line_dbg!("an identifier"));
       } else {
-        stream.take_mark(mark);
+        // stream.take_mark(mark);
         break;
       };
     };
@@ -40,7 +40,7 @@ fn make_qualified<'pool, const N: usize, T: Read>(
     parts.push(name);
 
     mark = stream.mark();
-    stream.skip_whitespace_and_comments()?;
+    // stream.skip_whitespace_and_comments()?;
     let Some((Token::Operator(Operator::DoubleColon), _)) = stream.ok_next()? else {
       stream.take_mark(mark);
       break;

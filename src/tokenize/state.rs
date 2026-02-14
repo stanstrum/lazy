@@ -1,14 +1,19 @@
 use std::io::Read;
 
 use crate::tokenize::token::{
-  Token,
-  TokenSpan,
-  Position,
-  Keyword,
-  Operator,
+  CharState,
+  EscapeReturn,
   GroupingKind,
   GroupingType,
+  Keyword,
   NumericKind,
+  Operator,
+  Position,
+  Span,
+  StringKind,
+  StringState,
+  Token,
+  TokenSpan,
 };
 
 use super::{Tokenizer, Error};
@@ -49,6 +54,12 @@ pub(super) enum State {
     content: String,
     start: Position,
   },
+  String(StringState),
+  Char(CharState),
+  Escape {
+    content: String,
+    ret: EscapeReturn
+  },
 }
 
 impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
@@ -58,7 +69,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
         return Some(Ok(tok));
       };
 
-      let ch = match self.take() {
+      let ch = match self.take_ch() {
         Ok(Some(ch)) => ch,
         Ok(None) => return None,
         Err(_) => return Some(Err(Error::IO)),
@@ -137,6 +148,9 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
           content.push(ch);
         },
         // -> Base
+        (State::Text { content, .. }, '"') if matches!(content.as_str(), "b" | "c") => {
+          todo!("{content}-string parse state")
+        },
         (State::Text { content, start }, _) => {
           let tok = if let Some(keyword) = Keyword::from_str(content) {
             Token::Keyword(keyword)
@@ -218,7 +232,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
 
           trim_in_place(&mut content);
 
-          let comment_id = self.pool.insert_comment(content);
+          let comment_id = self.pool.insert_string(content);
           self.push_here(Token::Comment(comment_id), start);
           self.save(ch);
         },
@@ -238,7 +252,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
           };
           trim_in_place(&mut content);
 
-          let comment_id = self.pool.insert_comment(content);
+          let comment_id = self.pool.insert_string(content);
 
           self.override_indentation.get_or_insert(start.indentation);
           self.push_here(Token::Comment(comment_id), start);
@@ -306,6 +320,39 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
 
           self.push_here(tok, start);
           self.save(ch);
+        },
+        // String
+        (State::Base, '"') => {
+          self.state = State::String(StringState {
+            content: String::new(),
+            kind: StringKind::Wide,
+            start: self.pos(),
+          });
+        },
+        (State::String(_), '"') => {
+          let State::String(string) = std::mem::replace(&mut self.state, State::Base) else {
+            unreachable!();
+          };
+
+          let id = self.pool.insert_string(string.content);
+          let end = match self.next_pos() {
+            Ok(end) => end,
+            Err(err) => return Some(Err(err)),
+          };
+
+          let span = Span {
+            start: string.start,
+            end,
+            module: self.module,
+          };
+
+          self.toks.push_back((Token::String(string.kind, id), span));
+        },
+        (State::String(_), '\\') => {
+          todo!("string escape");
+        },
+        (State::String(StringState { content, .. }), _) => {
+          content.push(ch);
         },
         // Fallthrough
         other => todo!("tokenize state {other:?}"),

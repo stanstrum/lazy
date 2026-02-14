@@ -12,14 +12,14 @@ pub struct PoolNode {
 
 pub struct StringPool {
   pub nodes: RefCell<Vec<PoolNode>>,
-  pub comments: RefCell<Vec<String>>,
+  pub strings: RefCell<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PoolId(usize);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct CommentId(usize);
+pub struct StringId(usize);
 
 impl PoolNode {
   fn new(ch: char, parent: Option<usize>) -> Self {
@@ -64,13 +64,13 @@ impl StringPool {
   pub fn new() -> Self {
     Self {
       nodes: RefCell::new(vec![]),
-      comments: RefCell::new(vec![]),
+      strings: RefCell::new(vec![]),
     }
   }
 
-  pub fn insert_comment(&self, comment: String) -> CommentId {
-    let id = CommentId(self.comments.borrow().len());
-    self.comments.borrow_mut().push(comment);
+  pub fn insert_string(&self, string: String) -> StringId {
+    let id = StringId(self.strings.borrow().len());
+    self.strings.borrow_mut().push(string);
 
     id
   }

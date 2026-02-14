@@ -1,5 +1,5 @@
 use crate::lang::reference::ModuleReference;
-use crate::string_pool::{CommentId, PoolId};
+use crate::string_pool::{StringId, PoolId};
 use crate::aster::bufreader::Metadata;
 
 macro_rules! string_enum {
@@ -47,8 +47,42 @@ pub enum Token {
   Whitespace,
   Indent(isize),
   #[allow(unused)]
-  Comment(CommentId),
+  Comment(StringId),
   Numeric(NumericValue),
+  String(StringKind, StringId)
+}
+
+#[derive(Debug)]
+pub struct StringState {
+  pub content: String,
+  pub kind: StringKind,
+  pub start: Position,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct CharState {
+  pub ch: Option<char>,
+  pub kind: CharKind,
+  pub start: Position,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum StringKind {
+  Wide,
+  Byte,
+  C,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum CharKind {
+  Wide,
+  Byte,
+}
+
+#[derive(Debug)]
+pub enum EscapeReturn {
+  String(StringState),
+  Char(CharState),
 }
 
 #[derive(Debug, Clone, Copy)]

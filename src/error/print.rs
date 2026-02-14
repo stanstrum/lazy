@@ -109,6 +109,7 @@ impl<'a> Colorizer<'a> {
       Token::Indent(_) => colorize!(36),
       Token::Comment(_) => colorize!(37),
       Token::Numeric(_) => colorize!(34),
+      Token::String(..) => colorize!(31),
     }
   }
 

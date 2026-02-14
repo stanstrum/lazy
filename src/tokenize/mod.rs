@@ -66,7 +66,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
     }
   }
 
-  fn take(&mut self) -> Result<Option<char>, Error> {
+  pub(super) fn take_ch(&mut self) -> Result<Option<char>, Error> {
     if let Some(next) = self.next.take() {
       return Ok(Some(next));
     };
@@ -96,6 +96,14 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
       module: self.module,
     };
     self.toks.push_back((tok, span));
+  }
+
+  fn next_pos(&mut self) -> Result<Position, Error> {
+    if let Some(ch) = self.take_ch()? {
+      self.save(ch);
+    };
+
+    Ok(self.pos())
   }
 
   fn pos(&self) -> Position {

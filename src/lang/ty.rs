@@ -49,6 +49,9 @@ pub enum Type {
   WeakFloat {
     span: Span,
   },
+  WeakString {
+    span: Span,
+  },
   ReferenceTo {
     ty: TypePartReference,
     span: Span,

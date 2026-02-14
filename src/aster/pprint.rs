@@ -1,4 +1,4 @@
-use crate::lang::expr::{BlockExpression, Expression};
+use crate::lang::expr::{BlockExpression, Expression, LiteralKind};
 use crate::lang::reference::{Reference, Store, TypePartReference};
 use crate::string_pool::PoolId;
 
@@ -6,7 +6,7 @@ use crate::lang::Lazy;
 use crate::lang::ty::Type;
 use crate::lang::module::{Module, Name};
 use crate::lang::function::Function;
-use crate::tokenize::token::NumericValue;
+use crate::tokenize::token::{NumericValue, StringKind};
 
 pub trait Pretty {
   type Out;
@@ -68,8 +68,9 @@ impl Pretty for Type {
       //     original = original.print(lazy),
       //   )
       // },
-      Type::WeakFloat { .. } => "{float}".into(),
+      Type::WeakFloat { .. } => "{weak float}".into(),
       Type::WeakInteger { .. } => "{weak integer}".into(),
+      Type::WeakString { .. } => "{weak string}".into(),
       Type::ReferenceTo { ty, .. } => format!("&{}", ty.print(lazy)),
       Type::SizedArrayOf { ty, size, .. } => format!("[{size}]{}", ty.print(lazy)),
       Type::UnsizedArrayOf { ty, .. } => format!("[]{}", ty.print(lazy)),
@@ -104,13 +105,26 @@ impl Pretty for FunctionAnd<'_, Expression> {
       Expression::BlockExpression(block_id) => {
         function[*block_id].print_with(function, lazy)
       },
-      Expression::Literal { value: NumericValue::F64(value), out, .. } => {
+      Expression::Literal { value, out, .. } => {
         let ty = out.print(lazy);
-        vec![format!("{value} /* {ty} */")].into_iter()
-      },
-      Expression::Literal { value: NumericValue::U64(value), out, .. } => {
-        let ty = out.print(lazy);
-        vec![format!("{value} /* {ty} */")].into_iter()
+        vec![match value {
+          LiteralKind::Numeric(NumericValue::F64(value)) => {
+            format!("{value} /* {ty} */")
+          },
+          LiteralKind::Numeric(NumericValue::U64(value)) => {
+            format!("{value} /* {ty} */")
+          },
+          LiteralKind::String { value, kind } => {
+            let prefix = match kind {
+              StringKind::Wide => "",
+              StringKind::Byte => "b",
+              StringKind::C => "c",
+            };
+
+            let value = lazy.pool.get_string(*value);
+            format!("{prefix}{value:?} /* {ty} */")
+          },
+        }].into_iter()
       },
     }
   }

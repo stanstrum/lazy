@@ -20,10 +20,19 @@ pub struct BlockExpression {
 }
 
 #[derive(Debug)]
+pub enum LiteralKind {
+  Numeric(NumericValue),
+  String {
+    value: StringId,
+    kind: StringKind,
+  },
+}
+
+#[derive(Debug)]
 pub enum Expression {
   BlockExpression(BlockId),
   Literal {
-    value: NumericValue,
+    value: LiteralKind,
     span: Span,
     out: Type,
   },

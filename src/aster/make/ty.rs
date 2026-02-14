@@ -1,5 +1,5 @@
 use crate::aster::make::expr::make_literal;
-use crate::lang::expr::Expression;
+use crate::lang::expr::{Expression, LiteralKind};
 use crate::lang::span::GetSpan;
 use crate::line_dbg;
 use crate::tokenize::token::{GroupingKind, GroupingType, NumericValue, Operator};
@@ -111,7 +111,7 @@ fn make_array_of<'pool, const N: usize, T: Read>(
       });
     };
 
-    let NumericValue::U64(size) = value else {
+    let LiteralKind::Numeric(NumericValue::U64(size)) = value else {
       return Err(Error::Invalid {
         what: line_dbg!("literal: must be an integer"),
         at: lit_span,

@@ -4,6 +4,7 @@ use std::cmp::Ordering;
 use std::io::Read;
 
 use crate::error::{Level, MessageContents, MessageSection, PrintableMessage, print_message};
+use crate::lang::expr::LiteralKind;
 use crate::lang::reference::{ExpressionReference, Reference, Store};
 use crate::{lang, line_dbg};
 use crate::aster::Rereader;
@@ -195,6 +196,22 @@ pub(super) fn make_literal<'pool, const N: usize, T: Read>(
       token::NumericValue::U64(_) => lang::ty::Type::WeakInteger { span },
       token::NumericValue::F64(_) => lang::ty::Type::WeakFloat { span },
     };
+
+    let value = LiteralKind::Numeric(value);
+
+    return Ok(Some(lang::expr::Expression::Literal { value, span, out }));
+  };
+
+  if let Some((Token::String(kind, value), span)) = stream.peek()? {
+    stream.seek();
+
+    let out = match kind {
+      token::StringKind::Wide => lang::ty::Type::WeakString { span },
+      token::StringKind::Byte => todo!("b-string"),
+      token::StringKind::C => todo!("b-string"),
+    };
+
+    let value = LiteralKind::String { kind, value };
 
     return Ok(Some(lang::expr::Expression::Literal { value, span, out }));
   };

@@ -91,7 +91,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
           });
         },
         // -> Operator
-        (State::Base, '-' | '/' | ':' | ';' | '&') => {
+        (State::Base, '-' | '/' | ':' | ';' | '&' | '+') => {
           self.retry(ch, State::Operator {
             start: self.pos(),
             content: String::new(),
@@ -147,10 +147,15 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
           'a'..='z' | 'A'..='Z' | '0'..='9' | '_') => {
           content.push(ch);
         },
-        // -> Base
+        // -> String
         (State::Text { content, .. }, '"') if matches!(content.as_str(), "b" | "c") => {
           todo!("{content}-string parse state")
         },
+        // -> Char
+        (State::Text { content, .. }, '\'') if content == "b" => {
+          todo!("{content}-char parse state")
+        },
+        // -> Base
         (State::Text { content, start }, _) => {
           let tok = if let Some(keyword) = Keyword::from_str(content) {
             Token::Keyword(keyword)
@@ -193,6 +198,8 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
             | ("", '&')
             // ;
             | ("", ';')
+            // +
+            | ("", '+')
               => content.push(ch),
             ("->", _) => {
               self.push_here(Token::Operator(Operator::RightArrow), start);
@@ -225,6 +232,11 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
                 content: String::new(),
                 start,
               });
+            },
+            // Math
+            ("+", _) => {
+              self.push_here(Token::Operator(Operator::Add), start);
+              self.retry(ch, State::Base);
             },
             _ => todo!("operator {content:?} and {ch:?}"),
           }

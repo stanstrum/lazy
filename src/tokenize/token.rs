@@ -149,6 +149,7 @@ string_enum!(Keyword {
 
 #[derive(Debug, Clone, Copy)]
 pub enum Operator {
+  Add,
   Range,
   SingleAnd,
   // TODO: these are actually punctuation, perhaps break them out into their

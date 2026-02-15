@@ -148,8 +148,16 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
           content.push(ch);
         },
         // -> String
-        (State::Text { content, .. }, '"') if matches!(content.as_str(), "b" | "c") => {
-          todo!("{content}-string parse state")
+        (State::Text { content, start }, '"') if matches!(content.as_str(), "b" | "c") => {
+          self.state = State::String(StringState {
+            content: String::new(),
+            kind: match content.as_str() {
+              "b" => StringKind::Byte,
+              "c" => StringKind::C,
+              _ => unimplemented!(),
+            },
+            start: *start,
+          });
         },
         // -> Char
         (State::Text { content, .. }, '\'') if content == "b" => {

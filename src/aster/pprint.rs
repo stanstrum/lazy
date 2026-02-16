@@ -3,7 +3,7 @@ use crate::lang::reference::{Reference, Store, TypePartReference};
 use crate::string_pool::PoolId;
 
 use crate::lang::Lazy;
-use crate::lang::ty::Type;
+use crate::lang::ty::{Qualified, Type};
 use crate::lang::module::{Module, Name};
 use crate::lang::function::Function;
 use crate::tokenize::token::{NumericValue, StringKind};
@@ -38,29 +38,35 @@ impl Pretty for TypePartReference {
   }
 }
 
+impl Pretty for Qualified {
+  type Out = String;
+
+  fn print(&self, lazy: &Lazy) -> Self::Out {
+    let mut out = String::new();
+
+    if self.implicit {
+      out += "::";
+    };
+
+    for (i, part) in self.parts.iter().enumerate() {
+      if i != 0 {
+        out += "::";
+      };
+
+      out += part.id.print(lazy).as_str();
+    };
+
+    out
+  }
+}
+
 impl Pretty for Type {
   type Out = String;
 
   fn print(&self, lazy: &Lazy) -> Self::Out {
     match self {
       // Type::Reference(reference) => reference.print(lazy),
-      Type::Unresolved { qualified, .. } => {
-        let mut out = String::new();
-
-        if qualified.implicit {
-          out += "::";
-        };
-
-        for (i, part) in qualified.parts.iter().enumerate() {
-          if i != 0 {
-            out += "::";
-          };
-
-          out += part.id.print(lazy).as_str();
-        };
-
-        out
-      },
+      Type::Unresolved { qualified, .. } => qualified.print(lazy),
       Type::Intrinsic { kind, .. } => kind.to_string(),
       // Type::Resolved { original, reference } => {
       //   format!("/* {deferred} */ {original}",
@@ -126,11 +132,12 @@ impl Pretty for FunctionAnd<'_, Expression> {
           },
         }].into_iter()
       },
-      Expression::Variable { reference, .. } => {
-        vec![
-          reference.rget_from(lazy).name.print(lazy)
-        ].into_iter()
-      },
+      Expression::Variable { reference, .. } => vec![
+        reference.rget_from(lazy).name.print(lazy)
+      ].into_iter(),
+      Expression::Unknown(qualified) => vec![
+        qualified.print(lazy)
+      ].into_iter(),
     }
   }
 }

@@ -6,7 +6,7 @@ use crate::tokenize::token::{GroupingKind, GroupingType, NumericValue, Operator}
 
 use super::*;
 
-fn make_qualified<'pool, const N: usize, T: Read>(
+pub(super) fn make_qualified<'pool, const N: usize, T: Read>(
   stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<lang::ty::Qualified>, Error> {
   let ret_mark = stream.mark();

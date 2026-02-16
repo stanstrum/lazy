@@ -2,7 +2,7 @@ use crate::lang::module::Name;
 use crate::lang::reference::{BlockReference, VariableReference};
 use crate::string_pool::StringId;
 use crate::tokenize::token::{NumericValue, Span, StringKind};
-use crate::lang::ty::Type;
+use crate::lang::ty::{Qualified, Type};
 use crate::lang::function::ExprId;
 
 #[derive(Debug)]
@@ -42,6 +42,7 @@ pub enum Expression {
     reference: VariableReference,
     span: Span,
   },
+  Unknown(Qualified),
 }
 
 impl BlockExpression {

@@ -3,6 +3,7 @@ pub mod variable;
 use std::cmp::Ordering;
 use std::io::Read;
 
+use crate::aster::make::ty;
 use crate::error::{Level, MessageContents, MessageSection, PrintableMessage, print_message};
 use crate::lang::expr::LiteralKind;
 use crate::lang::reference::{ExpressionReference, Store};
@@ -228,6 +229,10 @@ pub(super) fn make_expr<'pool, const N: usize, T: Read>(
 
   if let Some(literal) = make_literal(lazy, stream)? {
     return Ok(Some(literal));
+  };
+
+  if let Some(qualified) = ty::make_qualified(stream)? {
+    return Ok(Some(lang::expr::Expression::Unknown(qualified)));
   };
 
   Ok(None)

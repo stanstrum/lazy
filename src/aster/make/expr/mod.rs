@@ -17,7 +17,7 @@ fn make_block<'pool, const N: usize, T: Read>(
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
   function: lang::reference::FunctionReference,
-) -> Result<Option<lang::function::BlockId>, Error> {
+) -> Result<Option<lang::reference::BlockReference>, Error> {
   let indenter = stream.indenter_here()?;
 
   let Some((Token::Grouping(GroupingType::Open(GroupingKind::Brace)), start)) = stream.peek()? else {
@@ -38,7 +38,7 @@ fn make_block<'pool, const N: usize, T: Read>(
     );
     let id = lazy.rget_mut(function).add_block(empty_block);
 
-    return Ok(Some(id));
+    return Ok(Some(lang::reference::BlockReference(function, id)));
   };
 
   let Some((Token::Indent(0..), _)) = indenter.peek(stream)? else {
@@ -176,13 +176,15 @@ fn make_block<'pool, const N: usize, T: Read>(
     }
   };
 
-  Ok(Some(lazy.rget_mut(function).add_block(lang::expr::BlockExpression {
+  let id = lazy.rget_mut(function).add_block(lang::expr::BlockExpression {
     children,
     span,
     returns_last,
     out,
     variables,
-  })))
+  });
+
+  Ok(Some(lang::reference::BlockReference(function, id)))
 }
 
 pub(super) fn make_literal<'pool, const N: usize, T: Read>(

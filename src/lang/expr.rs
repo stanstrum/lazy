@@ -1,5 +1,5 @@
 use crate::lang::module::Name;
-use crate::lang::reference::VariableReference;
+use crate::lang::reference::{BlockReference, VariableReference};
 use crate::string_pool::StringId;
 use crate::tokenize::token::{NumericValue, Span, StringKind};
 use crate::lang::ty::Type;
@@ -32,7 +32,7 @@ pub enum LiteralKind {
 
 #[derive(Debug)]
 pub enum Expression {
-  BlockExpression(BlockId),
+  BlockExpression(BlockReference),
   Literal {
     value: LiteralKind,
     span: Span,

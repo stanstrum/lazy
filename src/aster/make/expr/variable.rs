@@ -37,7 +37,7 @@ pub fn make_assignment<'pool, const N: usize, T: Read>(
         return stream.expected_here(line_dbg!("an expression"));
       };
 
-      span.extend(expr.get_span(function.rget_from(lazy)));
+      span.extend(expr.get_span(lazy));
 
       Some(expr)
     } else {

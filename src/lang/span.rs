@@ -79,11 +79,11 @@ impl GetSpan for Type {
 }
 
 impl GetSpan for Expression {
-  type Parent<'a> = &'a Function;
+  type Parent<'a> = &'a Lazy<'a>;
 
-  fn get_span(&self, parent: &Function) -> Span {
+  fn get_span(&self, lazy: &Lazy) -> Span {
     match self {
-      Expression::BlockExpression(id) => parent[*id].get_span(()),
+      Expression::BlockExpression(id) => id.rget_from(lazy).get_span(()),
       | Expression::Literal { span, .. }
       | Expression::Variable { span, .. } => *span,
     }

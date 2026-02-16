@@ -12,7 +12,6 @@ pub struct FunctionReference(pub usize);
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct AliasReference(pub ModuleReference, pub usize);
 
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ModuleReference(pub usize);
 

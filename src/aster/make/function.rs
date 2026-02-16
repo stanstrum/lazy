@@ -142,6 +142,36 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
     let expr = if let Some(expr) = expr::make_expr(lazy, stream, parent, function)? {
       Some(expr)
     } else if let Some((variable, expr)) = expr::variable::make_assignment(lazy, stream, parent, function)? {
+      let function_ref = lazy.rget(function);
+      let body_ref = lazy.rget(body);
+
+      let variable_names = body_ref.variables.iter().map(|x: &lang::expr::Variable| &x.name);
+      let argument_names = function_ref.header.arguments.iter().map(|x| &x.name);
+
+      let conflict = argument_names.chain(variable_names)
+        .find(|prior: &&lang::module::Name| prior.id == variable.name.id);
+
+      if let Some(conflict) = conflict {
+        print_message(lazy, PrintableMessage {
+          level: Level::Warn,
+          force: false,
+          description: "conflicting name will be shadowed".into(),
+          contents: MessageContents::WithinSource {
+            range: function_ref.span,
+            sections: vec![
+              MessageSection {
+                text: "first used here".into(),
+                span: conflict.span,
+              },
+              MessageSection {
+                text: "shadowed here".into(),
+                span: variable.name.span,
+              },
+            ],
+          },
+        });
+      };
+
       body.rget_from_mut(lazy).variables.push(variable);
       expr
     } else {

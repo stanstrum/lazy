@@ -90,11 +90,11 @@ fn make_block<'pool, const N: usize, T: Read>(
               range: function_ref.span,
               sections: vec![
                 MessageSection {
-                  text: "name first used here".into(),
+                  text: "first used here".into(),
                   span: conflict.span,
                 },
                 MessageSection {
-                  text: "name shadowed here".into(),
+                  text: "shadowed here".into(),
                   span: variable.name.span,
                 },
               ],

@@ -58,6 +58,8 @@ fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
       },
     };
 
+    dbg!(&lazy.pool);
+
     Ok(())
   };
 

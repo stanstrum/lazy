@@ -3,7 +3,7 @@ use crate::lang::reference::{BlockReference, VariableReference};
 use crate::string_pool::StringId;
 use crate::tokenize::token::{NumericValue, Span, StringKind};
 use crate::lang::ty::Type;
-use crate::lang::function::{BlockId, ExprId};
+use crate::lang::function::ExprId;
 
 #[derive(Debug)]
 pub struct Variable {
@@ -32,7 +32,7 @@ pub enum LiteralKind {
 
 #[derive(Debug)]
 pub enum Expression {
-  BlockExpression(BlockReference),
+  Block(BlockReference),
   Literal {
     value: LiteralKind,
     span: Span,

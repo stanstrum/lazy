@@ -5,7 +5,7 @@ use std::io::Read;
 
 use crate::error::{Level, MessageContents, MessageSection, PrintableMessage, print_message};
 use crate::lang::expr::LiteralKind;
-use crate::lang::reference::{ExpressionReference, Reference, Store};
+use crate::lang::reference::{ExpressionReference, Store};
 use crate::{lang, line_dbg};
 use crate::aster::Rereader;
 use crate::tokenize::token::{self, GroupingKind, GroupingType, Operator, Span, Token};
@@ -223,7 +223,7 @@ pub(super) fn make_expr<'pool, const N: usize, T: Read>(
   function: lang::reference::FunctionReference,
 ) -> Result<Option<lang::expr::Expression>, Error> {
   if let Some(block) = make_block(lazy, stream, module, function)? {
-    return Ok(Some(lang::expr::Expression::BlockExpression(block)));
+    return Ok(Some(lang::expr::Expression::Block(block)));
   };
 
   if let Some(literal) = make_literal(lazy, stream)? {

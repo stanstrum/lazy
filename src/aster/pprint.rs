@@ -102,7 +102,7 @@ impl Pretty for FunctionAnd<'_, Expression> {
   fn print(&self, lazy: &Lazy) -> Self::Out {
     let (function, expression) = self;
     match expression {
-      Expression::BlockExpression(block_id) => {
+      Expression::Block(block_id) => {
         block_id.rget_from(lazy).print_with(function, lazy)
       },
       Expression::Literal { value, out, .. } => {

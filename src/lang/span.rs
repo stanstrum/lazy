@@ -83,7 +83,7 @@ impl GetSpan for Expression {
 
   fn get_span(&self, lazy: &Lazy) -> Span {
     match self {
-      Expression::BlockExpression(id) => id.rget_from(lazy).get_span(()),
+      Expression::Block(id) => id.rget_from(lazy).get_span(()),
       | Expression::Literal { span, .. }
       | Expression::Variable { span, .. } => *span,
     }

@@ -6,6 +6,18 @@ use crate::lang::function::{BlockId, ExprId, Function};
 use crate::lang::module::{Module, TokensId, TypeAlias, TypePartId};
 use crate::tokenize::token::TokenSpan;
 
+pub trait Store<Item> {
+  type Out;
+
+  fn rget(&self, key: Item) -> &Self::Out;
+  fn rget_mut(&mut self, key: Item) -> &mut Self::Out;
+}
+
+pub trait Reference<S: Store<Self>>: Sized {
+  fn rget_from<'a>(&self, store: &'a S) -> &'a S::Out;
+  fn rget_from_mut<'a>(&self, store: &'a mut S) -> &'a mut S::Out;
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct FunctionReference(pub usize);
 
@@ -30,17 +42,8 @@ pub enum TypeReference {
   ReturnTypeOf(FunctionReference),
 }
 
-pub trait Store<Item> {
-  type Out;
-
-  fn rget(&self, key: Item) -> &Self::Out;
-  fn rget_mut(&mut self, key: Item) -> &mut Self::Out;
-}
-
-pub trait Reference<S: Store<Self>>: Sized {
-  fn rget_from<'a>(&self, store: &'a S) -> &'a S::Out;
-  fn rget_from_mut<'a>(&self, store: &'a mut S) -> &'a mut S::Out;
-}
+#[derive(Debug, Clone, Copy)]
+pub struct VariableReference(BlockReference, usize);
 
 impl<R: Copy, S: Store<R>> Reference<S> for R {
   fn rget_from<'a>(&self, store: &'a S) -> &'a S::Out {

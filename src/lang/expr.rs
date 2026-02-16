@@ -1,4 +1,5 @@
 use crate::lang::module::Name;
+use crate::lang::reference::VariableReference;
 use crate::string_pool::StringId;
 use crate::tokenize::token::{NumericValue, Span, StringKind};
 use crate::lang::ty::Type;
@@ -36,6 +37,10 @@ pub enum Expression {
     value: LiteralKind,
     span: Span,
     out: Type,
+  },
+  Variable {
+    reference: VariableReference,
+    span: Span,
   },
 }
 

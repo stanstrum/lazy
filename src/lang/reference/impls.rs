@@ -1,4 +1,4 @@
-use crate::lang::ty::Type;
+use crate::lang::{expr::Variable, ty::Type};
 
 use super::*;
 
@@ -83,5 +83,17 @@ impl<'a> Store<TypePartReference> for Lazy<'a> {
 
   fn rget_mut(&mut self, TypePartReference(module, TypePartId(index)): TypePartReference) -> &mut Self::Out {
     self.rget_mut(module).type_parts.get_mut(index).unwrap()
+  }
+}
+
+impl<'a> Store<VariableReference> for Lazy<'a> {
+  type Out = Variable;
+
+  fn rget(&self, VariableReference(block, index): VariableReference) -> &Self::Out {
+    self.rget(block).variables.get(index).unwrap()
+  }
+
+  fn rget_mut(&mut self, VariableReference(block, index): VariableReference) -> &mut Self::Out {
+    self.rget_mut(block).variables.get_mut(index).unwrap()
   }
 }

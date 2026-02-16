@@ -126,6 +126,11 @@ impl Pretty for FunctionAnd<'_, Expression> {
           },
         }].into_iter()
       },
+      Expression::Variable { reference, .. } => {
+        vec![
+          reference.rget_from(lazy).name.print(lazy)
+        ].into_iter()
+      },
     }
   }
 }

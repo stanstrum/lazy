@@ -84,7 +84,8 @@ impl GetSpan for Expression {
   fn get_span(&self, parent: &Function) -> Span {
     match self {
       Expression::BlockExpression(id) => parent[*id].get_span(()),
-      Expression::Literal { span, .. } => *span,
+      | Expression::Literal { span, .. }
+      | Expression::Variable { span, .. } => *span,
     }
   }
 }

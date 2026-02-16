@@ -139,9 +139,7 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
       };
     };
 
-    let expr = if let Some(expr) = expr::make_expr(lazy, stream, parent, function)? {
-      Some(expr)
-    } else if let Some((variable, expr)) = expr::variable::make_assignment(lazy, stream, parent, function)? {
+    let expr = if let Some((variable, expr)) = expr::variable::make_assignment(lazy, stream, parent, function)? {
       let function_ref = lazy.rget(function);
       let body_ref = lazy.rget(body);
 
@@ -174,6 +172,8 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
 
       body.rget_from_mut(lazy).variables.push(variable);
       expr
+    } else if let Some(expr) = expr::make_expr(lazy, stream, parent, function)? {
+      Some(expr)
     } else {
       return stream.expected_here(line_dbg!("an expression"));
     };

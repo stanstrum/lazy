@@ -150,9 +150,26 @@ string_enum!(Keyword {
 
 #[derive(Debug, Clone, Copy)]
 pub enum Operator {
-  Add,
-  Range,
+  Plus,
+  Minus,
+  Asterisk,
+  Div,
+  Mod,
+
+  Or,
   SingleAnd,
+  Xor,
+  OrAssign,
+  AndAssign,
+  XorAssign,
+  LogicalOr,
+  LogicalAnd,
+  LogicalXor,
+  LogicalOrAssign,
+  LogicalAndAssign,
+  LogicalXorAssign,
+
+  Range,
   // TODO: these are actually punctuation, perhaps break them out into their
   //       own subvariant
   RightArrow,

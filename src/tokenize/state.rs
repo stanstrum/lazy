@@ -91,7 +91,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
           });
         },
         // -> Operator
-        (State::Base, '-' | '/' | ':' | ';' | '&' | '+') => {
+        (State::Base, '-' | '/' | ':' | ';' | '&' | '+' | '*' | '%' | '|' | '^' | '?' | '.' | '>' | '<' | '=' | '~' | '!') => {
           self.retry(ch, State::Operator {
             start: self.pos(),
             content: String::new(),
@@ -190,24 +190,36 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
         (State::Operator { content, start }, _) => {
           let start = *start;
           match (content.as_str(), ch) {
-            // ->
-            | ("", '-')
-            | ("-", '>')
-            // // and /*
+            (_, _) if content.is_empty()
+              => content.push(ch),
+            // comments
             | ("", '/')
-            | ("/", '/')
-            | ("/", '*')
-            // :=
-            | ("", ':')
-            | (":", '=')
-            // ::
-            | (":", ':')
-            // &
-            | ("", '&')
-            // ;
-            | ("", ';')
-            // +
-            | ("", '+')
+            | ("/", '/') // //
+            | ("/", '*') // /*
+            // operators
+            | ("-", '>') // ->
+            | (":", '=') // :=
+            | (":", ':') // ::
+            // arithmetic
+            | ("+", '+' | '=') // ++ and +=
+            | ("-", '-' | '=') // -- and -=
+            | ("*", '*' | '=') // ** and *=
+            | ("**", '=') // **=
+            | ("/", '=') // /=
+            | ("%", '=') // %=
+            // bit
+            | ("&", '&' | '=') // && and &=
+            | ("&&", '=') // &&=
+            | ("|", '|' | '=') // || and |=
+            | ("||", '=') // ||=
+            | ("^", '^' | '=') // ^^ and ^=
+            | ("^^", '=') // ^^=
+            | ("<", '<' | '=') // <= and <<
+            | ("<<", '=') // <<=
+            | (">", '>' | '=') // >= and >>
+            | (">>", '>' | '=') // >>= and >>>
+            | (">>>", '=') // >>>=
+            | ("=", '=')
               => content.push(ch),
             ("->", _) => {
               self.push_here(Token::Operator(Operator::RightArrow), start);
@@ -221,10 +233,6 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
               self.push_here(Token::Operator(Operator::DoubleColon), start);
               self.retry(ch, State::Base);
             }
-            ("&", _) => {
-              self.push_here(Token::Operator(Operator::SingleAnd), start);
-              self.retry(ch, State::Base);
-            },
             (";", _) => {
               self.push_here(Token::Operator(Operator::Semicolon), start);
               self.retry(ch, State::Base);
@@ -243,7 +251,76 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
             },
             // Math
             ("+", _) => {
-              self.push_here(Token::Operator(Operator::Add), start);
+              self.push_here(Token::Operator(Operator::Plus), start);
+              self.retry(ch, State::Base);
+            },
+            ("-", _) => {
+              self.push_here(Token::Operator(Operator::Minus), start);
+              self.retry(ch, State::Base);
+            },
+            ("*", _) => {
+              self.push_here(Token::Operator(Operator::Asterisk), start);
+              self.retry(ch, State::Base);
+            },
+            ("/", _) => {
+              self.push_here(Token::Operator(Operator::Div), start);
+              self.retry(ch, State::Base);
+            },
+            ("%", _) => {
+              self.push_here(Token::Operator(Operator::Mod), start);
+              self.retry(ch, State::Base);
+            },
+            ("**", _) => {
+              self.push_here(Token::Operator(Operator::Asterisk), start);
+              self.push_here(Token::Operator(Operator::Asterisk), start);
+              self.retry(ch, State::Base);
+            },
+            ("|", _) => {
+              self.push_here(Token::Operator(Operator::Or), start);
+              self.retry(ch, State::Base);
+            },
+            ("&", _) => {
+              self.push_here(Token::Operator(Operator::SingleAnd), start);
+              self.retry(ch, State::Base);
+            },
+            ("^", _) => {
+              self.push_here(Token::Operator(Operator::Xor), start);
+              self.retry(ch, State::Base);
+            },
+            ("|=", _) => {
+              self.push_here(Token::Operator(Operator::OrAssign), start);
+              self.retry(ch, State::Base);
+            },
+            ("&=", _) => {
+              self.push_here(Token::Operator(Operator::AndAssign), start);
+              self.retry(ch, State::Base);
+            },
+            ("^=", _) => {
+              self.push_here(Token::Operator(Operator::XorAssign), start);
+              self.retry(ch, State::Base);
+            },
+            ("||", _) => {
+              self.push_here(Token::Operator(Operator::LogicalOr), start);
+              self.retry(ch, State::Base);
+            },
+            ("&&", _) => {
+              self.push_here(Token::Operator(Operator::LogicalAnd), start);
+              self.retry(ch, State::Base);
+            },
+            ("^^", _) => {
+              self.push_here(Token::Operator(Operator::LogicalXor), start);
+              self.retry(ch, State::Base);
+            },
+            ("||=", _) => {
+              self.push_here(Token::Operator(Operator::LogicalOrAssign), start);
+              self.retry(ch, State::Base);
+            },
+            ("&&=", _) => {
+              self.push_here(Token::Operator(Operator::LogicalAndAssign), start);
+              self.retry(ch, State::Base);
+            },
+            ("^^=", _) => {
+              self.push_here(Token::Operator(Operator::LogicalXorAssign), start);
               self.retry(ch, State::Base);
             },
             _ => todo!("operator {content:?} and {ch:?}"),

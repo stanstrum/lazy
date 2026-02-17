@@ -19,6 +19,7 @@ pub enum BinaryOperator {
   LogicalShr, // >>>
   Dot, // .
 
+  Assign, // =
   AddAssign, // +=
   SubAssign, // -=
   MulAssign, // *=
@@ -54,12 +55,18 @@ pub enum UnaryPrefixOperator {
   MutRef,
   Not,
   Invert,
+  Identity,
+  Negate,
+  PreDecrement,
+  PreIncrement,
 }
 
 #[derive(Debug)]
 pub enum UnarySuffixOperator {
   Try,
   Call(Vec<ExpressionReference>),
+  PostDecrement,
+  PostIncrement,
 }
 
 #[derive(Debug)]

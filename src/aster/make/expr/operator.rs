@@ -14,14 +14,27 @@ pub(super) fn make_unary_prefix<'pool, const N: usize, T: Read>(
   };
 
   let op = match token {
-    | Operator::Add
     | Operator::Range
     | Operator::RightArrow
     | Operator::DoubleColon
     | Operator::Semicolon
     | Operator::Bollocks
     | Operator::Comma
-    => return Ok(None),
+    | Operator::Div
+    | Operator::Mod
+    | Operator::Or
+    | Operator::Xor
+    | Operator::OrAssign
+    | Operator::AndAssign
+    | Operator::XorAssign
+    | Operator::LogicalOr
+    | Operator::LogicalAnd
+    | Operator::LogicalXor
+    | Operator::LogicalOrAssign
+    | Operator::LogicalAndAssign
+    | Operator::LogicalXorAssign
+      => return Ok(None),
+    Operator::Plus => UnaryPrefixOperator::Identity,
     Operator::SingleAnd => {
       stream.seek();
 
@@ -33,6 +46,8 @@ pub(super) fn make_unary_prefix<'pool, const N: usize, T: Read>(
         UnaryPrefixOperator::Ref
       }
     },
+    Operator::Minus => UnaryPrefixOperator::Negate,
+    Operator::Asterisk => UnaryPrefixOperator::Deref,
   };
 
   stream.seek();
@@ -113,7 +128,7 @@ pub(super) fn make_binary_op<'pool, const N: usize, T: Read>(
   module: lang::reference::ModuleReference,
   function: lang::reference::FunctionReference,
 ) -> Result<Option<(BinaryOperator, Span)>, Error> {
-  let Some((Token::Operator(token), span)) = stream.peek()? else {
+  let Some((Token::Operator(token), mut span)) = stream.peek()? else {
     return Ok(None);
   };
 
@@ -124,9 +139,35 @@ pub(super) fn make_binary_op<'pool, const N: usize, T: Read>(
     | Operator::Bollocks
     | Operator::Comma
       => return Ok(None),
-    Operator::Add => BinaryOperator::Add,
+    Operator::Plus => BinaryOperator::Add,
+    Operator::Minus => BinaryOperator::Sub,
+    Operator::Asterisk => {
+      let mark = stream.mark();
+      stream.seek();
+
+      if let Some((Token::Operator(Operator::Asterisk), end)) = stream.peek()? {
+        span.extend(end);
+        BinaryOperator::Exp
+      } else {
+        stream.take_mark(mark);
+        BinaryOperator::Mul
+      }
+    },
+    Operator::Div => BinaryOperator::Div,
     Operator::Range => BinaryOperator::Range,
     Operator::SingleAnd => BinaryOperator::And,
+    Operator::Mod => BinaryOperator::Mod,
+    Operator::Or => BinaryOperator::Or,
+    Operator::Xor => BinaryOperator::Xor,
+    Operator::OrAssign => BinaryOperator::OrAssign,
+    Operator::AndAssign => BinaryOperator::AndAssign,
+    Operator::XorAssign => BinaryOperator::XorAssign,
+    Operator::LogicalOr => BinaryOperator::LogicalOr,
+    Operator::LogicalAnd => BinaryOperator::LogicalAnd,
+    Operator::LogicalXor => BinaryOperator::LogicalXor,
+    Operator::LogicalOrAssign => BinaryOperator::LogicalOrAssign,
+    Operator::LogicalAndAssign => BinaryOperator::LogicalAndAssign,
+    Operator::LogicalXorAssign => BinaryOperator::LogicalXorAssign,
   };
 
   stream.seek();

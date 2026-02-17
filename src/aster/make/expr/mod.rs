@@ -78,6 +78,16 @@ enum ExpressionPart {
   Expression(lang::reference::ExpressionReference),
 }
 
+fn debug_gspan(lazy: &lang::Lazy, part: &ExpressionPart) -> Span {
+  match part {
+    | &ExpressionPart::UnaryPrefix((_, span))
+    | &ExpressionPart::UnarySuffix((_, span))
+    | &ExpressionPart::Binary((_, span))
+      => span,
+    ExpressionPart::Expression(expr) => lang::span::GetSpan::get_span(expr.rget_from(lazy), lazy),
+  }
+}
+
 pub(super) fn make_expr<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
@@ -130,6 +140,17 @@ pub(super) fn make_expr<'pool, const N: usize, T: Read>(
   // return Ok(None);
 
   while parts.len() > 1 {
+    let first = parts.first().unwrap();
+    let last = parts.last().unwrap();
+
+    let start = debug_gspan(lazy, first);
+    let end = debug_gspan(lazy, last);
+
+    return Err(Error::Invalid {
+      what: line_dbg!("can't parse"),
+      at: Span::from_pair(start, end),
+    });
+
     todo!("{parts:#?}")
   };
 

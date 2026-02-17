@@ -145,6 +145,7 @@ string_enum!(Keyword {
   Extends => "extends",
   Infer => "infer",
   Type => "type",
+  Mut => "mut",
 });
 
 #[derive(Debug, Clone, Copy)]
@@ -158,6 +159,7 @@ pub enum Operator {
   DoubleColon,
   Semicolon,
   Bollocks,
+  Comma,
 }
 
 /// Contains only the start position of a Span

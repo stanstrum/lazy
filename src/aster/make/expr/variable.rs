@@ -1,9 +1,10 @@
+use crate::tokenize::token::Operator;
 use crate::lang::span::GetSpan;
 use crate::aster::make::{make_name, ty};
 
 use super::*;
 
-type Value = (lang::expr::Variable, Option<lang::expr::Expression>);
+type Value = (lang::expr::Variable, Option<lang::reference::ExpressionReference>);
 
 pub fn make_assignment<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
@@ -37,7 +38,7 @@ pub fn make_assignment<'pool, const N: usize, T: Read>(
         return stream.expected_here(line_dbg!("an expression"));
       };
 
-      span.extend(expr.get_span(lazy));
+      span.extend(expr.rget_from(lazy).get_span(lazy));
 
       Some(expr)
     } else {

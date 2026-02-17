@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use crate::error::{Level, MessageContents, MessageSection, PrintableMessage, print_message};
 use crate::lang::reference::{ExpressionReference, Store};
-use crate::tokenize::token::{GroupingKind, GroupingType, Span};
+use crate::tokenize::token::{GroupingKind, GroupingType, Operator, Span};
 
 use super::*;
 
@@ -104,8 +104,8 @@ pub(super) fn make_block<'pool, const N: usize, T: Read>(
       }
     };
 
-    let id = if let Some(expr) = expr {
-      let id = lazy.rget_mut(function).add_expr(expr);
+    let id = if let Some(ExpressionReference(here, id)) = expr {
+      assert!(function == here);
       children.push(id);
       Some(id)
     } else {

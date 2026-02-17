@@ -178,9 +178,13 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
       return stream.expected_here(line_dbg!("an expression"));
     };
 
-    let id = expr.map(|expr| {
-      lazy.rget_mut(function).add_expr_to_block(expr, body)
-    });
+    let id = if let Some(ExpressionReference(here, id)) = expr {
+      assert!(function == here);
+      body.rget_from_mut(lazy).children.push(id);
+      Some(id)
+    } else {
+      None
+    };
 
     stream.skip_whitespace_and_comments()?;
 

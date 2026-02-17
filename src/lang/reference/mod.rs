@@ -43,7 +43,10 @@ pub enum TypeReference {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct VariableReference(BlockReference, usize);
+pub enum VariableReference {
+  Block(BlockReference, usize),
+  Argument(FunctionReference, usize),
+}
 
 impl<R: Copy, S: Store<R>> Reference<S> for R {
   fn rget_from<'a>(&self, store: &'a S) -> &'a S::Out {

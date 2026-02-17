@@ -89,11 +89,21 @@ impl<'a> Store<TypePartReference> for Lazy<'a> {
 impl<'a> Store<VariableReference> for Lazy<'a> {
   type Out = Variable;
 
-  fn rget(&self, VariableReference(block, index): VariableReference) -> &Self::Out {
-    self.rget(block).variables.get(index).unwrap()
+  fn rget(&self, key: VariableReference) -> &Self::Out {
+    match key {
+      VariableReference::Block(block, index) => {
+        self.rget(block).variables.get(index).unwrap()
+      },
+      VariableReference::Argument(function, index) => todo!(),
+    }
   }
 
-  fn rget_mut(&mut self, VariableReference(block, index): VariableReference) -> &mut Self::Out {
-    self.rget_mut(block).variables.get_mut(index).unwrap()
+  fn rget_mut(&mut self, key: VariableReference) -> &mut Self::Out {
+    match key {
+      VariableReference::Block(block, index) => {
+        self.rget_mut(block).variables.get_mut(index).unwrap()
+      },
+      VariableReference::Argument(function, index) => todo!(),
+    }
   }
 }

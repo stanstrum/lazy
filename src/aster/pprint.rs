@@ -162,7 +162,13 @@ impl Pretty for FunctionAnd<'_, Expression> {
           },
         }].into_iter()
       }
-      other => todo!("{other:#?}"),
+      Expression::Binary { a, b, op, .. } => {
+        let a = a.rget_from(lazy).print_with(function, lazy).collect::<String>();
+        let b = b.rget_from(lazy).print_with(function, lazy).collect::<String>();
+        let op = &op.0;
+
+        vec![format!("{a} {op} {b}")].into_iter()
+      },
     }
   }
 }

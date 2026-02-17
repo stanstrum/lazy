@@ -170,8 +170,31 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
         });
       };
 
-      body.rget_from_mut(lazy).variables.push(variable);
-      expr
+      let variable_span = variable.span;
+      let var_id = body.rget_from(lazy).variables.len();
+
+      lazy.rget_mut(body).variables.push(variable);
+
+      if let Some(b) = expr {
+        let span = b.rget_from(lazy).get_span(lazy);
+
+        let variable_reference = lang::reference::VariableReference::Block(body, var_id);
+
+        let a = function.rget_from_mut(lazy).add_expr(lang::expr::Expression::Variable { reference: variable_reference, span: variable_span });
+        let a = lang::reference::ExpressionReference(function, a);
+
+        let assignment = lang::expr::Expression::Binary {
+          a,
+          b,
+          op: (lang::expr::operator::BinaryOperator::Assign, variable_span),
+          span,
+        };
+
+        let id = function.rget_from_mut(lazy).add_expr(assignment);
+        Some(lang::reference::ExpressionReference(function, id))
+      } else {
+        None
+      }
     } else if let Some(expr) = expr::make_expr(lazy, stream, parent, function)? {
       Some(expr)
     } else {

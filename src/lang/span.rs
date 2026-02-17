@@ -87,6 +87,7 @@ impl GetSpan for Expression {
       | Expression::Literal { span, .. }
       | Expression::Variable { span, .. } => *span,
       Expression::Unknown(qualified) => qualified.span,
+      _ => todo!(),
     }
   }
 }

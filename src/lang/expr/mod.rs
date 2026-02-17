@@ -1,5 +1,8 @@
+pub mod operator;
+
+use crate::lang::expr::operator::{BinaryOperator, UnaryPrefixOperator};
 use crate::lang::module::Name;
-use crate::lang::reference::{BlockReference, VariableReference};
+use crate::lang::reference::{BlockReference, ExpressionReference, VariableReference};
 use crate::string_pool::StringId;
 use crate::tokenize::token::{NumericValue, Span, StringKind};
 use crate::lang::ty::{Qualified, Type};
@@ -43,6 +46,16 @@ pub enum Expression {
     span: Span,
   },
   Unknown(Qualified),
+  Unary {
+    expr: ExpressionReference,
+    op: (UnaryPrefixOperator, Span),
+  },
+  Binary {
+    a: ExpressionReference,
+    b: ExpressionReference,
+    op: (BinaryOperator, Span),
+    span: Span,
+  },
 }
 
 impl BlockExpression {

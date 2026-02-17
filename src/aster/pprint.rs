@@ -138,6 +138,7 @@ impl Pretty for FunctionAnd<'_, Expression> {
       Expression::Unknown(qualified) => vec![
         qualified.print(lazy)
       ].into_iter(),
+      _ => todo!(),
     }
   }
 }

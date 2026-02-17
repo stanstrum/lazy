@@ -48,6 +48,8 @@ pub(super) fn make_unary_prefix<'pool, const N: usize, T: Read>(
     },
     Operator::Minus => UnaryPrefixOperator::Negate,
     Operator::Asterisk => UnaryPrefixOperator::Deref,
+    Operator::DoublePlus => UnaryPrefixOperator::PreDecrement,
+    Operator::DoubleMinus => UnaryPrefixOperator::PreIncrement,
   };
 
   stream.seek();
@@ -61,6 +63,16 @@ pub(super) fn make_unary_suffix<'pool, const N: usize, T: Read>(
   module: lang::reference::ModuleReference,
   function: lang::reference::FunctionReference,
 ) -> Result<Option<(UnarySuffixOperator, Span)>, Error> {
+  if let Some((Token::Operator(Operator::DoublePlus), span)) = stream.peek()? {
+    stream.seek();
+    return Ok(Some((UnarySuffixOperator::PostIncrement, span)));
+  };
+
+  if let Some((Token::Operator(Operator::DoubleMinus), span)) = stream.peek()? {
+    stream.seek();
+    return Ok(Some((UnarySuffixOperator::PostDecrement, span)));
+  };
+
   if let Some((Token::Grouping(GroupingType::Open(GroupingKind::Parenthesis)), mut span)) = stream.peek()? {
     stream.seek();
 
@@ -138,6 +150,8 @@ pub(super) fn make_binary_op<'pool, const N: usize, T: Read>(
     | Operator::Semicolon
     | Operator::Bollocks
     | Operator::Comma
+    | Operator::DoublePlus
+    | Operator::DoubleMinus
       => return Ok(None),
     Operator::Plus => BinaryOperator::Add,
     Operator::Minus => BinaryOperator::Sub,

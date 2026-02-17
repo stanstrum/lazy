@@ -1,3 +1,4 @@
+use crate::lang::expr::operator::{UnaryOperator, UnarySuffixOperator};
 use crate::lang::expr::{BlockExpression, Expression, LiteralKind};
 use crate::lang::reference::{Reference, Store, TypePartReference};
 use crate::string_pool::PoolId;
@@ -138,7 +139,30 @@ impl Pretty for FunctionAnd<'_, Expression> {
       Expression::Unknown(qualified) => vec![
         qualified.print(lazy)
       ].into_iter(),
-      _ => todo!(),
+      Expression::Unary { expr, op, .. } => {
+        let expr = expr.rget_from(lazy).print_with(function, lazy).collect::<String>();
+
+        vec![match &op.0 {
+          UnaryOperator::Prefix(prefix) => todo!(),
+          UnaryOperator::Suffix(suffix) => match suffix {
+            UnarySuffixOperator::Try => format!("{expr}?"),
+            UnarySuffixOperator::Call(exprs) => {
+              let exprs = exprs.iter().map(|expr| {
+                expr.rget_from(lazy)
+                  .print_with(function, lazy)
+                  .collect::<String>()
+              });
+
+              let args = exprs.collect::<Vec<_>>().join(", ");
+
+              format!("{expr}(args)")
+            },
+            UnarySuffixOperator::PostDecrement => format!("{expr}--"),
+            UnarySuffixOperator::PostIncrement => format!("{expr}++"),
+          },
+        }].into_iter()
+      }
+      other => todo!("{other:#?}"),
     }
   }
 }

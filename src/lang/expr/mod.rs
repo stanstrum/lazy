@@ -1,6 +1,6 @@
 pub mod operator;
 
-use crate::lang::expr::operator::{BinaryOperator, UnaryPrefixOperator};
+use crate::lang::expr::operator::{BinaryOperator, UnaryOperator, UnaryPrefixOperator};
 use crate::lang::module::Name;
 use crate::lang::reference::{BlockReference, ExpressionReference, VariableReference};
 use crate::string_pool::StringId;
@@ -48,7 +48,8 @@ pub enum Expression {
   Unknown(Qualified),
   Unary {
     expr: ExpressionReference,
-    op: (UnaryPrefixOperator, Span),
+    op: (UnaryOperator, Span),
+    span: Span,
   },
   Binary {
     a: ExpressionReference,

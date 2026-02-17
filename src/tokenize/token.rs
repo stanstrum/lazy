@@ -177,6 +177,9 @@ pub enum Operator {
   Semicolon,
   Bollocks,
   Comma,
+
+  DoublePlus,
+  DoubleMinus,
 }
 
 /// Contains only the start position of a Span

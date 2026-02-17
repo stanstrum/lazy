@@ -219,7 +219,9 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
             | (">", '>' | '=') // >= and >>
             | (">>", '>' | '=') // >>= and >>>
             | (">>>", '=') // >>>=
-            | ("=", '=')
+            | ("=", '=') // ==
+            | ("+", '+') // ++
+            | ("-", '-') // --
               => content.push(ch),
             ("->", _) => {
               self.push_here(Token::Operator(Operator::RightArrow), start);
@@ -321,6 +323,14 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
             },
             ("^^=", _) => {
               self.push_here(Token::Operator(Operator::LogicalXorAssign), start);
+              self.retry(ch, State::Base);
+            },
+            ("++", _) => {
+              self.push_here(Token::Operator(Operator::DoublePlus), start);
+              self.retry(ch, State::Base);
+            },
+            ("--", _) => {
+              self.push_here(Token::Operator(Operator::DoubleMinus), start);
               self.retry(ch, State::Base);
             },
             _ => todo!("operator {content:?} and {ch:?}"),

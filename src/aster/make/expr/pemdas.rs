@@ -21,7 +21,7 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
       .position(|part| matches!(part, ExpressionPart::Expression(_)));
 
     let Some(expr_i) = find else { break };
-    i = expr_i + 1;
+    i += expr_i + 1;
 
     while matches!(parts.get(i), Some(ExpressionPart::UnarySuffix(..))) {
       let ExpressionPart::UnarySuffix((op, op_span)) = parts.remove(i) else {

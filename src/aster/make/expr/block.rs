@@ -223,7 +223,7 @@ pub(super) fn make_block<'pool, const N: usize, T: Read>(
   let span = Span::from_pair(start, end);
 
   let children = &lazy.rget(block).children;
-  let returns_last = !non_return_last.is_some_and(
+  let returns_last = !children.is_empty() && !non_return_last.is_some_and(
     |ExpressionReference(_, id)| id == *children.last().unwrap()
   );
 

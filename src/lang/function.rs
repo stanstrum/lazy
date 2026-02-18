@@ -40,13 +40,7 @@ pub struct Function {
 impl Function {
   pub fn new(function: FunctionReference, parent: ModuleReference, header: FunctionHeader) -> Self {
     let temp_span = header.span;
-    let blocks = vec![BlockExpression::new(
-      temp_span,
-      Type::Intrinsic {
-        kind: crate::lang::ty::Intrinsic::Void,
-        span: temp_span,
-      },
-    )];
+    let blocks = vec![BlockExpression::new_dirty(temp_span)];
     let body = BlockReference(function, BlockId(0));
 
     Self {

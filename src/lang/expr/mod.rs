@@ -60,6 +60,14 @@ pub enum Expression {
 }
 
 impl BlockExpression {
+  pub fn new_dirty(temp_span: Span) -> Self {
+    Self::new(temp_span, Type::Intrinsic {
+        kind: crate::lang::ty::Intrinsic::Void,
+        span: temp_span,
+      },
+    )
+  }
+
   pub fn new(span: Span, out: Type) -> Self {
     Self {
       children: vec![],

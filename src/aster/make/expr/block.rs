@@ -25,10 +25,7 @@ pub(super) fn make_block<'pool, const N: usize, T: Read>(
 
     let span = Span::from_pair(start, end);
 
-    let empty_block = lang::expr::BlockExpression::new(
-      Span::from_pair(start, end),
-      lang::ty::Type::Intrinsic { kind: lang::ty::Intrinsic::Void, span },
-    );
+    let empty_block = lang::expr::BlockExpression::new_dirty(span);
     let id = lazy.rget_mut(function).add_block(empty_block);
 
     return Ok(Some(lang::reference::BlockReference(function, id)));
@@ -39,8 +36,10 @@ pub(super) fn make_block<'pool, const N: usize, T: Read>(
   };
   stream.seek();
 
-  let mut children = vec![];
-  let mut variables = vec![];
+  let block = lang::expr::BlockExpression::new_dirty(start);
+  let block = lazy.rget_mut(function).add_block(block);
+  let block = lang::reference::BlockReference(function, block);
+
   let mut non_return_last = None;
   loop {
     stream.skip_whitespace_and_comments()?;
@@ -66,10 +65,16 @@ pub(super) fn make_block<'pool, const N: usize, T: Read>(
 
     let expr = {
       if let Some((variable, assignment)) = variable::make_assignment(lazy, stream, module, function)? {
-        let function_ref = lazy.rget(function);
+        let variable_names = block.rget_from(lazy).variables.iter().map(|x: &lang::expr::Variable| &x.name);
 
-        let variable_names = variables.iter().map(|x: &lang::expr::Variable| &x.name);
-        let argument_names = function_ref.header.arguments.iter().map(|x| &x.name);
+        let argument_names;
+        let range;
+
+        {
+          let function = lazy.rget(function);
+          argument_names = function.header.arguments.iter().map(|x| &x.name);
+          range = function.span;
+        };
 
         let conflict = argument_names.chain(variable_names)
           .find(|prior: &&lang::module::Name| prior.id == variable.name.id);
@@ -80,7 +85,7 @@ pub(super) fn make_block<'pool, const N: usize, T: Read>(
             force: false,
             description: "conflicting name will be shadowed".into(),
             contents: MessageContents::WithinSource {
-              range: function_ref.span,
+              range,
               sections: vec![
                 MessageSection {
                   text: "first used here".into(),
@@ -95,7 +100,7 @@ pub(super) fn make_block<'pool, const N: usize, T: Read>(
           });
         };
 
-        variables.push(variable);
+        lazy.rget_mut(block).variables.push(variable);
         assignment
       } else if let Some(expr) = make_expr(lazy, stream, module, function)? {
         Some(expr)
@@ -106,7 +111,7 @@ pub(super) fn make_block<'pool, const N: usize, T: Read>(
 
     let id = if let Some(ExpressionReference(here, id)) = expr {
       assert!(function == here);
-      children.push(id);
+      lazy.rget_mut(block).children.push(id);
       Some(id)
     } else {
       None
@@ -152,6 +157,7 @@ pub(super) fn make_block<'pool, const N: usize, T: Read>(
 
   let span = Span::from_pair(start, end);
 
+  let children = &lazy.rget(block).children;
   let returns_last = !non_return_last.is_some_and(
     |id| id == *children.last().unwrap()
   );
@@ -169,13 +175,5 @@ pub(super) fn make_block<'pool, const N: usize, T: Read>(
     }
   };
 
-  let id = lazy.rget_mut(function).add_block(lang::expr::BlockExpression {
-    children,
-    span,
-    returns_last,
-    out,
-    variables,
-  });
-
-  Ok(Some(lang::reference::BlockReference(function, id)))
+  Ok(Some(block))
 }

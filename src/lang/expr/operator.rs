@@ -59,6 +59,7 @@ pub enum UnaryPrefixOperator {
   Negate,
   PreDecrement,
   PreIncrement,
+  Splat,
 }
 
 #[derive(Debug)]

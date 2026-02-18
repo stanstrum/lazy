@@ -30,6 +30,19 @@ pub(super) fn make_unary_prefix<'pool, const N: usize, T: Read>(
     | Operator::LogicalOrAssign
     | Operator::LogicalAndAssign
     | Operator::LogicalXorAssign
+    | Operator::Dot
+    | Operator::Colon
+    | Operator::Shl
+    | Operator::Shr
+    | Operator::ShlAssign
+    | Operator::ShrAssign
+    | Operator::LogicalShrAssign
+    | Operator::Greater
+    | Operator::GreaterEqual
+    | Operator::Less
+    | Operator::LessEqual
+    | Operator::Equal
+    | Operator::Assign
       => return Ok(None),
     Operator::Plus => UnaryPrefixOperator::Identity,
     Operator::SingleAnd => {
@@ -47,6 +60,7 @@ pub(super) fn make_unary_prefix<'pool, const N: usize, T: Read>(
     Operator::Asterisk => UnaryPrefixOperator::Deref,
     Operator::DoublePlus => UnaryPrefixOperator::PreDecrement,
     Operator::DoubleMinus => UnaryPrefixOperator::PreIncrement,
+    Operator::Splat => UnaryPrefixOperator::Splat,
   };
 
   stream.seek();
@@ -69,6 +83,8 @@ pub(super) fn make_unary_suffix<'pool, const N: usize, T: Read>(
     stream.seek();
     return Ok(Some((UnarySuffixOperator::PostDecrement, span)));
   };
+
+  eprintln!("stub: parse cast");
 
   if let Some((Token::Grouping(GroupingType::Open(GroupingKind::Parenthesis)), mut span)) = stream.peek()? {
     stream.seek();
@@ -149,6 +165,8 @@ pub(super) fn make_binary_op<'pool, const N: usize, T: Read>(
     | Operator::Comma
     | Operator::DoublePlus
     | Operator::DoubleMinus
+    | Operator::Splat
+    | Operator::Colon
       => return Ok(None),
     Operator::Plus => BinaryOperator::Add,
     Operator::Minus => BinaryOperator::Sub,
@@ -179,6 +197,18 @@ pub(super) fn make_binary_op<'pool, const N: usize, T: Read>(
     Operator::LogicalOrAssign => BinaryOperator::LogicalOrAssign,
     Operator::LogicalAndAssign => BinaryOperator::LogicalAndAssign,
     Operator::LogicalXorAssign => BinaryOperator::LogicalXorAssign,
+    Operator::Dot => BinaryOperator::Dot,
+    Operator::Shl => BinaryOperator::Shl,
+    Operator::Shr => BinaryOperator::Shr,
+    Operator::ShlAssign => BinaryOperator::ShlAssign,
+    Operator::ShrAssign => BinaryOperator::ShrAsign,
+    Operator::LogicalShrAssign => BinaryOperator::LogicalShrAssign,
+    Operator::Greater => BinaryOperator::Greater,
+    Operator::GreaterEqual => BinaryOperator::GreaterEqual,
+    Operator::Less => BinaryOperator::Less,
+    Operator::LessEqual => BinaryOperator::LessEqual,
+    Operator::Equal => BinaryOperator::Equal,
+    Operator::Assign => BinaryOperator::Assign,
   };
 
   stream.seek();

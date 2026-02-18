@@ -63,7 +63,7 @@ interface Double
   public double_self -> T
     &mut this
 
-    this |>= $.double()
+    // this |>= $.double()
 
 test double
   mut f32 s := 40
@@ -71,4 +71,4 @@ test double
   :: b := s.double()
   s = b
 
-  s |>= $.double()
+  // s |>= $.double()

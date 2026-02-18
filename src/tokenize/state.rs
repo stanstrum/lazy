@@ -91,7 +91,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
           });
         },
         // -> Operator
-        (State::Base, '-' | '/' | ':' | ';' | '&' | '+' | '*' | '%' | '|' | '^' | '?' | '.' | '>' | '<' | '=' | '~' | '!') => {
+        (State::Base, '-' | '/' | ':' | ';' | '&' | '+' | '*' | '%' | '|' | '^' | '?' | '.' | '>' | '<' | '=' | '~' | '!' | ',') => {
           self.retry(ch, State::Operator {
             start: self.pos(),
             content: String::new(),
@@ -220,6 +220,8 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
             | (">>", '>' | '=') // >>= and >>>
             | (">>>", '=') // >>>=
             | ("=", '=') // ==
+            //
+            | ("." | "..", '.') // .. and ...
               => content.push(ch),
             ("->", _) => {
               self.push_here(Token::Operator(Operator::RightArrow), start);
@@ -329,6 +331,66 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
             },
             ("--", _) => {
               self.push_here(Token::Operator(Operator::DoubleMinus), start);
+              self.retry(ch, State::Base);
+            },
+            (".", _) => {
+              self.push_here(Token::Operator(Operator::Dot), start);
+              self.retry(ch, State::Base);
+            },
+            ("..", _) => {
+              self.push_here(Token::Operator(Operator::Range), start);
+              self.retry(ch, State::Base);
+            },
+            ("...", _) => {
+              self.push_here(Token::Operator(Operator::Splat), start);
+              self.retry(ch, State::Base);
+            },
+            (":", _) => {
+              self.push_here(Token::Operator(Operator::Colon), start);
+              self.retry(ch, State::Base);
+            },
+            (",", _) => {
+              self.push_here(Token::Operator(Operator::Comma), start);
+              self.retry(ch, State::Base);
+            },
+            ("<<=", _) => {
+              self.push_here(Token::Operator(Operator::ShlAssign), start);
+              self.retry(ch, State::Base);
+            },
+            ("<<", _) => {
+              self.push_here(Token::Operator(Operator::Shl), start);
+              self.retry(ch, State::Base);
+            },
+            ("<=", _) => {
+              self.push_here(Token::Operator(Operator::LessEqual), start);
+              self.retry(ch, State::Base);
+            },
+            ("<", _) => {
+              self.push_here(Token::Operator(Operator::Less), start);
+              self.retry(ch, State::Base);
+            },
+            (">>>=", _) => {
+              self.push_here(Token::Operator(Operator::LogicalShrAssign), start);
+              self.retry(ch, State::Base);
+            },
+            (">>=", _) => {
+              self.push_here(Token::Operator(Operator::ShrAssign), start);
+              self.retry(ch, State::Base);
+            },
+            (">=", _) => {
+              self.push_here(Token::Operator(Operator::GreaterEqual), start);
+              self.retry(ch, State::Base);
+            },
+            (">", _) => {
+              self.push_here(Token::Operator(Operator::Greater), start);
+              self.retry(ch, State::Base);
+            },
+            ("==", _) => {
+              self.push_here(Token::Operator(Operator::Equal), start);
+              self.retry(ch, State::Base);
+            },
+            ("=", _) => {
+              self.push_here(Token::Operator(Operator::Assign), start);
               self.retry(ch, State::Base);
             },
             _ => todo!("operator {content:?} and {ch:?}"),

@@ -155,7 +155,7 @@ impl Pretty for FunctionAnd<'_, Expression> {
 
               let args = exprs.collect::<Vec<_>>().join(", ");
 
-              format!("{expr}(args)")
+              format!("{expr}({args})")
             },
             UnarySuffixOperator::PostDecrement => format!("{expr}--"),
             UnarySuffixOperator::PostIncrement => format!("{expr}++"),

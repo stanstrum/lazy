@@ -94,7 +94,7 @@ impl<'a> Store<VariableReference> for Lazy<'a> {
       VariableReference::Block(block, index) => {
         self.rget(block).variables.get(index).unwrap()
       },
-      VariableReference::Argument(function, index) => todo!(),
+      VariableReference::Argument(..) => todo!(),
     }
   }
 
@@ -103,7 +103,7 @@ impl<'a> Store<VariableReference> for Lazy<'a> {
       VariableReference::Block(block, index) => {
         self.rget_mut(block).variables.get_mut(index).unwrap()
       },
-      VariableReference::Argument(function, index) => todo!(),
+      VariableReference::Argument(..) => todo!(),
     }
   }
 }

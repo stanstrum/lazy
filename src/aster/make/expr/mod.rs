@@ -92,7 +92,7 @@ pub(super) fn make_expr<'pool, const N: usize, T: Read>(
     let curr_mark = stream.mark();
     stream.skip_whitespace_and_comments()?;
 
-    while let Some(prefix) = operator::make_unary_prefix(lazy, stream, module, function)? {
+    while let Some(prefix) = operator::make_unary_prefix(stream)? {
       parts.push(ExpressionPart::UnaryPrefix(prefix));
       stream.skip_whitespace_and_comments()?;
     };

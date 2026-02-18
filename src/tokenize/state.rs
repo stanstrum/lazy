@@ -220,8 +220,6 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
             | (">>", '>' | '=') // >>= and >>>
             | (">>>", '=') // >>>=
             | ("=", '=') // ==
-            | ("+", '+') // ++
-            | ("-", '-') // --
               => content.push(ch),
             ("->", _) => {
               self.push_here(Token::Operator(Operator::RightArrow), start);

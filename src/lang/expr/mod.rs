@@ -1,6 +1,6 @@
 pub mod operator;
 
-use crate::lang::expr::operator::{BinaryOperator, UnaryOperator, UnaryPrefixOperator};
+use crate::lang::expr::operator::{BinaryOperator, UnaryOperator};
 use crate::lang::module::Name;
 use crate::lang::reference::{BlockReference, ExpressionReference, VariableReference};
 use crate::string_pool::StringId;

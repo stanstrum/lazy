@@ -1,10 +1,9 @@
-use crate::lang::reference::{ExpressionReference, Reference};
+use crate::lang::reference::Reference;
 use crate::lang::span::GetSpan;
 use crate::line_dbg;
 
 use crate::tokenize::token::Operator;
 
-use std::cmp::Ordering;
 use super::*;
 
 fn make_function_argument<'pool, const N: usize, T: Read>(

@@ -4,10 +4,7 @@ use crate::lang::expr::operator::{BinaryOperator, UnaryPrefixOperator, UnarySuff
 use super::*;
 
 pub(super) fn make_unary_prefix<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  module: lang::reference::ModuleReference,
-  function: lang::reference::FunctionReference,
 ) -> Result<Option<(UnaryPrefixOperator, Span)>, Error> {
   let Some((Token::Operator(token), mut span)) = stream.peek()? else {
     return Ok(None);

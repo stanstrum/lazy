@@ -67,16 +67,16 @@ impl Function {
     id
   }
 
-  pub fn add_expr_to_block(&mut self, expr: Expression, BlockReference(function, block): BlockReference) -> ExprId {
-    assert!(function == self.body.0,
-      "cannot add an expression using another function's BlockReference",
-    );
+  // pub fn add_expr_to_block(&mut self, expr: Expression, BlockReference(function, block): BlockReference) -> ExprId {
+  //   assert!(function == self.body.0,
+  //     "cannot add an expression using another function's BlockReference",
+  //   );
 
-    let id = self.add_expr(expr);
-    self[block].children.push(id);
+  //   let id = self.add_expr(expr);
+  //   self[block].children.push(id);
 
-    id
-  }
+  //   id
+  // }
 }
 
 impl Index<BlockId> for Function {

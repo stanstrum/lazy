@@ -85,9 +85,11 @@ impl GetSpan for Expression {
     match self {
       Expression::Block(id) => id.rget_from(lazy).get_span(()),
       | Expression::Literal { span, .. }
-      | Expression::Variable { span, .. } => *span,
+      | Expression::Variable { span, .. }
+      | Expression::Binary { span, .. }
+      | Expression::Unary { span, .. }
+        => *span,
       Expression::Unknown(qualified) => qualified.span,
-      _ => todo!(),
     }
   }
 }

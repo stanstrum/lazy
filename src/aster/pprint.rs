@@ -145,7 +145,7 @@ impl Pretty for FunctionAnd<'_, Expression> {
         vec![match &op.0 {
           UnaryOperator::Prefix(prefix) => todo!(),
           UnaryOperator::Suffix(suffix) => match suffix {
-            UnarySuffixOperator::Try => format!("{expr}?"),
+            UnarySuffixOperator::Try => format!("{{ {expr}? }}"),
             UnarySuffixOperator::Call(exprs) => {
               let exprs = exprs.iter().map(|expr| {
                 expr.rget_from(lazy)
@@ -155,10 +155,10 @@ impl Pretty for FunctionAnd<'_, Expression> {
 
               let args = exprs.collect::<Vec<_>>().join(", ");
 
-              format!("{expr}({args})")
+              format!("{{ {expr}({args}) }}")
             },
-            UnarySuffixOperator::PostDecrement => format!("{expr}--"),
-            UnarySuffixOperator::PostIncrement => format!("{expr}++"),
+            UnarySuffixOperator::PostDecrement => format!("{{ {expr}-- }}"),
+            UnarySuffixOperator::PostIncrement => format!("{{ {expr}++ }}"),
           },
         }].into_iter()
       }
@@ -167,7 +167,7 @@ impl Pretty for FunctionAnd<'_, Expression> {
         let b = b.rget_from(lazy).print_with(function, lazy).collect::<String>();
         let op = &op.0;
 
-        vec![format!("{a} {op} {b}")].into_iter()
+        vec![format!("{{ {a} {op} {b} }}")].into_iter()
       },
     }
   }

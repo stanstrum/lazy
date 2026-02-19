@@ -190,7 +190,7 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
           let reference = lang::reference::ExpressionReference(function, id);
 
           parts.drain(i - 1 ..= i + 1);
-
+          i -= 1;
           parts.insert(i, ExpressionPart::Expression(reference));
         },
         | (Pemdas::Dot, _)
@@ -222,7 +222,9 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
   //   at: Span::from_pair(start, end),
   // });
 
-  assert!(parts.len() == 1);
+  if parts.len() != 1 {
+    panic!("{parts:#?}");
+  };
 
   let first = parts.into_iter().next().unwrap();
 

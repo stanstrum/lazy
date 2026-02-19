@@ -14,7 +14,7 @@ enum Pemdas {
   Increment,
   // Parenthesis,
   Exponent,
-  MulDiv,
+  MulDivMod,
   AddSub,
   Bit,
   BitShift,
@@ -134,9 +134,10 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
         , _))) => todo!("IncrementPost"),
         | (Pemdas::Dot, &ExpressionPart::Binary(op @ (BinaryOperator::Dot, _)))
         | (Pemdas::Exponent, &ExpressionPart::Binary(op @ (BinaryOperator::Exp, _)))
-        | (Pemdas::MulDiv, &ExpressionPart::Binary(op @ (
+        | (Pemdas::MulDivMod, &ExpressionPart::Binary(op @ (
           | BinaryOperator::Mul
           | BinaryOperator::Div
+          | BinaryOperator::Mod
         , _)))
         | (Pemdas::AddSub, &ExpressionPart::Binary(op @ (
           | BinaryOperator::Add
@@ -198,7 +199,7 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
         | (Pemdas::RefDeref, _)
         | (Pemdas::Increment, _)
         | (Pemdas::Exponent, _)
-        | (Pemdas::MulDiv, _)
+        | (Pemdas::MulDivMod, _)
         | (Pemdas::AddSub, _)
         | (Pemdas::Bit, _)
         | (Pemdas::BitShift, _)

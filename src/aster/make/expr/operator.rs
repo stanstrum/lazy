@@ -201,7 +201,7 @@ pub(super) fn make_binary_op<'pool, const N: usize, T: Read>(
     Operator::Shl => BinaryOperator::Shl,
     Operator::Shr => BinaryOperator::Shr,
     Operator::ShlAssign => BinaryOperator::ShlAssign,
-    Operator::ShrAssign => BinaryOperator::ShrAsign,
+    Operator::ShrAssign => BinaryOperator::ShrAssign,
     Operator::LogicalShrAssign => BinaryOperator::LogicalShrAssign,
     Operator::Greater => BinaryOperator::Greater,
     Operator::GreaterEqual => BinaryOperator::GreaterEqual,

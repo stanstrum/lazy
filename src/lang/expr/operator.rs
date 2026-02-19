@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum BinaryOperator {
   Add, // +
   Sub, // -
@@ -30,7 +30,7 @@ pub enum BinaryOperator {
   OrAssign, // |=
   XorAssign, // ^=
   ShlAssign, // >>=
-  ShrAsign, // <<=
+  ShrAssign, // <<=
   LogicalAndAssign, // &&=
   LogicalOrAssign, // ||=
   LogicalXorAssign, // ^^=
@@ -45,10 +45,9 @@ pub enum BinaryOperator {
   Fish, // <>
   Range, // ..
   Splat, // ...
-
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum UnaryPrefixOperator {
   Deref,
   Ref,
@@ -62,7 +61,7 @@ pub enum UnaryPrefixOperator {
   Splat,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum UnarySuffixOperator {
   Try,
   Call(Vec<ExpressionReference>),
@@ -70,7 +69,7 @@ pub enum UnarySuffixOperator {
   PostIncrement,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum UnaryOperator {
   Prefix(UnaryPrefixOperator),
   Suffix(UnarySuffixOperator),
@@ -106,7 +105,7 @@ impl std::fmt::Display for BinaryOperator {
       BinaryOperator::OrAssign => "|=",
       BinaryOperator::XorAssign => "^=",
       BinaryOperator::ShlAssign => "<<=",
-      BinaryOperator::ShrAsign => ">>=",
+      BinaryOperator::ShrAssign => ">>=",
       BinaryOperator::LogicalAndAssign => "&&=",
       BinaryOperator::LogicalOrAssign => "||=",
       BinaryOperator::LogicalXorAssign => "^^=",

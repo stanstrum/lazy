@@ -1,6 +1,7 @@
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
+use crate::error::{Level, MessageContents, MessageSection, PrintableMessage, print_message};
 use crate::lang::span::GetSpan;
 use crate::lang::expr::operator::{BinaryOperator, UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 
@@ -223,6 +224,25 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
   };
 
   if parts.len() != 1 {
+    assert!(!parts.is_empty());
+
+    let start = debug_gspan(lazy, parts.first().unwrap());
+    let end = debug_gspan(lazy, parts.last().unwrap());
+    let range = Span::from_pair(start, end);
+
+    print_message(lazy, PrintableMessage {
+      level: Level::Warn,
+      force: false,
+      description: format!("{len} parts", len = parts.len()),
+      contents: MessageContents::WithinSource {
+        range,
+        sections: parts.iter().enumerate().map(|(i, part)| MessageSection {
+          text: format!("part {i}"),
+          span: debug_gspan(lazy, part),
+        }).collect(),
+      },
+    });
+
     panic!("{parts:#?}");
   };
 

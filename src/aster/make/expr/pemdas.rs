@@ -21,6 +21,7 @@ enum Pemdas {
   Bit,
   BitShift,
   Compare,
+  Logical,
   Assign,
 }
 
@@ -168,6 +169,11 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
           | BinaryOperator::Greater | BinaryOperator::GreaterEqual
           | BinaryOperator::Equal
         , _)))
+        | (Pemdas::Logical, &ExpressionPart::Binary(op @ (
+          | BinaryOperator::LogicalAnd
+          | BinaryOperator::LogicalOr
+          | BinaryOperator::LogicalXor
+        , _)))
         | (Pemdas::Assign, &ExpressionPart::Binary(op @ (
           | BinaryOperator::Assign
           | BinaryOperator::AddAssign
@@ -204,18 +210,21 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
           i -= 1;
           parts.insert(i, ExpressionPart::Expression(reference));
         },
-        | (Pemdas::Dot, _)
-        | (Pemdas::Call, _)
-        | (Pemdas::RefDeref, _)
-        | (Pemdas::Increment, _)
-        | (Pemdas::IdentNegate, _)
-        | (Pemdas::Exponent, _)
-        | (Pemdas::MulDivMod, _)
-        | (Pemdas::AddSub, _)
-        | (Pemdas::Bit, _)
-        | (Pemdas::BitShift, _)
-        | (Pemdas::Compare, _)
-        | (Pemdas::Assign, _)
+        (
+        | Pemdas::Dot
+        | Pemdas::Call
+        | Pemdas::RefDeref
+        | Pemdas::Increment
+        | Pemdas::IdentNegate
+        | Pemdas::Exponent
+        | Pemdas::MulDivMod
+        | Pemdas::AddSub
+        | Pemdas::Bit
+        | Pemdas::BitShift
+        | Pemdas::Compare
+        | Pemdas::Logical
+        | Pemdas::Assign
+        , _)
         => { /* do nothing */ },
       };
 

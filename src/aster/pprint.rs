@@ -1,4 +1,4 @@
-use crate::lang::expr::operator::{UnaryOperator, UnarySuffixOperator};
+use crate::lang::expr::operator::{UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 use crate::lang::expr::{BlockExpression, Expression, LiteralKind};
 use crate::lang::reference::{Reference, Store, TypePartReference};
 use crate::string_pool::PoolId;
@@ -143,7 +143,18 @@ impl Pretty for FunctionAnd<'_, Expression> {
         let expr = expr.rget_from(lazy).print_with(function, lazy).collect::<String>();
 
         vec![match &op.0 {
-          UnaryOperator::Prefix(prefix) => todo!(),
+          UnaryOperator::Prefix(prefix) => match prefix {
+            UnaryPrefixOperator::Deref => format!("{{ *{expr} }}"),
+            UnaryPrefixOperator::Ref => format!("{{ &{expr} }}"),
+            UnaryPrefixOperator::MutRef => format!("{{ &mut {expr} }}"),
+            UnaryPrefixOperator::Not => format!("{{ !{expr} }}"),
+            UnaryPrefixOperator::Invert => format!("{{ ~{expr} }}"),
+            UnaryPrefixOperator::Identity => format!("{{ +{expr} }}"),
+            UnaryPrefixOperator::Negate => format!("{{ -{expr} }}"),
+            UnaryPrefixOperator::PreDecrement => format!("{{ --{expr} }}"),
+            UnaryPrefixOperator::PreIncrement => format!("{{ ++{expr} }}"),
+            UnaryPrefixOperator::Splat => format!("{{ ...{expr} }}"),
+          },
           UnaryOperator::Suffix(suffix) => match suffix {
             UnarySuffixOperator::Try => format!("{{ {expr}? }}"),
             UnarySuffixOperator::Call(exprs) => {

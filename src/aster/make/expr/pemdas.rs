@@ -13,6 +13,7 @@ enum Pemdas {
   RefDeref,
   Increment,
   // Parenthesis,
+  IdentNegate,
   Exponent,
   MulDivMod,
   AddSub,
@@ -78,8 +79,8 @@ fn melt_left(lazy: &mut lang::Lazy, cursor: &mut usize, parts: &mut Vec<Expressi
 
 fn melt_right(lazy: &mut lang::Lazy, cursor: usize, parts: &mut Vec<ExpressionPart>) -> Result<lang::reference::ExpressionReference, Error> {
   let right = find_right_expr(cursor, parts).unwrap();
-  let melt_start = cursor + 1;
-  let melt_end = (right - 1).max(melt_start);
+  let melt_start = cursor;
+  let melt_end = right;
 
   assert!(melt_start <= melt_end);
   let range = melt_start..melt_end;
@@ -105,7 +106,7 @@ fn melt_right(lazy: &mut lang::Lazy, cursor: usize, parts: &mut Vec<ExpressionPa
     expr = lang::reference::ExpressionReference(function, new_id);
   };
 
-  *parts.get_mut(right).unwrap() = ExpressionPart::Expression(expr);
+  *parts.get_mut(cursor).unwrap() = ExpressionPart::Expression(expr);
 
   Ok(expr)
 }
@@ -132,6 +133,14 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
           | UnarySuffixOperator::PostDecrement
           | UnarySuffixOperator::PostIncrement
         , _))) => todo!("IncrementPost"),
+        (Pemdas::IdentNegate, &ExpressionPart::UnaryPrefix((
+          | UnaryPrefixOperator::Identity
+          | UnaryPrefixOperator::Negate
+          | UnaryPrefixOperator::Not
+          | UnaryPrefixOperator::Invert
+        , _))) => {
+          melt_right(lazy, i, &mut parts)?;
+        },
         | (Pemdas::Dot, &ExpressionPart::Binary(op @ (BinaryOperator::Dot, _)))
         | (Pemdas::Exponent, &ExpressionPart::Binary(op @ (BinaryOperator::Exp, _)))
         | (Pemdas::MulDivMod, &ExpressionPart::Binary(op @ (
@@ -178,10 +187,10 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
         , _)))
         => {
           let a = melt_left(lazy, &mut i, &mut parts)?;
-          let b = melt_right(lazy, i, &mut parts)?;
+          let b = melt_right(lazy, i + 1, &mut parts)?;
 
           let start = a.rget_from(lazy).get_span(lazy);
-          let end = a.rget_from(lazy).get_span(lazy);
+          let end = b.rget_from(lazy).get_span(lazy);
           let span = Span::from_pair(start, end);
 
           let function = a.0;
@@ -198,6 +207,7 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
         | (Pemdas::Call, _)
         | (Pemdas::RefDeref, _)
         | (Pemdas::Increment, _)
+        | (Pemdas::IdentNegate, _)
         | (Pemdas::Exponent, _)
         | (Pemdas::MulDivMod, _)
         | (Pemdas::AddSub, _)
@@ -211,17 +221,6 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
       i += 1;
     };
   };
-
-  // let first = parts.first().unwrap();
-  // let last = parts.last().unwrap();
-
-  // let start = debug_gspan(lazy, first);
-  // let end = debug_gspan(lazy, last);
-
-  // return Err(Error::Invalid {
-  //   what: line_dbg!("can't parse"),
-  //   at: Span::from_pair(start, end),
-  // });
 
   if parts.len() != 1 {
     panic!("{parts:#?}");

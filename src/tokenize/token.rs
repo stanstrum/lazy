@@ -169,6 +169,7 @@ pub enum Operator {
   LogicalOr,
   LogicalAnd,
   LogicalXor,
+  LogicalShr,
   LogicalOrAssign,
   LogicalAndAssign,
   LogicalXorAssign,

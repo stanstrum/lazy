@@ -373,8 +373,16 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
               self.push_here(Token::Operator(Operator::LogicalShrAssign), start);
               self.retry(ch, State::Base);
             },
+            (">>>", _) => {
+              self.push_here(Token::Operator(Operator::LogicalShr), start);
+              self.retry(ch, State::Base);
+            },
             (">>=", _) => {
               self.push_here(Token::Operator(Operator::ShrAssign), start);
+              self.retry(ch, State::Base);
+            },
+            (">>", _) => {
+              self.push_here(Token::Operator(Operator::Shr), start);
               self.retry(ch, State::Base);
             },
             (">=", _) => {

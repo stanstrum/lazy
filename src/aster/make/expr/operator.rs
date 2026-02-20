@@ -43,6 +43,7 @@ pub(super) fn make_unary_prefix<'pool, const N: usize, T: Read>(
     | Operator::LessEqual
     | Operator::Equal
     | Operator::Assign
+    | Operator::LogicalShr
       => return Ok(None),
     Operator::Plus => UnaryPrefixOperator::Identity,
     Operator::SingleAnd => {
@@ -198,6 +199,7 @@ pub(super) fn make_binary_op<'pool, const N: usize, T: Read>(
     Operator::LogicalOr => BinaryOperator::LogicalOr,
     Operator::LogicalAnd => BinaryOperator::LogicalAnd,
     Operator::LogicalXor => BinaryOperator::LogicalXor,
+    Operator::LogicalShr => BinaryOperator::LogicalShr,
     Operator::LogicalOrAssign => BinaryOperator::LogicalOrAssign,
     Operator::LogicalAndAssign => BinaryOperator::LogicalAndAssign,
     Operator::LogicalXorAssign => BinaryOperator::LogicalXorAssign,

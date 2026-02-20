@@ -2,7 +2,7 @@ use crate::aster::make::expr::make_literal;
 use crate::lang::expr::{Expression, LiteralKind};
 use crate::lang::span::GetSpan;
 use crate::line_dbg;
-use crate::tokenize::token::{GroupingKind, GroupingType, NumericValue, Operator};
+use crate::tokenize::token::{GroupingKind, GroupingType, Keyword, NumericValue, Operator};
 
 use super::*;
 
@@ -75,17 +75,25 @@ fn make_reference_to<'pool, const N: usize, T: Read>(
     return Ok(None);
   };
   stream.seek();
+
+  let r#mut = if let Some((Token::Keyword(Keyword::Mut), _)) = stream.peek()? {
+    stream.seek();
+    true
+  } else {
+    false
+  };
+
   stream.skip_whitespace_and_comments()?;
 
   let Some(ty) = make_type(lazy, stream, module)? else {
-    return stream.expected_here(line_dbg!("a type"))?;
+    return Ok(None);
   };
 
   let ty = module.add_type_part(ty, lazy);
 
   span.extend(ty.get_span(lazy));
 
-  Ok(Some(lang::ty::Type::ReferenceTo { ty, span }))
+  Ok(Some(lang::ty::Type::ReferenceTo { ty, r#mut, span, }))
 }
 
 fn make_array_of<'pool, const N: usize, T: Read>(

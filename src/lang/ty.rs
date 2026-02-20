@@ -54,6 +54,7 @@ pub enum Type {
   },
   ReferenceTo {
     ty: TypePartReference,
+    r#mut: bool,
     span: Span,
   },
   UnsizedArrayOf {

@@ -78,7 +78,10 @@ impl Pretty for Type {
       Type::WeakFloat { .. } => "{weak float}".into(),
       Type::WeakInteger { .. } => "{weak integer}".into(),
       Type::WeakString { .. } => "{weak string}".into(),
-      Type::ReferenceTo { ty, .. } => format!("&{}", ty.print(lazy)),
+      Type::ReferenceTo { ty, r#mut, .. } => format!("&{mutable}{ty}",
+        mutable = if *r#mut { "mut " } else { "" },
+        ty = ty.print(lazy),
+      ),
       Type::SizedArrayOf { ty, size, .. } => format!("[{size}]{}", ty.print(lazy)),
       Type::UnsizedArrayOf { ty, .. } => format!("[]{}", ty.print(lazy)),
       // Type::Expression(expression) => {

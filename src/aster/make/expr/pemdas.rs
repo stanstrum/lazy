@@ -122,20 +122,20 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
 
       match (&step, part) {
         (Pemdas::Call, ExpressionPart::UnarySuffix((UnarySuffixOperator::Call(_), _))) => todo!("Call"),
-        (Pemdas::RefDeref, ExpressionPart::UnaryPrefix((
-          | UnaryPrefixOperator::Ref
-          | UnaryPrefixOperator::MutRef
-          | UnaryPrefixOperator::Deref
-        , _))) => todo!("RefDeref"),
-        (Pemdas::Increment, ExpressionPart::UnaryPrefix((
-          | UnaryPrefixOperator::PreDecrement
-          | UnaryPrefixOperator::PreIncrement
-        , _))) => todo!("IncrementPre"),
         (Pemdas::Increment, ExpressionPart::UnarySuffix((
           | UnarySuffixOperator::PostDecrement
           | UnarySuffixOperator::PostIncrement
-        , _))) => todo!("IncrementPost"),
-        (Pemdas::IdentNegate, &ExpressionPart::UnaryPrefix((
+          , _))) => todo!("IncrementPost"),
+          | (Pemdas::RefDeref, ExpressionPart::UnaryPrefix((
+            | UnaryPrefixOperator::Ref
+            | UnaryPrefixOperator::MutRef
+            | UnaryPrefixOperator::Deref
+          , _)))
+          | (Pemdas::Increment, ExpressionPart::UnaryPrefix((
+            | UnaryPrefixOperator::PreDecrement
+            | UnaryPrefixOperator::PreIncrement
+          , _)))
+          | (Pemdas::IdentNegate, ExpressionPart::UnaryPrefix((
           | UnaryPrefixOperator::Identity
           | UnaryPrefixOperator::Negate
           | UnaryPrefixOperator::Not

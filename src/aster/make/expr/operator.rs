@@ -61,6 +61,8 @@ pub(super) fn make_unary_prefix<'pool, const N: usize, T: Read>(
     Operator::DoublePlus => UnaryPrefixOperator::PreDecrement,
     Operator::DoubleMinus => UnaryPrefixOperator::PreIncrement,
     Operator::Splat => UnaryPrefixOperator::Splat,
+    Operator::Not => UnaryPrefixOperator::Not,
+    Operator::Invert => UnaryPrefixOperator::Invert,
   };
 
   stream.seek();
@@ -167,6 +169,8 @@ pub(super) fn make_binary_op<'pool, const N: usize, T: Read>(
     | Operator::DoubleMinus
     | Operator::Splat
     | Operator::Colon
+    | Operator::Not
+    | Operator::Invert
       => return Ok(None),
     Operator::Plus => BinaryOperator::Add,
     Operator::Minus => BinaryOperator::Sub,

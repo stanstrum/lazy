@@ -393,6 +393,14 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
               self.push_here(Token::Operator(Operator::Assign), start);
               self.retry(ch, State::Base);
             },
+            ("!", _) => {
+              self.push_here(Token::Operator(Operator::Not), start);
+              self.retry(ch, State::Base);
+            },
+            ("~", _) => {
+              self.push_here(Token::Operator(Operator::Invert), start);
+              self.retry(ch, State::Base);
+            },
             _ => todo!("operator {content:?} and {ch:?}"),
           }
         },

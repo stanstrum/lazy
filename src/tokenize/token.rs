@@ -174,6 +174,9 @@ pub enum Operator {
   LogicalXorAssign,
   LogicalShrAssign,
 
+  Not,
+  Invert,
+
   Greater,
   GreaterEqual,
   Less,

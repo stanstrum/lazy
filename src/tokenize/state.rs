@@ -277,6 +277,30 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
               self.push_here(Token::Operator(Operator::Asterisk), start);
               self.retry(ch, State::Base);
             },
+            ("+=", _) => {
+              self.push_here(Token::Operator(Operator::AddAssign), start);
+              self.retry(ch, State::Base);
+            },
+            ("-=", _) => {
+              self.push_here(Token::Operator(Operator::SubAssign), start);
+              self.retry(ch, State::Base);
+            },
+            ("*=", _) => {
+              self.push_here(Token::Operator(Operator::MulAssign), start);
+              self.retry(ch, State::Base);
+            },
+            ("/=", _) => {
+              self.push_here(Token::Operator(Operator::DivAssign), start);
+              self.retry(ch, State::Base);
+            },
+            ("%=", _) => {
+              self.push_here(Token::Operator(Operator::ModAssign), start);
+              self.retry(ch, State::Base);
+            },
+            ("**=", _) => {
+              self.push_here(Token::Operator(Operator::ExpAssign), start);
+              self.retry(ch, State::Base);
+            },
             ("|", _) => {
               self.push_here(Token::Operator(Operator::Or), start);
               self.retry(ch, State::Base);

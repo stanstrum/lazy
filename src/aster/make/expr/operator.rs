@@ -44,6 +44,12 @@ pub(super) fn make_unary_prefix<'pool, const N: usize, T: Read>(
     | Operator::Equal
     | Operator::Assign
     | Operator::LogicalShr
+    | Operator::AddAssign
+    | Operator::SubAssign
+    | Operator::MulAssign
+    | Operator::ExpAssign
+    | Operator::DivAssign
+    | Operator::ModAssign
       => return Ok(None),
     Operator::Plus => UnaryPrefixOperator::Identity,
     Operator::SingleAnd => {
@@ -215,6 +221,12 @@ pub(super) fn make_binary_op<'pool, const N: usize, T: Read>(
     Operator::LessEqual => BinaryOperator::LessEqual,
     Operator::Equal => BinaryOperator::Equal,
     Operator::Assign => BinaryOperator::Assign,
+    Operator::AddAssign => BinaryOperator::AddAssign,
+    Operator::SubAssign => BinaryOperator::SubAssign,
+    Operator::MulAssign => BinaryOperator::MulAssign,
+    Operator::ExpAssign => BinaryOperator::ExpAssign,
+    Operator::DivAssign => BinaryOperator::DivAssign,
+    Operator::ModAssign => BinaryOperator::ModAssign,
   };
 
   stream.seek();

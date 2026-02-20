@@ -155,6 +155,12 @@ pub enum Operator {
   Asterisk,
   Div,
   Mod,
+  AddAssign,
+  SubAssign,
+  MulAssign,
+  ExpAssign,
+  DivAssign,
+  ModAssign,
 
   Or,
   SingleAnd,

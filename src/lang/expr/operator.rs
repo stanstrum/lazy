@@ -98,7 +98,7 @@ impl std::fmt::Display for BinaryOperator {
       BinaryOperator::DerefDot => "->",
       BinaryOperator::Assign => "=",
       BinaryOperator::AddAssign => "+=",
-      BinaryOperator::SubAssign => "+-",
+      BinaryOperator::SubAssign => "-=",
       BinaryOperator::MulAssign => "*=",
       BinaryOperator::DivAssign => "/=",
       BinaryOperator::ModAssign => "%=",

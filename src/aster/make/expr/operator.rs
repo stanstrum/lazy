@@ -167,7 +167,6 @@ pub(super) fn make_binary_op<'pool, const N: usize, T: Read>(
   };
 
   let op = match token {
-    | Operator::RightArrow
     | Operator::DoubleColon
     | Operator::Semicolon
     | Operator::Bollocks
@@ -210,6 +209,7 @@ pub(super) fn make_binary_op<'pool, const N: usize, T: Read>(
     Operator::LogicalAndAssign => BinaryOperator::LogicalAndAssign,
     Operator::LogicalXorAssign => BinaryOperator::LogicalXorAssign,
     Operator::Dot => BinaryOperator::Dot,
+    Operator::RightArrow => BinaryOperator::DerefDot,
     Operator::Shl => BinaryOperator::Shl,
     Operator::Shr => BinaryOperator::Shr,
     Operator::ShlAssign => BinaryOperator::ShlAssign,

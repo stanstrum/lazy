@@ -36,7 +36,7 @@ fn debug_gspan(lazy: &lang::Lazy, part: &ExpressionPart) -> Span {
 }
 
 fn find_left_expr(cursor: usize, parts: &[ExpressionPart]) -> Option<usize> {
-  parts[..=cursor].iter().rposition(|part| matches!(part, ExpressionPart::Expression(_)))
+  parts[..cursor].iter().rposition(|part| matches!(part, ExpressionPart::Expression(_)))
 }
 
 fn find_right_expr(cursor: usize, parts: &[ExpressionPart]) -> Option<usize> {
@@ -47,7 +47,7 @@ fn find_right_expr(cursor: usize, parts: &[ExpressionPart]) -> Option<usize> {
 fn melt_left(lazy: &mut lang::Lazy, cursor: &mut usize, parts: &mut Vec<ExpressionPart>) -> Result<lang::reference::ExpressionReference, Error> {
   let left = find_left_expr(*cursor, parts).unwrap();
   let melt_start = left + 1;
-  let melt_end = *cursor;
+  let melt_end = (*cursor).min(parts.len());
 
   assert!(melt_start <= melt_end);
   let range = melt_start..melt_end;
@@ -121,11 +121,15 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
       let part = parts.get(i).unwrap();
 
       match (&step, part) {
-        (Pemdas::Call, ExpressionPart::UnarySuffix((UnarySuffixOperator::Call(_), _))) => todo!("Call"),
-        (Pemdas::Increment, ExpressionPart::UnarySuffix((
+        | (Pemdas::Call, ExpressionPart::UnarySuffix((UnarySuffixOperator::Call(_), _)))
+        | (Pemdas::Increment, ExpressionPart::UnarySuffix((
           | UnarySuffixOperator::PostDecrement
           | UnarySuffixOperator::PostIncrement
-          , _))) => todo!("IncrementPost"),
+          , _))) => {
+            i += 1;
+            melt_left(lazy, &mut i, &mut parts)?;
+            i -= 1;
+          },
           | (Pemdas::RefDeref, ExpressionPart::UnaryPrefix((
             | UnaryPrefixOperator::Ref
             | UnaryPrefixOperator::MutRef
@@ -143,7 +147,10 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
         , _))) => {
           melt_right(lazy, i, &mut parts)?;
         },
-        | (Pemdas::Dot, &ExpressionPart::Binary(op @ (BinaryOperator::Dot, _)))
+        | (Pemdas::Dot, &ExpressionPart::Binary(op @ (
+          | BinaryOperator::Dot
+          | BinaryOperator::DerefDot
+        , _)))
         | (Pemdas::Exponent, &ExpressionPart::Binary(op @ (BinaryOperator::Exp, _)))
         | (Pemdas::MulDivMod, &ExpressionPart::Binary(op @ (
           | BinaryOperator::Mul

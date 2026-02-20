@@ -17,6 +17,7 @@ pub enum BinaryOperator {
   LogicalOr, // ||
   LogicalXor, // ^^
   LogicalShr, // >>>
+  DerefDot, // ->
   Dot, // .
 
   Assign, // =
@@ -94,6 +95,7 @@ impl std::fmt::Display for BinaryOperator {
       BinaryOperator::LogicalXor => "^^",
       BinaryOperator::LogicalShr => ">>>",
       BinaryOperator::Dot => ".",
+      BinaryOperator::DerefDot => "->",
       BinaryOperator::Assign => "=",
       BinaryOperator::AddAssign => "+=",
       BinaryOperator::SubAssign => "+-",

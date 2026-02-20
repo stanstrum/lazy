@@ -1,0 +1,30 @@
+type c_str := &[]u8
+
+pi_r_squared -> f32
+  f32 r
+
+  f32 pi := 3.1415926535
+
+  pi * r ** 2
+
+main -> i32
+  i32 argc
+  &[]c_str argv
+
+  i32 a := 0 + 1 - 2 * 3 / 4 ** 5 % 6 & 7 | +8 ^ -9
+  bool b := true || false ^^ true && !false
+  b ^^= true
+  b &&= true
+  b ||= true
+  a <<= 1 >> 1
+  b >>>= 2 >>> 3
+  &mut *argv
+  &*argv
+
+  a += 1
+  a -= 1
+  ++a
+  --a
+
+  b++
+  b--

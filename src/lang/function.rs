@@ -1,23 +1,16 @@
 use std::ops::{Index, IndexMut};
 
-use crate::lang::expr::{BlockExpression, Expression};
+use crate::lang::expr::{BlockExpression, Expression, Variable};
 use crate::lang::module::Name;
 use crate::lang::reference::{BlockReference, FunctionReference, ModuleReference};
 use crate::lang::ty::Type;
 use crate::tokenize::token::Span;
 
 #[derive(Debug)]
-pub struct FunctionArgument {
-  pub name: Name,
-  pub ty: Type,
-  pub span: Span,
-}
-
-#[derive(Debug)]
 pub struct FunctionHeader {
   pub name: Name,
   pub ret_ty: Type,
-  pub arguments: Vec<FunctionArgument>,
+  pub arguments: Vec<Variable>,
   pub span: Span,
 }
 

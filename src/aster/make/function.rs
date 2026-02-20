@@ -10,7 +10,7 @@ fn make_function_argument<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   parent: lang::reference::ModuleReference,
-) -> Result<Option<lang::function::FunctionArgument>, Error> {
+) -> Result<Option<lang::expr::Variable>, Error> {
   let Some(ty) = ty::make_type(lazy, stream, parent)? else {
     return Ok(None);
   };
@@ -26,7 +26,7 @@ fn make_function_argument<'pool, const N: usize, T: Read>(
   let mut span = ty.get_span(lazy);
   span.extend(name.span);
 
-  Ok(Some(lang::function::FunctionArgument {
+  Ok(Some(lang::expr::Variable {
     name,
     ty,
     span,

@@ -1,4 +1,4 @@
-use crate::lang::reference::Reference;
+use crate::lang::reference::{ExpressionReference, Reference};
 use crate::lang::span::GetSpan;
 use crate::line_dbg;
 
@@ -137,9 +137,9 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
     };
   };
 
-  if let Some(last_id) = function.last_expr(lazy) {
+  if let Some(last) = body.rget_from(lazy).children.last() {
     function.get_body_mut(lazy).returns_last = !non_return_last.is_some_and(
-      |id| id == last_id
+      |ExpressionReference(_, id)| id == *last
     );
   };
 

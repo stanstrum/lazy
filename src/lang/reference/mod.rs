@@ -36,8 +36,9 @@ pub struct ExpressionReference(pub FunctionReference, pub ExprId);
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TypePartReference(pub ModuleReference, pub TypePartId);
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum TypeReference {
+  Alias(AliasReference),
   Part(TypePartReference),
   ReturnTypeOf(FunctionReference),
 }

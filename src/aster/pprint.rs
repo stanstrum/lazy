@@ -1,6 +1,6 @@
 use crate::lang::expr::operator::{UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 use crate::lang::expr::{BlockExpression, Expression, LiteralKind};
-use crate::lang::reference::{Reference, Store, TypePartReference};
+use crate::lang::reference::{FunctionReference, Reference, Store, TypePartReference, TypeReference};
 use crate::string_pool::PoolId;
 
 use crate::lang::Lazy;
@@ -58,6 +58,33 @@ impl Pretty for Qualified {
     };
 
     out
+  }
+}
+
+impl Pretty for FunctionReference {
+  type Out = String;
+
+  fn print(&self, lazy: &Lazy) -> Self::Out {
+    let function = self.rget_from(lazy);
+    let path = lazy.describe_module(function.parent);
+    let name = function.header.name.print(lazy);
+
+    format!("{path}::{name}")
+  }
+}
+
+impl Pretty for TypeReference {
+  type Out = String;
+
+  fn print(&self, lazy: &Lazy) -> Self::Out {
+    match self {
+      TypeReference::Part(part) => part.rget_from(lazy).print(lazy),
+      TypeReference::ReturnTypeOf(function) => {
+        format!("ReturnType<{}>", function.print(lazy))
+      },
+      TypeReference::Alias(_) => todo!(),
+
+    }
   }
 }
 

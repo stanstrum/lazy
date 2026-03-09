@@ -43,6 +43,7 @@ impl GetSpan for TypeReference {
     match self {
       TypeReference::Part(type_part) => type_part.rget_from(parent).get_span(parent),
       TypeReference::ReturnTypeOf(function) => function.rget_from(parent).header.ret_ty.get_span(parent),
+      TypeReference::Alias(_) => todo!(),
     }
   }
 }

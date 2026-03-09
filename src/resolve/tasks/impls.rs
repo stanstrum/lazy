@@ -1,0 +1,53 @@
+use crate::lang::reference::TypeReference;
+use crate::aster::pprint::Pretty;
+
+use super::*;
+
+pub struct Subjugate {
+  prerequisite: Box<dyn Task>,
+  original: Box<dyn Task>,
+}
+
+pub struct ResolveType {
+  pub dest: TypeReference,
+  pub value: Type,
+}
+
+impl Task for Subjugate {
+  fn explain(&self, lazy: &Lazy) -> String {
+    let Subjugate { prerequisite, original } = self;
+
+    let prerequisite_explain = (prerequisite).explain(lazy);
+    let original_explain = original.explain(lazy);
+
+    let first = std::iter::once(format!("While executing: {}", prerequisite_explain));
+    let rest = original_explain
+      .split('\n')
+      .map(|line| format!("  {line}"));
+
+    first.chain(rest).collect::<Vec<_>>().join("\n")
+  }
+
+  fn execute(self: Box<Self>, lazy: &mut Lazy) -> Result<TaskResponse> {
+    let replace = match self.original.execute(lazy)? {
+      TaskResponse::Replace(replace) => replace,
+      TaskResponse::Pop => self.prerequisite,
+    };
+
+    return Ok(TaskResponse::Replace(replace))
+  }
+}
+
+impl Task for ResolveType {
+  fn explain(&self, lazy: &Lazy) -> String {
+    self.dest.print(lazy);
+
+    format!("Resolve ")
+  }
+
+  fn execute(self: Box<Self>, lazy: &mut Lazy) -> Result<TaskResponse> {
+    *lazy.rget_mut(self.dest) = self.value;
+
+    Ok(TaskResponse::Pop)
+  }
+}

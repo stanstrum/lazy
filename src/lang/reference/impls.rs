@@ -86,6 +86,30 @@ impl<'a> Store<TypePartReference> for Lazy<'a> {
   }
 }
 
+impl<'a> Store<TypeReference> for Lazy<'a> {
+  type Out = Type;
+
+  fn rget(&self, reference: TypeReference) -> &Self::Out {
+    match reference {
+      TypeReference::Part(part) => self.rget(part),
+      TypeReference::ReturnTypeOf(function) => {
+        &self.rget(function).header.ret_ty
+      },
+      TypeReference::Alias(_) => todo!(),
+    }
+  }
+
+  fn rget_mut(&mut self, reference: TypeReference) -> &mut Self::Out {
+    match reference {
+      TypeReference::Part(part) => self.rget_mut(part),
+      TypeReference::ReturnTypeOf(function) => {
+        &mut self.rget_mut(function).header.ret_ty
+      },
+      TypeReference::Alias(_) => todo!(),
+    }
+  }
+}
+
 impl<'a> Store<VariableReference> for Lazy<'a> {
   type Out = Variable;
 

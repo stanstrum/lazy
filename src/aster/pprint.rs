@@ -83,7 +83,7 @@ impl Pretty for TypeReference {
         format!("ReturnType<{}>", function.print(lazy))
       },
       TypeReference::Alias(_) => todo!(),
-
+      TypeReference::ArgumentOf(..) => todo!(),
     }
   }
 }

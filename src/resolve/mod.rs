@@ -1,8 +1,5 @@
-use crate::aster::pprint::Pretty;
-use crate::lang::function::Function;
-use crate::lang::module::{Module, TypeAlias};
 use crate::lang::ty::{Intrinsic, Qualified, Type};
-use crate::resolve::tasks::{ResolveType, TaskResponse, Tasks};
+use crate::resolve::tasks::{ResolveType, Tasks};
 use crate::lang::reference::{AliasReference, FunctionReference, ModuleReference, Reference, Store, TypePartReference, TypeReference};
 use crate::lang::Lazy;
 
@@ -23,7 +20,10 @@ trait Resolve {
 
 impl Resolve for TypePartReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
-    todo!()
+    let reference = TypeReference::Part(*self);
+    let ty = self.rget_from(lazy);
+
+    ResolvedTypePair(&reference, ty).resolve(lazy, tasks)
   }
 }
 
@@ -98,6 +98,7 @@ impl Resolve for TypeReference {
         ResolvedTypePair(self, ty).resolve(lazy, tasks)
       },
       TypeReference::Alias(_) => todo!(),
+      TypeReference::ArgumentOf(..) => todo!(),
     }
   }
 }
@@ -117,22 +118,30 @@ impl<'a> Resolve for ResolvedTypePair<'a> {
 
         Ok(())
       },
-      Type::Intrinsic { kind, span } => todo!(),
+      Type::Intrinsic { .. } => {
+        // do nothing ...
+        Ok(())
+      },
       Type::WeakInteger { span } => todo!(),
       Type::WeakFloat { span } => todo!(),
       Type::WeakString { span } => todo!(),
-      Type::ReferenceTo { ty, r#mut, span } => todo!(),
-      Type::UnsizedArrayOf { ty, span } => todo!(),
-      Type::SizedArrayOf { ty, size, span } => todo!(),
+      | Type::ReferenceTo { ty, .. }
+      | Type::UnsizedArrayOf { ty, .. }
+      | Type::SizedArrayOf { ty, .. } => {
+        ty.resolve(lazy, tasks)
+      },
       Type::Expression(expression_reference) => todo!(),
       Type::Reference(_) => todo!(),
     }
   }
 }
 
-impl Resolve for TypeAlias {
+impl Resolve for AliasReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
-    todo!()
+    let reference = TypeReference::Alias(*self);
+    let ty = &self.rget_from(lazy).ty;
+
+    ResolvedTypePair(&reference, &ty).resolve(lazy, tasks)
   }
 }
 
@@ -142,7 +151,16 @@ impl Resolve for FunctionReference {
 
     TypeReference::ReturnTypeOf(*self).resolve(lazy, tasks)?;
 
-    todo!()
+    let arguments_iter = (0..function.header.arguments.len())
+      .map(|index| TypeReference::ArgumentOf(*self, index));
+
+    for argument in arguments_iter {
+      argument.resolve(lazy, tasks)?
+    };
+
+    println!("this is stubbed");
+
+    Ok(())
   }
 }
 
@@ -158,8 +176,9 @@ impl Resolve for ModuleReference {
       function.resolve(lazy, tasks)?;
     };
 
-    for alias in module.aliases.iter() {
-      alias.resolve(lazy, tasks)?;
+    for index in 0..module.aliases.len() {
+      let reference = AliasReference(*self, index);
+      reference.resolve(lazy, tasks)?;
     };
 
     Ok(())

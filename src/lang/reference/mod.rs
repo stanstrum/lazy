@@ -41,6 +41,7 @@ pub enum TypeReference {
   Alias(AliasReference),
   Part(TypePartReference),
   ReturnTypeOf(FunctionReference),
+  ArgumentOf(FunctionReference, usize),
 }
 
 #[derive(Debug, Clone, Copy)]

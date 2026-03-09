@@ -96,6 +96,7 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
         &self.rget(function).header.ret_ty
       },
       TypeReference::Alias(_) => todo!(),
+      TypeReference::ArgumentOf(..) => todo!(),
     }
   }
 
@@ -106,6 +107,7 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
         &mut self.rget_mut(function).header.ret_ty
       },
       TypeReference::Alias(_) => todo!(),
+      TypeReference::ArgumentOf(..) => todo!(),
     }
   }
 }

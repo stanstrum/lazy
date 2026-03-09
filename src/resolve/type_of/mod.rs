@@ -43,6 +43,7 @@ impl TypeOf for TypeReference {
         (&function.rget_from(lazy).header.ret_ty).type_of(lazy)
       },
       TypeReference::Alias(_) => todo!(),
+      TypeReference::ArgumentOf(..) => todo!(),
     }
   }
 }

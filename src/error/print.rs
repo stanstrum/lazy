@@ -84,11 +84,14 @@ pub fn print_message(lazy: &Lazy, message: PrintableMessage) {
     desc = message.description,
   ).unwrap();
 
-  // if
-  let MessageContents::WithinSource { range, sections } = message.contents;
-  // {
-  // };
-  print_sections(&mut out, lazy, range, sections);
+  match message.contents {
+    MessageContents::WithinSource { range, sections } => {
+      print_sections(&mut out, lazy, range, sections);
+    },
+    MessageContents::File(module) => {
+      print_partial_section_header(&mut out, lazy, module);
+    },
+  };
 
   let out = std::str::from_utf8(&out).expect("output parsed as utf-8");
   print!("{out}");
@@ -158,6 +161,36 @@ impl<'a> Colorizer<'a> {
   }
 }
 
+fn print_section_header(out: &mut Vec<u8>, lazy: &Lazy, module: ModuleReference, position: Option<Position>) {
+  let mut path = lazy.get_path(module).path.as_path();
+
+  if
+    let Some(parent) = lazy.settings.input_path.parent() &&
+    let Ok(stripped) = path.strip_prefix(parent)
+  {
+    path = stripped;
+  };
+
+  write!(out, "  --> {}", path.to_string_lossy()).unwrap();
+
+  if let Some(position) = position {
+    write!(out, ":{line}:{col}",
+      line = position.line,
+      col = position.column,
+    ).unwrap();
+  };
+
+  writeln!(out).unwrap();
+}
+
+fn print_partial_section_header(out: &mut Vec<u8>, lazy: &Lazy, module: ModuleReference) {
+  print_section_header(out, lazy, module, None)
+}
+
+fn print_full_section_header(out: &mut Vec<u8>, lazy: &Lazy, span: Span) {
+  print_section_header(out, lazy, span.module, Some(span.start))
+}
+
 fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec<MessageSection>) {
   // Open and create a reader for this module's source file
   let ModulePath { path, tokens } = lazy.get_path(range.module);
@@ -206,22 +239,7 @@ fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec
       yielder.rewind(section.span.start);
     };
 
-    writeln!(out, "  --> {path}:{line}:{col}",
-      path = {
-        let mut path = lazy.get_path(section.span.module).path.as_path();
-
-        if
-          let Some(parent) = lazy.settings.input_path.parent() &&
-          let Ok(stripped) = path.strip_prefix(parent)
-        {
-          path = stripped;
-        };
-
-        path.to_string_lossy()
-      },
-      line = section.span.start.line,
-      col = section.span.start.column,
-    ).unwrap();
+    print_full_section_header(out, lazy, section.span);
 
     // Skip at least until the line before
     while yielder.line + 1 < section.span.start.line {

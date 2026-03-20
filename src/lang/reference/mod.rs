@@ -40,6 +40,7 @@ pub struct TypePartReference(pub ModuleReference, pub TypePartId);
 pub enum TypeReference {
   Alias(AliasReference),
   Part(TypePartReference),
+  Expression(ExpressionReference),
   ReturnTypeOf(FunctionReference),
   ArgumentOf(FunctionReference, usize),
 }
@@ -81,5 +82,22 @@ impl FunctionReference {
       let id = body.children.last().unwrap();
       ExpressionReference(*self, *id)
     })
+  }
+}
+
+impl TypeReference {
+  pub fn parent_module(&self, lazy: &Lazy) -> ModuleReference {
+    match self {
+      &TypeReference::Alias(AliasReference(module_reference, _))
+        => module_reference,
+      &TypeReference::Part(TypePartReference(module_reference, _))
+        => module_reference,
+      | TypeReference::Expression(ExpressionReference(function_reference, _))
+      | TypeReference::ReturnTypeOf(function_reference)
+      | TypeReference::ArgumentOf(function_reference, _) => {
+        let function = function_reference.rget_from(lazy);
+        function.parent
+      },
+    }
   }
 }

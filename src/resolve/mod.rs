@@ -1,7 +1,11 @@
+use crate::error::{Level, MessageContents, PrintableMessage, print_message};
 use crate::lang::ty::{Intrinsic, Qualified, Type};
+use crate::line_dbg;
+use crate::resolve::coerce::{Coerce, SpecialPair, TypePair};
 use crate::resolve::tasks::{ResolveType, Tasks};
-use crate::lang::reference::{AliasReference, FunctionReference, ModuleReference, Reference, Store, TypePartReference, TypeReference};
+use crate::lang::reference::{AliasReference, ExpressionReference, FunctionReference, ModuleReference, Reference, Store, TypePartReference, TypeReference};
 use crate::lang::Lazy;
+use crate::resolve::type_of::TypeOf;
 
 mod tasks;
 pub mod type_of;
@@ -99,6 +103,7 @@ impl Resolve for TypeReference {
       },
       TypeReference::Alias(_) => todo!(),
       TypeReference::ArgumentOf(..) => todo!(),
+      TypeReference::Expression(_) => todo!(),
     }
   }
 }
@@ -130,7 +135,7 @@ impl<'a> Resolve for ResolvedTypePair<'a> {
       | Type::SizedArrayOf { ty, .. } => {
         ty.resolve(lazy, tasks)
       },
-      Type::Expression(expression_reference) => todo!(),
+      // Type::Expression(expression_reference) => todo!(),
       Type::Reference(_) => todo!(),
     }
   }
@@ -148,8 +153,9 @@ impl Resolve for AliasReference {
 impl Resolve for FunctionReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
     let function = self.rget_from(lazy);
+    let ret_ty = TypeReference::ReturnTypeOf(*self);
 
-    TypeReference::ReturnTypeOf(*self).resolve(lazy, tasks)?;
+    ret_ty.resolve(lazy, tasks)?;
 
     let arguments_iter = (0..function.header.arguments.len())
       .map(|index| TypeReference::ArgumentOf(*self, index));
@@ -158,7 +164,25 @@ impl Resolve for FunctionReference {
       argument.resolve(lazy, tasks)?
     };
 
-    println!("this is stubbed");
+    let body = function.body.rget_from(lazy);
+
+    if let Some(ty) = ret_ty.type_of(lazy)? {
+      let expr_id = body.children.last().unwrap();
+      let reference = TypeReference::Expression(ExpressionReference(*self, *expr_id));
+      let typed_reference = Type::Reference(reference);
+
+      let last_expression = SpecialPair(&reference, &typed_reference);
+      let return_type = SpecialPair(&ret_ty, &ty);
+
+      last_expression.coerce(lazy, &return_type, tasks)?;
+    };
+
+    print_message(lazy, PrintableMessage {
+      level: Level::Debug,
+      force: false,
+      description: line_dbg!("stub").into(),
+      contents: MessageContents::File(function.parent),
+    });
 
     Ok(())
   }
@@ -187,6 +211,8 @@ impl Resolve for ModuleReference {
 
 pub fn task_resolve(lazy: &mut Lazy, module: ModuleReference) -> Result<()> {
   let mut tasks = Tasks::new();
+
+  tasks.task_status(line_dbg!("resolve global").into());
 
   loop {
     module.resolve(lazy, &mut tasks)?;

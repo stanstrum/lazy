@@ -66,7 +66,6 @@ pub enum Type {
     size: u64,
     span: Span,
   },
-  Expression(ExpressionReference),
   // Block(BlockReference),
 }
 

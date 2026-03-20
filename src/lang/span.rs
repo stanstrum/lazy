@@ -45,6 +45,7 @@ impl GetSpan for TypeReference {
       TypeReference::ReturnTypeOf(function) => function.rget_from(parent).header.ret_ty.get_span(parent),
       TypeReference::Alias(_) => todo!(),
       TypeReference::ArgumentOf(..) => todo!(),
+      TypeReference::Expression(_) => todo!(),
     }
   }
 }

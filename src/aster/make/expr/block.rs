@@ -231,7 +231,9 @@ pub(super) fn make_block<'pool, const N: usize, T: Read>(
     let &index = children.last().unwrap();
     let reference = ExpressionReference(function, index);
 
-    lang::ty::Type::Expression(reference)
+    lang::ty::Type::Reference(
+      lang::reference::TypeReference::Expression(reference)
+    )
   } else {
     lang::ty::Type::Intrinsic {
       kind: lang::ty::Intrinsic::Void,

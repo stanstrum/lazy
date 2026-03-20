@@ -1,13 +1,14 @@
 use crate::lang::expr::operator::{UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 use crate::lang::expr::{BlockExpression, Expression, LiteralKind};
 use crate::lang::reference::{FunctionReference, Reference, Store, TypePartReference, TypeReference};
+use crate::lang::span::GetSpan;
 use crate::string_pool::PoolId;
 
 use crate::lang::Lazy;
 use crate::lang::ty::{Qualified, Type};
 use crate::lang::module::{Module, Name};
 use crate::lang::function::Function;
-use crate::tokenize::token::{NumericValue, StringKind};
+use crate::tokenize::token::{NumericValue, Span, StringKind};
 
 pub trait Pretty {
   type Out;
@@ -84,6 +85,11 @@ impl Pretty for TypeReference {
       },
       TypeReference::Alias(_) => todo!(),
       TypeReference::ArgumentOf(..) => todo!(),
+      TypeReference::Expression(expression) => {
+        let Span { start, end, .. } = expression.rget_from(lazy).get_span(lazy);
+
+        format!("typeof /* {}:{} - {}:{} */", start.line, start.column, end.line, end.column)
+      },
     }
   }
 }
@@ -94,7 +100,7 @@ impl Pretty for Type {
   fn print(&self, lazy: &Lazy) -> Self::Out {
     match self {
       // Type::Reference(reference) => reference.print(lazy),
-      Type::Unresolved { qualified, .. } => qualified.print(lazy),
+      Type::Unresolved { qualified, .. } => format!("/*?*/ {}", qualified.print(lazy)),
       Type::Intrinsic { kind, .. } => kind.to_string(),
       // Type::Resolved { original, reference } => {
       //   format!("/* {deferred} */ {original}",
@@ -116,6 +122,7 @@ impl Pretty for Type {
       //   let index = expression.index;
       //   format!("/* typeof {fname}:{index:?} */")
       // },
+      Type::Reference(reference) => format!("|{}|", reference.print(lazy)),
       other => todo!("{other:?}"),
     }
   }

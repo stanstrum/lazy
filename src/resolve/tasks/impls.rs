@@ -40,9 +40,14 @@ impl Task for Subjugate {
 
 impl Task for ResolveType {
   fn explain(&self, lazy: &Lazy) -> String {
-    self.dest.print(lazy);
+    let parent = self.dest.parent_module(lazy);
 
-    format!("Resolve ")
+    format!(
+      "ResolveType in {parent}:\n  dest = {dest}\n  value = {value}",
+      parent = lazy.describe_module(parent),
+      dest = self.dest.print(lazy),
+      value = self.value.print(lazy),
+    )
   }
 
   fn execute(self: Box<Self>, lazy: &mut Lazy) -> Result<TaskResponse> {

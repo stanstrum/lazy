@@ -68,7 +68,12 @@ fn melt_left(lazy: &mut lang::Lazy, cursor: &mut usize, parts: &mut Vec<Expressi
     let mut span = expr.rget_from(lazy).get_span(lazy);
     span.extend(op_span);
 
-    let new_expr = lang::expr::Expression::Unary { expr, op, span };
+    let new_expr = lang::expr::Expression::Unary {
+      expr,
+      op,
+      span,
+      out: lang::ty::Type::Weak { span },
+    };
     let new_id = function.rget_from_mut(lazy).add_expr(new_expr);
     expr = lang::reference::ExpressionReference(function, new_id);
   };
@@ -103,7 +108,12 @@ fn melt_right(lazy: &mut lang::Lazy, cursor: usize, parts: &mut Vec<ExpressionPa
     let expr_span = expr.rget_from(lazy).get_span(lazy);
     span.extend(expr_span);
 
-    let new_expr = lang::expr::Expression::Unary { expr, op, span };
+    let new_expr = lang::expr::Expression::Unary {
+      expr,
+      op,
+      span,
+      out: lang::ty::Type::Weak { span },
+    };
     let new_id = function.rget_from_mut(lazy).add_expr(new_expr);
     expr = lang::reference::ExpressionReference(function, new_id);
   };
@@ -209,7 +219,13 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
 
           let function = a.0;
 
-          let expr = lang::expr::Expression::Binary { a, b, op, span };
+          let expr = lang::expr::Expression::Binary {
+            a,
+            b,
+            op,
+            span,
+            out: lang::ty::Type::Weak { span },
+          };
           let id = function.rget_from_mut(lazy).add_expr(expr);
           let reference = lang::reference::ExpressionReference(function, id);
 

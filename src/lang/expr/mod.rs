@@ -50,12 +50,14 @@ pub enum Expression {
     expr: ExpressionReference,
     op: (UnaryOperator, Span),
     span: Span,
+    out: Type,
   },
   Binary {
     a: ExpressionReference,
     b: ExpressionReference,
     op: (BinaryOperator, Span),
     span: Span,
+    out: Type,
   },
 }
 

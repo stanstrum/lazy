@@ -83,8 +83,14 @@ impl Pretty for TypeReference {
       TypeReference::ReturnTypeOf(function) => {
         format!("ReturnType<{}>", function.print(lazy))
       },
-      TypeReference::Alias(_) => todo!(),
-      TypeReference::ArgumentOf(..) => todo!(),
+      TypeReference::Alias(alias ) => {
+        let path = lazy.describe_module(alias.0);
+        let name = alias.rget_from(lazy).name.print(lazy);
+        format!("{}::{}", path, name)
+      },
+      TypeReference::ArgumentOf(function, index) => {
+        format!("ArgumentOf<{}>[{index}]", function.print(lazy))
+      },
       TypeReference::Expression(expression) => {
         let Span { start, end, .. } = expression.rget_from(lazy).get_span(lazy);
 
@@ -123,7 +129,8 @@ impl Pretty for Type {
       //   format!("/* typeof {fname}:{index:?} */")
       // },
       Type::Reference(reference) => format!("|{}|", reference.print(lazy)),
-      other => todo!("{other:?}"),
+      Type::Weak { .. } => "{weak}".into(),
+      // other => todo!("{other:?}"),
     }
   }
 }

@@ -1,5 +1,7 @@
+use crate::lang::span::GetSpan;
 use crate::resolve::type_of::TypeOf;
 use crate::aster::pprint::Pretty;
+use crate::tokenize::token::Span;
 
 use super::*;
 
@@ -26,7 +28,7 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
       return Ok(());
     };
 
-    // println!("TypePair({}, {}) coerced by {}", self.0.print(lazy), self.1.print(lazy), other.print(lazy));
+    println!("TypePair({}, {}) coerced by {}", self.0.print(lazy), self.1.print(lazy), other.print(lazy));
 
     let Self(reference, ty) = self;
 
@@ -40,8 +42,8 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
       (
         | Type::WeakInteger { .. }
         | Type::WeakFloat { .. },
-        Type::Intrinsic { .. },
-      ) => {
+        Type::Intrinsic { kind, .. },
+      ) if !matches!(kind, Intrinsic::Bool | Intrinsic::Void) => {
         tasks.push(ResolveType {
           dest: **reference,
           value: other,
@@ -57,6 +59,14 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
         let ty = reference.rget_from(lazy);
         let other_ref = SpecialPair(reference, ty);
         self.coerce(lazy, &other_ref, tasks)
+      },
+      (Type::Weak { .. }, _) => {
+        tasks.push(ResolveType {
+          dest: **reference,
+          value: other,
+        });
+
+        Ok(())
       },
       (_, Type::Unresolved { .. }) => Ok(()),
       _ => {

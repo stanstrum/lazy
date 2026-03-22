@@ -52,6 +52,9 @@ pub enum Type {
   WeakString {
     span: Span,
   },
+  Weak {
+    span: Span,
+  },
   ReferenceTo {
     ty: TypePartReference,
     r#mut: bool,

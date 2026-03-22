@@ -102,6 +102,7 @@ pub fn make_block_statement<'pool, const N: usize, T: Read>(
         b,
         op: (lang::expr::operator::BinaryOperator::Assign, variable_span),
         span,
+        out: lang::ty::Type::Weak { span },
       };
 
       let id = function.rget_from_mut(lazy).add_expr(assignment);

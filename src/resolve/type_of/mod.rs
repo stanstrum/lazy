@@ -51,6 +51,8 @@ impl TypeOf for Type {
       | Type::ReferenceTo { .. }
       | Type::UnsizedArrayOf { .. }
       | Type::SizedArrayOf { .. } => Ok(Some(self.clone())),
+      // SPONGE
+      Type::Weak { span } => Ok(None),
       // Type::Expression(expression) => expression.rget_from(lazy).type_of(lazy),
       Type::Reference(reference) => reference.type_of(lazy),
     }
@@ -70,8 +72,8 @@ impl TypeOf for &Expression {
       },
       Expression::Variable { reference, span } => todo!(),
       Expression::Unknown(qualified) => todo!(),
-      Expression::Unary { expr, op, span } => todo!(),
-      Expression::Binary { a, b, op, span } => todo!(),
+      Expression::Unary { .. } => todo!(),
+      Expression::Binary { .. } => todo!(),
     }
   }
 }

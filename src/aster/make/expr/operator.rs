@@ -93,7 +93,14 @@ pub(super) fn make_unary_suffix<'pool, const N: usize, T: Read>(
     return Ok(Some((UnarySuffixOperator::PostDecrement, span)));
   };
 
-  eprintln!("stub: parse cast");
+  unsafe {
+    static mut DID_PRINT: bool = false;
+
+    if !DID_PRINT {
+      eprintln!(line_dbg!("stub: parse cast"));
+      DID_PRINT = true;
+    };
+  };
 
   if let Some((Token::Grouping(GroupingType::Open(GroupingKind::Parenthesis)), mut span)) = stream.peek()? {
     stream.seek();

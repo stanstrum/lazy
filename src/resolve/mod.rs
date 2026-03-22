@@ -102,7 +102,13 @@ impl Resolve for TypeReference {
         ResolvedTypePair(self, ty).resolve(lazy, tasks)
       },
       TypeReference::Alias(_) => todo!(),
-      TypeReference::ArgumentOf(..) => todo!(),
+      TypeReference::ArgumentOf(function_reference, index) => {
+        let function = function_reference.rget_from(lazy);
+        let variable = function.header.arguments.get(*index).unwrap();
+        let ty = &variable.ty;
+
+        ResolvedTypePair(self, ty).resolve(lazy, tasks)
+      },
       TypeReference::Expression(_) => todo!(),
     }
   }
@@ -130,13 +136,17 @@ impl<'a> Resolve for ResolvedTypePair<'a> {
       Type::WeakInteger { span } => todo!(),
       Type::WeakFloat { span } => todo!(),
       Type::WeakString { span } => todo!(),
+      Type::Weak { span } => todo!(),
       | Type::ReferenceTo { ty, .. }
       | Type::UnsizedArrayOf { ty, .. }
       | Type::SizedArrayOf { ty, .. } => {
         ty.resolve(lazy, tasks)
       },
       // Type::Expression(expression_reference) => todo!(),
-      Type::Reference(_) => todo!(),
+      Type::Reference(reference) => {
+        let ty = reference.rget_from(lazy);
+        ResolvedTypePair(reference, ty).resolve(lazy, tasks)
+      },
     }
   }
 }

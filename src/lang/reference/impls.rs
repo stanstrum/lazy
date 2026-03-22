@@ -95,16 +95,20 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
       TypeReference::ReturnTypeOf(function) => {
         &self.rget(function).header.ret_ty
       },
-      TypeReference::Alias(_) => todo!(),
-      TypeReference::ArgumentOf(..) => todo!(),
+      TypeReference::Alias(alias) => {
+        &self.rget(alias).ty
+      },
+      TypeReference::ArgumentOf(function, index) => {
+        &self.rget(function).header.arguments.get(index).unwrap().ty
+      },
       TypeReference::Expression(expr) => {
         match self.rget(expr) {
           &Expression::Block(block) => &self.rget(block).out,
-          Expression::Literal { out, .. } => out,
+          | Expression::Literal { out, .. }
+          | Expression::Unary { out, .. }
+          | Expression::Binary { out, .. } => out,
           &Expression::Variable { reference, .. } => &self.rget(reference).ty,
           Expression::Unknown(qualified) => todo!("qualified typereference"),
-          Expression::Unary { expr, op, span } => todo!("unary typereference"),
-          Expression::Binary { a, b, op, span } => todo!("binary typereference"),
         }
       },
     }
@@ -116,8 +120,12 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
       TypeReference::ReturnTypeOf(function) => {
         &mut self.rget_mut(function).header.ret_ty
       },
-      TypeReference::Alias(_) => todo!(),
-      TypeReference::ArgumentOf(..) => todo!(),
+      TypeReference::Alias(alias) => {
+        &mut self.rget_mut(alias).ty
+      },
+      TypeReference::ArgumentOf(function, index) => {
+        &mut self.rget_mut(function).header.arguments.get_mut(index).unwrap().ty
+      },
       TypeReference::Expression(expr) => {
         if let &mut Expression::Block(block) = self.rget_mut(expr) {
           let block = self.rget_mut(block);
@@ -134,15 +142,12 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
           todo!("qualified typereference");
         };
 
-        if let Expression::Unary { .. } = self.rget(expr) {
-          todo!("unary typereference");
-        };
-
-        if let Expression::Binary { .. } = self.rget(expr) {
-          todo!("binary typereference");
-        };
-
-        if let Expression::Literal { out, .. } = self.rget_mut(expr) {
+        if let
+          | Expression::Unary { out, .. }
+          | Expression::Binary { out, .. }
+          | Expression::Literal { out, .. }
+          = self.rget_mut(expr)
+        {
           return out;
         };
 

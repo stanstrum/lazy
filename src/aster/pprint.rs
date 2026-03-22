@@ -181,7 +181,7 @@ impl Pretty for FunctionAnd<'_, Expression> {
       Expression::Variable { reference, .. } => vec![
         reference.rget_from(lazy).name.print(lazy)
       ].into_iter(),
-      Expression::Unknown(qualified) => vec![
+      Expression::Unknown { qualified, .. } => vec![
         qualified.print(lazy)
       ].into_iter(),
       Expression::Unary { expr, op, .. } => {

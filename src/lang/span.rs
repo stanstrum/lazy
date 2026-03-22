@@ -92,7 +92,7 @@ impl GetSpan for Expression {
       | Expression::Binary { span, .. }
       | Expression::Unary { span, .. }
         => *span,
-      Expression::Unknown(qualified) => qualified.span,
+      Expression::Unknown { qualified, .. } => qualified.span,
     }
   }
 }

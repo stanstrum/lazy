@@ -73,7 +73,7 @@ impl TypeOf for &Expression {
         }))
       },
       Expression::Variable { .. } => todo!(),
-      Expression::Unknown(_) => todo!(),
+      Expression::Unknown { .. } => todo!(),
       Expression::Unary { .. } => todo!(),
       Expression::Binary { .. } => todo!(),
     }

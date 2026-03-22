@@ -106,9 +106,10 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
           &Expression::Block(block) => &self.rget(block).out,
           | Expression::Literal { out, .. }
           | Expression::Unary { out, .. }
-          | Expression::Binary { out, .. } => out,
+          | Expression::Binary { out, .. }
+          | Expression::Unknown { out, .. }
+            => out,
           &Expression::Variable { reference, .. } => &self.rget(reference).ty,
-          Expression::Unknown(_) => todo!("qualified typereference"),
         }
       },
     }
@@ -137,15 +138,11 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
           let variable = self.rget_mut(reference);
           return &mut variable.ty;
         };
-
-        if let Expression::Unknown(..) = self.rget(expr) {
-          todo!("qualified typereference");
-        };
-
         if let
           | Expression::Unary { out, .. }
           | Expression::Binary { out, .. }
           | Expression::Literal { out, .. }
+          | Expression::Unknown { out, .. }
           = self.rget_mut(expr)
         {
           return out;

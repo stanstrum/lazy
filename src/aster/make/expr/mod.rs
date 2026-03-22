@@ -59,7 +59,7 @@ fn make_expr_part<'pool, const N: usize, T: Read>(
     };
 
     if let Some(qualified) = ty::make_qualified(stream)? {
-      break 'expr lang::expr::Expression::Unknown(qualified);
+      break 'expr lang::expr::Expression::new_unknown(qualified);
     };
 
     return Ok(None);

@@ -45,7 +45,10 @@ pub enum Expression {
     reference: VariableReference,
     span: Span,
   },
-  Unknown(Qualified),
+  Unknown {
+    qualified: Qualified,
+    out: Type,
+  },
   Unary {
     expr: ExpressionReference,
     op: (UnaryOperator, Span),
@@ -59,6 +62,17 @@ pub enum Expression {
     span: Span,
     out: Type,
   },
+}
+
+impl Expression {
+  pub fn new_unknown(qualified: Qualified) -> Self {
+    let span = qualified.span;
+
+    Self::Unknown {
+      qualified,
+      out: Type::Weak { span },
+    }
+  }
 }
 
 impl BlockExpression {

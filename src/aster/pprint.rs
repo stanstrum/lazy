@@ -86,7 +86,7 @@ impl Pretty for TypeReference {
       TypeReference::Alias(alias ) => {
         let path = lazy.describe_module(alias.0);
         let name = alias.rget_from(lazy).name.print(lazy);
-        format!("{}::{}", path, name)
+        format!("{path}::{name}")
       },
       TypeReference::ArgumentOf(function, index) => {
         format!("ArgumentOf<{}>[{index}]", function.print(lazy))

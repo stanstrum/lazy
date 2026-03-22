@@ -20,7 +20,7 @@ impl Task for Subjugate {
     let prerequisite_explain = (prerequisite).explain(lazy);
     let original_explain = original.explain(lazy);
 
-    let first = std::iter::once(format!("While executing: {}", prerequisite_explain));
+    let first = std::iter::once(format!("While executing: {prerequisite_explain}"));
     let rest = original_explain
       .split('\n')
       .map(|line| format!("  {line}"));
@@ -34,7 +34,7 @@ impl Task for Subjugate {
       TaskResponse::Pop => self.prerequisite,
     };
 
-    return Ok(TaskResponse::Replace(replace))
+    Ok(TaskResponse::Replace(replace))
   }
 }
 

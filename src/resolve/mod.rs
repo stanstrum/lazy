@@ -1,7 +1,7 @@
 use crate::error::{Level, MessageContents, PrintableMessage, print_message};
 use crate::lang::ty::{Intrinsic, Qualified, Type};
 use crate::line_dbg;
-use crate::resolve::coerce::{Coerce, SpecialPair, TypePair};
+use crate::resolve::coerce::{Coerce, SpecialPair};
 use crate::resolve::tasks::{ResolveType, Tasks};
 use crate::lang::reference::{AliasReference, ExpressionReference, FunctionReference, ModuleReference, Reference, Store, TypePartReference, TypeReference};
 use crate::lang::Lazy;
@@ -44,8 +44,7 @@ fn resolve_qualified_to_type(lazy: &Lazy, module: ModuleReference, qualified: &Q
 
   let mut space = QualifiedSearchSpace::Module(module);
 
-  let mut iter = qualified.parts.iter().enumerate();
-  while let Some((count, part)) = iter.next() {
+  for (count, part) in qualified.parts.iter().enumerate() {
     if count == 0 {
       let part_string = lazy.pool.get(part.id).collect::<String>();
       if let Some(kind) = Intrinsic::try_from_str(&part_string) {
@@ -81,7 +80,7 @@ fn resolve_qualified_to_type(lazy: &Lazy, module: ModuleReference, qualified: &Q
 
   match space {
     QualifiedSearchSpace::Type(ty) => Ok(Some(ty)),
-    QualifiedSearchSpace::Module(module_reference) => todo!(),
+    QualifiedSearchSpace::Module(_) => todo!(),
   }
 }
 
@@ -133,10 +132,10 @@ impl<'a> Resolve for ResolvedTypePair<'a> {
         // do nothing ...
         Ok(())
       },
-      Type::WeakInteger { span } => todo!(),
-      Type::WeakFloat { span } => todo!(),
-      Type::WeakString { span } => todo!(),
-      Type::Weak { span } => todo!(),
+      Type::WeakInteger { .. } => todo!(),
+      Type::WeakFloat { .. } => todo!(),
+      Type::WeakString { .. } => todo!(),
+      Type::Weak { .. } => todo!(),
       | Type::ReferenceTo { ty, .. }
       | Type::UnsizedArrayOf { ty, .. }
       | Type::SizedArrayOf { ty, .. } => {
@@ -156,7 +155,7 @@ impl Resolve for AliasReference {
     let reference = TypeReference::Alias(*self);
     let ty = &self.rget_from(lazy).ty;
 
-    ResolvedTypePair(&reference, &ty).resolve(lazy, tasks)
+    ResolvedTypePair(&reference, ty).resolve(lazy, tasks)
   }
 }
 

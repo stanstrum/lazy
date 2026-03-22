@@ -1,7 +1,7 @@
 use crate::lang::Lazy;
 use crate::lang::expr::{Expression, LiteralKind};
 use crate::lang::ty::Type;
-use crate::lang::reference::{ExpressionReference, Reference, Store, TypeReference};
+use crate::lang::reference::{ExpressionReference, Store};
 use crate::tokenize::token::NumericValue;
 
 use super::*;
@@ -52,7 +52,7 @@ impl TypeOf for Type {
       | Type::UnsizedArrayOf { .. }
       | Type::SizedArrayOf { .. } => Ok(Some(self.clone())),
       // SPONGE
-      Type::Weak { span } => Ok(None),
+      Type::Weak { .. } => Ok(None),
       // Type::Expression(expression) => expression.rget_from(lazy).type_of(lazy),
       Type::Reference(reference) => reference.type_of(lazy),
     }
@@ -62,16 +62,16 @@ impl TypeOf for Type {
 impl TypeOf for &Expression {
   fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
     match self {
-      Expression::Block(block_reference) => todo!(),
-      Expression::Literal { value, span, out } => {
+      Expression::Block(_) => todo!(),
+      Expression::Literal { value, span, .. } => {
         Ok(Some(match value {
           LiteralKind::Numeric(NumericValue::U64(_)) => Type::WeakFloat { span: *span },
           LiteralKind::Numeric(NumericValue::F64(_)) => Type::WeakInteger { span: *span },
-          LiteralKind::String { value, kind } => Type::WeakString { span: *span },
+          LiteralKind::String { .. } => Type::WeakString { span: *span },
         }))
       },
-      Expression::Variable { reference, span } => todo!(),
-      Expression::Unknown(qualified) => todo!(),
+      Expression::Variable { .. } => todo!(),
+      Expression::Unknown(_) => todo!(),
       Expression::Unary { .. } => todo!(),
       Expression::Binary { .. } => todo!(),
     }

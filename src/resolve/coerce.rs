@@ -1,7 +1,5 @@
-use crate::lang::span::GetSpan;
 use crate::resolve::type_of::TypeOf;
 use crate::aster::pprint::Pretty;
-use crate::tokenize::token::Span;
 
 use super::*;
 

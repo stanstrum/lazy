@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use crate::lang::module::{Name};
-use crate::lang::reference::{ExpressionReference, ModuleReference, TypePartReference, TypeReference};
+use crate::lang::reference::{ModuleReference, TypePartReference, TypeReference};
 use crate::tokenize::token::Span;
 
 #[derive(Debug, Clone)]

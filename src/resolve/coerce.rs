@@ -26,7 +26,12 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
       return Ok(());
     };
 
-    println!("TypePair({}, {}) coerced by {}", self.0.print(lazy), self.1.print(lazy), other.print(lazy));
+    // println!(
+    //   line_dbg!("TypePair({}, {}) coerced by {}"),
+    //   self.0.print(lazy),
+    //   self.1.print(lazy),
+    //   other.print(lazy),
+    // );
 
     let Self(reference, ty) = self;
 

@@ -3,6 +3,7 @@ use std::io::Read;
 use crate::tokenize::token::{
   CharState,
   EscapeReturn,
+  EscapeValue,
   GroupingKind,
   GroupingType,
   Keyword,
@@ -14,9 +15,19 @@ use crate::tokenize::token::{
   StringState,
   Token,
   TokenSpan,
+  parse_escape,
 };
 
 use super::{Tokenizer, Error};
+
+impl From<EscapeReturn> for State {
+  fn from(value: EscapeReturn) -> Self {
+    match value {
+      EscapeReturn::String(string_state) => Self::String(string_state),
+      EscapeReturn::Char(char_state) => Self::Char(char_state),
+    }
+  }
+}
 
 fn trim_in_place(string: &mut String) {
   // trim end
@@ -60,6 +71,11 @@ pub(super) enum State {
     content: String,
     ret: EscapeReturn
   },
+}
+
+fn replace_state(state: &mut State, func: impl Fn(State) -> State) {
+  let old_state = std::mem::replace(state, State::Base);
+  *state = func(old_state);
 }
 
 impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
@@ -562,10 +578,36 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
           self.toks.push_back((Token::String(string.kind, id), span));
         },
         (State::String(_), '\\') => {
-          todo!("string escape");
+          let State::String(string) = std::mem::replace(&mut self.state, State::Base) else {
+            unreachable!();
+          };
+
+          self.state = State::Escape {
+            content: String::new(),
+            ret: EscapeReturn::String(string),
+          };
         },
         (State::String(StringState { content, .. }), _) => {
           content.push(ch);
+        },
+        // Escape
+        (State::Escape { content, ret }, _) => {
+          content.push(ch);
+
+          dbg!(ch);
+
+          match parse_escape(&content) {
+            Ok(EscapeValue::Char(ch)) => {
+              ret.append_ch(ch);
+
+              let State::Escape { ret, .. } = std::mem::replace(&mut self.state, State::Base) else { unreachable!() };
+              self.state = ret.into();
+            },
+            Ok(EscapeValue::ReadHex) => todo!(),
+            Ok(EscapeValue::ReadOctal) => todo!(),
+            Ok(EscapeValue::Unicode) => todo!(),
+            Err(err) => return Some(Err(err)),
+          };
         },
         // Fallthrough
         other => todo!("tokenize state {other:?}"),

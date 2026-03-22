@@ -1,3 +1,4 @@
+use crate::aster::pprint::Pretty;
 use crate::error::{Level, MessageContents, PrintableMessage, print_message};
 use crate::lang::ty::{Intrinsic, Qualified, Type};
 use crate::line_dbg;
@@ -32,6 +33,7 @@ impl Resolve for TypePartReference {
 }
 
 fn resolve_qualified_to_type(lazy: &Lazy, module: ModuleReference, qualified: &Qualified) -> Result<Option<Type>> {
+  #[derive(Debug)]
   enum QualifiedSearchSpace {
     Type(Type),
     Module(ModuleReference),
@@ -72,8 +74,12 @@ fn resolve_qualified_to_type(lazy: &Lazy, module: ModuleReference, qualified: &Q
 
           continue;
         };
+
+        todo!("not found {}", qualified.print(lazy))
       },
     };
+
+    dbg!(space);
 
     todo!()
   };

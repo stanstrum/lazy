@@ -1,6 +1,6 @@
-type char := u8
+type char := u32
 
-other_function -> bool
+other_function -> char
   char argument_1
   u8 argument_2
 

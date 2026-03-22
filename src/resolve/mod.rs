@@ -138,11 +138,11 @@ impl<'a> Resolve for ResolvedTypePair<'a> {
       Type::Weak { .. } => todo!(),
       | Type::ReferenceTo { ty, .. }
       | Type::UnsizedArrayOf { ty, .. }
-      | Type::SizedArrayOf { ty, .. } => {
-        ty.resolve(lazy, tasks)
-      },
+      | Type::SizedArrayOf { ty, .. }
+      | Type::Resolved { part: ty, .. }
+        => ty.resolve(lazy, tasks),
       // Type::Expression(expression_reference) => todo!(),
-      Type::Reference(reference) => {
+      | Type::Reference(reference) => {
         let ty = reference.rget_from(lazy);
         ResolvedTypePair(reference, ty).resolve(lazy, tasks)
       },

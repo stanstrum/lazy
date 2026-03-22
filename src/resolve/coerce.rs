@@ -49,9 +49,19 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
 
         Ok(())
       },
+      (Type::Resolved { part, .. }, _) => {
+        let ty = part.rget_from(lazy);
+        SpecialPair::<Lazy, TypeReference>(reference, ty).coerce(lazy, other_ref, tasks)
+      },
       (Type::Reference(reference), _) => {
         let ty = reference.rget_from(lazy);
         SpecialPair::<Lazy, TypeReference>(reference, ty).coerce(lazy, other_ref, tasks)
+      },
+      (_, Type::Resolved { part, .. }) => {
+        let ty = part.rget_from(lazy);
+        let reference = TypeReference::Part(*part);
+        let other_ref = SpecialPair(&reference, ty);
+        self.coerce(lazy, &other_ref, tasks)
       },
       (_, Type::Reference(reference)) => {
         let ty = reference.rget_from(lazy);
@@ -67,9 +77,12 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
         Ok(())
       },
       (_, Type::Unresolved { .. }) => Ok(()),
-      _ => {
-        let a = ty.print(lazy);
-        let b = other.print(lazy);
+      (a, b) => {
+        println!("{a:?}");
+        println!("{b:?}");
+
+        let a = a.print(lazy);
+        let b = b.print(lazy);
 
         panic!("cannot coerce {a} with {b}")
       },

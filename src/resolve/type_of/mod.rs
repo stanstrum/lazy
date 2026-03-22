@@ -44,16 +44,18 @@ impl TypeOf for Type {
   fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
     match self {
       | Type::Intrinsic { .. }
-      | Type::Unresolved { .. }
       | Type::WeakInteger { .. }
       | Type::WeakFloat { .. }
       | Type::WeakString { .. }
+      | Type::Weak { .. }
       | Type::ReferenceTo { .. }
       | Type::UnsizedArrayOf { .. }
       | Type::SizedArrayOf { .. } => Ok(Some(self.clone())),
       // SPONGE
-      Type::Weak { .. } => Ok(None),
+      | Type::Unresolved { .. }
+      => Ok(None),
       // Type::Expression(expression) => expression.rget_from(lazy).type_of(lazy),
+      Type::Resolved { part, .. } => part.type_of(lazy),
       Type::Reference(reference) => reference.type_of(lazy),
     }
   }

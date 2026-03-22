@@ -128,6 +128,7 @@ impl Pretty for Type {
       //   let index = expression.index;
       //   format!("/* typeof {fname}:{index:?} */")
       // },
+      Type::Resolved { part, .. } => part.print(lazy),
       Type::Reference(reference) => format!("|{}|", reference.print(lazy)),
       Type::Weak { .. } => "{weak}".into(),
       // other => todo!("{other:?}"),

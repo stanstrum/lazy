@@ -1,5 +1,6 @@
 use crate::lang::reference::TypeReference;
 use crate::aster::pprint::Pretty;
+use crate::lang::span::GetSpan;
 
 use super::*;
 
@@ -51,7 +52,12 @@ impl Task for ResolveType {
   }
 
   fn execute(self: Box<Self>, lazy: &mut Lazy) -> Result<TaskResponse> {
-    *lazy.rget_mut(self.dest) = self.value;
+    let span = self.value.get_span(lazy);
+
+    let part = self.dest.parent_module(lazy)
+      .add_type_part(self.value, lazy);
+
+    *lazy.rget_mut(self.dest) = Type::Resolved { part, span };
 
     Ok(TaskResponse::Pop)
   }

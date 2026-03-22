@@ -31,6 +31,10 @@ pub enum Intrinsic {
 #[derive(Debug, Clone)]
 pub enum Type {
   Reference(TypeReference),
+  Resolved {
+    part: TypePartReference,
+    span: Span,
+  },
   Unresolved {
     module: ModuleReference,
     qualified: Qualified,

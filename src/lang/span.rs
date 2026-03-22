@@ -43,7 +43,7 @@ impl GetSpan for TypeReference {
     match self {
       TypeReference::Part(type_part) => type_part.rget_from(parent).get_span(parent),
       TypeReference::ReturnTypeOf(function) => function.rget_from(parent).header.ret_ty.get_span(parent),
-      TypeReference::Alias(_) => todo!(),
+      TypeReference::Alias(alias) => alias.rget_from(parent).span,
       TypeReference::ArgumentOf(..) => todo!(),
       TypeReference::Expression(_) => todo!(),
     }
@@ -61,7 +61,7 @@ impl GetSpan for TypePartReference {
 impl GetSpan for Type {
   type Parent<'a> = &'a Lazy<'a>;
 
-  fn get_span(&self, _parent: &Lazy) -> Span {
+  fn get_span(&self, parent: &Lazy) -> Span {
     match self {
       Type::Unresolved { qualified, .. } => qualified.span,
       // Type::Resolved { original, .. } => original.get_span(parent),
@@ -71,7 +71,7 @@ impl GetSpan for Type {
       | Type::Intrinsic { span, .. }
       | Type::WeakInteger { span }
       | Type::WeakFloat { span } => *span,
-      // Type::Reference(reference) => reference.get_span(parent),
+      Type::Reference(reference) => reference.get_span(parent),
       // Type::Expression(reference) => {
       //   let function = &parent[reference.function];
       //   reference.rget_from(parent).get_span(function)

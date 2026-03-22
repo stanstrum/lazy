@@ -108,7 +108,7 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
           | Expression::Unary { out, .. }
           | Expression::Binary { out, .. } => out,
           &Expression::Variable { reference, .. } => &self.rget(reference).ty,
-          Expression::Unknown(qualified) => todo!("qualified typereference"),
+          Expression::Unknown(_) => todo!("qualified typereference"),
         }
       },
     }

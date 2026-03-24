@@ -47,12 +47,20 @@ impl Resolve for FunctionReference {
       last_expression.coerce(lazy, &return_type, tasks)?;
     };
 
-    print_message(lazy, PrintableMessage {
-      level: Level::Debug,
-      force: false,
-      description: line_dbg!("stub").into(),
-      contents: MessageContents::File(function.parent),
-    });
+    unsafe {
+      static mut DID_PRINT: bool = false;
+
+      if !DID_PRINT {
+        print_message(lazy, PrintableMessage {
+          level: Level::Debug,
+          force: false,
+          description: line_dbg!("stub: resolve function").into(),
+          contents: MessageContents::File(function.parent),
+        });
+
+        DID_PRINT = true;
+      };
+    };
 
     Ok(())
   }

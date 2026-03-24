@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 use crate::aster::make::Indenter;
-use crate::error::{Level, MessageContents, MessageSection, PrintableMessage, WithinSource, print_message};
+use crate::error::*;
 use crate::lang::reference::{ExpressionReference, Store};
 use crate::lang::span::GetSpan;
 use crate::tokenize::token::{GroupingKind, GroupingType, Operator, Span};

@@ -2,7 +2,6 @@ use crate::lang::Lazy;
 use crate::lang::expr::{Expression, LiteralKind};
 use crate::lang::ty::Type;
 use crate::lang::reference::{ExpressionReference, Store};
-use crate::resolve::coerce::{SpecialPair, TypePair};
 use crate::tokenize::token::NumericValue;
 
 use super::*;

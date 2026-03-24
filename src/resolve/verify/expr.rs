@@ -1,6 +1,4 @@
-use crate::lang::function::ExprId;
-use crate::lang::ty::Type;
-use crate::lang::reference::{BlockReference, ExpressionReference, TypeReference};
+use crate::lang::reference::{BlockReference, TypeReference};
 use crate::resolve::coerce::{Coerce, SpecialPair, TypePair};
 
 use super::*;

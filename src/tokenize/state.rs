@@ -73,11 +73,6 @@ pub(super) enum State {
   },
 }
 
-fn replace_state(state: &mut State, func: impl Fn(State) -> State) {
-  let old_state = std::mem::replace(state, State::Base);
-  *state = func(old_state);
-}
-
 impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
   pub(super) fn do_state(&mut self) -> Option<Result<TokenSpan, Error>> {
     loop {

@@ -5,7 +5,7 @@ mod structure;
 
 use std::io::Read;
 
-use crate::error::{Level, MessageContents, MessageSection, PrintableMessage, print_message};
+use crate::error::*;
 use crate::lang;
 use crate::lang::reference::{Reference, Store};
 use crate::tokenize::token::{Span, Token, TokenSpan};

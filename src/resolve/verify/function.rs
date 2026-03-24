@@ -1,5 +1,6 @@
 use crate::lang::span::GetSpan;
 use crate::lang::ty::{Intrinsic, Type};
+use crate::line_dbg;
 use crate::resolve::tasks::Tasks;
 use crate::resolve::coerce::{Coerce, SpecialPair};
 use crate::lang::reference::{Store, TypeReference};
@@ -56,7 +57,7 @@ pub(super) fn verify_function(lazy: &Lazy, function: FunctionReference, tasks: &
     print_once_per_thread!(lazy, {
       level: Level::Debug,
       force: false,
-      description: format!("stub: verify that main arguments match expected function signature"),
+      description: line_dbg!("stub: verify that main arguments match expected function signature").into(),
       contents: MessageContents::File(root),
     });
   };

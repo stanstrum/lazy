@@ -1,6 +1,6 @@
 use crate::lang::ty::Type;
 use crate::lang::Lazy;
-use crate::lang::reference::{Reference, Store, TypePartReference, TypeReference};
+use crate::lang::reference::{Reference, TypePartReference, TypeReference};
 use crate::resolve::coerce::{SpecialPair, TypePair};
 use crate::resolve::tasks::ResolveType;
 use crate::resolve::ty::unknown::resolve_qualified_to_type;
@@ -8,9 +8,6 @@ use crate::resolve::ty::unknown::resolve_qualified_to_type;
 use super::{Result, Error, Tasks, Resolve};
 
 mod unknown;
-
-// #[derive(Debug)]
-// pub struct SpecialPair<'a>(pub &'a TypeReference, pub &'a Type);
 
 impl Resolve for TypePartReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {

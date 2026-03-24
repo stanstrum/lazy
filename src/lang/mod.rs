@@ -107,7 +107,7 @@ impl<'a> Lazy<'a> {
     };
 
     // store and mark the file handle as read
-    let ModuleParent::Path(path) = &self.rget(module).parent else {
+    let ModuleParent::Path(_) = &self.rget(module).parent else {
       unreachable!();
     };
 

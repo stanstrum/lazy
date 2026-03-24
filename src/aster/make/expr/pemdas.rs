@@ -1,7 +1,7 @@
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-use crate::error::{Level, MessageContents, MessageSection, PrintableMessage, WithinSource, print_message};
+use crate::error::*;
 use crate::lang::span::GetSpan;
 use crate::lang::expr::operator::{BinaryOperator, UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 

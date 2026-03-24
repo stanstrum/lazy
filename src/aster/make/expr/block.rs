@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 use crate::aster::make::Indenter;
-use crate::error::{Level, MessageContents, MessageSection, PrintableMessage, print_message};
+use crate::error::{Level, MessageContents, MessageSection, PrintableMessage, WithinSource, print_message};
 use crate::lang::reference::{ExpressionReference, Store};
 use crate::lang::span::GetSpan;
 use crate::tokenize::token::{GroupingKind, GroupingType, Operator, Span};
@@ -68,7 +68,7 @@ pub fn make_block_statement<'pool, const N: usize, T: Read>(
         level: Level::Warn,
         force: false,
         description: "conflicting name will be shadowed".into(),
-        contents: MessageContents::WithinSource {
+        contents: MessageContents::WithinSource(vec![WithinSource {
           range: function_ref.span,
           sections: vec![
             MessageSection {
@@ -80,7 +80,7 @@ pub fn make_block_statement<'pool, const N: usize, T: Read>(
               span: variable.name.span,
             },
           ],
-        },
+        }]),
       });
     };
 

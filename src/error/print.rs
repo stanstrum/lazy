@@ -85,8 +85,10 @@ pub fn print_message(lazy: &Lazy, message: PrintableMessage) {
   ).unwrap();
 
   match message.contents {
-    MessageContents::WithinSource { range, sections } => {
-      print_sections(&mut out, lazy, range, sections);
+    MessageContents::WithinSource(within_source) => {
+      for WithinSource { range, sections } in within_source {
+        print_sections(&mut out, lazy, range, sections);
+      };
     },
     MessageContents::File(module) => {
       print_partial_section_header(&mut out, lazy, module);

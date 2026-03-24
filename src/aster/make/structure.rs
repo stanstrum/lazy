@@ -1,3 +1,4 @@
+use crate::error::WithinSource;
 use crate::lang::reference::AliasReference;
 use crate::line_dbg;
 use crate::lang::span::GetSpan;
@@ -76,13 +77,13 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
       level: Level::Debug,
       force: false,
       description: format!("parsed a function: {module_name}::{name}"),
-      contents: MessageContents::WithinSource {
+      contents: MessageContents::WithinSource(vec![WithinSource {
         range: span,
         sections: vec![MessageSection {
           text: "here".into(),
           span,
         }],
-      },
+      }]),
     });
 
     return Ok(Some(Structure::Function(function)))
@@ -98,7 +99,7 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
       level: Level::Debug,
       force: false,
       description: format!("parsed a type alias: {module_name}::{name}"),
-      contents: MessageContents::WithinSource {
+      contents: MessageContents::WithinSource(vec![WithinSource {
         range: alias_ref.span,
         sections: vec![
           MessageSection {
@@ -110,7 +111,7 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
             span: alias_ref.ty.get_span(lazy),
           },
         ],
-      },
+      }]),
     });
 
     return Ok(Some(Structure::TypeAlias(alias)))

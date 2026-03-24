@@ -29,11 +29,14 @@ pub struct PrintableMessage {
 }
 
 #[derive(Debug)]
+pub struct WithinSource {
+  pub range: Span,
+  pub sections: Vec<MessageSection>,
+}
+
+#[derive(Debug)]
 pub enum MessageContents {
-  WithinSource {
-    range: Span,
-    sections: Vec<MessageSection>,
-  },
+  WithinSource(Vec<WithinSource>),
   File(ModuleReference),
 }
 
@@ -71,25 +74,25 @@ impl From<crate::aster::Error> for PrintableMessage {
         level: Level::Error,
         force: true,
         description: format!("expected {what}"),
-        contents: MessageContents::WithinSource {
+        contents: MessageContents::WithinSource(vec![WithinSource {
           range: at,
           sections: vec![MessageSection {
             text: "here".into(),
             span: at,
           }],
-        },
+        }]),
       },
       crate::aster::Error::Invalid { what, at } => Self {
         level: Level::Error,
         force: true,
         description: format!("invalid {what}"),
-        contents: MessageContents::WithinSource {
+        contents: MessageContents::WithinSource(vec![WithinSource {
           range: at,
           sections: vec![MessageSection {
             text: "here".into(),
             span: at,
           }],
-        },
+        }]),
       },
     }
   }
@@ -102,13 +105,13 @@ impl From<crate::resolve::Error> for PrintableMessage {
         level: Level::Error,
         force: true,
         description: format!("unknown type name in {module_name}"),
-        contents: MessageContents::WithinSource {
+        contents: MessageContents::WithinSource(vec![WithinSource {
           range: span,
           sections: vec![MessageSection {
             text: "here".into(),
             span,
           }],
-        },
+        }]),
       },
       crate::resolve::Error::MissingEntryPoint { module_name, file } => Self {
         level: Level::Error,

@@ -4,7 +4,7 @@ mod ty;
 
 use crate::lang::Lazy;
 use crate::lang::reference::{FunctionReference, ModuleReference, Reference};
-use crate::error::{Level, MessageContents, MessageSection, PrintableMessage, print_message};
+use crate::error::{Level, MessageContents, MessageSection, PrintableMessage, WithinSource, print_message};
 use crate::resolve::tasks::Tasks;
 
 use super::{Result, Error};
@@ -40,13 +40,13 @@ fn find_main(lazy: &Lazy, module: ModuleReference) -> Result<FunctionReference> 
       level: Level::Debug,
       force: false,
       description: format!("{module_name} has the entrypoint \"main\""),
-      contents: MessageContents::WithinSource {
+      contents: MessageContents::WithinSource(vec![WithinSource {
         range: span,
         sections: vec![MessageSection {
           text: "here".into(),
           span,
         }],
-      },
+      }]),
     });
   };
 

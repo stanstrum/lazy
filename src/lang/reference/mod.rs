@@ -41,6 +41,7 @@ pub enum TypeReference {
   Alias(AliasReference),
   Part(TypePartReference),
   Expression(ExpressionReference),
+  Block(BlockReference),
   ReturnTypeOf(FunctionReference),
   ArgumentOf(FunctionReference, usize),
 }
@@ -98,6 +99,7 @@ impl TypeReference {
         let function = function_reference.rget_from(lazy);
         function.parent
       },
+      TypeReference::Block(_) => todo!(),
     }
   }
 }

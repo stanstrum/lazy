@@ -31,10 +31,9 @@ pub(super) fn verify_function(lazy: &Lazy, function: FunctionReference, tasks: &
 
   // set up some perfunctory data to coerce return type to i32
   // TODO: eventually just coerce main as fn(...) -> ...
+  let ret_ty_reference = TypeReference::ReturnTypeOf(function);
+  let ret_ty_pair = SpecialPair(&ret_ty_reference, ret_ty);
   {
-    let ret_ty_reference = TypeReference::ReturnTypeOf(function);
-    let ret_ty_pair = SpecialPair(&ret_ty_reference, ret_ty);
-
     let ret_ty_span = ret_ty_reference.get_span(lazy);
 
     let undeniable_i32 = Type::Intrinsic {
@@ -63,7 +62,7 @@ pub(super) fn verify_function(lazy: &Lazy, function: FunctionReference, tasks: &
   };
 
   // verify body
-  expr::verify_block(lazy, &function_borrow.body)?;
+  expr::verify_block(lazy, &function_borrow.body, &ret_ty_pair, tasks)?;
 
   todo!()
 }

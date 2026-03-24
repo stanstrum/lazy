@@ -46,6 +46,7 @@ impl GetSpan for TypeReference {
       TypeReference::Alias(alias) => alias.rget_from(parent).span,
       TypeReference::ArgumentOf(..) => todo!(),
       TypeReference::Expression(_) => todo!(),
+      TypeReference::Block(_) => todo!(),
     }
   }
 }

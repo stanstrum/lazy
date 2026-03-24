@@ -112,6 +112,7 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
           &Expression::Variable { reference, .. } => &self.rget(reference).ty,
         }
       },
+      TypeReference::Block(_) => todo!(),
     }
   }
 
@@ -150,6 +151,7 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
 
         unimplemented!()
       },
+      TypeReference::Block(_) => todo!(),
     }
   }
 }

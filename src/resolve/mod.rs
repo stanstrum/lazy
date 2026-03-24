@@ -5,7 +5,6 @@ use crate::lang::ty::{Intrinsic, Type};
 use crate::lang::reference::ModuleReference;
 use crate::lang::Lazy;
 use crate::resolve::tasks::{ResolveType, Tasks};
-use crate::resolve::ty::ResolvedTypePair;
 
 mod tasks;
 mod type_of;

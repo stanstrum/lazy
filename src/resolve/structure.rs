@@ -6,7 +6,6 @@ use crate::lang::Lazy;
 use crate::lang::ty::Type;
 use crate::lang::reference::{AliasReference, ExpressionReference, FunctionReference, ModuleReference, Reference, TypeReference};
 use crate::resolve::type_of::TypeOf;
-use crate::resolve::ty::ResolvedTypePair;
 use crate::resolve::coerce::{Coerce, SpecialPair};
 
 use super::{Result, Resolve, Tasks};
@@ -16,7 +15,7 @@ impl Resolve for AliasReference {
     let reference = TypeReference::Alias(*self);
     let ty = &self.rget_from(lazy).ty;
 
-    ResolvedTypePair(&reference, ty).resolve(lazy, tasks)
+    SpecialPair(&reference, ty).resolve(lazy, tasks)
   }
 }
 

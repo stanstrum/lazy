@@ -2,6 +2,7 @@ use crate::lang::Lazy;
 use crate::lang::expr::{Expression, LiteralKind};
 use crate::lang::ty::Type;
 use crate::lang::reference::{ExpressionReference, Store};
+use crate::resolve::coerce::{SpecialPair, TypePair};
 use crate::tokenize::token::NumericValue;
 
 use super::*;
@@ -30,13 +31,6 @@ impl<R: Copy> TypeOf for R
 {
   fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
     lazy.rget(*self).type_of(lazy)
-  }
-}
-
-impl<'a> TypeOf for ResolvedTypePair<'a> {
-  fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
-    // should i be cloning this?
-    Ok(Some(self.1.clone()))
   }
 }
 

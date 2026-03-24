@@ -96,6 +96,7 @@ impl Pretty for TypeReference {
 
         format!("typeof /* {}:{} - {}:{} */", start.line, start.column, end.line, end.column)
       },
+      TypeReference::Block(_) => todo!(),
     }
   }
 }

@@ -1,4 +1,4 @@
-use crate::lang::reference::TypeReference;
+use crate::lang::reference::{Store, TypeReference};
 use crate::aster::pprint::Pretty;
 use crate::lang::span::GetSpan;
 

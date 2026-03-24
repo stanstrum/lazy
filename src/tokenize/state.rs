@@ -594,9 +594,9 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
         (State::Escape { content, ret }, _) => {
           content.push(ch);
 
-          dbg!(ch);
+          // dbg!(ch);
 
-          match parse_escape(&content) {
+          match parse_escape(content) {
             Ok(EscapeValue::Char(ch)) => {
               ret.append_ch(ch);
 

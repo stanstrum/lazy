@@ -1,0 +1,84 @@
+use crate::lang::ty::Type;
+use crate::lang::Lazy;
+use crate::lang::reference::{Reference, TypePartReference, TypeReference};
+use crate::resolve::tasks::ResolveType;
+use crate::resolve::ty::unknown::resolve_qualified_to_type;
+
+use super::{Result, Tasks, Resolve};
+
+mod unknown;
+
+#[derive(Debug)]
+pub struct ResolvedTypePair<'a>(pub &'a TypeReference, pub &'a Type);
+
+impl Resolve for TypePartReference {
+  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
+    let reference = TypeReference::Part(*self);
+    let ty = self.rget_from(lazy);
+
+    ResolvedTypePair(&reference, ty).resolve(lazy, tasks)
+  }
+}
+
+impl Resolve for TypeReference {
+  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
+    match self {
+      TypeReference::Part(type_part_reference) => {
+        let ty = type_part_reference.rget_from(lazy);
+
+        ResolvedTypePair(self, ty).resolve(lazy, tasks)
+      },
+      TypeReference::ReturnTypeOf(function_reference) => {
+        let ty = &function_reference.rget_from(lazy).header.ret_ty;
+
+        ResolvedTypePair(self, ty).resolve(lazy, tasks)
+      },
+      TypeReference::Alias(_) => todo!(),
+      TypeReference::ArgumentOf(function_reference, index) => {
+        let function = function_reference.rget_from(lazy);
+        let variable = function.header.arguments.get(*index).unwrap();
+        let ty = &variable.ty;
+
+        ResolvedTypePair(self, ty).resolve(lazy, tasks)
+      },
+      TypeReference::Expression(_) => todo!(),
+    }
+  }
+}
+
+impl<'a> Resolve for ResolvedTypePair<'a> {
+  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
+    let ResolvedTypePair(reference, ty) = self;
+
+    match ty {
+      Type::Unresolved { module, qualified } => {
+        if let Some(ty) = resolve_qualified_to_type(lazy, *module, qualified)? {
+          tasks.push(ResolveType {
+            dest: **reference,
+            value: ty,
+          });
+        };
+
+        Ok(())
+      },
+      Type::Intrinsic { .. } => {
+        // do nothing ...
+        Ok(())
+      },
+      Type::WeakInteger { .. } => todo!(),
+      Type::WeakFloat { .. } => todo!(),
+      Type::WeakString { .. } => todo!(),
+      Type::Weak { .. } => todo!(),
+      | Type::ReferenceTo { ty, .. }
+      | Type::UnsizedArrayOf { ty, .. }
+      | Type::SizedArrayOf { ty, .. }
+      | Type::Resolved { part: ty, .. }
+        => ty.resolve(lazy, tasks),
+      // Type::Expression(expression_reference) => todo!(),
+      | Type::Reference(reference) => {
+        let ty = reference.rget_from(lazy);
+        ResolvedTypePair(reference, ty).resolve(lazy, tasks)
+      },
+    }
+  }
+}

@@ -1,6 +1,7 @@
 mod seek;
 mod print;
 
+use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Write};
 use std::fs::File;
 
@@ -54,6 +55,35 @@ impl std::fmt::Display for Level {
       Level::Warn => concat!(colorize!(7), colorize!(93), "warn", colorize!(0)),
       Level::Error => concat!(colorize!(7), colorize!(91), "error", colorize!(0)),
     })
+  }
+}
+
+impl WithinSource {
+  pub fn new(sources: Vec<MessageSection>) -> Vec<Self> {
+    let mut map = HashMap::new();
+
+    for section in sources {
+      let list = map.entry(section.span.module).or_insert_with(|| vec![]);
+      list.push(section);
+    };
+
+    let mut results = Vec::with_capacity(map.len());
+    for mut sources in map.into_values() {
+      sources.sort_by_key(|section| section.span.start.position);
+
+      assert!(!sources.is_empty());
+      let start = sources.first().unwrap().span;
+      let end = sources.first().unwrap().span;
+
+      let range = Span::from_pair(start, end);
+
+      results.push(WithinSource {
+        range,
+        sections: sources,
+      });
+    };
+
+    results
   }
 }
 
@@ -118,6 +148,26 @@ impl From<crate::resolve::Error> for PrintableMessage {
         force: true,
         description: format!("{module_name:?} is missing an entry point!"),
         contents: MessageContents::File(file),
+      },
+      crate::resolve::Error::TypeMismatch { a_print, a_span, b_print, b_span } => {
+        let a_section = MessageSection {
+          text: "here".into(),
+          span: a_span,
+        };
+
+        let b_section = MessageSection {
+          text: "here".into(),
+          span: b_span,
+        };
+
+        let within_sources = WithinSource::new(vec![a_section, b_section]);
+
+        Self {
+          level: Level::Error,
+          force: true,
+          description: format!("{a_print} is not coercible with {b_print}"),
+          contents: MessageContents::WithinSource(within_sources),
+        }
       },
     }
   }

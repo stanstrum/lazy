@@ -51,9 +51,9 @@ impl Tasks {
 
     for task in taken {
       let description = task.explain(lazy);
-
-      println!("execute task: {description}");
       let status = self.task_work(description);
+
+      println!("execute task:\n{}", self.explain(2));
 
       let response = task.execute(lazy)?;
 
@@ -87,14 +87,14 @@ impl Tasks {
     self.tasks.push(Box::new(task));
   }
 
-  pub fn explain(&self) -> String {
+  pub fn explain(&self, offset: usize) -> String {
     let mut out = String::new();
 
     for (count, explain) in self.trace.borrow().iter().enumerate() {
-      let spaces = count * 2;
+      let spaces = " ".repeat(count * 2 + offset);
 
       for line in explain.split('\n') {
-        out += &format!("{line: <spaces$}");
+        out += &format!("{spaces}{line}\n");
       };
     };
 

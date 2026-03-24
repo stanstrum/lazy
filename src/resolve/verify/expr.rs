@@ -9,6 +9,8 @@ pub(super) fn verify_block(lazy: &Lazy, block: &BlockReference, ret_ty: &TypePai
   let block_type_reference = TypeReference::Block(*block);
   let block_out = SpecialPair(&block_type_reference, &block_borrow.out);
 
+  dbg!(&block_out);
+
   block_out.coerce(lazy, ret_ty, tasks)?;
 
   todo!()

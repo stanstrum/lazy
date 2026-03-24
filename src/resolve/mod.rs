@@ -1,3 +1,5 @@
+use crate::aster::pprint::Pretty;
+use crate::lang::span::GetSpan;
 use crate::line_dbg;
 
 use crate::tokenize::token::Span;
@@ -23,6 +25,12 @@ pub enum Error {
   UnknownTypeName {
     module_name: String,
     span: Span,
+  },
+  TypeMismatch {
+    a_print: String,
+    a_span: Span,
+    b_print: String,
+    b_span: Span,
   },
 }
 
@@ -58,10 +66,10 @@ pub fn task_resolve(lazy: &mut Lazy, module: ModuleReference) -> Result<()> {
     },
   )?;
 
-  {
-    let status = tasks.task_work(line_dbg!("verify global").into());
-    let result = verify::program(lazy, module, &mut tasks);
-    drop(status);
-    result
-  }
+  task_work(&mut tasks,
+    line_dbg!("verify global").into(),
+    |tasks| {
+      verify::program(lazy, module, tasks)
+    },
+  )
 }

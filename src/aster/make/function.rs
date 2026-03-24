@@ -137,13 +137,20 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
     };
   };
 
-  if let Some(last) = body.rget_from(lazy).children.last() {
-    function.get_body_mut(lazy).returns_last = !non_return_last.is_some_and(
-      |ExpressionReference(_, id)| id == *last
+  if let Some(&last) = body.rget_from(lazy).children.last() {
+    let body_ref = function.get_body_mut(lazy);
+
+    body_ref.returns_last = !non_return_last.is_some_and(
+      |ExpressionReference(_, id)| id == last
     );
+
+    let expr_reference = ExpressionReference(function, last);
+    body_ref.out = lang::ty::Type::Reference(lang::reference::TypeReference::Expression(expr_reference));
   };
 
   function.rget_from_mut(lazy).span.end = stream.here()?.start;
+
+  dbg!(&body.rget_from(lazy).out);
 
   Ok(Some(function))
 }

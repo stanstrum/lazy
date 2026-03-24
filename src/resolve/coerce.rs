@@ -1,4 +1,5 @@
 use crate::lang::reference::{Reference, Store, TypeReference};
+use crate::lang::span::GetSpan;
 use crate::resolve::type_of::TypeOf;
 use crate::aster::pprint::Pretty;
 
@@ -8,6 +9,7 @@ pub trait Coerce {
   fn coerce(&self, lazy: &Lazy, other: &(impl TypeOf + Coerce), tasks: &mut Tasks) -> Result<()>;
 }
 
+#[derive(Debug)]
 pub struct SpecialPair<'a, S: Store<R>, R: Reference<S>>(
   pub &'a R,
   pub &'a S::Out,
@@ -23,6 +25,8 @@ impl<'a, S: Store<R>, R: Reference<S>> TypeOf for SpecialPair<'a, S, R> where S:
 
 impl<'a, 'b> Coerce for TypePair<'a, 'b> {
   fn coerce(&self, lazy: &Lazy, other_ref: &(impl TypeOf + Coerce), tasks: &mut Tasks) -> Result<()> {
+    println!(line_dbg!("here:\n{}"), tasks.explain(2));
+
     let Some(other) = other_ref.type_of(lazy)? else {
       return Ok(());
     };
@@ -84,13 +88,14 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
       },
       (_, Type::Unresolved { .. }) => Ok(()),
       (a, b) => {
-        println!("{a:?}");
-        println!("{b:?}");
+        dbg!(a, b);
 
-        let a = a.print(lazy);
-        let b = b.print(lazy);
-
-        panic!("cannot coerce {a} with {b}")
+        return Err(Box::new(Error::TypeMismatch {
+          a_print: a.print(lazy),
+          a_span: a.get_span(lazy),
+          b_print: b.print(lazy),
+          b_span: b.get_span(lazy),
+        }))
       },
     }
   }

@@ -1,6 +1,8 @@
 type str := []u32
 type c_str := []u8
 
+type usize := u64
+
 println -> usize
   &str text
 

@@ -97,6 +97,19 @@ impl From<crate::aster::Error> for PrintableMessage {
 
 impl From<crate::resolve::Error> for PrintableMessage {
   fn from(value: crate::resolve::Error) -> Self {
-    todo!()
+    match value {
+      crate::resolve::Error::UnknownTypeName { module_name, span } => Self {
+        level: Level::Error,
+        force: true,
+        description: format!("unknown type name in {module_name}"),
+        contents: MessageContents::WithinSource {
+          range: span,
+          sections: vec![MessageSection {
+            text: "here".into(),
+            span,
+          }],
+        },
+      },
+    }
   }
 }

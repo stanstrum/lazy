@@ -46,14 +46,13 @@ pub(super) fn resolve_qualified_to_type(lazy: &Lazy, module: ModuleReference, qu
 
           continue;
         };
-
-        todo!("not found {}", qualified.print(lazy))
       },
     };
 
-    dbg!(space);
-
-    todo!()
+    return Err(Box::new(Error::UnknownTypeName {
+      module_name: lazy.describe_module(module),
+      span: qualified.span,
+    }))
   };
 
   match space {

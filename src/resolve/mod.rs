@@ -1,5 +1,6 @@
 use crate::line_dbg;
 
+use crate::tokenize::token::Span;
 use crate::lang::ty::{Intrinsic, Type};
 use crate::lang::reference::ModuleReference;
 use crate::lang::Lazy;
@@ -16,7 +17,10 @@ mod ty;
 
 #[derive(Debug)]
 pub enum Error {
-
+  UnknownTypeName {
+    module_name: String,
+    span: Span,
+  },
 }
 
 type Result<T> = std::result::Result<T, Box<Error>>;

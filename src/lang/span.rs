@@ -64,7 +64,7 @@ impl GetSpan for Type {
   fn get_span(&self, parent: &Lazy) -> Span {
     match self {
       Type::Unresolved { qualified, .. } => qualified.span,
-      // Type::Resolved { original, .. } => original.get_span(parent),
+      Type::Resolved { part, .. } => part.get_span(parent),
       | Type::ReferenceTo { span, .. }
       | Type::SizedArrayOf { span, .. }
       | Type::UnsizedArrayOf { span, .. }

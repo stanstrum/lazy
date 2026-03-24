@@ -50,7 +50,11 @@ impl Tasks {
     let taken = self.tasks.drain(..).collect::<Vec<_>>();
 
     for task in taken {
-      println!("execute task: {}", task.explain(lazy));
+      let description = task.explain(lazy);
+
+      println!("execute task: {description}");
+      let status = self.task_work(description);
+
       let response = task.execute(lazy)?;
 
       match response {
@@ -61,12 +65,15 @@ impl Tasks {
           self.tasks.push(replace);
         },
       };
+
+      drop(status);
     };
 
     Ok(true)
   }
 
-  pub fn task_status(&self, description: String) -> TaskStatus {
+  #[must_use = "task status is to be kept alive as long as the task is working"]
+  pub fn task_work(&self, description: String) -> TaskStatus {
     let trace = self.trace.clone();
 
     trace.borrow_mut().push(description);
@@ -78,5 +85,19 @@ impl Tasks {
 
   pub fn push(&mut self, task: impl Task + 'static) {
     self.tasks.push(Box::new(task));
+  }
+
+  pub fn explain(&self) -> String {
+    let mut out = String::new();
+
+    for (count, explain) in self.trace.borrow().iter().enumerate() {
+      let spaces = count * 2;
+
+      for line in explain.split('\n') {
+        out += &format!("{line: <spaces$}");
+      };
+    };
+
+    out
   }
 }

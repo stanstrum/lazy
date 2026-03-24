@@ -33,19 +33,36 @@ trait Resolve {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()>;
 }
 
+fn task_work<T>(tasks: &mut Tasks, description: String, f: impl FnOnce(&mut Tasks) -> T) -> T {
+  let status = tasks.task_work(description);
+  let result = f(tasks);
+  drop(status);
+  result
+}
+
 pub fn task_resolve(lazy: &mut Lazy, module: ModuleReference) -> Result<()> {
   let mut tasks = Tasks::new();
 
-  tasks.task_status(line_dbg!("resolve global").into());
+  task_work::<Result<()>>(&mut tasks,
+    line_dbg!("resolve global").into(),
+    |tasks| {
+      loop {
+        module.resolve(lazy, tasks)?;
+        let did_execute = tasks.execute_pass(lazy)?;
 
-  loop {
-    module.resolve(lazy, &mut tasks)?;
-    let did_execute = tasks.execute_pass(lazy)?;
+        if !did_execute {
+          break;
+        };
+      };
 
-    if !did_execute {
-      break;
-    };
-  };
+      Ok(())
+    },
+  )?;
 
-  verify::program(lazy, module)
+  {
+    let status = tasks.task_work(line_dbg!("verify global").into());
+    let result = verify::program(lazy, module, &mut tasks);
+    drop(status);
+    result
+  }
 }

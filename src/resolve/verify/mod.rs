@@ -1,7 +1,13 @@
-use crate::lang::reference::{FunctionReference, Reference};
-use crate::error::{Level, MessageContents, MessageSection, PrintableMessage, print_message};
+mod function;
+mod expr;
+mod ty;
 
-use super::*;
+use crate::lang::Lazy;
+use crate::lang::reference::{FunctionReference, ModuleReference, Reference};
+use crate::error::{Level, MessageContents, MessageSection, PrintableMessage, print_message};
+use crate::resolve::tasks::Tasks;
+
+use super::{Result, Error};
 
 fn find_main(lazy: &Lazy, module: ModuleReference) -> Result<FunctionReference> {
   let main_search = {
@@ -47,8 +53,10 @@ fn find_main(lazy: &Lazy, module: ModuleReference) -> Result<FunctionReference> 
   Ok(*main)
 }
 
-pub(super) fn program(lazy: &Lazy, module: ModuleReference) -> Result<()> {
+pub(super) fn program(lazy: &Lazy, module: ModuleReference, tasks: &mut Tasks) -> Result<()> {
   let main = find_main(lazy, module)?;
+
+  function::verify_function(lazy, main, tasks)?;
 
   todo!("verify program")
 }

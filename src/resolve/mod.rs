@@ -11,12 +11,16 @@ mod tasks;
 mod type_of;
 mod coerce;
 mod structure;
-// pub mod verify;
+pub mod verify;
 
 mod ty;
 
 #[derive(Debug)]
 pub enum Error {
+  MissingEntryPoint {
+    module_name: String,
+    file: ModuleReference,
+  },
   UnknownTypeName {
     module_name: String,
     span: Span,
@@ -43,5 +47,5 @@ pub fn task_resolve(lazy: &mut Lazy, module: ModuleReference) -> Result<()> {
     };
   };
 
-  Ok(())
+  verify::program(lazy, module)
 }

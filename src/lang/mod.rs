@@ -51,7 +51,7 @@ impl<'a> Lazy<'a> {
     let name = self.pool.insert(name);
     let module = ModuleReference(self.modules.len());
     let tokens = TokensId(self.tokens.len());
-    let parent = ModuleParent::Path(ModulePath { path, tokens });
+    let parent = ModuleParent::Path(ModulePath { path, tokens, module });
     self.tokens.push(vec![]);
     self.modules.push(Module::new(name, parent));
     module
@@ -96,7 +96,7 @@ impl<'a> Lazy<'a> {
     }
   }
 
-  pub fn get_path(&self, mut module: ModuleReference) -> &ModulePath {
+  pub fn get_root_module(&self, mut module: ModuleReference) -> ModuleReference {
     // traverse parents until we get the root module with a
     // PathBuf
     loop {
@@ -108,6 +108,18 @@ impl<'a> Lazy<'a> {
 
     // store and mark the file handle as read
     let ModuleParent::Path(path) = &self.rget(module).parent else {
+      unreachable!();
+    };
+
+    module
+  }
+
+  pub fn get_path(&self, module: ModuleReference) -> &ModulePath {
+    let root = self.get_root_module(module);
+    let root = self.rget(root);
+
+    // store and mark the file handle as read
+    let ModuleParent::Path(path) = &root.parent else {
       unreachable!();
     };
 

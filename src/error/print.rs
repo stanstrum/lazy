@@ -193,7 +193,7 @@ fn print_full_section_header(out: &mut Vec<u8>, lazy: &Lazy, span: Span) {
 
 fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec<MessageSection>) {
   // Open and create a reader for this module's source file
-  let ModulePath { path, tokens } = lazy.get_path(range.module);
+  let ModulePath { path, tokens, .. } = lazy.get_path(range.module);
   let file = File::open(path).unwrap();
   let mut reader = BufReader::new(file);
 

@@ -13,6 +13,7 @@ pub struct TokensId(pub usize);
 pub struct ModulePath {
   pub path: PathBuf,
   pub tokens: TokensId,
+  pub module: ModuleReference,
 }
 
 #[derive(Debug)]

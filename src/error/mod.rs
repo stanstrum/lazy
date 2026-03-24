@@ -110,6 +110,12 @@ impl From<crate::resolve::Error> for PrintableMessage {
           }],
         },
       },
+      crate::resolve::Error::MissingEntryPoint { module_name, file } => Self {
+        level: Level::Error,
+        force: true,
+        description: format!("{module_name:?} is missing an entry point!"),
+        contents: MessageContents::File(file),
+      },
     }
   }
 }

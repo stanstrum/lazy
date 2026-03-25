@@ -7,7 +7,7 @@ use super::*;
 
 pub trait Task {
   fn explain(&self, lazy: &Lazy) -> String;
-  fn execute(self: Box<Self>, lazy: &mut Lazy) -> Result<TaskResponse>;
+  fn execute(self: Box<Self>, lazy: &mut Lazy, tasks: &mut Tasks) -> Result<TaskResponse>;
 }
 
 pub enum TaskResponse {
@@ -53,9 +53,8 @@ impl Tasks {
       let description = task.explain(lazy);
       let status = self.task_work(description);
 
-      println!("execute task:\n{}", self.explain(2));
-
-      let response = task.execute(lazy)?;
+      // println!("execute task:\n{}", self.explain(2));
+      let response = task.execute(lazy, self)?;
 
       match response {
         TaskResponse::Pop => {
@@ -91,12 +90,14 @@ impl Tasks {
     let mut out = String::new();
 
     for (count, explain) in self.trace.borrow().iter().enumerate() {
-      let spaces = " ".repeat(count * 2 + offset);
+      let spaces = " ".repeat(offset) + &"|   ".repeat(count);
 
       for line in explain.split('\n') {
         out += &format!("{spaces}{line}\n");
       };
     };
+
+    // out += "###";
 
     out
   }

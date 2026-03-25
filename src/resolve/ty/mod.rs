@@ -1,8 +1,11 @@
+use crate::aster::pprint::Pretty;
 use crate::lang::ty::Type;
 use crate::lang::Lazy;
 use crate::lang::reference::{Reference, TypePartReference, TypeReference};
+use crate::line_dbg;
 use crate::resolve::coerce::{SpecialPair, TypePair};
-use crate::resolve::tasks::ResolveType;
+use crate::resolve::task_work;
+use crate::resolve::tasks::{OverwriteType, ResolveAsTask, Subjugate};
 use crate::resolve::ty::unknown::resolve_qualified_to_type;
 
 use super::{Result, Error, Tasks, Resolve};
@@ -11,16 +14,22 @@ mod unknown;
 
 impl Resolve for TypePartReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
+    // let description = format!(line_dbg!("Resolve TypePartReference: {}"), self.print(lazy));
+
+    // task_work(tasks, description, |tasks| {
     let reference = TypeReference::Part(*self);
     let ty = self.rget_from(lazy);
 
     SpecialPair(&reference, ty).resolve(lazy, tasks)
+    // })
   }
 }
 
 impl Resolve for TypeReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
-    match self {
+    let description = format!(line_dbg!("Resolve TypeReference: {}"), self.print(lazy));
+
+    task_work(tasks, description, |tasks| match self {
       TypeReference::Part(type_part_reference) => {
         let ty = type_part_reference.rget_from(lazy);
 
@@ -31,7 +40,9 @@ impl Resolve for TypeReference {
 
         SpecialPair(self, ty).resolve(lazy, tasks)
       },
-      TypeReference::Alias(_) => todo!(),
+      TypeReference::Alias(alias) => {
+        alias.resolve(lazy, tasks)
+      },
       TypeReference::ArgumentOf(function_reference, index) => {
         let function = function_reference.rget_from(lazy);
         let variable = function.header.arguments.get(*index).unwrap();
@@ -41,7 +52,7 @@ impl Resolve for TypeReference {
       },
       TypeReference::Expression(_) => todo!(),
       TypeReference::Block(_) => todo!(),
-    }
+    })
   }
 }
 
@@ -49,35 +60,47 @@ impl<'a, 'b> Resolve for TypePair<'a, 'b> {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
     let SpecialPair(reference, ty) = self;
 
-    match ty {
-      Type::Unresolved { module, qualified } => {
-        if let Some(ty) = resolve_qualified_to_type(lazy, *module, qualified)? {
-          tasks.push(ResolveType {
-            dest: **reference,
-            value: ty,
-          });
-        };
+    let description = format!(line_dbg!("Resolve TypePair:\n- Ref.: {}\n- Type: {}"),
+      reference.print(lazy),
+      ty.print(lazy),
+    );
 
-        Ok(())
-      },
-      Type::Intrinsic { .. } => {
-        // do nothing ...
-        Ok(())
-      },
-      Type::WeakInteger { .. } => todo!(),
-      Type::WeakFloat { .. } => todo!(),
-      Type::WeakString { .. } => todo!(),
-      Type::Weak { .. } => todo!(),
-      | Type::ReferenceTo { ty, .. }
-      | Type::UnsizedArrayOf { ty, .. }
-      | Type::SizedArrayOf { ty, .. }
-      | Type::Resolved { part: ty, .. }
-        => ty.resolve(lazy, tasks),
-      // Type::Expression(expression_reference) => todo!(),
-      | Type::Reference(reference) => {
-        let ty = reference.rget_from(lazy);
-        SpecialPair(reference, ty).resolve(lazy, tasks)
-      },
-    }
+    task_work(tasks, description, |tasks| {
+      match ty {
+        Type::Unresolved { module, qualified } => {
+          if let Some(ty) = resolve_qualified_to_type(lazy, *module, qualified)? {
+            tasks.push(Subjugate {
+              after: Box::new(ResolveAsTask::<TypeReference> {
+                reference: **reference,
+              }),
+              prerequisite: Box::new(OverwriteType {
+                dest: **reference,
+                value: ty,
+              }),
+            });
+          };
+
+          Ok(())
+        },
+        Type::Intrinsic { .. } => {
+          // do nothing ...
+          Ok(())
+        },
+        Type::WeakInteger { .. } => todo!(),
+        Type::WeakFloat { .. } => todo!(),
+        Type::WeakString { .. } => todo!(),
+        Type::Weak { .. } => todo!(),
+        | Type::ReferenceTo { ty, .. }
+        | Type::UnsizedArrayOf { ty, .. }
+        | Type::SizedArrayOf { ty, .. }
+        | Type::Resolved { part: ty, .. }
+          => ty.resolve(lazy, tasks),
+        // Type::Expression(expression_reference) => todo!(),
+        | Type::Reference(reference) => {
+          let ty = reference.rget_from(lazy);
+          SpecialPair(reference, ty).resolve(lazy, tasks)
+        },
+      }
+    })
   }
 }

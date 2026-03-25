@@ -6,7 +6,7 @@ use crate::tokenize::token::Span;
 use crate::lang::ty::{Intrinsic, Type};
 use crate::lang::reference::ModuleReference;
 use crate::lang::Lazy;
-use crate::resolve::tasks::{ResolveType, Tasks};
+use crate::resolve::tasks::{OverwriteType, Tasks};
 
 mod tasks;
 mod type_of;
@@ -42,6 +42,7 @@ trait Resolve {
 
 fn task_work<T>(tasks: &mut Tasks, description: String, f: impl FnOnce(&mut Tasks) -> T) -> T {
   let status = tasks.task_work(description);
+  println!("{}", tasks.explain(0));
   let result = f(tasks);
   drop(status);
   result

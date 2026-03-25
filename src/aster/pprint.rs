@@ -94,9 +94,13 @@ impl Pretty for TypeReference {
       TypeReference::Expression(expression) => {
         let Span { start, end, .. } = expression.rget_from(lazy).get_span(lazy);
 
-        format!("typeof /* {}:{} - {}:{} */", start.line, start.column, end.line, end.column)
+        format!("typeof /* expr {}:{} - {}:{} */", start.line, start.column, end.line, end.column)
       },
-      TypeReference::Block(_) => todo!(),
+      TypeReference::Block(block) => {
+        let Span { start, end, .. } = block.rget_from(lazy).span;
+
+        format!("typeof /* block {}:{} - {}:{} */", start.line, start.column, end.line, end.column)
+      },
     }
   }
 }
@@ -129,7 +133,7 @@ impl Pretty for Type {
       //   let index = expression.index;
       //   format!("/* typeof {fname}:{index:?} */")
       // },
-      Type::Resolved { part, .. } => part.print(lazy),
+      Type::Resolved { part, .. } => format!("|{}|", part.print(lazy)),
       Type::Reference(reference) => format!("|{}|", reference.print(lazy)),
       Type::Weak { .. } => "{weak}".into(),
       // other => todo!("{other:?}"),

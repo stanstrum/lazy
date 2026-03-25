@@ -1,63 +1,100 @@
-use crate::lang::reference::{Store, TypeReference};
+use std::marker::PhantomData;
+
+use crate::lang::reference::{Reference, Store, TypeReference};
 use crate::aster::pprint::Pretty;
 use crate::lang::span::GetSpan;
 
 use super::*;
 
 pub struct Subjugate {
-  prerequisite: Box<dyn Task>,
-  original: Box<dyn Task>,
+  pub prerequisite: Box<dyn Task>,
+  pub after: Box<dyn Task>,
 }
 
-pub struct ResolveType {
+pub struct OverwriteType {
   pub dest: TypeReference,
   pub value: Type,
 }
 
+pub struct ResolveAsTask<R: Resolve> {
+  pub reference: R,
+}
+
 impl Task for Subjugate {
   fn explain(&self, lazy: &Lazy) -> String {
-    let Subjugate { prerequisite, original } = self;
+    let Subjugate { prerequisite, after: original } = self;
 
-    let prerequisite_explain = (prerequisite).explain(lazy);
-    let original_explain = original.explain(lazy);
+    let indent = ">   ";
+    let indent = |string: String, count: usize| {
+      let spaces = indent.repeat(count);
 
-    let first = std::iter::once(format!("While executing: {prerequisite_explain}"));
-    let rest = original_explain
-      .split('\n')
-      .map(|line| format!("  {line}"));
+      let map = string.split('\n')
+        .map(|x| format!("{spaces}{x}"))
+        .collect::<Vec<_>>();
 
-    first.chain(rest).collect::<Vec<_>>().join("\n")
+      map.join("\n")
+    };
+
+    let prerequisite_explain = indent(prerequisite.explain(lazy), 1);
+    let original_explain = indent(original.explain(lazy), 1);
+
+    format!(
+      line_dbg!("Executing prerequisite:\n{}\nAnd then:\n{}\n\\"),
+      prerequisite_explain.trim_start(),
+      original_explain.trim_start(),
+    )
   }
 
-  fn execute(self: Box<Self>, lazy: &mut Lazy) -> Result<TaskResponse> {
-    let replace = match self.original.execute(lazy)? {
-      TaskResponse::Replace(replace) => replace,
-      TaskResponse::Pop => self.prerequisite,
+  fn execute(self: Box<Self>, lazy: &mut Lazy, tasks: &mut Tasks) -> Result<TaskResponse> {
+    let Self { prerequisite, after } = *self;
+
+    let result = task_work(tasks, format!(line_dbg!("{}"), prerequisite.explain(lazy)), |tasks| {
+      prerequisite.execute(lazy, tasks)
+    });
+
+    let replace = match result? {
+      TaskResponse::Replace(replace) => Box::new(Subjugate {
+        prerequisite: replace,
+        after,
+      }),
+      TaskResponse::Pop => after,
     };
 
     Ok(TaskResponse::Replace(replace))
   }
 }
 
-impl Task for ResolveType {
+impl Task for OverwriteType {
   fn explain(&self, lazy: &Lazy) -> String {
     let parent = self.dest.parent_module(lazy);
 
     format!(
-      "ResolveType in {parent}:\n  dest = {dest}\n  value = {value}",
-      parent = lazy.describe_module(parent),
-      dest = self.dest.print(lazy),
-      value = self.value.print(lazy),
+      line_dbg!("OverwriteType in {}:\n- dest = {}\n- value = {}"),
+      lazy.describe_module(parent),
+      self.dest.print(lazy),
+      self.value.print(lazy),
     )
   }
 
-  fn execute(self: Box<Self>, lazy: &mut Lazy) -> Result<TaskResponse> {
+  fn execute(self: Box<Self>, lazy: &mut Lazy, tasks: &mut Tasks) -> Result<TaskResponse> {
     let span = self.value.get_span(lazy);
 
     let part = self.dest.parent_module(lazy)
       .add_type_part(self.value, lazy);
 
     *lazy.rget_mut(self.dest) = Type::Resolved { part, span };
+
+    Ok(TaskResponse::Pop)
+  }
+}
+
+impl<R: Resolve + Pretty<Out = String>> Task for ResolveAsTask<R> {
+  fn explain(&self, lazy: &Lazy) -> String {
+    format!(line_dbg!("ResolveAsTask {}"), self.reference.print(lazy))
+  }
+
+  fn execute(self: Box<Self>, lazy: &mut Lazy, tasks: &mut Tasks) -> Result<TaskResponse> {
+    self.reference.resolve(lazy, tasks)?;
 
     Ok(TaskResponse::Pop)
   }

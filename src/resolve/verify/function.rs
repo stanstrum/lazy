@@ -77,6 +77,6 @@ pub(super) fn verify_function(lazy: &Lazy, function: FunctionReference, tasks: &
     // verify body
     expr::verify_block(lazy, &function_borrow.body, &ret_ty_pair, tasks)?;
 
-    todo!()
+    Ok(())
   })
 }

@@ -4,7 +4,7 @@ mod ty;
 
 use crate::lang::Lazy;
 use crate::lang::reference::{FunctionReference, ModuleReference, Reference};
-use crate::error::*;
+use crate::{error::*, line_dbg};
 use crate::resolve::tasks::Tasks;
 
 use super::{Result, Error};
@@ -58,5 +58,7 @@ pub(super) fn program(lazy: &Lazy, module: ModuleReference, tasks: &mut Tasks) -
 
   function::verify_function(lazy, main, tasks)?;
 
-  todo!("verify program")
+  println!(line_dbg!("stub: verify rest of program, apart from main"));
+
+  Ok(())
 }

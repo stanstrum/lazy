@@ -4,6 +4,7 @@ use crate::lang::span::GetSpan;
 use crate::line_dbg;
 use crate::resolve::coerce::{Coerce, SpecialPair, TypePair};
 use crate::resolve::task_work;
+use crate::resolve::verify::ty::verify_type;
 use crate::tokenize::token::Span;
 
 use super::*;
@@ -13,7 +14,7 @@ fn verify_expr(lazy: &Lazy, expr: ExpressionReference, ret_ty: &TypePair, tasks:
 
   task_work(tasks, line_dbg!("Verify expr").into(), |tasks| match lazy.rget(expr) {
     Expression::Block(block_reference) => todo!(),
-    Expression::Literal { value, span, out } => todo!(),
+    Expression::Literal { value, span, out } => verify_type(lazy, out),
     Expression::Variable { reference, span } => todo!(),
     Expression::Unknown { qualified, out } => todo!(),
     Expression::Unary { expr, op, span, out } => todo!(),
@@ -57,6 +58,6 @@ pub(super) fn verify_block(lazy: &Lazy, block: &BlockReference, ret_ty: &TypePai
       verify_expr(lazy, expr, ret_ty, tasks)?;
     };
 
-    todo!();
+    Ok(())
   })
 }

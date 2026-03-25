@@ -150,8 +150,5 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
 
   function.rget_from_mut(lazy).span.end = stream.here()?.start;
 
-  // println!("THIS IS THE VALUE AS IT LEAVES ASTER");
-  dbg!(&body.rget_from(lazy).out);
-
   Ok(Some(function))
 }

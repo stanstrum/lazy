@@ -98,8 +98,11 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
       TypeReference::Alias(alias) => {
         &self.rget(alias).ty
       },
-      TypeReference::ArgumentOf(function, index) => {
+      TypeReference::Variable(VariableReference::Argument(function, index)) => {
         &self.rget(function).header.arguments.get(index).unwrap().ty
+      },
+      TypeReference::Variable(VariableReference::Block(block, index)) => {
+        &self.rget(block).variables.get(index).unwrap().ty
       },
       TypeReference::Expression(expr) => {
         match self.rget(expr) {
@@ -125,9 +128,10 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
       TypeReference::Alias(alias) => {
         &mut self.rget_mut(alias).ty
       },
-      TypeReference::ArgumentOf(function, index) => {
+      TypeReference::Variable(VariableReference::Argument(function, index)) => {
         &mut self.rget_mut(function).header.arguments.get_mut(index).unwrap().ty
       },
+      TypeReference::Variable(VariableReference::Block(..)) => todo!(),
       TypeReference::Expression(expr) => {
         if let &mut Expression::Block(block) = self.rget_mut(expr) {
           let block = self.rget_mut(block);

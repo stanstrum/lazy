@@ -1,7 +1,7 @@
 use crate::aster::pprint::Pretty;
 use crate::lang::ty::Type;
 use crate::lang::Lazy;
-use crate::lang::reference::{Reference, TypePartReference, TypeReference};
+use crate::lang::reference::{Reference, TypePartReference, TypeReference, VariableReference};
 use crate::line_dbg;
 use crate::resolve::coerce::{SpecialPair, TypePair};
 use crate::resolve::task_work;
@@ -43,9 +43,8 @@ impl Resolve for TypeReference {
       TypeReference::Alias(alias) => {
         alias.resolve(lazy, tasks)
       },
-      TypeReference::ArgumentOf(function_reference, index) => {
-        let function = function_reference.rget_from(lazy);
-        let variable = function.header.arguments.get(*index).unwrap();
+      TypeReference::Variable(v) => {
+        let variable = v.rget_from(lazy);
         let ty = &variable.ty;
 
         SpecialPair(self, ty).resolve(lazy, tasks)

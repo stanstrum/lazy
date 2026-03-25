@@ -1,5 +1,3 @@
-use crate::aster::pprint::Pretty;
-use crate::lang::span::GetSpan;
 use crate::line_dbg;
 
 use crate::tokenize::token::Span;
@@ -31,6 +29,10 @@ pub enum Error {
     a_span: Span,
     b_print: String,
     b_span: Span,
+  },
+  UnresolvedInVerify {
+    what: String,
+    span: Span,
   },
 }
 
@@ -68,9 +70,14 @@ pub fn task_resolve(lazy: &mut Lazy, module: ModuleReference) -> Result<()> {
   )?;
 
   task_work(&mut tasks,
-    line_dbg!("verify global").into(),
+    line_dbg!("Verify global").into(),
     |tasks| {
       verify::program(lazy, module, tasks)
     },
-  )
+  )?;
+
+  println!(line_dbg!("No further work should be done."));
+  assert!(!tasks.execute_pass(lazy)?);
+
+  Ok(())
 }

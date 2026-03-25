@@ -1,10 +1,17 @@
+use crate::aster::pprint::{Pretty, PrettyFunction};
 use crate::error::*;
 
+use crate::lang::expr::Expression;
+use crate::lang::expr::operator::BinaryOperator;
+use crate::lang::reference::{BlockReference, Store, VariableReference};
 use crate::line_dbg;
 
 use crate::lang::Lazy;
-use crate::lang::ty::Type;
+use crate::lang::ty::{Intrinsic, Type};
 use crate::lang::reference::{AliasReference, ExpressionReference, FunctionReference, ModuleReference, Reference, TypeReference};
+use crate::resolve::coerce::TypePair;
+use crate::resolve::task_work;
+use crate::resolve::tasks::ResolveAsTask;
 use crate::resolve::type_of::TypeOf;
 use crate::resolve::coerce::{Coerce, SpecialPair};
 
@@ -19,49 +26,122 @@ impl Resolve for AliasReference {
   }
 }
 
+impl Resolve for ExpressionReference {
+  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
+    let description = {
+      format!("Resolve ExpressionReference: {} in {}",
+        self.print(lazy),
+        self.0.print(lazy),
+      )
+    };
+
+    task_work(tasks, description, |tasks| {
+      let borrow = self.rget_from(lazy);
+
+      match borrow {
+        Expression::Binary { a, b, op: (BinaryOperator::Assign, op_span), span, out } => {
+          let ty_reference = TypeReference::Expression(*self);
+          let out_pair = SpecialPair(&ty_reference, out);
+
+          let void_op = Type::Intrinsic {
+            kind: Intrinsic::Void,
+            span: *op_span,
+          };
+
+          out_pair.coerce(lazy, &void_op, tasks)?;
+
+          tasks.push(ResolveAsTask { reference: *a });
+          tasks.push(ResolveAsTask { reference: *b });
+
+          Ok(())
+        },
+        Expression::Unknown { qualified, out } if qualified.parts.len() == 1 && !qualified.implicit => {
+          let part = qualified.parts.first().unwrap();
+
+          todo!()
+        },
+        _ => todo!("{borrow:?}\n{}", borrow.print_with(lazy.rget(self.0), lazy).collect::<Vec<_>>().join("\n")),
+      }
+    })
+  }
+}
+
+impl Resolve for VariableReference {
+  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
+    let description = {
+      let (function, print): (_, &dyn Pretty<Out = String>) = match self {
+        VariableReference::Block(block_reference, _) => (block_reference.0, block_reference),
+        VariableReference::Argument(function_reference, _) => (*function_reference, function_reference),
+      };
+
+      format!(
+        line_dbg!("Resolve VariableReference: {} in {}"),
+        function.print(lazy),
+        print.print(lazy),
+      )
+    };
+
+    task_work(tasks, description, |tasks| {
+      TypeReference::Variable(*self).resolve(lazy, tasks)
+    })
+  }
+}
+
+impl Resolve for BlockReference {
+  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
+    let description = format!("Resolve BlockReference: {}", self.print(lazy));
+
+    task_work(tasks, description, |tasks| {
+      let borrow = self.rget_from(lazy);
+
+      for id in 0..borrow.variables.len() {
+        VariableReference::Block(*self, id).resolve(lazy, tasks)?;
+      };
+
+      for &expr in borrow.children.iter() {
+        ExpressionReference(self.0, expr).resolve(lazy, tasks)?;
+      };
+
+      Ok(())
+    })
+  }
+}
+
 impl Resolve for FunctionReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
-    let function = self.rget_from(lazy);
-    let ret_ty = TypeReference::ReturnTypeOf(*self);
+    let description = format!("Resolve FunctionReference: {}", self.print(lazy));
 
-    ret_ty.resolve(lazy, tasks)?;
+    task_work(tasks, description, |tasks|{
+      let function = self.rget_from(lazy);
+      let ret_ty = TypeReference::ReturnTypeOf(*self);
 
-    let arguments_iter = (0..function.header.arguments.len())
-      .map(|index| TypeReference::ArgumentOf(*self, index));
+      ret_ty.resolve(lazy, tasks)?;
 
-    for argument in arguments_iter {
-      argument.resolve(lazy, tasks)?
-    };
+      let arguments_iter = (0..function.header.arguments.len())
+        .map(|index| TypeReference::Variable(VariableReference::Argument(*self, index)));
 
-    let body = function.body.rget_from(lazy);
-
-    if let Some(ty) = ret_ty.type_of(lazy)? {
-      let expr_id = body.children.last().unwrap();
-      let reference = TypeReference::Expression(ExpressionReference(*self, *expr_id));
-      let typed_reference = Type::Reference(reference);
-
-      let last_expression = SpecialPair(&reference, &typed_reference);
-      let return_type = SpecialPair(&ret_ty, &ty);
-
-      last_expression.coerce(lazy, &return_type, tasks)?;
-    };
-
-    unsafe {
-      static mut DID_PRINT: bool = false;
-
-      if !DID_PRINT {
-        print_message(lazy, PrintableMessage {
-          level: Level::Debug,
-          force: false,
-          description: line_dbg!("stub: resolve function").into(),
-          contents: MessageContents::File(function.parent),
-        });
-
-        DID_PRINT = true;
+      for argument in arguments_iter {
+        argument.resolve(lazy, tasks)?
       };
-    };
 
-    Ok(())
+      let body = lazy.rget(function.body);
+      if let Some(ty) = ret_ty.type_of(lazy)? {
+        let expr_id = body.children.last().unwrap();
+        let reference = TypeReference::Expression(ExpressionReference(*self, *expr_id));
+        let typed_reference = Type::Reference(reference);
+
+        let last_expression = SpecialPair(&reference, &typed_reference);
+        let return_type: TypePair = SpecialPair(&ret_ty, &ty);
+
+        last_expression.coerce(lazy, &return_type, tasks)?;
+      };
+
+      tasks.push(ResolveAsTask {
+        reference: function.body,
+      });
+
+      Ok(())
+    })
   }
 }
 

@@ -1,11 +1,16 @@
+use crate::lang::span::GetSpan;
 use crate::resolve::type_of::TypeOf;
 use crate::lang::ty::Type;
+use crate::aster::pprint::Pretty;
 
 use super::*;
 
-pub(super) fn verify_typeof(lazy: &Lazy, ty: &impl TypeOf) -> Result<()> {
+pub(super) fn verify_typeof(lazy: &Lazy, ty: &(impl TypeOf + GetSpan + Pretty<Out = String>)) -> Result<()> {
   let Some(ty) = ty.type_of(lazy)? else {
-    todo!("Error::Unresolved");
+    return Err(Box::new(Error::UnresolvedInVerify {
+      what: ty.print(lazy),
+      span: ty.get_span(lazy),
+    }));
   };
 
   verify_type(lazy, &ty)

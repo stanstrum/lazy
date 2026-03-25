@@ -63,7 +63,7 @@ impl WithinSource {
     let mut map = HashMap::new();
 
     for section in sources {
-      let list = map.entry(section.span.module).or_insert_with(|| vec![]);
+      let list = map.entry(section.span.module).or_insert_with(Vec::new);
       list.push(section);
     };
 
@@ -160,7 +160,13 @@ impl From<crate::resolve::Error> for PrintableMessage {
           span: b_span,
         };
 
-        let within_sources = WithinSource::new(vec![a_section, b_section]);
+        let mut sections = vec![a_section];
+
+        if a_span != b_span {
+          sections.push(b_section);
+        };
+
+        let within_sources = WithinSource::new(sections);
 
         Self {
           level: Level::Error,
@@ -168,6 +174,17 @@ impl From<crate::resolve::Error> for PrintableMessage {
           description: format!("{a_print} is not coercible with {b_print}"),
           contents: MessageContents::WithinSource(within_sources),
         }
+      },
+      crate::resolve::Error::UnresolvedInVerify { what, span } => Self {
+        level: Level::Error,
+        force: true,
+        description: format!("verify error: {what} is not resolved"),
+        contents: MessageContents::WithinSource(WithinSource::new(
+          vec![MessageSection {
+            text: "here".into(),
+            span,
+          }]
+        )),
       },
     }
   }

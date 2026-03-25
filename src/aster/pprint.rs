@@ -1,6 +1,6 @@
 use crate::lang::expr::operator::{UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 use crate::lang::expr::{BlockExpression, Expression, LiteralKind};
-use crate::lang::reference::{FunctionReference, Reference, Store, TypePartReference, TypeReference};
+use crate::lang::reference::{BlockReference, ExpressionReference, FunctionReference, Reference, Store, TypePartReference, TypeReference, VariableReference};
 use crate::lang::span::GetSpan;
 use crate::string_pool::PoolId;
 
@@ -74,6 +74,25 @@ impl Pretty for FunctionReference {
   }
 }
 
+impl Pretty for ExpressionReference {
+  type Out = String;
+
+  fn print(&self, lazy: &Lazy) -> Self::Out {
+    let Span { start, end, .. } = self.rget_from(lazy).get_span(lazy);
+
+    format!("expr {}:{} - {}:{}", start.line, start.column, end.line, end.column)
+  }
+}
+
+impl Pretty for BlockReference {
+  type Out = String;
+
+  fn print(&self, lazy: &Lazy) -> Self::Out {
+    let Span { start, end, .. } = self.rget_from(lazy).span;
+    format!("block {}:{} - {}:{}", start.line, start.column, end.line, end.column)
+  }
+}
+
 impl Pretty for TypeReference {
   type Out = String;
 
@@ -88,19 +107,16 @@ impl Pretty for TypeReference {
         let name = alias.rget_from(lazy).name.print(lazy);
         format!("{path}::{name}")
       },
-      TypeReference::ArgumentOf(function, index) => {
-        format!("ArgumentOf<{}>[{index}]", function.print(lazy))
+      TypeReference::Variable(VariableReference::Argument(parent, index)) => {
+        format!("ArgumentOf<{}>[{index}]", parent.print(lazy))
       },
-      TypeReference::Expression(expression) => {
-        let Span { start, end, .. } = expression.rget_from(lazy).get_span(lazy);
+      TypeReference::Variable(v @ VariableReference::Block(block, _)) => {
+        let name = v.rget_from(lazy).name;
 
-        format!("typeof /* expr {}:{} - {}:{} */", start.line, start.column, end.line, end.column)
+        format!("typeof {{{} {}}}::{}", v.parent().print(lazy), block.print(lazy), name.print(lazy))
       },
-      TypeReference::Block(block) => {
-        let Span { start, end, .. } = block.rget_from(lazy).span;
-
-        format!("typeof /* block {}:{} - {}:{} */", start.line, start.column, end.line, end.column)
-      },
+      TypeReference::Expression(expression) => format!("typeof {{{}}}", expression.print(lazy)),
+      TypeReference::Block(block) => format!("typeof {{{}}}", block.print(lazy)),
     }
   }
 }
@@ -111,7 +127,7 @@ impl Pretty for Type {
   fn print(&self, lazy: &Lazy) -> Self::Out {
     match self {
       // Type::Reference(reference) => reference.print(lazy),
-      Type::Unresolved { qualified, .. } => format!("/*?*/ {}", qualified.print(lazy)),
+      Type::Unresolved { qualified, .. } => format!("{{unknown}} {}", qualified.print(lazy)),
       Type::Intrinsic { kind, .. } => kind.to_string(),
       // Type::Resolved { original, reference } => {
       //   format!("/* {deferred} */ {original}",
@@ -166,10 +182,10 @@ impl Pretty for FunctionAnd<'_, Expression> {
         let ty = out.print(lazy);
         vec![match value {
           LiteralKind::Numeric(NumericValue::F64(value)) => {
-            format!("{value} /* {ty} */")
+            format!("{value} {{{ty}}}")
           },
           LiteralKind::Numeric(NumericValue::U64(value)) => {
-            format!("{value} /* {ty} */")
+            format!("{value} {{{ty}}}")
           },
           LiteralKind::String { value, kind } => {
             let prefix = match kind {
@@ -179,7 +195,7 @@ impl Pretty for FunctionAnd<'_, Expression> {
             };
 
             let value = lazy.pool.get_string(*value);
-            format!("{prefix}{value:?} /* {ty} */")
+            format!("{prefix}{value:?} {{{ty}}}")
           },
         }].into_iter()
       },
@@ -187,7 +203,7 @@ impl Pretty for FunctionAnd<'_, Expression> {
         reference.rget_from(lazy).name.print(lazy)
       ].into_iter(),
       Expression::Unknown { qualified, .. } => vec![
-        qualified.print(lazy)
+        format!("{{?}} {}", qualified.print(lazy))
       ].into_iter(),
       Expression::Unary { expr, op, .. } => {
         let expr = expr.rget_from(lazy).print_with(function, lazy).collect::<String>();
@@ -352,7 +368,7 @@ impl Pretty for Module {
         lines.push("".into());
       };
 
-      lines.push(format!("  /* {} */", lazy.describe_module(module)));
+      lines.push(format!("  {{{}}}", lazy.describe_module(module)));
       for line in module_ref.print(lazy) {
         lines.push(format!("  {line}"));
       };

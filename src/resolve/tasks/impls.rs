@@ -1,7 +1,5 @@
-use std::marker::PhantomData;
-
-use crate::lang::reference::{Reference, Store, TypeReference};
 use crate::aster::pprint::Pretty;
+use crate::lang::reference::{Store, TypeReference};
 use crate::lang::span::GetSpan;
 
 use super::*;

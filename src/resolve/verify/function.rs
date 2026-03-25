@@ -49,7 +49,7 @@ pub(super) fn verify_function(lazy: &Lazy, function: FunctionReference, tasks: &
             kind: Intrinsic::I32,
             span: ret_ty_span,
           };
-          let undeniable_i32 = SpecialPair(&ret_ty_reference, &undeniable_i32);
+          let undeniable_i32: TypePair = SpecialPair(&ret_ty_reference, &undeniable_i32);
 
           ret_ty_pair.coerce(lazy, &undeniable_i32, tasks)?;
         };
@@ -75,7 +75,7 @@ pub(super) fn verify_function(lazy: &Lazy, function: FunctionReference, tasks: &
     };
 
     // verify body
-    expr::verify_block(lazy, &function_borrow.body, &ret_ty_pair, tasks)?;
+    expr::verify_block(lazy, &function_borrow.body, Some(&ret_ty_pair), tasks)?;
 
     Ok(())
   })

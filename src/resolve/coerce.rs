@@ -1,4 +1,4 @@
-use crate::lang::reference::{Reference, Store, TypeReference};
+use crate::lang::reference::{ExpressionReference, Reference, Store, TypeReference};
 use crate::lang::span::GetSpan;
 use crate::resolve::type_of::TypeOf;
 use crate::aster::pprint::Pretty;
@@ -6,7 +6,7 @@ use crate::aster::pprint::Pretty;
 use super::*;
 
 pub trait Coerce {
-  fn coerce(&self, lazy: &Lazy, other: &(impl TypeOf + Coerce), tasks: &mut Tasks) -> Result<()>;
+  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()>;
 }
 
 #[derive(Debug)]
@@ -24,12 +24,12 @@ impl<'a, S: Store<R>, R: Reference<S>> TypeOf for SpecialPair<'a, S, R> where S:
 }
 
 impl<'a, 'b> Coerce for TypePair<'a, 'b> {
-  fn coerce(&self, lazy: &Lazy, other_ref: &(impl TypeOf + Coerce), tasks: &mut Tasks) -> Result<()> {
+  fn coerce(&self, lazy: &Lazy, other_ref: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
     let a = self.0.print(lazy);
     let b = self.1.print(lazy);
     let c = other_ref.type_of(lazy)?.map(|x| x.print(lazy)).unwrap_or_else(|| "{none}".into());
 
-    task_work(tasks, format!(line_dbg!("Coerce:\n- Reference: {}\n- Type:      {}\n- Coerce w/: {}"), a, b, c),
+    task_work(tasks, format!(line_dbg!("Coerce TypePair\n- Reference: {}\n- Type:      {}\n- Coerce w/: {}"), a, b, c),
       |tasks| {
 
         // println!(line_dbg!("here:\n{}"), tasks.explain(2));
@@ -77,12 +77,12 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
           (_, Type::Resolved { part, .. }) => {
             let ty = part.rget_from(lazy);
             let reference = TypeReference::Part(*part);
-            let other_ref = SpecialPair(&reference, ty);
+            let other_ref: TypePair = SpecialPair(&reference, ty);
             self.coerce(lazy, &other_ref, tasks)
           },
           (_, Type::Reference(reference)) => {
             let ty = reference.rget_from(lazy);
-            let other_ref = SpecialPair(reference, ty);
+            let other_ref: TypePair = SpecialPair(reference, ty);
             self.coerce(lazy, &other_ref, tasks)
           },
           (Type::Weak { .. }, _) => {
@@ -107,5 +107,18 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
         }
       }
     )
+  }
+}
+
+impl Coerce for ExpressionReference {
+  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
+    let a = self.print(lazy);
+    let b = other.type_of(lazy)?.map(|x| x.print(lazy)).unwrap_or_else(|| "{none}".into());
+
+    let description = format!(line_dbg!("Coerce ExpressionReference\n- Reference: {}\n- Coerce w/: {}"), a, b);
+
+    task_work(tasks, description, |tasks| {
+      todo!()
+    })
   }
 }

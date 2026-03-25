@@ -7,44 +7,34 @@ use crate::lang::function::Function;
 use crate::lang::expr::{BlockExpression, Expression};
 
 pub trait GetSpan {
-  type Parent<'a>;
-
-  fn get_span(&self, parent: Self::Parent<'_>) -> Span;
+  fn get_span(&self, parent: &Lazy) -> Span;
 }
 
 impl GetSpan for Module {
-  type Parent<'a> = ();
-
-  fn get_span(&self, _parent: ()) -> Span {
+  fn get_span(&self, _lazy: &Lazy) -> Span {
     todo!()
   }
 }
 
 impl GetSpan for Function {
-  type Parent<'a> = ();
-
-  fn get_span(&self, _parent: ()) -> Span {
+  fn get_span(&self, _lazy: &Lazy) -> Span {
     self.span
   }
 }
 
 impl GetSpan for TypeAlias {
-  type Parent<'a> = ();
-
-  fn get_span(&self, _parent: ()) -> Span {
+  fn get_span(&self, _lazy: &Lazy) -> Span {
     self.span
   }
 }
 
 impl GetSpan for TypeReference {
-  type Parent<'a> = &'a Lazy<'a>;
-
-  fn get_span(&self, parent: Self::Parent<'_>) -> Span {
+  fn get_span(&self, lazy: &Lazy) -> Span {
     match self {
-      TypeReference::Part(type_part) => type_part.rget_from(parent).get_span(parent),
-      TypeReference::ReturnTypeOf(function) => function.rget_from(parent).header.ret_ty.get_span(parent),
-      TypeReference::Alias(alias) => alias.rget_from(parent).span,
-      TypeReference::ArgumentOf(..) => todo!(),
+      TypeReference::Part(type_part) => type_part.rget_from(lazy).get_span(lazy),
+      TypeReference::ReturnTypeOf(function) => function.rget_from(lazy).header.ret_ty.get_span(lazy),
+      TypeReference::Alias(alias) => alias.rget_from(lazy).span,
+      TypeReference::Variable(variable) => variable.rget_from(lazy).span,
       TypeReference::Expression(_) => todo!(),
       TypeReference::Block(_) => todo!(),
     }
@@ -52,27 +42,23 @@ impl GetSpan for TypeReference {
 }
 
 impl GetSpan for TypePartReference {
-  type Parent<'a> = &'a Lazy<'a>;
-
-  fn get_span(&self, parent: Self::Parent<'_>) -> Span {
-    self.rget_from(parent).get_span(parent)
+  fn get_span(&self, lazy: &Lazy) -> Span {
+    self.rget_from(lazy).get_span(lazy)
   }
 }
 
 impl GetSpan for Type {
-  type Parent<'a> = &'a Lazy<'a>;
-
-  fn get_span(&self, parent: &Lazy) -> Span {
+  fn get_span(&self, lazy: &Lazy) -> Span {
     match self {
       Type::Unresolved { qualified, .. } => qualified.span,
-      Type::Resolved { part, .. } => part.get_span(parent),
+      Type::Resolved { part, .. } => part.get_span(lazy),
       | Type::ReferenceTo { span, .. }
       | Type::SizedArrayOf { span, .. }
       | Type::UnsizedArrayOf { span, .. }
       | Type::Intrinsic { span, .. }
       | Type::WeakInteger { span }
       | Type::WeakFloat { span } => *span,
-      Type::Reference(reference) => reference.get_span(parent),
+      Type::Reference(reference) => reference.get_span(lazy),
       // Type::Expression(reference) => {
       //   let function = &parent[reference.function];
       //   reference.rget_from(parent).get_span(function)
@@ -83,11 +69,9 @@ impl GetSpan for Type {
 }
 
 impl GetSpan for Expression {
-  type Parent<'a> = &'a Lazy<'a>;
-
   fn get_span(&self, lazy: &Lazy) -> Span {
     match self {
-      Expression::Block(id) => id.rget_from(lazy).get_span(()),
+      Expression::Block(id) => id.rget_from(lazy).get_span(lazy),
       | Expression::Literal { span, .. }
       | Expression::Variable { span, .. }
       | Expression::Binary { span, .. }
@@ -99,9 +83,7 @@ impl GetSpan for Expression {
 }
 
 impl GetSpan for BlockExpression {
-  type Parent<'a> = ();
-
-  fn get_span(&self, _parent: ()) -> Span {
+  fn get_span(&self, _lazy: &Lazy) -> Span {
     self.span
   }
 }

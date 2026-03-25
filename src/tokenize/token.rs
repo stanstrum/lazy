@@ -32,7 +32,7 @@ macro_rules! string_enum {
   };
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Span {
   pub start: Position,
   pub end: Position,
@@ -294,7 +294,7 @@ pub enum Operator {
 }
 
 /// Contains only the start position of a Span
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Position {
   pub position: usize,
   pub line: usize,

@@ -44,7 +44,7 @@ pub enum TypeReference {
   Expression(ExpressionReference),
   Block(BlockReference),
   ReturnTypeOf(FunctionReference),
-  ArgumentOf(FunctionReference, usize),
+  Variable(VariableReference),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -95,12 +95,21 @@ impl TypeReference {
       &TypeReference::Part(TypePartReference(module_reference, _))
         => module_reference,
       | TypeReference::Expression(ExpressionReference(function_reference, _))
-      | TypeReference::ReturnTypeOf(function_reference)
-      | TypeReference::ArgumentOf(function_reference, _) => {
-        let function = function_reference.rget_from(lazy);
+      | TypeReference::ReturnTypeOf(function_reference) => {
+      let function = function_reference.rget_from(lazy);
         function.parent
       },
+      TypeReference::Variable(v) => lazy.rget(v.parent()).parent,
       TypeReference::Block(_) => todo!(),
+    }
+  }
+}
+
+impl VariableReference {
+  pub fn parent(&self) -> FunctionReference {
+    match self {
+      VariableReference::Block(block_reference, _) => block_reference.0,
+      VariableReference::Argument(function_reference, _) => *function_reference,
     }
   }
 }

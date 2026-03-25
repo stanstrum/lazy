@@ -81,8 +81,10 @@ pub(super) fn make_unary_suffix<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
-  function: lang::reference::FunctionReference,
+  block: lang::reference::BlockReference,
 ) -> Result<Option<(UnarySuffixOperator, Span)>, Error> {
+  let function = block.0;
+
   if let Some((Token::Operator(Operator::DoublePlus), span)) = stream.peek()? {
     stream.seek();
     return Ok(Some((UnarySuffixOperator::PostIncrement, span)));
@@ -116,7 +118,7 @@ pub(super) fn make_unary_suffix<'pool, const N: usize, T: Read>(
         break;
       };
 
-      let Some(expr) = make_expr(lazy, stream, module, function)? else {
+      let Some(expr) = make_expr(lazy, stream, module, block)? else {
         return stream.expected_here(line_dbg!("an expression"));
       };
 

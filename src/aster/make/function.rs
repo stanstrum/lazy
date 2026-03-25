@@ -144,7 +144,7 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
       |ExpressionReference(_, id)| id == last
     );
 
-    let expr_reference = ExpressionReference(function, last);
+    let expr_reference = ExpressionReference(body, last);
     body_ref.out = lang::ty::Type::Reference(lang::reference::TypeReference::Expression(expr_reference));
   };
 

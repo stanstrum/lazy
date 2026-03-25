@@ -54,7 +54,7 @@ pub fn task_resolve(lazy: &mut Lazy, module: ModuleReference) -> Result<()> {
   let mut tasks = Tasks::new();
 
   task_work::<Result<()>>(&mut tasks,
-    line_dbg!("resolve global").into(),
+    line_dbg!("Resolve global").into(),
     |tasks| {
       loop {
         module.resolve(lazy, tasks)?;

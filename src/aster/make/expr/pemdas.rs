@@ -56,7 +56,8 @@ fn melt_left(lazy: &mut lang::Lazy, cursor: &mut usize, parts: &mut Vec<Expressi
   let &ExpressionPart::Expression(mut expr) = parts.get(left).unwrap() else {
     unreachable!();
   };
-  let function = expr.0;
+  let block = expr.0;
+  let function = block.0;
 
   for suffix in parts.drain(range) {
     let ExpressionPart::UnarySuffix((suffix, op_span)) = suffix else {
@@ -75,7 +76,7 @@ fn melt_left(lazy: &mut lang::Lazy, cursor: &mut usize, parts: &mut Vec<Expressi
       out: lang::ty::Type::Weak { span },
     };
     let new_id = function.rget_from_mut(lazy).add_expr(new_expr);
-    expr = lang::reference::ExpressionReference(function, new_id);
+    expr = lang::reference::ExpressionReference(block, new_id);
   };
 
   *parts.get_mut(left).unwrap() = ExpressionPart::Expression(expr);
@@ -95,7 +96,8 @@ fn melt_right(lazy: &mut lang::Lazy, cursor: usize, parts: &mut Vec<ExpressionPa
   let &ExpressionPart::Expression(mut expr) = parts.get(right).unwrap() else {
     unreachable!();
   };
-  let function = expr.0;
+  let block = expr.0;
+  let function = block.0;
 
   for prefix in parts.drain(range).rev() {
     let ExpressionPart::UnaryPrefix((prefix, op_span)) = prefix else {
@@ -115,7 +117,7 @@ fn melt_right(lazy: &mut lang::Lazy, cursor: usize, parts: &mut Vec<ExpressionPa
       out: lang::ty::Type::Weak { span },
     };
     let new_id = function.rget_from_mut(lazy).add_expr(new_expr);
-    expr = lang::reference::ExpressionReference(function, new_id);
+    expr = lang::reference::ExpressionReference(block, new_id);
   };
 
   *parts.get_mut(cursor).unwrap() = ExpressionPart::Expression(expr);
@@ -217,7 +219,8 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
           let end = b.rget_from(lazy).get_span(lazy);
           let span = Span::from_pair(start, end);
 
-          let function = a.0;
+          let block = a.0;
+          let function = block.0;
 
           let expr = lang::expr::Expression::Binary {
             a,
@@ -227,7 +230,7 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
             out: lang::ty::Type::Weak { span },
           };
           let id = function.rget_from_mut(lazy).add_expr(expr);
-          let reference = lang::reference::ExpressionReference(function, id);
+          let reference = lang::reference::ExpressionReference(block, id);
 
           parts.drain(i - 1 ..= i + 1);
           i -= 1;

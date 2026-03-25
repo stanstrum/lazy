@@ -47,10 +47,12 @@ fn make_expr_part<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
-  function: lang::reference::FunctionReference,
+  block: lang::reference::BlockReference,
 ) -> Result<Option<lang::reference::ExpressionReference>, Error> {
+  let function = block.0;
+
   let expr = 'expr: {
-    if let Some(block) = block::make_block(lazy, stream, module, function)? {
+    if let Some(block) = block::make_block(lazy, stream, module, function, Some(block))? {
       break 'expr lang::expr::Expression::Block(block);
     };
 
@@ -66,7 +68,7 @@ fn make_expr_part<'pool, const N: usize, T: Read>(
   };
 
   let id = function.rget_from_mut(lazy).add_expr(expr);
-  let reference = lang::reference::ExpressionReference(function, id);
+  let reference = lang::reference::ExpressionReference(block, id);
 
   Ok(Some(reference))
 }
@@ -83,10 +85,12 @@ pub(super) fn make_expr<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
-  function: lang::reference::FunctionReference,
+  block: lang::reference::BlockReference,
 ) -> Result<Option<lang::reference::ExpressionReference>, Error> {
   let mut parts: Vec<ExpressionPart> = vec![];
   let mut expect = false;
+
+  let function = block.0;
 
   loop {
     let curr_mark = stream.mark();
@@ -97,7 +101,7 @@ pub(super) fn make_expr<'pool, const N: usize, T: Read>(
       stream.skip_whitespace_and_comments()?;
     };
 
-    let Some(expr) = make_expr_part(lazy, stream, module, function)? else {
+    let Some(expr) = make_expr_part(lazy, stream, module, block)? else {
       if expect {
         return stream.expected_here(line_dbg!("an expression part"));
       } else {
@@ -111,7 +115,7 @@ pub(super) fn make_expr<'pool, const N: usize, T: Read>(
     let mut suffix_mark = stream.mark();
     stream.skip_whitespace_and_comments()?;
 
-    while let Some(suffix) = operator::make_unary_suffix(lazy, stream, module, function)? {
+    while let Some(suffix) = operator::make_unary_suffix(lazy, stream, module, block)? {
       parts.push(ExpressionPart::UnarySuffix(suffix));
       suffix_mark = stream.mark();
       stream.skip_whitespace_and_comments()?;

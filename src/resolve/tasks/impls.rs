@@ -1,5 +1,6 @@
-use crate::aster::pprint::Pretty;
-use crate::lang::reference::{Store, TypeReference};
+use crate::aster::pprint::{Pretty, PrettyFunction};
+use crate::lang::expr::Expression;
+use crate::lang::reference::{ExpressionReference, Reference, Store, TypeReference};
 use crate::lang::span::GetSpan;
 
 use super::*;
@@ -9,9 +10,14 @@ pub struct Subjugate {
   pub after: Box<dyn Task>,
 }
 
+pub struct OverwriteExpression {
+  pub dest: ExpressionReference,
+  pub src: Expression,
+}
+
 pub struct OverwriteType {
   pub dest: TypeReference,
-  pub value: Type,
+  pub src: Type,
 }
 
 pub struct ResolveAsTask<R: Resolve> {
@@ -45,8 +51,9 @@ impl Task for Subjugate {
 
   fn execute(self: Box<Self>, lazy: &mut Lazy, tasks: &mut Tasks) -> Result<TaskResponse> {
     let Self { prerequisite, after } = *self;
+    let description = format!(line_dbg!("{}"), prerequisite.explain(lazy));
 
-    let result = task_work(tasks, format!(line_dbg!("{}"), prerequisite.explain(lazy)), |tasks| {
+    let result = task_work(tasks, description, |tasks| {
       prerequisite.execute(lazy, tasks)
     });
 
@@ -67,20 +74,40 @@ impl Task for OverwriteType {
     let parent = self.dest.parent_module(lazy);
 
     format!(
-      line_dbg!("OverwriteType in {}:\n- dest = {}\n- value = {}"),
+      line_dbg!("OverwriteType in {}:\n- dest = {}\n- src  = {}"),
       lazy.describe_module(parent),
       self.dest.print(lazy),
-      self.value.print(lazy),
+      self.src.print(lazy),
     )
   }
 
   fn execute(self: Box<Self>, lazy: &mut Lazy, tasks: &mut Tasks) -> Result<TaskResponse> {
-    let span = self.value.get_span(lazy);
+    let span = self.src.get_span(lazy);
 
     let part = self.dest.parent_module(lazy)
-      .add_type_part(self.value, lazy);
+      .add_type_part(self.src, lazy);
 
     *lazy.rget_mut(self.dest) = Type::Resolved { part, span };
+
+    Ok(TaskResponse::Pop)
+  }
+}
+
+impl Task for OverwriteExpression {
+  fn explain(&self, lazy: &Lazy) -> String {
+    let parent = self.dest.0.0.rget_from(lazy).parent;
+
+    format!(
+      line_dbg!("OverwriteExpression in {}:\n- dest = {}\n- src  = {}"),
+      lazy.describe_module(parent),
+      self.dest.print(lazy),
+      self.src.print_with(lazy.rget(self.dest.0.0), lazy)
+        .collect::<Vec<_>>().join("\n"),
+    )
+  }
+
+  fn execute(self: Box<Self>, lazy: &mut Lazy, tasks: &mut Tasks) -> Result<TaskResponse> {
+    *lazy.rget_mut(self.dest) = self.src;
 
     Ok(TaskResponse::Pop)
   }
@@ -97,3 +124,4 @@ impl<R: Resolve + Pretty<Out = String>> Task for ResolveAsTask<R> {
     Ok(TaskResponse::Pop)
   }
 }
+

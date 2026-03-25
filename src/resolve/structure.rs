@@ -1,9 +1,9 @@
 use crate::aster::pprint::{Pretty, PrettyFunction};
-use crate::error::*;
 
 use crate::lang::expr::Expression;
 use crate::lang::expr::operator::BinaryOperator;
 use crate::lang::reference::{BlockReference, Store, VariableReference};
+use crate::lang::span::GetSpan;
 use crate::line_dbg;
 
 use crate::lang::Lazy;
@@ -11,11 +11,11 @@ use crate::lang::ty::{Intrinsic, Type};
 use crate::lang::reference::{AliasReference, ExpressionReference, FunctionReference, ModuleReference, Reference, TypeReference};
 use crate::resolve::coerce::TypePair;
 use crate::resolve::task_work;
-use crate::resolve::tasks::ResolveAsTask;
+use crate::resolve::tasks::{OverwriteExpression, ResolveAsTask};
 use crate::resolve::type_of::TypeOf;
 use crate::resolve::coerce::{Coerce, SpecialPair};
 
-use super::{Result, Resolve, Tasks};
+use super::{Result, Error, Resolve, Tasks};
 
 impl Resolve for AliasReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
@@ -58,9 +58,55 @@ impl Resolve for ExpressionReference {
         Expression::Unknown { qualified, out } if qualified.parts.len() == 1 && !qualified.implicit => {
           let part = qualified.parts.first().unwrap();
 
-          todo!()
+          let mut block = Some(self.0);
+
+          let hierarchy = std::iter::from_fn(move || {
+            let old = block;
+            block = block.and_then(|block| lazy.rget(block).parent);
+
+            old
+          });
+
+          let variables_iter_iter = hierarchy.map(|block| {
+            lazy.rget(block)
+              .variables.iter().enumerate()
+              // I do not understand why this lambda is `move` ...
+              .map(move |(id, var)| (var.name.id, VariableReference::Block(block, id))
+            )
+          });
+
+          let function = self.0.0;
+          let arguments_iter = lazy.rget(function)
+            .header.arguments.iter()
+            .enumerate().map(|(id, arg)| {
+              (arg.name.id, VariableReference::Argument(function, id))
+            }
+          );
+
+          let name_reference_iter = variables_iter_iter.flatten().chain(arguments_iter);
+
+          // name_reference_iter.inspect(|p| { dbg!(p); });
+
+          for (pool_id, variable_reference) in name_reference_iter {
+            if part.id == pool_id {
+              tasks.push(OverwriteExpression {
+                dest: *self,
+                src: Expression::Variable {
+                  reference: variable_reference,
+                  span: borrow.get_span(lazy),
+                },
+              });
+
+              return Ok(());
+            };
+          };
+
+          Err(Box::new(Error::UnknownTypeName {
+            module_name: lazy.describe_module(self.0.0.rget_from(lazy).parent),
+            span: borrow.get_span(lazy),
+          }))
         },
-        _ => todo!("{borrow:?}\n{}", borrow.print_with(lazy.rget(self.0), lazy).collect::<Vec<_>>().join("\n")),
+        _ => todo!("{borrow:?}\n{}", borrow.print_with(lazy.rget(self.0.0), lazy).collect::<Vec<_>>().join("\n")),
       }
     })
   }
@@ -99,7 +145,7 @@ impl Resolve for BlockReference {
       };
 
       for &expr in borrow.children.iter() {
-        ExpressionReference(self.0, expr).resolve(lazy, tasks)?;
+        ExpressionReference(*self, expr).resolve(lazy, tasks)?;
       };
 
       Ok(())
@@ -109,7 +155,7 @@ impl Resolve for BlockReference {
 
 impl Resolve for FunctionReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
-    let description = format!("Resolve FunctionReference: {}", self.print(lazy));
+    let description = format!(line_dbg!("Resolve FunctionReference: {}"), self.print(lazy));
 
     task_work(tasks, description, |tasks|{
       let function = self.rget_from(lazy);
@@ -127,7 +173,7 @@ impl Resolve for FunctionReference {
       let body = lazy.rget(function.body);
       if let Some(ty) = ret_ty.type_of(lazy)? {
         let expr_id = body.children.last().unwrap();
-        let reference = TypeReference::Expression(ExpressionReference(*self, *expr_id));
+        let reference = TypeReference::Expression(ExpressionReference(function.body, *expr_id));
         let typed_reference = Type::Reference(reference);
 
         let last_expression = SpecialPair(&reference, &typed_reference);

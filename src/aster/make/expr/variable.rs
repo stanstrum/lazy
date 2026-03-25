@@ -10,7 +10,7 @@ pub fn make_assignment<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
-  function: lang::reference::FunctionReference,
+  block: lang::reference::BlockReference,
 ) -> Result<Option<Value>, Error> {
   let ret_mark = stream.mark();
 
@@ -34,7 +34,7 @@ pub fn make_assignment<'pool, const N: usize, T: Read>(
       stream.seek();
       stream.skip_whitespace_and_comments()?;
 
-      let Some(expr) = make_expr(lazy, stream, module, function)? else {
+      let Some(expr) = make_expr(lazy, stream, module, block)? else {
         return stream.expected_here(line_dbg!("an expression"));
       };
 

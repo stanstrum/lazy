@@ -74,7 +74,7 @@ impl<'a, 'b> Resolve for TypePair<'a, 'b> {
               }),
               prerequisite: Box::new(OverwriteType {
                 dest: **reference,
-                value: ty,
+                src: ty,
               }),
             });
           };

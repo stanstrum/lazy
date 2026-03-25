@@ -53,11 +53,11 @@ impl<'a> Store<BlockReference> for Lazy<'a> {
 impl<'a> Store<ExpressionReference> for Lazy<'a> {
   type Out = Expression;
 
-  fn rget(&self, ExpressionReference(function, id): ExpressionReference) -> &Self::Out {
+  fn rget(&self, ExpressionReference(BlockReference(function, _), id): ExpressionReference) -> &Self::Out {
     &self.rget(function)[id]
   }
 
-  fn rget_mut(&mut self, ExpressionReference(function, id): ExpressionReference) -> &mut Self::Out {
+  fn rget_mut(&mut self, ExpressionReference(BlockReference(function, _), id): ExpressionReference) -> &mut Self::Out {
     &mut self.rget_mut(function)[id]
   }
 }
@@ -131,7 +131,9 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
       TypeReference::Variable(VariableReference::Argument(function, index)) => {
         &mut self.rget_mut(function).header.arguments.get_mut(index).unwrap().ty
       },
-      TypeReference::Variable(VariableReference::Block(..)) => todo!(),
+      TypeReference::Variable(VariableReference::Block(block, index)) => {
+        &mut self.rget_mut(block).variables.get_mut(index).unwrap().ty
+      },
       TypeReference::Expression(expr) => {
         if let &mut Expression::Block(block) = self.rget_mut(expr) {
           let block = self.rget_mut(block);

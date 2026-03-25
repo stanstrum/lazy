@@ -61,7 +61,7 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
           ) if !matches!(kind, Intrinsic::Bool | Intrinsic::Void) => {
             tasks.push(OverwriteType {
               dest: **reference,
-              value: other,
+              src: other,
             });
 
             Ok(())
@@ -88,7 +88,7 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
           (Type::Weak { .. }, _) => {
             tasks.push(OverwriteType {
               dest: **reference,
-              value: other,
+              src: other,
             });
 
             Ok(())

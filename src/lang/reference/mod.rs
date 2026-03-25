@@ -32,7 +32,7 @@ pub struct ModuleReference(pub usize);
 pub struct BlockReference(pub FunctionReference, pub BlockId);
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct ExpressionReference(pub FunctionReference, pub ExprId);
+pub struct ExpressionReference(pub BlockReference, pub ExprId);
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TypePartReference(pub ModuleReference, pub TypePartId);
@@ -94,7 +94,7 @@ impl TypeReference {
         => module_reference,
       &TypeReference::Part(TypePartReference(module_reference, _))
         => module_reference,
-      | TypeReference::Expression(ExpressionReference(function_reference, _))
+      | TypeReference::Expression(ExpressionReference(BlockReference(function_reference, _), _))
       | TypeReference::ReturnTypeOf(function_reference) => {
       let function = function_reference.rget_from(lazy);
         function.parent

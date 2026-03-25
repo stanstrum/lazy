@@ -17,6 +17,7 @@ pub struct Variable {
 
 #[derive(Debug)]
 pub struct BlockExpression {
+  pub parent: Option<BlockReference>,
   pub children: Vec<ExprId>,
   pub span: Span,
   pub returns_last: bool,
@@ -76,16 +77,20 @@ impl Expression {
 }
 
 impl BlockExpression {
-  pub fn new_dirty(temp_span: Span) -> Self {
-    Self::new(temp_span, Type::Intrinsic {
+  pub fn new_dirty(parent: Option<BlockReference>, temp_span: Span) -> Self {
+    Self::new(
+      parent,
+      temp_span,
+      Type::Intrinsic {
         kind: crate::lang::ty::Intrinsic::Void,
         span: temp_span,
       },
     )
   }
 
-  pub fn new(span: Span, out: Type) -> Self {
+  pub fn new(parent: Option<BlockReference>, span: Span, out: Type) -> Self {
     Self {
+      parent,
       children: vec![],
       span,
       returns_last: false,

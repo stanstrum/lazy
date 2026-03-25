@@ -7,7 +7,7 @@ use crate::lang::function::Function;
 use crate::lang::expr::{BlockExpression, Expression};
 
 pub trait GetSpan {
-  fn get_span(&self, parent: &Lazy) -> Span;
+  fn get_span(&self, lazy: &Lazy) -> Span;
 }
 
 impl GetSpan for Module {

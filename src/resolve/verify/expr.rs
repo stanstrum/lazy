@@ -97,7 +97,7 @@ pub(super) fn verify_block(lazy: &Lazy, block: &BlockReference, ret_ty: Option<&
     let is_last = |id: &_| last.is_some_and(|x| x == *id);
 
     for id in block_borrow.children.iter() {
-      let expr = ExpressionReference(block.0, *id);
+      let expr = ExpressionReference(*block, *id);
 
       let irr_reference = TypeReference::Expression(expr);
       let irr_ty = irr_reference.rget_from(lazy);

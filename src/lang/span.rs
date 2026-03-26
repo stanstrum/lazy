@@ -59,10 +59,9 @@ impl GetSpan for Type {
       | Type::Weak { span }
       | Type::WeakInteger { span }
       | Type::WeakFloat { span }
-      | Type::WeakString { span }
+      | Type::WeakString { span, .. }
         => *span,
       Type::Reference(reference) => reference.get_span(lazy),
-
     }
   }
 }

@@ -18,7 +18,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
     };
 
     if content.contains('.') && !matches!(kind, NumericKind::Decimal) {
-      todo!("non-decimal floating-point: {kind:?}");
+      return Err(Error::InvalidNumeric { span });
     };
 
     let value = if content.contains('.') {

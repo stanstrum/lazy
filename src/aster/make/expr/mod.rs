@@ -14,8 +14,30 @@ use crate::lang::reference::Reference;
 
 use super::Error;
 
+fn new_weak_string(
+  lazy: &lang::Lazy,
+  kind: token::StringKind,
+  value: crate::string_pool::StringId,
+  span: token::Span
+) -> lang::ty::Type {
+  let length = lazy.pool.get_string(value).len();
+
+  let characters = match kind {
+    token::StringKind::C => length + 1,
+    _ => length,
+  };
+
+  lang::ty::Type::WeakString {
+    kind,
+    characters,
+    span,
+    dereferenced: false,
+    sized: true,
+  }
+}
+
 pub(super) fn make_literal<'pool, const N: usize, T: Read>(
-  _lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<lang::expr::Expression>, Error> {
   if let Some((Token::Numeric(value), span)) = stream.peek()? {
@@ -34,7 +56,7 @@ pub(super) fn make_literal<'pool, const N: usize, T: Read>(
   if let Some((Token::String(kind, value), span)) = stream.peek()? {
     stream.seek();
 
-    let out = lang::ty::Type::WeakString { span };
+    let out = new_weak_string(lazy, kind, value, span);
     let value = LiteralKind::String { kind, value };
 
     return Ok(Some(lang::expr::Expression::Literal { value, span, out }));

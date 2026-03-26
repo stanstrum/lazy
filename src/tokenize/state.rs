@@ -616,9 +616,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
               let State::Escape { ret, .. } = std::mem::replace(&mut self.state, State::Base) else { unreachable!() };
               self.state = ret.into();
             },
-            Ok(EscapeValue::ReadHex) => todo!(),
-            Ok(EscapeValue::ReadOctal) => todo!(),
-            Ok(EscapeValue::Unicode) => todo!(),
+            Ok(value) => todo!("{value:?}"),
             Err(err) => return Some(Err(err)),
           };
         },

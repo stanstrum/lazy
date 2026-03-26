@@ -3,6 +3,7 @@ use super::*;
 use std::cmp::Ordering;
 
 use crate::lang::reference::ModuleReference;
+use crate::lang::ty::Intrinsic;
 use crate::string_pool::{StringId, PoolId};
 use crate::aster::bufreader::Metadata;
 
@@ -77,6 +78,15 @@ pub enum StringKind {
   C,
 }
 
+impl Into<Intrinsic> for StringKind {
+  fn into(self) -> Intrinsic {
+    match self {
+      StringKind::Wide => Intrinsic::U32,
+      StringKind::Byte | StringKind::C => Intrinsic::U8,
+    }
+  }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum CharKind {
   Wide,
@@ -103,6 +113,7 @@ impl EscapeReturn {
   }
 }
 
+#[derive(Debug)]
 pub enum EscapeValue {
   Char(char),
   ReadHex,

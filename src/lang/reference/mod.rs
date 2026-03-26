@@ -100,7 +100,9 @@ impl TypeReference {
         function.parent
       },
       TypeReference::Variable(v) => lazy.rget(v.parent()).parent,
-      TypeReference::Block(_) => todo!(),
+      TypeReference::Block(BlockReference(function, _)) => {
+        function.rget_from(lazy).parent
+      },
     }
   }
 }

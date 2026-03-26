@@ -25,6 +25,7 @@ pub enum Error {
     span: Span,
   },
   TypeMismatch {
+    whence: &'static str,
     a_print: String,
     a_span: Span,
     b_print: String,

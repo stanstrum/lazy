@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::lang::module::{Name};
 use crate::lang::reference::{ModuleReference, TypePartReference, TypeReference};
-use crate::tokenize::token::Span;
+use crate::tokenize::token::{Span, StringKind};
 
 #[derive(Debug, Clone)]
 pub struct Qualified {
@@ -54,7 +54,11 @@ pub enum Type {
     span: Span,
   },
   WeakString {
+    kind: StringKind,
+    characters: usize,
     span: Span,
+    dereferenced: bool,
+    sized: bool,
   },
   Weak {
     span: Span,
@@ -73,7 +77,6 @@ pub enum Type {
     size: u64,
     span: Span,
   },
-  // Block(BlockReference),
 }
 
 impl Intrinsic {

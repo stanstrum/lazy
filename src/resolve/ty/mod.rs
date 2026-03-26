@@ -49,8 +49,12 @@ impl Resolve for TypeReference {
 
         SpecialPair(self, ty).resolve(lazy, tasks)
       },
-      TypeReference::Expression(_) => todo!(),
-      TypeReference::Block(_) => todo!(),
+      TypeReference::Expression(expr) => {
+        expr.resolve(lazy, tasks)
+      },
+      TypeReference::Block(block) => {
+        block.resolve(lazy, tasks)
+      },
     })
   }
 }
@@ -97,10 +101,9 @@ impl<'a, 'b> Resolve for TypePair<'a, 'b> {
         | Type::SizedArrayOf { ty, .. }
         | Type::Resolved { part: ty, .. }
           => ty.resolve(lazy, tasks),
-        // Type::Expression(expression_reference) => todo!(),
         | Type::Reference(reference) => {
           let ty = reference.rget_from(lazy);
-          dbg!(SpecialPair(reference, ty)).resolve(lazy, tasks)
+          SpecialPair(reference, ty).resolve(lazy, tasks)
         },
       }
     })

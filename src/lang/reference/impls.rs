@@ -157,7 +157,9 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
 
         unimplemented!()
       },
-      TypeReference::Block(_) => todo!(),
+      TypeReference::Block(block) => {
+        &mut self.rget_mut(block).out
+      },
     }
   }
 }

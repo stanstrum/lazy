@@ -165,7 +165,11 @@ impl From<crate::resolve::Error> for PrintableMessage {
         description: format!(line_dbg!("{:?} is missing an entry point!"), module_name),
         contents: MessageContents::File(file),
       },
-      crate::resolve::Error::TypeMismatch { a_print, a_span, b_print, b_span } => {
+      crate::resolve::Error::TypeMismatch {
+        whence,
+        a_print, a_span,
+        b_print, b_span,
+      } => {
         let a_section = MessageSection {
           text: "here".into(),
           span: a_span,
@@ -187,7 +191,7 @@ impl From<crate::resolve::Error> for PrintableMessage {
         Self {
           level: Level::Error,
           force: true,
-          description: format!(line_dbg!("{} is not coercible with {}"), a_print, b_print),
+          description: format!(line_dbg!("{}{} is not coercible with {}"), whence, a_print, b_print),
           contents: MessageContents::WithinSource(within_sources),
         }
       },

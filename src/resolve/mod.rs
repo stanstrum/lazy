@@ -1,8 +1,6 @@
 mod impls;
-mod structure;
-
-mod type_of;
 mod tasks;
+
 pub mod verify;
 
 use crate::line_dbg;
@@ -12,7 +10,6 @@ use crate::lang::ty::Type;
 use crate::lang::reference::{ModuleReference, Reference, Store, TypeReference};
 use crate::lang::Lazy;
 
-use type_of::TypeOf;
 use tasks::Tasks;
 
 type Result<T> = std::result::Result<T, Box<Error>>;
@@ -56,6 +53,18 @@ pub trait Coerce {
   fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()>;
 }
 
+pub trait TypeOf {
+  fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>>;
+}
+
+impl<R: Copy> TypeOf for R
+  where for<'a> Lazy<'a>: Store<R>,
+        for<'a> <Lazy<'a> as Store<R>>::Out: TypeOf
+{
+  fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
+    lazy.rget(*self).type_of(lazy)
+  }
+}
 
 pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()> {
   let mut tasks = Tasks::new();

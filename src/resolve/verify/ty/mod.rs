@@ -1,7 +1,7 @@
 use crate::lang::span::GetSpan;
-use crate::resolve::type_of::TypeOf;
 use crate::lang::ty::{Qualified, Type};
 use crate::aster::pprint::Pretty;
+use crate::resolve::TypeOf;
 
 use super::*;
 

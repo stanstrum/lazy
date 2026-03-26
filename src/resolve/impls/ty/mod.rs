@@ -7,6 +7,28 @@ use crate::resolve::SpecialPair;
 
 use super::*;
 
+impl TypeOf for Type {
+  fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
+    match self {
+      | Type::Intrinsic { .. }
+      | Type::WeakInteger { .. }
+      | Type::WeakFloat { .. }
+      | Type::WeakString { .. }
+      | Type::Weak { .. }
+      | Type::ReferenceTo { .. }
+      | Type::UnsizedArrayOf { .. }
+      | Type::SizedArrayOf { .. }
+      | Type::Unresolved { .. }
+      => Ok(Some(self.clone())),
+      // SPONGE
+      // | Type::Unresolved { .. }
+      //   => Ok(None),
+      Type::Resolved { part, .. } => part.type_of(lazy),
+      Type::Reference(reference) => reference.type_of(lazy),
+    }
+  }
+}
+
 impl Resolve for TypeReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
     let description = format!(line_dbg!("Resolve TypeReference: {}"), self.print(lazy));

@@ -29,7 +29,7 @@ impl Resolve for AliasReference {
 impl Resolve for ExpressionReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
     let description = {
-      format!("Resolve ExpressionReference: {} in {}",
+      format!(line_dbg!("Resolve ExpressionReference: {} in {}"),
         self.print(lazy),
         self.0.print(lazy),
       )
@@ -148,7 +148,7 @@ impl Resolve for VariableReference {
 
 impl Resolve for BlockReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
-    let description = format!("Resolve BlockReference: {}", self.print(lazy));
+    let description = format!(line_dbg!("Resolve BlockReference: {}"), self.print(lazy));
 
     task_work(tasks, description, |tasks| {
       let borrow = self.rget_from(lazy);

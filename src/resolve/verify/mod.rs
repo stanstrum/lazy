@@ -39,7 +39,7 @@ fn find_main(lazy: &Lazy, module: ModuleReference) -> Result<FunctionReference> 
     print_message(lazy, PrintableMessage {
       level: Level::Debug,
       force: false,
-      description: format!("{module_name} has the entrypoint \"main\""),
+      description: format!(line_dbg!("{} has the entrypoint \"main\""), module_name),
       contents: MessageContents::WithinSource(vec![WithinSource {
         range: span,
         sections: vec![MessageSection {

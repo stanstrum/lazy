@@ -67,7 +67,7 @@ pub fn make_block_statement<'pool, const N: usize, T: Read>(
       print_message(lazy, PrintableMessage {
         level: Level::Warn,
         force: false,
-        description: "conflicting name will be shadowed".into(),
+        description: line_dbg!("conflicting name will be shadowed").into(),
         contents: MessageContents::WithinSource(vec![WithinSource {
           range: function_ref.span,
           sections: vec![

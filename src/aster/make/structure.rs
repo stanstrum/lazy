@@ -76,7 +76,7 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
     print_message(lazy, PrintableMessage {
       level: Level::Debug,
       force: false,
-      description: format!("parsed a function: {module_name}::{name}"),
+      description: format!(line_dbg!("parsed a function: {}::{}"), module_name, name),
       contents: MessageContents::WithinSource(vec![WithinSource {
         range: span,
         sections: vec![MessageSection {
@@ -98,7 +98,7 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
     print_message(lazy, PrintableMessage {
       level: Level::Debug,
       force: false,
-      description: format!("parsed a type alias: {module_name}::{name}"),
+      description: format!(line_dbg!("parsed a type alias: {}::{}"), module_name, name),
       contents: MessageContents::WithinSource(vec![WithinSource {
         range: alias_ref.span,
         sections: vec![

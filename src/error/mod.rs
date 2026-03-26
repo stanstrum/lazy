@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Write};
 use std::fs::File;
 
-use crate::colorize;
+use crate::{colorize, line_dbg};
 use crate::lang::reference::ModuleReference;
 use crate::{lang::Lazy, tokenize::token::Span};
 
@@ -103,7 +103,7 @@ impl From<crate::aster::Error> for PrintableMessage {
       crate::aster::Error::Expected { what, at } => Self {
         level: Level::Error,
         force: true,
-        description: format!("expected {what}"),
+        description: format!(line_dbg!("expected {}"), what),
         contents: MessageContents::WithinSource(vec![WithinSource {
           range: at,
           sections: vec![MessageSection {
@@ -115,7 +115,7 @@ impl From<crate::aster::Error> for PrintableMessage {
       crate::aster::Error::Invalid { what, at } => Self {
         level: Level::Error,
         force: true,
-        description: format!("invalid {what}"),
+        description: format!(line_dbg!("invalid {}"), what),
         contents: MessageContents::WithinSource(vec![WithinSource {
           range: at,
           sections: vec![MessageSection {
@@ -134,7 +134,7 @@ impl From<crate::resolve::Error> for PrintableMessage {
       crate::resolve::Error::UnknownTypeName { module_name, span } => Self {
         level: Level::Error,
         force: true,
-        description: format!("unknown type name in {module_name}"),
+        description: format!(line_dbg!("unknown type name in {}"), module_name),
         contents: MessageContents::WithinSource(vec![WithinSource {
           range: span,
           sections: vec![MessageSection {
@@ -146,7 +146,7 @@ impl From<crate::resolve::Error> for PrintableMessage {
       crate::resolve::Error::MissingEntryPoint { module_name, file } => Self {
         level: Level::Error,
         force: true,
-        description: format!("{module_name:?} is missing an entry point!"),
+        description: format!(line_dbg!("{:?} is missing an entry point!"), module_name),
         contents: MessageContents::File(file),
       },
       crate::resolve::Error::TypeMismatch { a_print, a_span, b_print, b_span } => {
@@ -171,14 +171,14 @@ impl From<crate::resolve::Error> for PrintableMessage {
         Self {
           level: Level::Error,
           force: true,
-          description: format!("{a_print} is not coercible with {b_print}"),
+          description: format!(line_dbg!("{} is not coercible with {}"), a_print, b_print),
           contents: MessageContents::WithinSource(within_sources),
         }
       },
       crate::resolve::Error::UnresolvedInVerify { what, span } => Self {
         level: Level::Error,
         force: true,
-        description: format!("verify error: {what} is not resolved"),
+        description: format!(line_dbg!("verify error: {} is not resolved"), what),
         contents: MessageContents::WithinSource(WithinSource::new(
           vec![MessageSection {
             text: "here".into(),

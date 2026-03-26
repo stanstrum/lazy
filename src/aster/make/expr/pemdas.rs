@@ -268,7 +268,7 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
     print_message(lazy, PrintableMessage {
       level: Level::Warn,
       force: false,
-      description: format!("{len} parts", len = parts.len()),
+      description: format!(line_dbg!("{} parts"), parts.len()),
       contents: MessageContents::WithinSource(vec![WithinSource {
         range,
         sections: parts.iter().enumerate().map(|(i, part)| MessageSection {

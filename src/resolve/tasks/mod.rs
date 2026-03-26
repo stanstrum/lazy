@@ -1,6 +1,8 @@
 mod impls;
 
-use std::{cell::RefCell, collections::VecDeque, rc::Rc};
+use std::rc::Rc;
+use std::collections::VecDeque;
+use std::cell::RefCell;
 
 pub use impls::*;
 use super::*;
@@ -49,7 +51,7 @@ impl Tasks {
 
     while let Some(task) = self.tasks.pop_front() {
       let description = task.explain(lazy);
-      let status = self.task_work(description);
+      let status = self.status_handle(description);
 
       // println!("execute task:\n{}", self.explain(2));
       let response = task.execute(lazy, self)?;
@@ -69,8 +71,25 @@ impl Tasks {
     Ok(true)
   }
 
+  pub fn work<T>(&mut self, description: String, f: impl FnOnce(&mut Tasks) -> T) -> T {
+    // Get the status handle
+    let status = self.status_handle(description);
+
+    // SPONGE: Print the explain() message for the whole stack
+    println!("{}", self.explain(0));
+
+    // Run the task
+    let result = f(self);
+
+    // Drop the handle
+    drop(status);
+
+    // Return the result, error or not
+    result
+  }
+
   #[must_use = "task status is to be kept alive as long as the task is working"]
-  pub fn task_work(&self, description: String) -> TaskStatus {
+  fn status_handle(&self, description: String) -> TaskStatus {
     let trace = self.trace.clone();
 
     trace.borrow_mut().push(description);

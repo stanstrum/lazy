@@ -39,7 +39,7 @@ fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
       break 'error Err(err.into());
     };
 
-    if let Err(err) = resolve::task_resolve(&mut lazy, global) {
+    if let Err(err) = resolve::resolve_and_verify(&mut lazy, global) {
       break 'error Err((*err).into());
     };
 

@@ -1,9 +1,9 @@
-use crate::lang::ty::{Intrinsic, Qualified, Type};
-use crate::lang::reference::{AliasReference, ModuleReference};
-
 use super::*;
 
-pub fn resolve_qualified_to_type(lazy: &Lazy, module: ModuleReference, qualified: &Qualified) -> Result<Option<Type>> {
+use crate::lang::ty::Qualified;
+use crate::lang::reference::{AliasReference, ModuleReference};
+
+pub(super) fn resolve_qualified_to_type(lazy: &Lazy, module: ModuleReference, qualified: &Qualified) -> Result<Option<Type>> {
   #[derive(Debug)]
   enum QualifiedSearchSpace {
     Type(Type),

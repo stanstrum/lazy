@@ -78,11 +78,11 @@ pub enum StringKind {
   C,
 }
 
-impl Into<Intrinsic> for StringKind {
-  fn into(self) -> Intrinsic {
+impl StringKind {
+  pub fn into_intrinsic(self) -> Intrinsic {
     match self {
-      StringKind::Wide => Intrinsic::U32,
-      StringKind::Byte | StringKind::C => Intrinsic::U8,
+      Self::Wide => Intrinsic::U32,
+      Self::Byte | Self::C => Intrinsic::U8,
     }
   }
 }

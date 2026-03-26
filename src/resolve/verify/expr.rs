@@ -5,8 +5,7 @@ use crate::lang::reference::{BlockReference, ExpressionReference, Store, TypeRef
 use crate::lang::span::GetSpan;
 use crate::lang::ty::{Intrinsic, Type};
 use crate::line_dbg;
-use crate::resolve::coerce::{Coerce, SpecialPair, TypePair};
-use crate::resolve::task_work;
+use crate::resolve::{Coerce, SpecialPair, TypePair};
 use crate::resolve::verify::ty::{verify_type, verify_typeof};
 use crate::tokenize::token::Span;
 
@@ -30,7 +29,7 @@ fn verify_variable(lazy: &Lazy, variable: VariableReference, tasks: &mut Tasks) 
     )
   };
 
-  task_work(tasks, description, |_| {
+  tasks.work(description, |_| {
     verify_typeof(lazy, &TypeReference::Variable(variable))
   })
 }
@@ -43,7 +42,7 @@ fn verify_expr(lazy: &Lazy, expr: ExpressionReference, ret_ty: Option<&TypePair>
     end.line, end.column,
   );
 
-  task_work(tasks, description, |tasks| match lazy.rget(expr) {
+  tasks.work(description, |tasks| match lazy.rget(expr) {
     Expression::Block(block) => verify_block(lazy, block, None, tasks),
     Expression::Literal { out, .. } => verify_type(lazy, out),
     Expression::Variable { reference, .. } => verify_variable(lazy, *reference, tasks),
@@ -94,7 +93,7 @@ pub(super) fn verify_block(lazy: &Lazy, block: &BlockReference, ret_ty: Option<&
     )
   };
 
-  task_work(tasks, description, |tasks| {
+  tasks.work(description, |tasks| {
     let block_type_reference = TypeReference::Block(*block);
     let block_out = SpecialPair(&block_type_reference, &block_borrow.out);
 

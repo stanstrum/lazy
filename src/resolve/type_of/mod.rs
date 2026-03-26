@@ -1,8 +1,7 @@
 use crate::lang::Lazy;
-use crate::lang::expr::{BlockExpression, Expression, LiteralKind, Variable};
+use crate::lang::expr::{BlockExpression, Expression, Variable};
 use crate::lang::ty::Type;
 use crate::lang::reference::Store;
-use crate::tokenize::token::NumericValue;
 
 use super::*;
 pub trait TypeOf {

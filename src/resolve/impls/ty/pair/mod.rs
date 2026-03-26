@@ -1,23 +1,7 @@
-use crate::lang::expr::Expression;
-use crate::lang::reference::{ExpressionReference, Reference, Store, TypePartReference, TypeReference, VariableReference};
-use crate::lang::span::GetSpan;
-use crate::resolve::type_of::TypeOf;
-use crate::aster::pprint::Pretty;
-use crate::tokenize::token::StringKind;
+mod unknown;
+use crate::{lang::ty::Intrinsic, resolve::TypePair};
 
 use super::*;
-
-pub trait Coerce {
-  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()>;
-}
-
-#[derive(Debug)]
-pub struct SpecialPair<'a, S: Store<R>, R: Reference<S>>(
-  pub &'a R,
-  pub &'a S::Out,
-);
-
-pub type TypePair<'a, 'b> = SpecialPair<'a, Lazy<'b>, TypeReference>;
 
 impl<'a, S: Store<R>, R: Reference<S>> TypeOf for SpecialPair<'a, S, R> where S::Out: TypeOf {
   fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
@@ -25,24 +9,54 @@ impl<'a, S: Store<R>, R: Reference<S>> TypeOf for SpecialPair<'a, S, R> where S:
   }
 }
 
-impl Coerce for TypePartReference {
-  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
-    let reference = TypeReference::Part(*self);
-    let ty = self.rget_from(lazy);
+impl<'a, 'b> Resolve for TypePair<'a, 'b> {
+  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
+    let SpecialPair(reference, ty) = self;
 
-    SpecialPair(&reference, ty).coerce(lazy, other, tasks)
-  }
-}
+    let description = format!(line_dbg!("Resolve TypePair:\n- Ref.: {}\n- Type: {}"),
+      reference.print(lazy),
+      ty.print(lazy),
+    );
 
-impl Coerce for TypeReference {
-  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
-    let Some(ty) = self.type_of(lazy)? else {
-      dbg!(self.rget_from(lazy));
+    tasks.work(description, |tasks| {
+      match ty {
+        Type::Unresolved { module, qualified } => {
+          if let Some(ty) = unknown::resolve_qualified_to_type(lazy, *module, qualified)? {
+            tasks.push(tasks::Subjugate {
+              after: Box::new(tasks::ResolveAsTask::<TypeReference> {
+                reference: **reference,
+              }),
+              prerequisite: Box::new(tasks::OverwriteType {
+                dest: **reference,
+                src: ty,
+              }),
+            }, line_dbg!("here"));
+          };
 
-      todo!()
-    };
-
-    SpecialPair(self, &ty).coerce(lazy, other, tasks)
+          Ok(())
+        },
+        Type::Intrinsic { .. } => {
+          // do nothing ...
+          Ok(())
+        },
+        | Type::WeakInteger { .. }
+        | Type::WeakFloat { .. }
+        | Type::WeakString { .. }
+        | Type::Weak { .. } => {
+          // do nothing ... can't resolve this
+          Ok(())
+        }
+        | Type::ReferenceTo { ty, .. }
+        | Type::UnsizedArrayOf { ty, .. }
+        | Type::SizedArrayOf { ty, .. }
+        | Type::Resolved { part: ty, .. }
+          => ty.resolve(lazy, tasks),
+        | Type::Reference(reference) => {
+          let ty = reference.rget_from(lazy);
+          SpecialPair(reference, ty).resolve(lazy, tasks)
+        },
+      }
+    })
   }
 }
 
@@ -52,9 +66,12 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
     let b = self.1.print(lazy);
     let c = other_ref.type_of(lazy)?.map(|x| x.print(lazy)).unwrap_or_else(|| "{none}".into());
 
-    task_work(tasks, format!(line_dbg!("Coerce TypePair\n- Reference: {}\n- Type:      {}\n- Coerce w/: {}"), a, b, c),
-      |tasks| {
+    let description = format!(
+      line_dbg!("Coerce TypePair\n- Reference: {}\n- Type:      {}\n- Coerce w/: {}"),
+      a, b, c
+    );
 
+    tasks.work(description, |tasks| {
         // println!(line_dbg!("here:\n{}"), tasks.explain(2));
 
         let Some(other) = other_ref.type_of(lazy)? else {
@@ -82,7 +99,7 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
             | Type::WeakFloat { .. },
             Type::Intrinsic { kind, .. },
           ) if !matches!(kind, Intrinsic::Bool | Intrinsic::Void) => {
-            tasks.push(OverwriteType {
+            tasks.push(tasks::OverwriteType {
               dest: **reference,
               src: other,
             }, line_dbg!("here"));
@@ -109,7 +126,7 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
             self.coerce(lazy, &other_ref, tasks)
           },
           (Type::Weak { .. }, _) => {
-            tasks.push(OverwriteType {
+            tasks.push(tasks::OverwriteType {
               dest: **reference,
               src: other,
             }, line_dbg!("here"));
@@ -118,11 +135,14 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
           },
           (
             Type::ReferenceTo { ty: a, r#mut: false, .. },
-            &Type::WeakString { kind, dereferenced: false, span, .. }) => {
-              let b = Type::Intrinsic {
-                kind: kind.into(),
-                span,
-              };
+            &Type::WeakString { kind, dereferenced: false, span, .. }
+          ) => {
+            let b = Type::Intrinsic {
+              kind: kind.into_intrinsic(),
+              span,
+            };
+
+            // SPONGE SPONGE SPONGE
 
             // weak, can't error
             Ok(())
@@ -142,36 +162,5 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
         }
       }
     )
-  }
-}
-
-impl Coerce for VariableReference {
-  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
-    let ty = &self.rget_from(lazy).ty;
-    let reference = TypeReference::Variable(*self);
-
-    SpecialPair(&reference, ty).coerce(lazy, other, tasks)
-  }
-}
-
-impl Coerce for ExpressionReference {
-  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
-    let a = self.print(lazy);
-    let b = other.type_of(lazy)?.map(|x| x.print(lazy)).unwrap_or_else(|| "{none}".into());
-
-    let description = format!(line_dbg!("Coerce ExpressionReference\n- Reference: {}\n- Coerce w/: {}"), a, b);
-
-    task_work(tasks, description, |tasks| {
-      TypeReference::Expression(*self).coerce(lazy, other, tasks)
-
-      // match self.rget_from(lazy) {
-      //   Expression::Block(_) => todo!(),
-      //   Expression::Literal { .. } => todo!(),
-      //   Expression::Variable { reference, .. } => reference.coerce(lazy, other, tasks),
-      //   Expression::Unknown { .. } => todo!(),
-      //   Expression::Unary { .. } => todo!(),
-      //   Expression::Binary { .. } => todo!(),
-      // }
-    })
   }
 }

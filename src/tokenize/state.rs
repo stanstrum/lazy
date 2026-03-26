@@ -514,7 +514,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
         (State::Numeric { content, .. }, '.') if !content.contains('.') => {
           content.push(ch);
         },
-        (State::Numeric { content, start, .. }, '.') if content.ends_with('.') => {
+        (State::Numeric { content, .. }, '.') if content.ends_with('.') => {
           content.pop();
 
           let State::Numeric {

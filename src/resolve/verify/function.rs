@@ -1,9 +1,8 @@
 use crate::lang::span::GetSpan;
 use crate::lang::ty::{Intrinsic, Type};
 use crate::line_dbg;
-use crate::resolve::task_work;
+use crate::resolve::{Coerce, SpecialPair, TypePair};
 use crate::resolve::tasks::Tasks;
-use crate::resolve::coerce::{Coerce, SpecialPair, TypePair};
 use crate::lang::reference::{Store, TypeReference};
 
 use super::*;
@@ -30,11 +29,11 @@ pub(super) fn verify_function(lazy: &Lazy, function: FunctionReference, tasks: &
   let parent = lazy.describe_module(function_borrow.parent);
   let name = lazy.pool.get(function_borrow.header.name.id).collect::<String>();
 
-  task_work(tasks, format!(line_dbg!("Verify function: {}::{}"), parent, name), |tasks| {
+  tasks.work(format!(line_dbg!("Verify function: {}::{}"), parent, name), |tasks| {
     let ret_ty_reference = TypeReference::ReturnTypeOf(function);
 
     // verify return type
-    let ret_ty_pair = task_work(tasks, line_dbg!("verify return type").into(),
+    let ret_ty_pair = tasks.work(line_dbg!("verify return type").into(),
     |tasks| -> Result<TypePair> {
         let ret_ty = &function_borrow.header.ret_ty;
         ty::verify_type(lazy, ret_ty)?;

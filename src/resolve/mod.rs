@@ -1,18 +1,21 @@
+mod impls;
+mod structure;
+
+mod type_of;
+mod tasks;
+pub mod verify;
+
 use crate::line_dbg;
 
 use crate::tokenize::token::Span;
-use crate::lang::ty::{Intrinsic, Type};
-use crate::lang::reference::ModuleReference;
+use crate::lang::ty::Type;
+use crate::lang::reference::{ModuleReference, Reference, Store, TypeReference};
 use crate::lang::Lazy;
-use crate::resolve::tasks::{OverwriteType, Tasks};
 
-mod tasks;
-mod type_of;
-mod coerce;
-mod structure;
-pub mod verify;
+use type_of::TypeOf;
+use tasks::Tasks;
 
-mod ty;
+type Result<T> = std::result::Result<T, Box<Error>>;
 
 #[derive(Debug)]
 pub enum Error {
@@ -37,44 +40,45 @@ pub enum Error {
   },
 }
 
-type Result<T> = std::result::Result<T, Box<Error>>;
+#[derive(Debug)]
+pub struct SpecialPair<'a, S: Store<R>, R: Reference<S>>(
+  pub &'a R,
+  pub &'a S::Out,
+);
+
+pub type TypePair<'a, 'b> = SpecialPair<'a, Lazy<'b>, TypeReference>;
 
 trait Resolve {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()>;
 }
 
-fn task_work<T>(tasks: &mut Tasks, description: String, f: impl FnOnce(&mut Tasks) -> T) -> T {
-  let status = tasks.task_work(description);
-  println!("{}", tasks.explain(0));
-  let result = f(tasks);
-  drop(status);
-  result
+pub trait Coerce {
+  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()>;
 }
 
-pub fn task_resolve(lazy: &mut Lazy, module: ModuleReference) -> Result<()> {
+
+pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()> {
   let mut tasks = Tasks::new();
 
-  task_work::<Result<()>>(&mut tasks,
+  tasks.work::<Result<()>>(
     line_dbg!("Resolve global").into(),
-    |tasks| {
-      loop {
-        module.resolve(lazy, tasks)?;
-        let did_execute = tasks.execute_pass(lazy)?;
+    |tasks| loop {
+      // Resolve `global` recursively
+      module.resolve(lazy, tasks)?;
 
-        if !did_execute {
-          break;
-        };
+      // Execute the tasks: typically overwriting unknown values with &mut
+      let did_execute = tasks.execute_pass(lazy)?;
+
+      // If no tasks ran, we _should_ be finished resolving
+      if !did_execute {
+        return Ok(());
       };
-
-      Ok(())
     },
   )?;
 
-  task_work(&mut tasks,
+  tasks.work(
     line_dbg!("Verify global").into(),
-    |tasks| {
-      verify::program(lazy, module, tasks)
-    },
+    |tasks| verify::program(lazy, module, tasks),
   )?;
 
   println!(line_dbg!("No further work should be done."));

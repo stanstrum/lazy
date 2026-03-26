@@ -53,7 +53,7 @@ impl Task for Subjugate {
     let Self { prerequisite, after } = *self;
     let description = format!(line_dbg!("{}"), prerequisite.explain(lazy));
 
-    let result = task_work(tasks, description, |tasks| {
+    let result = tasks.work(description, |tasks| {
       prerequisite.execute(lazy, tasks)
     });
 

@@ -9,11 +9,10 @@ use crate::line_dbg;
 use crate::lang::Lazy;
 use crate::lang::ty::{Intrinsic, Type};
 use crate::lang::reference::{AliasReference, ExpressionReference, FunctionReference, ModuleReference, Reference, TypeReference};
-use crate::resolve::coerce::TypePair;
-use crate::resolve::task_work;
+use crate::resolve::{SpecialPair, TypePair};
 use crate::resolve::tasks::OverwriteExpression;
 use crate::resolve::type_of::TypeOf;
-use crate::resolve::coerce::{Coerce, SpecialPair};
+use crate::resolve::Coerce;
 
 use super::{Result, Error, Resolve, Tasks};
 
@@ -35,7 +34,7 @@ impl Resolve for ExpressionReference {
       )
     };
 
-    task_work(tasks, description, |tasks| {
+    tasks.work(description, |tasks| {
       let borrow = self.rget_from(lazy);
         let ty_reference = TypeReference::Expression(*self);
 
@@ -145,7 +144,7 @@ impl Resolve for VariableReference {
       )
     };
 
-    task_work(tasks, description, |tasks| {
+    tasks.work(description, |tasks| {
       TypeReference::Variable(*self).resolve(lazy, tasks)
     })
   }
@@ -155,7 +154,7 @@ impl Resolve for BlockReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
     let description = format!(line_dbg!("Resolve BlockReference: {}"), self.print(lazy));
 
-    task_work(tasks, description, |tasks| {
+    tasks.work(description, |tasks| {
       let borrow = self.rget_from(lazy);
 
       for id in 0..borrow.variables.len() {
@@ -175,7 +174,7 @@ impl Resolve for FunctionReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
     let description = format!(line_dbg!("Resolve FunctionReference: {}"), self.print(lazy));
 
-    task_work(tasks, description, |tasks|{
+    tasks.work(description, |tasks|{
       let function = self.rget_from(lazy);
       let ret_ty = TypeReference::ReturnTypeOf(*self);
 

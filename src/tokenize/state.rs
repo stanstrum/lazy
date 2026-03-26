@@ -83,7 +83,10 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
       let ch = match self.take_ch() {
         Ok(Some(ch)) => ch,
         Ok(None) => return None,
-        Err(_) => return Some(Err(Error::IO)),
+        Err(_) => return Some(Err(Error::IO {
+          module: self.module,
+          name: self.name.to_owned(),
+        })),
       };
 
       match (&mut self.state, ch) {
@@ -131,7 +134,10 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
             let result = self.meta_reader.next()?;
 
             let Ok(ch) = result else {
-              return Some(Err(Error::IO));
+              return Some(Err(Error::IO {
+                module: self.module,
+                name: self.name.to_owned(),
+              }));
             };
 
             if !matches!(ch, ' ' | '\t') {
@@ -508,7 +514,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
         (State::Numeric { content, .. }, '.') if !content.contains('.') => {
           content.push(ch);
         },
-        (State::Numeric { content, .. }, '.') if content.ends_with('.') => {
+        (State::Numeric { content, start, .. }, '.') if content.ends_with('.') => {
           content.pop();
 
           let State::Numeric {
@@ -519,7 +525,13 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
             unreachable!()
           };
 
-          let tok = match self.parse_and_push(kind, &content) {
+          let temp_span = Span {
+            start,
+            end: self.pos(),
+            module: self.module,
+          };
+
+          let tok = match self.parse_and_push(temp_span, kind, &content) {
             Ok(tok) => tok,
             Err(error) => return Some(Err(error)),
           };
@@ -537,7 +549,13 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
             unreachable!()
           };
 
-          let tok = match self.parse_and_push(kind, &content) {
+          let temp_span = Span {
+            start,
+            end: self.pos(),
+            module: self.module,
+          };
+
+          let tok = match self.parse_and_push(temp_span, kind, &content) {
             Ok(tok) => tok,
             Err(error) => return Some(Err(error)),
           };

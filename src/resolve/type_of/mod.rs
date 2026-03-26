@@ -1,7 +1,7 @@
 use crate::lang::Lazy;
 use crate::lang::expr::{Expression, LiteralKind};
 use crate::lang::ty::Type;
-use crate::lang::reference::{ExpressionReference, Reference, Store};
+use crate::lang::reference::Store;
 use crate::tokenize::token::NumericValue;
 
 use super::*;
@@ -54,7 +54,7 @@ impl TypeOf for Type {
   }
 }
 
-impl TypeOf for &Expression {
+impl TypeOf for Expression {
   fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
     match self {
       Expression::Block(_) => todo!(),
@@ -69,19 +69,6 @@ impl TypeOf for &Expression {
       Expression::Unknown { .. } => todo!(),
       Expression::Unary { .. } => todo!(),
       Expression::Binary { .. } => todo!(),
-    }
-  }
-}
-
-impl TypeOf for ExpressionReference {
-  fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
-    match self.rget_from(lazy) {
-      Expression::Block(block_reference) => todo!(),
-      Expression::Literal { value, span, out } => out.type_of(lazy),
-      Expression::Variable { reference, span } => todo!(),
-      Expression::Unknown { qualified, out } => todo!(),
-      Expression::Unary { expr, op, span, out } => todo!(),
-      Expression::Binary { a, b, op, span, out } => todo!(),
     }
   }
 }

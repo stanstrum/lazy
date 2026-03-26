@@ -30,7 +30,7 @@ fn verify_variable(lazy: &Lazy, variable: VariableReference, tasks: &mut Tasks) 
     )
   };
 
-  task_work(tasks, description, |tasks| {
+  task_work(tasks, description, |_| {
     verify_typeof(lazy, &TypeReference::Variable(variable))
   })
 }

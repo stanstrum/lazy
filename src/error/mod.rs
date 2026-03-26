@@ -90,8 +90,24 @@ impl WithinSource {
 impl From<crate::tokenize::Error> for PrintableMessage {
   fn from(value: crate::tokenize::Error) -> Self {
     match value {
-      crate::tokenize::Error::IO => todo!(),
-      crate::tokenize::Error::InvalidNumeric => todo!(),
+      crate::tokenize::Error::IO { name, module } => Self {
+        level: Level::Error,
+        force: true,
+        description: format!(line_dbg!("IO error for {}"), name),
+        contents: MessageContents::File(module),
+      },
+      crate::tokenize::Error::InvalidNumeric { span } => Self {
+        level: Level::Error,
+        force: true,
+        description: line_dbg!("Invalid numeric").into(),
+        contents: MessageContents::WithinSource(vec![WithinSource {
+          range: span,
+          sections: vec![MessageSection {
+            text: "here".into(),
+            span,
+          }],
+        }]),
+      },
     }
   }
 }

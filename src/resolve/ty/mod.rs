@@ -1,7 +1,7 @@
 use crate::aster::pprint::Pretty;
 use crate::lang::ty::Type;
 use crate::lang::Lazy;
-use crate::lang::reference::{Reference, TypePartReference, TypeReference, VariableReference};
+use crate::lang::reference::{Reference, TypePartReference, TypeReference};
 use crate::line_dbg;
 use crate::resolve::coerce::{SpecialPair, TypePair};
 use crate::resolve::task_work;

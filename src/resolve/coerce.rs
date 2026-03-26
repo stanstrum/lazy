@@ -129,12 +129,12 @@ impl Coerce for ExpressionReference {
 
     task_work(tasks, description, |tasks| {
       match self.rget_from(lazy) {
-        Expression::Block(block_reference) => todo!(),
-        Expression::Literal { value, span, out } => todo!(),
-        Expression::Variable { reference, span } => reference.coerce(lazy, other, tasks),
-        Expression::Unknown { qualified, out } => todo!(),
-        Expression::Unary { expr, op, span, out } => todo!(),
-        Expression::Binary { a, b, op, span, out } => todo!(),
+        Expression::Block(_) => todo!(),
+        Expression::Literal { .. } => todo!(),
+        Expression::Variable { reference, .. } => reference.coerce(lazy, other, tasks),
+        Expression::Unknown { .. } => todo!(),
+        Expression::Unary { .. } => todo!(),
+        Expression::Binary { .. } => todo!(),
       }
     })
   }

@@ -81,7 +81,7 @@ impl Task for OverwriteType {
     )
   }
 
-  fn execute(self: Box<Self>, lazy: &mut Lazy, tasks: &mut Tasks) -> Result<TaskResponse> {
+  fn execute(self: Box<Self>, lazy: &mut Lazy, _tasks: &mut Tasks) -> Result<TaskResponse> {
     let span = self.src.get_span(lazy);
 
     let part = self.dest.parent_module(lazy)
@@ -106,7 +106,7 @@ impl Task for OverwriteExpression {
     )
   }
 
-  fn execute(self: Box<Self>, lazy: &mut Lazy, tasks: &mut Tasks) -> Result<TaskResponse> {
+  fn execute(self: Box<Self>, lazy: &mut Lazy, _tasks: &mut Tasks) -> Result<TaskResponse> {
     *lazy.rget_mut(self.dest) = self.src;
 
     Ok(TaskResponse::Pop)

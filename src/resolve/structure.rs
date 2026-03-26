@@ -11,7 +11,7 @@ use crate::lang::ty::{Intrinsic, Type};
 use crate::lang::reference::{AliasReference, ExpressionReference, FunctionReference, ModuleReference, Reference, TypeReference};
 use crate::resolve::coerce::TypePair;
 use crate::resolve::task_work;
-use crate::resolve::tasks::{OverwriteExpression, ResolveAsTask};
+use crate::resolve::tasks::OverwriteExpression;
 use crate::resolve::type_of::TypeOf;
 use crate::resolve::coerce::{Coerce, SpecialPair};
 
@@ -49,7 +49,12 @@ impl Resolve for ExpressionReference {
         Expression::Variable { reference, .. } => {
           reference.resolve(lazy, tasks)
         },
-        Expression::Binary { a, b, op: (BinaryOperator::Assign, op_span), span, out } => {
+        Expression::Binary {
+          a, b,
+          op: (BinaryOperator::Assign, op_span),
+          out,
+          ..
+        } => {
           let out_pair = SpecialPair(&ty_reference, out);
 
           let void_op = Type::Intrinsic {

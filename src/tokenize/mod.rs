@@ -16,6 +16,7 @@ use token::{Position, Span, Token, TokenSpan};
 pub struct Tokenizer<'pool, const N: usize, T: Read> {
   pool: &'pool StringPool,
   module: ModuleReference,
+  name: String,
   meta_reader: BufferedUtf8MetadataReader<N, T>,
   state: State,
   next: Option<char>,
@@ -28,17 +29,23 @@ pub struct Tokenizer<'pool, const N: usize, T: Read> {
 
 #[derive(Debug)]
 pub enum Error {
-  IO,
-  InvalidNumeric,
+  IO {
+    module: ModuleReference,
+    name: String,
+  },
+  InvalidNumeric {
+    span: Span,
+  },
 }
 
 impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
-  pub fn new(pool: &'pool StringPool, module: ModuleReference, meta_reader: BufferedUtf8MetadataReader<N, T>) -> Self {
+  pub fn new(pool: &'pool StringPool, module: ModuleReference, name: String, meta_reader: BufferedUtf8MetadataReader<N, T>) -> Self {
     let start_and_end = Position::new();
 
     Self {
       pool,
       module,
+      name,
       meta_reader,
       state: State::Base,
       next: None,
@@ -73,7 +80,10 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
 
     match self.meta_reader.next() {
       Some(Ok(ch)) => Ok(Some(ch)),
-      Some(Err(_)) => Err(Error::IO),
+      Some(Err(_)) => Err(Error::IO {
+        name: self.name.to_owned(),
+        module: self.module,
+      }),
       None => Ok(None),
     }
   }

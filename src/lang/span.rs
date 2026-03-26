@@ -35,8 +35,8 @@ impl GetSpan for TypeReference {
       TypeReference::ReturnTypeOf(function) => function.rget_from(lazy).header.ret_ty.get_span(lazy),
       TypeReference::Alias(alias) => alias.rget_from(lazy).span,
       TypeReference::Variable(variable) => variable.rget_from(lazy).span,
-      TypeReference::Expression(_) => todo!(),
-      TypeReference::Block(_) => todo!(),
+      TypeReference::Expression(expr) => expr.rget_from(lazy).get_span(lazy),
+      TypeReference::Block(block) => block.rget_from(lazy).get_span(lazy),
     }
   }
 }
@@ -56,16 +56,13 @@ impl GetSpan for Type {
       | Type::SizedArrayOf { span, .. }
       | Type::UnsizedArrayOf { span, .. }
       | Type::Intrinsic { span, .. }
+      | Type::Weak { span }
       | Type::WeakInteger { span }
       | Type::WeakFloat { span }
       | Type::WeakString { span }
         => *span,
       Type::Reference(reference) => reference.get_span(lazy),
-      // Type::Expression(reference) => {
-      //   let function = &parent[reference.function];
-      //   reference.rget_from(parent).get_span(function)
-      // },
-      other => todo!("{other:?}"),
+
     }
   }
 }

@@ -83,8 +83,6 @@ pub(super) fn make_unary_suffix<'pool, const N: usize, T: Read>(
   module: lang::reference::ModuleReference,
   block: lang::reference::BlockReference,
 ) -> Result<Option<(UnarySuffixOperator, Span)>, Error> {
-  let function = block.0;
-
   if let Some((Token::Operator(Operator::DoublePlus), span)) = stream.peek()? {
     stream.seek();
     return Ok(Some((UnarySuffixOperator::PostIncrement, span)));

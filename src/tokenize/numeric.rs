@@ -1,10 +1,10 @@
 use std::io::Read;
 
 use super::{Tokenizer, Error};
-use crate::tokenize::token::{NumericKind, NumericValue, Token};
+use crate::tokenize::token::{NumericKind, NumericValue, Span, Token};
 
 impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
-  pub(super) fn parse_and_push(&self, kind: Option<NumericKind>, content: &str) -> Result<Token, Error> {
+  pub(super) fn parse_and_push(&self, span: Span, kind: Option<NumericKind>, content: &str) -> Result<Token, Error> {
     let kind = kind.unwrap_or(NumericKind::Decimal);
 
     let radix = match kind {
@@ -23,13 +23,13 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
 
     let value = if content.contains('.') {
       let Ok(value) = content.parse::<f64>() else {
-        return Err(Error::InvalidNumeric);
+        return Err(Error::InvalidNumeric { span });
       };
 
       NumericValue::F64(value)
     } else {
       let Ok(value) = u64::from_str_radix(content, radix) else {
-        return Err(Error::InvalidNumeric);
+        return Err(Error::InvalidNumeric { span });
       };
 
       NumericValue::U64(value)

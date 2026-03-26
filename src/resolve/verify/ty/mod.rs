@@ -34,6 +34,6 @@ pub(super) fn verify_type(lazy: &Lazy, ty: &Type) -> Result<()> {
         what: ty.print(lazy),
         span,
       })),
-    Type::Intrinsic { kind, span } => Ok(()),
+    Type::Intrinsic { .. } => Ok(()),
   }
 }

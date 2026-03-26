@@ -1,9 +1,9 @@
 mod impls;
 mod tasks;
 
-pub mod verify;
-
+use crate::lang::reference::FunctionReference;
 use crate::line_dbg;
+use crate::error::*;
 
 use crate::tokenize::token::Span;
 use crate::lang::ty::Type;
@@ -66,6 +66,50 @@ impl<R: Copy> TypeOf for R
   }
 }
 
+fn find_main(lazy: &Lazy, module: ModuleReference) -> Result<FunctionReference> {
+  let main_search = {
+    let main_id = lazy.pool.insert("main");
+
+    module.rget_from(lazy)
+    .functions.iter()
+    .find(|&function| {
+      function.rget_from(lazy)
+        .header.name.id == main_id
+    })
+  };
+
+  let Some(main) = main_search else {
+    let root = lazy.get_root_module(module);
+    let module_name = lazy.describe_module(root);
+
+    return Err(Box::new(Error::MissingEntryPoint {
+      module_name,
+      file: module,
+    }));
+  };
+
+  {
+    let module_name = lazy.describe_module(module);
+    let function = main.rget_from(lazy);
+    let span = function.header.name.span;
+
+    print_message(lazy, PrintableMessage {
+      level: Level::Debug,
+      force: false,
+      description: format!(line_dbg!("{} has the entrypoint \"main\""), module_name),
+      contents: MessageContents::WithinSource(vec![WithinSource {
+        range: span,
+        sections: vec![MessageSection {
+          text: "here".into(),
+          span,
+        }],
+      }]),
+    });
+  };
+
+  Ok(*main)
+}
+
 pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()> {
   let mut tasks = Tasks::new();
 
@@ -85,9 +129,17 @@ pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()
     },
   )?;
 
-  tasks.work(
+  tasks.work::<Result<()>>(
     line_dbg!("Verify global").into(),
-    |tasks| verify::program(lazy, module, tasks),
+    |tasks| {
+      let main = find_main(lazy, module)?;
+
+      impls::function::verify_function(lazy, main, tasks)?;
+
+      println!(line_dbg!("stub: verify rest of program, apart from main"));
+
+      Ok(())
+    },
   )?;
 
   println!(line_dbg!("No further work should be done."));

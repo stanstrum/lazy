@@ -3,27 +3,6 @@ use crate::resolve::SpecialPair;
 
 use super::*;
 
-impl Resolve for VariableReference {
-  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
-    let description = {
-      let (function, print): (_, &dyn Pretty<Out = String>) = match self {
-        VariableReference::Block(block_reference, _) => (block_reference.0, block_reference),
-        VariableReference::Argument(function_reference, _) => (*function_reference, function_reference),
-      };
-
-      format!(
-        line_dbg!("Resolve VariableReference: {} in {}"),
-        function.print(lazy),
-        print.print(lazy),
-      )
-    };
-
-    tasks.work(description, |tasks| {
-      TypeReference::Variable(*self).resolve(lazy, tasks)
-    })
-  }
-}
-
 impl Coerce for VariableReference {
   fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
     let ty = &self.rget_from(lazy).ty;

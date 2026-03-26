@@ -1,7 +1,8 @@
 use crate::print_once_per_thread;
 
-use crate::resolve::{SpecialPair, TypePair};
-use crate::lang::{reference::{FunctionReference, TypeReference}, ty::{Intrinsic, Type}};
+use crate::resolve::TypePair;
+use crate::lang::ty::{Intrinsic, Type};
+use crate::lang::reference::{FunctionReference, TypeReference};
 
 use super::*;
 
@@ -23,7 +24,7 @@ pub(in crate::resolve) fn verify_function(lazy: &Lazy, function: FunctionReferen
 
         // set up some perfunctory data to coerce return type to i32
         // TODO: eventually just coerce main as fn(...) -> ...
-        let ret_ty_pair = SpecialPair(&ret_ty_reference, ret_ty);
+        let ret_ty_pair = TypePair::new(&ret_ty_reference, ret_ty);
         {
           let ret_ty_span = ret_ty_reference.get_span(lazy);
 
@@ -31,7 +32,7 @@ pub(in crate::resolve) fn verify_function(lazy: &Lazy, function: FunctionReferen
             kind: Intrinsic::I32,
             span: ret_ty_span,
           };
-          let undeniable_i32: TypePair = SpecialPair(&ret_ty_reference, &undeniable_i32);
+          let undeniable_i32: TypePair = TypePair::new(&ret_ty_reference, &undeniable_i32);
 
           ret_ty_pair.coerce(lazy, &undeniable_i32, tasks)?;
         };

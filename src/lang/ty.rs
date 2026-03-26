@@ -4,11 +4,28 @@ use crate::lang::module::{Name};
 use crate::lang::reference::{ModuleReference, TypePartReference, TypeReference};
 use crate::tokenize::token::{Span, StringKind};
 
+#[derive(Debug, Clone, Copy)]
+pub enum QualifiedSearchSpace {
+  Implicit,
+  Type(TypeReference),
+  Intrinsic {
+    kind: Intrinsic,
+    span: Span,
+  },
+  Module(ModuleReference),
+}
+
 #[derive(Debug, Clone)]
 pub struct Qualified {
-  pub implicit: bool,
+  pub implicit: QualifiedSearchSpace,
   pub parts: Vec<Name>,
   pub span: Span,
+}
+
+impl Qualified {
+  pub fn is_implicit(&self) -> bool {
+    matches!(&self.implicit, QualifiedSearchSpace::Implicit)
+  }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -80,6 +97,35 @@ pub enum Type {
 }
 
 impl Intrinsic {
+  pub fn is_integer(&self) -> bool {
+    self.is_unsigned_integer() || self.is_signed_integer()
+  }
+
+  pub fn is_unsigned_integer(&self) -> bool {
+    matches!(self,
+      | Self::U8
+      | Self::U16
+      | Self::U32
+      | Self::U64
+    )
+  }
+
+  pub fn is_signed_integer(&self) -> bool {
+    matches!(self,
+      | Self::I8
+      | Self::I16
+      | Self::I32
+      | Self::I64
+    )
+  }
+
+  pub fn is_floating_point(&self) -> bool {
+    matches!(self,
+      | Self::F32
+      | Self::F64
+    )
+  }
+
   pub fn try_from_str(str: &str) -> Option<Self> {
     match str {
       "void" => Some(Self::Void),

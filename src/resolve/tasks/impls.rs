@@ -1,3 +1,4 @@
+use crate::aster::pprint::Pretty;
 use crate::lang::expr::Expression;
 use crate::lang::reference::{ExpressionReference, TypeReference};
 
@@ -13,8 +14,13 @@ pub struct OverwriteExpression {
   pub src: Expression,
 }
 
+pub struct OverwriteTypeReference {
+  pub reference: TypeReference,
+  pub modifiers: Vec<TypePairModifier>,
+}
+
 pub struct OverwriteType {
-  pub dest: TypeReference,
+  pub dest: OverwriteTypeReference,
   pub src: Type,
 }
 
@@ -22,3 +28,33 @@ pub struct ResolveAsTask<R: Resolve> {
   pub reference: R,
 }
 
+impl<'a, 'b> From<TypePair<'a, 'b>> for OverwriteTypeReference {
+  fn from(value: TypePair) -> Self {
+    Self {
+      reference: *value.pair.0,
+      modifiers: value.modifiers,
+    }
+  }
+}
+
+impl Pretty for OverwriteTypeReference {
+  type Out = String;
+
+  fn print(&self, lazy: &Lazy) -> Self::Out {
+    let ty = self.reference.rget_from(lazy);
+
+    TypePair {
+      pair: SpecialPair(&self.reference, ty),
+      modifiers: self.modifiers.clone(),
+    }.print(lazy)
+  }
+}
+
+impl From<TypeReference> for OverwriteTypeReference {
+  fn from(dest: TypeReference) -> Self {
+    Self {
+      reference: dest,
+      modifiers: vec![],
+    }
+  }
+}

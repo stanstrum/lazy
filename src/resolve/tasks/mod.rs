@@ -46,6 +46,8 @@ impl Tasks {
 
   /// Returns a boolean corresponding to whether any tasks were executed
   pub fn execute_pass(&mut self, lazy: &mut Lazy) -> Result<bool> {
+    println!(line_dbg!("execute_pass start"));
+
     if self.tasks.is_empty() {
       return Ok(false);
     };
@@ -101,7 +103,7 @@ impl Tasks {
   }
 
   pub fn push(&mut self, task: impl Task + 'static, source: &'static str) {
-    println!(line_dbg!("push from {}"), source);
+    // println!(line_dbg!("push from {}"), source);
     self.tasks.push_back(Box::new(task));
   }
 

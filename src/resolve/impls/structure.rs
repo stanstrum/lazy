@@ -1,6 +1,6 @@
 use crate::lang::ty::Type;
 use crate::lang::reference::{AliasReference, ExpressionReference, FunctionReference, ModuleReference, TypeReference, VariableReference};
-use crate::resolve::{SpecialPair, TypePair};
+use crate::resolve::TypePair;
 
 use super::*;
 
@@ -30,7 +30,7 @@ impl Resolve for AliasReference {
     let reference = TypeReference::Alias(*self);
     let ty = &self.rget_from(lazy).ty;
 
-    SpecialPair(&reference, ty).resolve(lazy, tasks)
+    TypePair::new(&reference, ty).resolve(lazy, tasks)
   }
 }
 
@@ -57,8 +57,8 @@ impl Resolve for FunctionReference {
         let reference = TypeReference::Expression(ExpressionReference(function.body, *expr_id));
         let typed_reference = Type::Reference(reference);
 
-        let last_expression = SpecialPair(&reference, &typed_reference);
-        let return_type: TypePair = SpecialPair(&ret_ty, &ty);
+        let last_expression = TypePair::new(&reference, &typed_reference);
+        let return_type: TypePair = TypePair::new(&ret_ty, &ty);
 
         last_expression.coerce(lazy, &return_type, tasks)?;
       };

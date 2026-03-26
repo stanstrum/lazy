@@ -82,7 +82,7 @@ fn make_expr_part<'pool, const N: usize, T: Read>(
       break 'expr literal;
     };
 
-    if let Some(qualified) = ty::make_qualified(stream)? {
+    if let Some(qualified) = ty::make_qualified(stream, module)? {
       break 'expr lang::expr::Expression::new_unknown(qualified);
     };
 

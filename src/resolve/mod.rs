@@ -43,7 +43,34 @@ pub struct SpecialPair<'a, S: Store<R>, R: Reference<S>>(
   pub &'a S::Out,
 );
 
-pub type TypePair<'a, 'b> = SpecialPair<'a, Lazy<'b>, TypeReference>;
+impl<'a, S: Store<R>, R: Reference<S>> Clone for SpecialPair<'a, S, R>
+{
+  fn clone(&self) -> Self {
+    Self(self.0, self.1)
+  }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum TypePairModifier {
+  Dereference,
+}
+
+#[derive(Debug)]
+pub struct TypePair<'a, 'b> {
+  pub pair: SpecialPair<'a, Lazy<'b>, TypeReference>,
+  pub modifiers: Vec<TypePairModifier>,
+}
+
+impl<'a, 'b> Clone for TypePair<'a, 'b> {
+  fn clone(&self) -> Self {
+    let pair = self.pair.clone();
+
+    Self {
+      pair,
+      modifiers: self.modifiers.clone(),
+    }
+  }
+}
 
 trait Resolve {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()>;
@@ -55,6 +82,7 @@ pub trait Coerce {
 
 pub trait TypeOf {
   fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>>;
+  fn reference(&self, lazy: &Lazy) -> Option<TypeReference>;
 }
 
 impl<R: Copy> TypeOf for R
@@ -62,7 +90,11 @@ impl<R: Copy> TypeOf for R
         for<'a> <Lazy<'a> as Store<R>>::Out: TypeOf
 {
   fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
-    lazy.rget(*self).type_of(lazy)
+    self.rget_from(lazy).type_of(lazy)
+  }
+
+  fn reference(&self, lazy: &Lazy) -> Option<TypeReference> {
+    self.rget_from(lazy).reference(lazy)
   }
 }
 

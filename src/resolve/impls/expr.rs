@@ -2,14 +2,18 @@ use crate::lang::expr::{BlockExpression, Expression, Variable};
 use crate::lang::expr::operator::BinaryOperator;
 use crate::lang::reference::{BlockReference, ExpressionReference, TypeReference, VariableReference};
 use crate::lang::ty::{Intrinsic, Type};
-use crate::resolve::{SpecialPair, TypePair};
+use crate::resolve::TypePair;
 use crate::tokenize::token::Span;
 
 use super::*;
 
-impl TypeOf for Variable {
+impl TypeOf for VariableReference {
   fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
-    self.ty.type_of(lazy)
+    self.rget_from(lazy).ty.type_of(lazy)
+  }
+
+  fn reference(&self, lazy: &Lazy) -> Option<TypeReference> {
+    Some(TypeReference::Variable(*self))
   }
 }
 
@@ -31,6 +35,15 @@ impl Resolve for VariableReference {
     tasks.work(description, |tasks| {
       TypeReference::Variable(*self).resolve(lazy, tasks)
     })
+  }
+}
+
+impl Coerce for VariableReference {
+  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
+    let ty = dbg!(&self.rget_from(lazy).ty);
+    let reference = TypeReference::Variable(*self);
+
+    TypePair::new(&reference, ty).coerce(lazy, other, tasks)
   }
 }
 
@@ -57,9 +70,9 @@ fn verify_variable(lazy: &Lazy, variable: VariableReference, tasks: &mut Tasks) 
   })
 }
 
-impl TypeOf for Expression {
+impl TypeOf for ExpressionReference {
   fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
-    match self {
+    match self.rget_from(lazy) {
       Expression::Block(block) => block.type_of(lazy),
       Expression::Variable { reference, .. } => reference.type_of(lazy),
       // TODO: again, very unsure about this... we are relying on the Resolve
@@ -72,14 +85,44 @@ impl TypeOf for Expression {
         => out.type_of(lazy)
     }
   }
+
+  fn reference(&self, lazy: &Lazy) -> Option<TypeReference> {
+    Some(TypeReference::Expression(*self))
+  }
 }
 
-impl TypeOf for BlockExpression {
+impl Coerce for ExpressionReference {
+  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
+    let a = self.print(lazy);
+    let b = other.type_of(lazy)?.map(|x| x.print(lazy)).unwrap_or_else(|| "{none}".into());
+
+    let description = format!(line_dbg!("Coerce ExpressionReference\n- Reference: {}\n- Coerce w/: {}"), a, b);
+
+    tasks.work(description, |tasks| {
+      // match self.rget_from(lazy) {
+      //   Expression::Block(_) => todo!(),
+      //   Expression::Literal { .. } => todo!(),
+      //   Expression::Variable { reference, .. } => reference.coerce(lazy, other, tasks),
+      //   Expression::Unknown { .. } => todo!(),
+      //   Expression::Unary { .. } => todo!(),
+      //   Expression::Binary { .. } => todo!(),
+      // };
+
+      TypeReference::Expression(*self).coerce(lazy, other, tasks)
+    })
+  }
+}
+
+impl TypeOf for BlockReference {
   fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
     // TODO: is this correct? should I try to match the expr type directly,
     //       maybe in addition to this?  Coerce in TypeOf? what could go
     //       wrong ???
-    self.out.type_of(lazy)
+    self.rget_from(lazy).out.type_of(lazy)
+  }
+
+  fn reference(&self, lazy: &Lazy) -> Option<TypeReference> {
+    Some(TypeReference::Block(*self))
   }
 }
 
@@ -117,7 +160,7 @@ pub(super) fn verify_block(lazy: &Lazy, block: &BlockReference, ret_ty: Option<&
 
   tasks.work(description, |tasks| {
     let block_type_reference = TypeReference::Block(*block);
-    let block_out = SpecialPair(&block_type_reference, &block_borrow.out);
+    let block_out = TypePair::new(&block_type_reference, &block_borrow.out);
 
     if let Some(ret_ty) = ret_ty {
       block_out.coerce(lazy, ret_ty, tasks)?;
@@ -132,7 +175,7 @@ pub(super) fn verify_block(lazy: &Lazy, block: &BlockReference, ret_ty: Option<&
       let irr_reference = TypeReference::Expression(expr);
       let irr_ty = irr_reference.rget_from(lazy);
 
-      let irr = SpecialPair(&irr_reference, irr_ty);
+      let irr = TypePair::new(&irr_reference, irr_ty);
 
       if is_last(id) && let Some(ret_ty) = ret_ty {
         irr.coerce(lazy, ret_ty, tasks)?;
@@ -163,7 +206,7 @@ impl Resolve for ExpressionReference {
           block.resolve(lazy, tasks)
         },
         Expression::Literal { out, .. } => {
-          SpecialPair(&ty_reference, out).resolve(lazy, tasks)
+          TypePair::new(&ty_reference, out).resolve(lazy, tasks)
         },
         Expression::Variable { reference, .. } => {
           reference.resolve(lazy, tasks)
@@ -174,7 +217,7 @@ impl Resolve for ExpressionReference {
           out,
           ..
         } => {
-          let out_pair = SpecialPair(&ty_reference, out);
+          let out_pair = TypePair::new(&ty_reference, out);
 
           let void_op = Type::Intrinsic {
             kind: Intrinsic::Void,
@@ -192,7 +235,7 @@ impl Resolve for ExpressionReference {
 
           Ok(())
         },
-        Expression::Unknown { qualified, .. } if qualified.parts.len() == 1 && !qualified.implicit => {
+        Expression::Unknown { qualified, .. } if qualified.parts.len() == 1 && !qualified.is_implicit() => {
           let part = qualified.parts.first().unwrap();
 
           let mut block = Some(self.0);
@@ -280,7 +323,7 @@ fn verify_expr(lazy: &Lazy, expr: ExpressionReference, ret_ty: Option<&TypePair>
       ..
     } => {
       let ty_reference = TypeReference::Expression(expr);
-      let out_pair: TypePair = SpecialPair(&ty_reference, out);
+      let out_pair: TypePair = TypePair::new(&ty_reference, out);
 
       verify_expr(lazy, *a, None, tasks)?;
       verify_expr(lazy, *b, None, tasks)?;
@@ -290,7 +333,7 @@ fn verify_expr(lazy: &Lazy, expr: ExpressionReference, ret_ty: Option<&TypePair>
         span: *op_span,
       }, tasks)?;
 
-      todo!()
+      Ok(())
     },
     Expression::Binary { .. } => todo!(),
   })

@@ -1,5 +1,5 @@
 pub use crate::resolve::tasks::*;
-use crate::lang::ty::Type;
+use crate::{lang::ty::Type, resolve::TypePair};
 
 use super::*;
 
@@ -50,7 +50,7 @@ impl Task for Subjugate {
 
 impl Task for OverwriteType {
   fn explain(&self, lazy: &Lazy) -> String {
-    let parent = self.dest.parent_module(lazy);
+    let parent = self.dest.reference.parent_module(lazy);
 
     format!(
       line_dbg!("OverwriteType in {}:\n- dest = {}\n- src  = {}"),
@@ -63,10 +63,10 @@ impl Task for OverwriteType {
   fn execute(self: Box<Self>, lazy: &mut Lazy, _tasks: &mut Tasks) -> Result<TaskResponse> {
     let span = self.src.get_span(lazy);
 
-    let part = self.dest.parent_module(lazy)
+    let part = self.dest.reference.parent_module(lazy)
       .add_type_part(self.src, lazy);
 
-    *lazy.rget_mut(self.dest) = Type::Resolved { part, span };
+    *lazy.rget_mut(self.dest.reference) = Type::Resolved { part, span };
 
     Ok(TaskResponse::Pop)
   }

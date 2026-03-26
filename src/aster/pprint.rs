@@ -2,10 +2,11 @@ use crate::lang::expr::operator::{UnaryOperator, UnaryPrefixOperator, UnarySuffi
 use crate::lang::expr::{BlockExpression, Expression, LiteralKind};
 use crate::lang::reference::{BlockReference, ExpressionReference, FunctionReference, Reference, Store, TypePartReference, TypeReference, VariableReference};
 use crate::lang::span::GetSpan;
+use crate::resolve::{TypeOf, TypePair, TypePairModifier};
 use crate::string_pool::PoolId;
 
 use crate::lang::Lazy;
-use crate::lang::ty::{Qualified, Type};
+use crate::lang::ty::{Qualified, QualifiedSearchSpace, Type};
 use crate::lang::module::{Module, Name};
 use crate::lang::function::Function;
 use crate::tokenize::token::{NumericValue, Span, StringKind};
@@ -24,13 +25,23 @@ impl Pretty for PoolId {
   }
 }
 
-// impl Pretty for TypeReference {
-//   type Out = String;
+impl Pretty for TypePair<'_, '_> {
+  type Out = String;
 
-//   fn print(&self, lazy: &Lazy) -> Self::Out {
-//     self.rget_from(lazy).print(lazy)
-//   }
-// }
+  fn print(&self, lazy: &Lazy) -> Self::Out {
+    let reference = self.pair.0.print(lazy);
+
+    let mut out = format!("/* {{pair}} */ {reference}");
+
+    for modifier in self.modifiers.iter() {
+      match modifier {
+        TypePairModifier::Dereference => out = format!("Dereference<{out}>"),
+      };
+    };
+
+    out
+  }
+}
 
 impl Pretty for TypePartReference {
   type Out = String;
@@ -46,9 +57,20 @@ impl Pretty for Qualified {
   fn print(&self, lazy: &Lazy) -> Self::Out {
     let mut out = String::new();
 
-    if self.implicit {
-      out += "::";
+    match self.implicit {
+      QualifiedSearchSpace::Implicit => {},
+      QualifiedSearchSpace::Module(module_reference) => {
+        out += &lazy.describe_module(module_reference);
+      },
+      QualifiedSearchSpace::Intrinsic { kind, .. } => {
+        out += &kind.to_string();
+      }
+      QualifiedSearchSpace::Type(type_reference) => {
+        out += &type_reference.print(lazy);
+      },
     };
+
+    out += "::";
 
     for (i, part) in self.parts.iter().enumerate() {
       if i != 0 {
@@ -115,7 +137,12 @@ impl Pretty for TypeReference {
 
         format!("typeof {{{} {}}}::{}", v.parent().print(lazy), block.print(lazy), name.print(lazy))
       },
-      TypeReference::Expression(expression) => format!("typeof {{{}}}", expression.print(lazy)),
+      TypeReference::Expression(expression) => {
+        let type_print = expression.type_of(lazy).ok().flatten().map(|s| format!(" /* {} */", s.print(lazy)));
+        let type_print = type_print.as_ref().map(String::as_str).unwrap_or_default();
+
+        format!("typeof {{{}}}{type_print}", expression.print(lazy))
+      },
       TypeReference::Block(block) => format!("typeof {{{}}}", block.print(lazy)),
     }
   }

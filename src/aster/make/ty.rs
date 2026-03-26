@@ -1,5 +1,6 @@
 use crate::aster::make::expr::make_literal;
 use crate::lang::expr::{Expression, LiteralKind};
+use crate::lang::reference::ModuleReference;
 use crate::lang::span::GetSpan;
 use crate::line_dbg;
 use crate::tokenize::token::{GroupingKind, GroupingType, Keyword, NumericValue, Operator};
@@ -8,6 +9,7 @@ use super::*;
 
 pub(super) fn make_qualified<'pool, const N: usize, T: Read>(
   stream: &mut Rereader<'pool, N, T>,
+  module: ModuleReference,
 ) -> Result<Option<lang::ty::Qualified>, Error> {
   let ret_mark = stream.mark();
 
@@ -60,7 +62,11 @@ pub(super) fn make_qualified<'pool, const N: usize, T: Read>(
   };
 
   Ok(Some(lang::ty::Qualified {
-    implicit,
+    implicit: if implicit {
+      lang::ty::QualifiedSearchSpace::Implicit
+    } else {
+      lang::ty::QualifiedSearchSpace::Module(module)
+    },
     parts,
     span,
   }))
@@ -160,7 +166,7 @@ pub(super) fn make_type<'pool, const N: usize, T: Read>(
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
 ) -> Result<Option<lang::ty::Type>, Error> {
-  if let Some(qualified) = make_qualified(stream)? {
+  if let Some(qualified) = make_qualified(stream, module)? {
     return Ok(Some(lang::ty::Type::Unresolved { module, qualified }));
   };
 

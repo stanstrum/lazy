@@ -1,4 +1,5 @@
-use crate::lang::reference::{ExpressionReference, Reference, Store, TypeReference};
+use crate::lang::expr::Expression;
+use crate::lang::reference::{ExpressionReference, Reference, Store, TypeReference, VariableReference};
 use crate::lang::span::GetSpan;
 use crate::resolve::type_of::TypeOf;
 use crate::aster::pprint::Pretty;
@@ -110,6 +111,15 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
   }
 }
 
+impl Coerce for VariableReference {
+  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
+    let ty = &self.rget_from(lazy).ty;
+    let reference = TypeReference::Variable(*self);
+
+    SpecialPair(&reference, ty).coerce(lazy, other, tasks)
+  }
+}
+
 impl Coerce for ExpressionReference {
   fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
     let a = self.print(lazy);
@@ -118,7 +128,14 @@ impl Coerce for ExpressionReference {
     let description = format!(line_dbg!("Coerce ExpressionReference\n- Reference: {}\n- Coerce w/: {}"), a, b);
 
     task_work(tasks, description, |tasks| {
-      todo!()
+      match self.rget_from(lazy) {
+        Expression::Block(block_reference) => todo!(),
+        Expression::Literal { value, span, out } => todo!(),
+        Expression::Variable { reference, span } => reference.coerce(lazy, other, tasks),
+        Expression::Unknown { qualified, out } => todo!(),
+        Expression::Unary { expr, op, span, out } => todo!(),
+        Expression::Binary { a, b, op, span, out } => todo!(),
+      }
     })
   }
 }

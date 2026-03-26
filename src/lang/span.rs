@@ -57,7 +57,9 @@ impl GetSpan for Type {
       | Type::UnsizedArrayOf { span, .. }
       | Type::Intrinsic { span, .. }
       | Type::WeakInteger { span }
-      | Type::WeakFloat { span } => *span,
+      | Type::WeakFloat { span }
+      | Type::WeakString { span }
+        => *span,
       Type::Reference(reference) => reference.get_span(lazy),
       // Type::Expression(reference) => {
       //   let function = &parent[reference.function];

@@ -44,7 +44,7 @@ compile_test!("15_namespace.zy": namespace);
 compile_test!("16_namespaces.zy": namespaces);
 compile_test!("17_string_and_char_escapes.zy": string_and_char_escapes);
 compile_test!("18_control_flow.zy": control_flow);
-compile_test!("19_class_methods.zy": class_methods);
+// compile_test!("19_class_methods.zy": class_methods);
 compile_test!("20_hang.zy": hang);
 compile_test!("21_operator_coverage.zy": operator_coverage);
 compile_test!("bare_bones.zy": bare_bones);

@@ -40,6 +40,9 @@ impl Resolve for ExpressionReference {
         let ty_reference = TypeReference::Expression(*self);
 
       match borrow {
+        Expression::Block(block) => {
+          block.resolve(lazy, tasks)
+        },
         Expression::Literal { out, .. } => {
           SpecialPair(&ty_reference, out).resolve(lazy, tasks)
         },
@@ -56,6 +59,9 @@ impl Resolve for ExpressionReference {
 
           out_pair.coerce(lazy, &void_op, tasks)?;
           out_pair.resolve(lazy, tasks)?;
+
+          a.coerce(lazy, b, tasks)?;
+          b.coerce(lazy, a, tasks)?;
 
           a.resolve(lazy, tasks)?;
           b.resolve(lazy, tasks)?;

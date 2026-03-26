@@ -37,10 +37,16 @@ impl Resolve for ExpressionReference {
 
     task_work(tasks, description, |tasks| {
       let borrow = self.rget_from(lazy);
+        let ty_reference = TypeReference::Expression(*self);
 
       match borrow {
+        Expression::Literal { out, .. } => {
+          SpecialPair(&ty_reference, out).resolve(lazy, tasks)
+        },
+        Expression::Variable { reference, .. } => {
+          reference.resolve(lazy, tasks)
+        },
         Expression::Binary { a, b, op: (BinaryOperator::Assign, op_span), span, out } => {
-          let ty_reference = TypeReference::Expression(*self);
           let out_pair = SpecialPair(&ty_reference, out);
 
           let void_op = Type::Intrinsic {
@@ -49,13 +55,14 @@ impl Resolve for ExpressionReference {
           };
 
           out_pair.coerce(lazy, &void_op, tasks)?;
+          out_pair.resolve(lazy, tasks)?;
 
-          tasks.push(ResolveAsTask { reference: *a });
-          tasks.push(ResolveAsTask { reference: *b });
+          a.resolve(lazy, tasks)?;
+          b.resolve(lazy, tasks)?;
 
           Ok(())
         },
-        Expression::Unknown { qualified, out } if qualified.parts.len() == 1 && !qualified.implicit => {
+        Expression::Unknown { qualified, .. } if qualified.parts.len() == 1 && !qualified.implicit => {
           let part = qualified.parts.first().unwrap();
 
           let mut block = Some(self.0);
@@ -95,7 +102,7 @@ impl Resolve for ExpressionReference {
                   reference: variable_reference,
                   span: borrow.get_span(lazy),
                 },
-              });
+              }, line_dbg!("here"));
 
               return Ok(());
             };
@@ -167,7 +174,7 @@ impl Resolve for FunctionReference {
         .map(|index| TypeReference::Variable(VariableReference::Argument(*self, index)));
 
       for argument in arguments_iter {
-        argument.resolve(lazy, tasks)?
+        argument.resolve(lazy, tasks)?;
       };
 
       let body = lazy.rget(function.body);
@@ -182,9 +189,7 @@ impl Resolve for FunctionReference {
         last_expression.coerce(lazy, &return_type, tasks)?;
       };
 
-      tasks.push(ResolveAsTask {
-        reference: function.body,
-      });
+      function.body.resolve(lazy, tasks)?;
 
       Ok(())
     })

@@ -1,6 +1,6 @@
 mod impls;
 
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 pub use impls::*;
 use super::*;
@@ -19,7 +19,7 @@ pub enum TaskResponse {
 }
 
 pub struct Tasks {
-  tasks: Vec<Box<dyn Task>>,
+  tasks: VecDeque<Box<dyn Task>>,
   trace: Rc<RefCell<Vec<String>>>,
 }
 
@@ -36,7 +36,7 @@ impl Drop for TaskStatus {
 impl Tasks {
   pub fn new() -> Self {
     Self {
-      tasks: Vec::new(),
+      tasks: VecDeque::new(),
       trace: Rc::new(RefCell::new(Vec::new())),
     }
   }
@@ -47,9 +47,7 @@ impl Tasks {
       return Ok(false);
     };
 
-    let taken = self.tasks.drain(..).collect::<Vec<_>>();
-
-    for task in taken {
+    while let Some(task) = self.tasks.pop_front() {
       let description = task.explain(lazy);
       let status = self.task_work(description);
 
@@ -61,7 +59,7 @@ impl Tasks {
           // do nothing
         },
         TaskResponse::Replace(replace) => {
-          self.tasks.push(replace);
+          self.tasks.push_back(replace);
         },
       };
 
@@ -82,8 +80,9 @@ impl Tasks {
     }
   }
 
-  pub fn push(&mut self, task: impl Task + 'static) {
-    self.tasks.push(Box::new(task));
+  pub fn push(&mut self, task: impl Task + 'static, source: &'static str) {
+    println!(line_dbg!("push from {}"), source);
+    self.tasks.push_back(Box::new(task));
   }
 
   pub fn explain(&self, offset: usize) -> String {

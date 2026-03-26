@@ -62,7 +62,7 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
             tasks.push(OverwriteType {
               dest: **reference,
               src: other,
-            });
+            }, line_dbg!("here"));
 
             Ok(())
           },
@@ -89,7 +89,7 @@ impl<'a, 'b> Coerce for TypePair<'a, 'b> {
             tasks.push(OverwriteType {
               dest: **reference,
               src: other,
-            });
+            }, line_dbg!("here"));
 
             Ok(())
           },

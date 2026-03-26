@@ -1,4 +1,5 @@
 type str := []u32
+type usize := u64
 
 hello_explicit
 

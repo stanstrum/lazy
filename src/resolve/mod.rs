@@ -50,7 +50,7 @@ pub struct TypePair {
   pub modifiers: Vec<TypePairModifier>,
 }
 
-trait Resolve {
+pub trait Resolve {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()>;
 }
 

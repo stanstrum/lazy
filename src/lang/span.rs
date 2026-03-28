@@ -1,5 +1,5 @@
 use crate::lang::Lazy;
-use crate::lang::reference::{Reference, Store, TypePartReference, TypeReference};
+use crate::lang::reference::{Reference, Store};
 use crate::tokenize::token::Span;
 use crate::lang::ty::Type;
 use crate::lang::module::{Module, TypeAlias};

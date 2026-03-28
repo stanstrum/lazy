@@ -14,8 +14,6 @@ use crate::resolve::{Coerce, Resolve, TypeOf};
 
 use super::{Lazy, Result, Error, Tasks};
 
-pub use tasks::OverwriteTypeReference;
-
 #[macro_export]
 macro_rules! print_once_per_thread {
   ($lazy:ident, $x:tt) => {

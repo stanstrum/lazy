@@ -45,7 +45,7 @@ pub(super) fn resolve_qualified_to_type(lazy: &Lazy, module: ModuleReference, qu
   Ok(match space {
     QualifiedSearchSpace::Type(ty) => ty.type_of(lazy)?,
     QualifiedSearchSpace::Intrinsic { kind, span } => Some(Type::Intrinsic { kind, span }),
-    QualifiedSearchSpace::Implicit { .. } => {
+    QualifiedSearchSpace::Implicit => {
       // not enough info ... do nothing and pray the problem goes away by itself
       None
     },

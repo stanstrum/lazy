@@ -1,5 +1,5 @@
 pub use crate::resolve::tasks::*;
-use crate::{lang::ty::Type, resolve::TypePair};
+use crate::lang::ty::Type;
 
 use super::*;
 

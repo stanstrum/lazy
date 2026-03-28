@@ -119,12 +119,12 @@ impl Intrinsic {
     )
   }
 
-  pub fn is_floating_point(&self) -> bool {
-    matches!(self,
-      | Self::F32
-      | Self::F64
-    )
-  }
+  // pub fn is_floating_point(&self) -> bool {
+  //   matches!(self,
+  //     | Self::F32
+  //     | Self::F64
+  //   )
+  // }
 
   pub fn try_from_str(str: &str) -> Option<Self> {
     match str {

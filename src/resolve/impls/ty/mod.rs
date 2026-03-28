@@ -9,11 +9,11 @@ use crate::resolve::{TypePair, TypePairModifier};
 use super::*;
 
 trait DereferenceType {
-  fn dereference<'a, 'b>(&self, lazy: &'b Lazy, r#mut: bool) -> Result<Option<TypePair>>;
+  fn dereference(&self, lazy: &Lazy, r#mut: bool) -> Result<Option<TypePair>>;
 }
 
 impl<T: TypeOf> DereferenceType for T {
-  fn dereference<'a, 'b>(&self, lazy: &'b Lazy, r#mut: bool) -> Result<Option<TypePair>> {
+  fn dereference(&self, lazy: &Lazy, r#mut: bool) -> Result<Option<TypePair>> {
     let Some(ty) = self.type_of(lazy)? else {
       return Ok(None);
     };
@@ -45,6 +45,7 @@ impl<T: TypeOf> DereferenceType for T {
       }),
       Type::Weak { .. } => Ok(None),
       Type::ReferenceTo { ty, r#mut: reference_mut, .. } => Ok({
+        #[allow(clippy::nonminimal_bool)]
         (!(reference_mut && !r#mut)).then(|| {
           let mut reference = self.reference(lazy).expect("please please please");
           reference.modifiers.push(TypePairModifier::Dereference);
@@ -87,15 +88,15 @@ impl TypeOf for Type {
     match dbg!(self) {
       &Type::Reference(type_reference) => Some(type_reference.into()),
       &Type::Resolved { part, .. } => Some(TypeReference::Part(part).into()),
-      Type::Unresolved { module, qualified } => todo!(),
-      Type::Intrinsic { kind, span } => todo!(),
-      Type::WeakInteger { span } => todo!(),
-      Type::WeakFloat { span } => todo!(),
-      Type::WeakString { kind, characters, span, dereferenced } => todo!(),
-      Type::Weak { span } => todo!(),
-      Type::ReferenceTo { ty, r#mut, span } => todo!(),
-      Type::UnsizedArrayOf { ty, span } => todo!(),
-      Type::SizedArrayOf { ty, size, span } => todo!(),
+      Type::Unresolved { .. } => todo!(),
+      Type::Intrinsic { .. } => todo!(),
+      Type::WeakInteger { .. } => todo!(),
+      Type::WeakFloat { .. } => todo!(),
+      Type::WeakString { .. } => todo!(),
+      Type::Weak { .. } => todo!(),
+      Type::ReferenceTo { .. } => todo!(),
+      Type::UnsizedArrayOf { .. } => todo!(),
+      Type::SizedArrayOf { .. } => todo!(),
     }
   }
 }

@@ -139,7 +139,7 @@ impl Pretty for TypeReference {
       },
       TypeReference::Expression(expression) => {
         let type_print = expression.type_of(lazy).ok().flatten().map(|s| format!(" /* {} */", s.print(lazy)));
-        let type_print = type_print.as_ref().map(String::as_str).unwrap_or_default();
+        let type_print = type_print.as_deref().unwrap_or_default();
 
         format!("typeof {{{}}}{type_print}", expression.print(lazy))
       },

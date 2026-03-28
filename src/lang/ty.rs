@@ -3,11 +3,12 @@ use std::fmt::Display;
 use crate::lang::module::{Name};
 use crate::lang::reference::{ModuleReference, TypePartReference, TypeReference};
 use crate::tokenize::token::{Span, StringKind};
+use crate::resolve::tasks::OverwriteTypeReference;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum QualifiedSearchSpace {
   Implicit,
-  Type(TypeReference),
+  Type(OverwriteTypeReference),
   Intrinsic {
     kind: Intrinsic,
     span: Span,
@@ -75,7 +76,6 @@ pub enum Type {
     characters: usize,
     span: Span,
     dereferenced: bool,
-    sized: bool,
   },
   Weak {
     span: Span,
@@ -91,7 +91,7 @@ pub enum Type {
   },
   SizedArrayOf {
     ty: TypePartReference,
-    size: u64,
+    size: usize,
     span: Span,
   },
 }

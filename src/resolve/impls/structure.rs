@@ -27,10 +27,7 @@ impl Resolve for ModuleReference {
 
 impl Resolve for AliasReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
-    let reference = TypeReference::Alias(*self);
-    let ty = &self.rget_from(lazy).ty;
-
-    TypePair::new(&reference, ty).resolve(lazy, tasks)
+    TypeReference::Alias(*self).resolve(lazy, tasks)
   }
 }
 
@@ -57,8 +54,8 @@ impl Resolve for FunctionReference {
         let reference = TypeReference::Expression(ExpressionReference(function.body, *expr_id));
         let typed_reference = Type::Reference(reference);
 
-        let last_expression = TypePair::new(&reference, &typed_reference);
-        let return_type: TypePair = TypePair::new(&ret_ty, &ty);
+        let last_expression = TypePair::new(reference, typed_reference);
+        let return_type: TypePair = TypePair::new(ret_ty, ty);
 
         last_expression.coerce(lazy, &return_type, tasks)?;
       };

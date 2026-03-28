@@ -1,4 +1,4 @@
-use crate::lang::{expr::Variable, ty::Type};
+use crate::{lang::{expr::Variable, ty::Type}, resolve::{TypePairModifier, tasks::OverwriteTypeReference}};
 
 use super::*;
 
@@ -71,6 +71,44 @@ impl<'a> Store<TokensId> for Lazy<'a> {
 
   fn rget_mut(&mut self, TokensId(index): TokensId) -> &mut Self::Out {
     self.tokens.get_mut(index).unwrap()
+  }
+}
+
+impl<'a> Store<&OverwriteTypeReference> for Lazy<'a> {
+  type Out = Type;
+
+  fn rget(&self, key: &OverwriteTypeReference) -> &Self::Out {
+    let mut base = self.rget(key.reference);
+
+    for modifier in key.modifiers.iter() {
+      loop {
+        let should_repeat = match base {
+          Type::Reference(type_reference) => {
+            base = type_reference.rget_from(self);
+            true
+          },
+          Type::Resolved { part, .. } => {
+            base = part.rget_from(self);
+            true
+          },
+          _ => false,
+        };
+
+        if !should_repeat {
+          break;
+        };
+      };
+
+      match modifier {
+        TypePairModifier::Dereference => todo!(),
+      };
+    };
+
+    base
+  }
+
+  fn rget_mut(&mut self, key: &OverwriteTypeReference) -> &mut Self::Out {
+    todo!()
   }
 }
 

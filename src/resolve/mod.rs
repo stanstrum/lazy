@@ -1,13 +1,14 @@
 mod impls;
-mod tasks;
+pub mod tasks;
 
 use crate::lang::reference::FunctionReference;
 use crate::line_dbg;
 use crate::error::*;
 
+use crate::resolve::tasks::OverwriteTypeReference;
 use crate::tokenize::token::Span;
 use crate::lang::ty::Type;
-use crate::lang::reference::{ModuleReference, Reference, Store, TypeReference};
+use crate::lang::reference::{ModuleReference, Reference, TypeReference};
 use crate::lang::Lazy;
 
 use tasks::Tasks;
@@ -37,39 +38,16 @@ pub enum Error {
   },
 }
 
-#[derive(Debug)]
-pub struct SpecialPair<'a, S: Store<R>, R: Reference<S>>(
-  pub &'a R,
-  pub &'a S::Out,
-);
-
-impl<'a, S: Store<R>, R: Reference<S>> Clone for SpecialPair<'a, S, R>
-{
-  fn clone(&self) -> Self {
-    Self(self.0, self.1)
-  }
-}
-
 #[derive(Debug, Clone, Copy)]
 pub enum TypePairModifier {
   Dereference,
 }
 
-#[derive(Debug)]
-pub struct TypePair<'a, 'b> {
-  pub pair: SpecialPair<'a, Lazy<'b>, TypeReference>,
+#[derive(Debug, Clone)]
+pub struct TypePair {
+  pub reference: TypeReference,
+  pub ty: Type,
   pub modifiers: Vec<TypePairModifier>,
-}
-
-impl<'a, 'b> Clone for TypePair<'a, 'b> {
-  fn clone(&self) -> Self {
-    let pair = self.pair.clone();
-
-    Self {
-      pair,
-      modifiers: self.modifiers.clone(),
-    }
-  }
 }
 
 trait Resolve {
@@ -82,21 +60,31 @@ pub trait Coerce {
 
 pub trait TypeOf {
   fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>>;
-  fn reference(&self, lazy: &Lazy) -> Option<TypeReference>;
+  fn reference(&self, lazy: &Lazy) -> Option<OverwriteTypeReference>;
 }
 
-impl<R: Copy> TypeOf for R
-  where for<'a> Lazy<'a>: Store<R>,
-        for<'a> <Lazy<'a> as Store<R>>::Out: TypeOf
-{
-  fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
-    self.rget_from(lazy).type_of(lazy)
-  }
-
-  fn reference(&self, lazy: &Lazy) -> Option<TypeReference> {
-    self.rget_from(lazy).reference(lazy)
+impl TypePair {
+  pub fn new(reference: TypeReference, ty: Type) -> Self {
+    Self {
+      reference,
+      ty,
+      modifiers: vec![],
+    }
   }
 }
+
+// impl<R: Copy> TypeOf for R
+//   where for<'a> Lazy<'a>: Store<R>,
+//         for<'a> <Lazy<'a> as Store<R>>::Out: TypeOf
+// {
+//   fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
+//     self.rget_from(lazy).type_of(lazy)
+//   }
+
+//   fn reference(&self, lazy: &Lazy) -> Option<TypeReference> {
+//     self.rget_from(lazy).reference(lazy)
+//   }
+// }
 
 fn find_main(lazy: &Lazy, module: ModuleReference) -> Result<FunctionReference> {
   let main_search = {

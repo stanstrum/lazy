@@ -134,7 +134,7 @@ fn make_array_of<'pool, const N: usize, T: Read>(
 
     stream.skip_whitespace_and_comments()?;
 
-    Some(size)
+    Some(size as usize)
   } else {
     None
   };

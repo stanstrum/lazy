@@ -13,6 +13,16 @@ pub trait Task {
   fn execute(self: Box<Self>, lazy: &mut Lazy, tasks: &mut Tasks) -> Result<TaskResponse>;
 }
 
+impl Task for Box<dyn Task> {
+  fn explain(&self, lazy: &Lazy) -> String {
+    self.as_ref().explain(lazy)
+  }
+
+  fn execute(self: Box<Self>, lazy: &mut Lazy, tasks: &mut Tasks) -> Result<TaskResponse> {
+    (*self).execute(lazy, tasks)
+  }
+}
+
 pub enum TaskResponse {
   /// Pop this task -- it's done
   Pop,
@@ -52,23 +62,27 @@ impl Tasks {
       return Ok(false);
     };
 
-    while let Some(task) = self.tasks.pop_front() {
-      let description = task.explain(lazy);
-      let status = self.status_handle(description);
+    let mut count = 0;
 
-      // println!("execute task:\n{}", self.explain(2));
-      let response = task.execute(lazy, self)?;
+    while let Some(task) = self.tasks.pop_front() {
+      let description = format!(
+        "execute_pass: {count}/{total}:\n{explain}",
+        explain = task.explain(lazy),
+        total = self.tasks.len(),
+      );
+
+      let response = self.work(description, |tasks| task.execute(lazy, tasks))?;
 
       match response {
         TaskResponse::Pop => {
           // do nothing
         },
         TaskResponse::Replace(replace) => {
-          self.tasks.push_back(replace);
+          self.push(replace, line_dbg!("here"));
         },
       };
 
-      drop(status);
+      count += 1;
     };
 
     Ok(true)
@@ -103,7 +117,7 @@ impl Tasks {
   }
 
   pub fn push(&mut self, task: impl Task + 'static, source: &'static str) {
-    // println!(line_dbg!("push from {}"), source);
+    println!(line_dbg!("push from {}"), source);
     self.tasks.push_back(Box::new(task));
   }
 

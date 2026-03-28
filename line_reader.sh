@@ -1,4 +1,4 @@
-SLEEP=0
+SLEEP=0.1
 
 exec 8< <(cargo run r b.zy 2>/dev/null | head -n 50000)
 

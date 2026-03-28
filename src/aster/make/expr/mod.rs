@@ -32,7 +32,6 @@ fn new_weak_string(
     characters,
     span,
     dereferenced: false,
-    sized: true,
   }
 }
 

@@ -25,11 +25,11 @@ impl Pretty for PoolId {
   }
 }
 
-impl Pretty for TypePair<'_, '_> {
+impl Pretty for TypePair {
   type Out = String;
 
   fn print(&self, lazy: &Lazy) -> Self::Out {
-    let reference = self.pair.0.print(lazy);
+    let reference = self.reference.print(lazy);
 
     let mut out = format!("/* {{pair}} */ {reference}");
 
@@ -57,9 +57,9 @@ impl Pretty for Qualified {
   fn print(&self, lazy: &Lazy) -> Self::Out {
     let mut out = String::new();
 
-    match self.implicit {
+    match &self.implicit {
       QualifiedSearchSpace::Implicit => {},
-      QualifiedSearchSpace::Module(module_reference) => {
+      &QualifiedSearchSpace::Module(module_reference) => {
         out += &lazy.describe_module(module_reference);
       },
       QualifiedSearchSpace::Intrinsic { kind, .. } => {

@@ -1,5 +1,5 @@
 use crate::lang::Lazy;
-use crate::lang::reference::{Reference, TypePartReference, TypeReference};
+use crate::lang::reference::{Reference, Store, TypePartReference, TypeReference};
 use crate::tokenize::token::Span;
 use crate::lang::ty::Type;
 use crate::lang::module::{Module, TypeAlias};
@@ -8,6 +8,15 @@ use crate::lang::expr::{BlockExpression, Expression};
 
 pub trait GetSpan {
   fn get_span(&self, lazy: &Lazy) -> Span;
+}
+
+impl<R: for<'a> Reference<Lazy<'a>>> GetSpan for R
+  where for<'a> Lazy<'a>: Store<R>,
+        for<'a> <Lazy<'a> as Store<R>>::Out: GetSpan
+{
+  fn get_span(&self, lazy: &Lazy) -> Span {
+    self.rget_from(lazy).get_span(lazy)
+  }
 }
 
 impl GetSpan for Module {
@@ -25,25 +34,6 @@ impl GetSpan for Function {
 impl GetSpan for TypeAlias {
   fn get_span(&self, _lazy: &Lazy) -> Span {
     self.span
-  }
-}
-
-impl GetSpan for TypeReference {
-  fn get_span(&self, lazy: &Lazy) -> Span {
-    match self {
-      TypeReference::Part(type_part) => type_part.rget_from(lazy).get_span(lazy),
-      TypeReference::ReturnTypeOf(function) => function.rget_from(lazy).header.ret_ty.get_span(lazy),
-      TypeReference::Alias(alias) => alias.rget_from(lazy).span,
-      TypeReference::Variable(variable) => variable.rget_from(lazy).span,
-      TypeReference::Expression(expr) => expr.rget_from(lazy).get_span(lazy),
-      TypeReference::Block(block) => block.rget_from(lazy).get_span(lazy),
-    }
-  }
-}
-
-impl GetSpan for TypePartReference {
-  fn get_span(&self, lazy: &Lazy) -> Span {
-    self.rget_from(lazy).get_span(lazy)
   }
 }
 

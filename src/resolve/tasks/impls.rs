@@ -14,6 +14,7 @@ pub struct OverwriteExpression {
   pub src: Expression,
 }
 
+#[derive(Debug, Clone)]
 pub struct OverwriteTypeReference {
   pub reference: TypeReference,
   pub modifiers: Vec<TypePairModifier>,
@@ -28,10 +29,10 @@ pub struct ResolveAsTask<R: Resolve> {
   pub reference: R,
 }
 
-impl<'a, 'b> From<TypePair<'a, 'b>> for OverwriteTypeReference {
+impl From<TypePair> for OverwriteTypeReference {
   fn from(value: TypePair) -> Self {
     Self {
-      reference: *value.pair.0,
+      reference: value.reference,
       modifiers: value.modifiers,
     }
   }
@@ -44,8 +45,9 @@ impl Pretty for OverwriteTypeReference {
     let ty = self.reference.rget_from(lazy);
 
     TypePair {
-      pair: SpecialPair(&self.reference, ty),
+      reference: self.reference,
       modifiers: self.modifiers.clone(),
+      ty: ty.clone(),
     }.print(lazy)
   }
 }

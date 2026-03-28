@@ -2,6 +2,7 @@ mod unknown;
 
 use crate::lang::ty::{Intrinsic, QualifiedSearchSpace};
 use crate::resolve::TypePair;
+use crate::tokenize::token::StringKind;
 
 use super::*;
 
@@ -243,6 +244,26 @@ impl Coerce for TypePair {
             // this mess.
             Ok(())
           },
+          (
+            Type::WeakString { kind: kind_a, characters: characters_a, dereferenced: dereferenced_a, .. },
+            Type::WeakString { kind: kind_b, characters: characters_b, dereferenced: dereferenced_b, .. },
+          ) => {
+            assert!(
+              matches!(
+                (kind_a, kind_b),
+                | (StringKind::Wide, StringKind::Wide)
+                | (StringKind::Byte, StringKind::Byte)
+                | (StringKind::Byte, StringKind::C)
+                | (StringKind::C, StringKind::Byte)
+                | (StringKind::C, StringKind::C)
+              )
+            );
+
+            assert!(characters_a == characters_b);
+            assert!(dereferenced_a == dereferenced_b);
+
+            Ok(())
+          },
           | (
             Type::SizedArrayOf { ty, size, .. },
             Type::WeakString { kind, characters, dereferenced, span },
@@ -260,6 +281,19 @@ impl Coerce for TypePair {
             }, tasks)?;
 
             Ok(())
+          },
+          | (
+            Type::UnsizedArrayOf { ty, .. },
+            Type::WeakString { kind, span, .. },
+          )
+          | (
+            Type::WeakString { kind, span, .. },
+            Type::UnsizedArrayOf { ty, .. },
+          ) => {
+            ty.coerce(lazy, &Type::Intrinsic {
+              kind: kind.into_intrinsic(),
+              span: *span,
+            }, tasks)
           },
           (a, b) => {
             dbg!(a, b);

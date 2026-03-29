@@ -4,6 +4,7 @@ mod lang;
 mod tokenize;
 mod aster;
 mod resolve;
+mod generate;
 
 mod error;
 mod settings;
@@ -43,22 +44,29 @@ fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
       break 'error Err((*err).into());
     };
 
-    match verb {
-      settings::Verb::Check => {
-        let source = lazy.rget(global).print(&lazy)
-          .map(|s| format!(line_dbg!("{}"), s))
-          .collect::<Vec<_>>()
-          .join("\n");
-        println!("{source}");
-      },
-      | settings::Verb::Build
-      | settings::Verb::Run => {
-        todo!("typeck");
-        // todo!("generate");
-      },
-    };
+    let source = lazy.rget(global).print(&lazy)
+        .map(|s| format!(line_dbg!("{}"), s))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+      println!("{source}");
+
 
     println!("{:?}", &lazy.pool);
+
+    if matches!(verb, settings::Verb::Check) {
+      break 'error Ok(());
+    };
+
+    if let Err(err) = generate::entry(&mut lazy) {
+      break 'error Err(err.into());
+    };
+
+    if matches!(verb, settings::Verb::Build) {
+      break 'error Ok(());
+    };
+
+    todo!("run");
 
     Ok(())
   };

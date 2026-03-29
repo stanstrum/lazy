@@ -209,3 +209,9 @@ impl From<crate::resolve::Error> for PrintableMessage {
     }
   }
 }
+
+impl From<crate::generate::Error> for PrintableMessage {
+  fn from(value: crate::generate::Error) -> Self {
+    todo!()
+  }
+}

@@ -306,7 +306,7 @@ fn verify_expr(lazy: &Lazy, expr: ExpressionReference, ret_ty: Option<&TypePair>
   );
 
   tasks.work(description, |tasks| match lazy.rget(expr) {
-    Expression::Block(block) => verify_block(lazy, block, None, tasks),
+    Expression::Block(block) => verify_block(lazy, block, ret_ty, tasks),
     Expression::Literal { out, .. } => ty::verify_type(lazy, out),
     Expression::Variable { reference, .. } => verify_variable(lazy, *reference, tasks),
     Expression::Unknown { qualified, .. } => {

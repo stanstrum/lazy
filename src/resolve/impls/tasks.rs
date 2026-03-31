@@ -61,7 +61,12 @@ impl Task for OverwriteType {
   }
 
   fn execute(self: Box<Self>, lazy: &mut Lazy, _tasks: &mut Tasks) -> Result<TaskResponse> {
-    let span = self.src.get_span(lazy);
+    let old_span = self.dest.type_of(lazy)
+      .expect("a type to exist here")
+      .get_span(lazy);
+
+    // let span = self.src.get_span(lazy);
+    let span = old_span;
 
     let part = self.dest.reference.parent_module(lazy)
       .add_type_part(self.src, lazy);

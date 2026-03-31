@@ -152,9 +152,10 @@ pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()
   tasks.work::<Result<()>>(
     line_dbg!("Verify global").into(),
     |tasks| {
-      let main = find_main(lazy, module)?;
+      let _main = find_main(lazy, module)?;
 
-      impls::function::verify_function(lazy, main, tasks)?;
+      // impls::function::verify_function(lazy, main, tasks)?;
+      impls::structure::verify_module(lazy, &module, tasks)?;
 
       println!(line_dbg!("stub: verify rest of program, apart from main"));
 

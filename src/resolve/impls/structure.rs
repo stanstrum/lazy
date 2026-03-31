@@ -1,6 +1,7 @@
 use crate::lang::ty::Type;
 use crate::lang::reference::{AliasReference, ExpressionReference, FunctionReference, ModuleReference, TypeReference, VariableReference};
 use crate::resolve::TypePair;
+use crate::resolve::impls::ty::verify_typeof;
 
 use super::*;
 
@@ -65,4 +66,28 @@ impl Resolve for FunctionReference {
       Ok(())
     })
   }
+}
+
+fn verify_alias(lazy: &Lazy, alias: &AliasReference, tasks: &mut Tasks) -> Result<()> {
+  let ty = Type::Reference(TypeReference::Alias(*alias));
+  verify_typeof(lazy, &ty)
+}
+
+pub(in crate::resolve) fn verify_module(lazy: &Lazy, module: &ModuleReference, tasks: &mut Tasks) -> Result<()> {
+  let borrow = module.rget_from(lazy);
+
+  for id in 0..borrow.aliases.len() {
+    let reference = AliasReference(*module, id);
+    verify_alias(lazy, &reference, tasks)?;
+  };
+
+  for module in borrow.modules.iter() {
+    verify_module(lazy, module, tasks)?;
+  };
+
+  for function in borrow.functions.iter() {
+    function::verify_function(lazy, function, tasks)?;
+  };
+
+  Ok(())
 }

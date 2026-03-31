@@ -1,4 +1,4 @@
-mod structure;
+pub mod structure;
 pub mod function;
 mod ty;
 mod expr;

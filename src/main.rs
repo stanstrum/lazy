@@ -58,7 +58,7 @@ fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
       break 'error Ok(());
     };
 
-    if let Err(err) = generate::entry(&mut lazy) {
+    if let Err(err) = generate::compile(&lazy, global) {
       break 'error Err(err.into());
     };
 

@@ -121,13 +121,13 @@ fn error_handler<'lazy, 'pool>(
 
   // Print that info and set our own exit code accordingly
   let exit_code = if exit_status.success() {
-    println!("Program exited successfully");
+    println!("Program exited successfully.");
     ExitCode::SUCCESS
   } else if let Some(code) = exit_status.code() {
-    println!("Program exited with status code: {code}");
+    println!("Program exited with status code {code}.");
     ExitCode::FAILURE
   } else {
-    println!("Program exited unsuccessfully");
+    println!("Program exited unsuccessfully.");
     ExitCode::FAILURE
   };
 

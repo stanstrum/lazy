@@ -1,10 +1,11 @@
 mod context;
-mod args;
+pub mod args;
 mod compile;
 
 mod types;
 
 use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 
 use crate::lang;
 use crate::lang::span::GetSpan;
@@ -73,28 +74,62 @@ impl<'lazy, 'pool, 'llvm> Compilation<'lazy, 'pool, 'llvm> {
   }
 }
 
-pub fn compile(lazy: &lang::Lazy, global: lang::reference::ModuleReference) -> Result {
-  // SPONGE: parse CliArgs from settings
-  let cli_args = CliArgs {
-    target: None,
-    opt_level: OptimizationLevel::O0,
-    passes: "instcombine,reassociate,gvn,simplifycfg,mem2reg".into(),
-  };
+pub(super) struct Program {
+  context: inkwell::context::Context,
+  global: lang::reference::ModuleReference,
+  cli_args: CliArgs,
+}
 
-  // initialize contexts
-  let ctx = inkwell::context::Context::create();
-  let llvm_ctx = LLVMContext::new(&ctx, &cli_args);
+pub(super) struct ProgramCompilation<'ctx> {
+  program: &'ctx Program,
+  llvm: LLVMContext<'ctx>,
+}
 
-  let mut comp = Compilation::new(lazy, llvm_ctx);
+impl Program {
+  pub(super) fn new(global: lang::reference::ModuleReference, cli_args: CliArgs) -> Self {
+    Self {
+      context: inkwell::context::Context::create(),
+      global,
+      // SPONGE: need to parse this struct from settings
+      cli_args,
+    }
+  }
 
-  // compile
-  compile::compile_module(&mut comp, global)?;
+  pub(super) fn compile<'lazy, 'ctx>(&'ctx self, lazy: &'lazy lang::Lazy) -> Result<ProgramCompilation<'ctx>> {
+    let llvm_ctx = LLVMContext::new(&self.context, &self.cli_args);
+    let mut comp = Compilation::new(lazy, llvm_ctx);
 
-  // debug
-  comp.llvm.dump_module();
+    compile::compile_module(&mut comp, self.global)?;
 
-  // optimize
-  comp.llvm.run_passes(&cli_args.passes);
+    Ok(ProgramCompilation {
+      program: self,
+      llvm: comp.llvm,
+    })
+  }
+}
 
-  todo!()
+impl<'ctx> ProgramCompilation<'ctx> {
+  pub(super) fn save_to_file(self, file_type: inkwell::targets::FileType, out_path: &Path) -> Result {
+    if let Err(err) = self.llvm.machine.write_to_file(
+      &self.llvm.module,
+      file_type,
+      out_path,
+    ) {
+      panic!("LLVM error: {err}");
+    };
+
+    Ok(())
+  }
+
+  pub(super) fn debug(&self) {
+    self.llvm.dump_module();
+  }
+
+  pub(super) fn optimize(&mut self) {
+    self.llvm.run_passes(&self.program.cli_args.passes);
+  }
+
+  pub(super) fn run(&self) -> Result {
+    todo!()
+  }
 }

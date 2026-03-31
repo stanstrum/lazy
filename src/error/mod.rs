@@ -144,9 +144,9 @@ impl From<crate::aster::Error> for PrintableMessage {
   }
 }
 
-impl From<crate::resolve::Error> for PrintableMessage {
-  fn from(value: crate::resolve::Error) -> Self {
-    match value {
+impl From<Box<crate::resolve::Error>> for PrintableMessage {
+  fn from(value: Box<crate::resolve::Error>) -> Self {
+    match *value {
       crate::resolve::Error::UnknownTypeName { module_name, span } => Self {
         level: Level::Error,
         force: true,

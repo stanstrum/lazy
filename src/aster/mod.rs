@@ -27,12 +27,12 @@ pub enum Error {
   },
 }
 
-pub fn asterize<'pool>(lazy: &mut Lazy<'pool>, pool: &'pool StringPool, module: ModuleReference) -> Result<(), Error> {
+pub fn asterize(lazy: &mut Lazy, module: ModuleReference) -> Result<(), Error> {
   let path = lazy.get_path(module).path.as_path();
   let file = File::open(path).expect("failed to open path");
   let meta_reader = BufferedUtf8MetadataReader::<64, _>::new(file);
   let name = lazy.describe_module(module);
-  let tokenizer = Tokenizer::new(pool, module, name, meta_reader);
+  let tokenizer = Tokenizer::new(lazy.pool, module, name, meta_reader);
   let mut rereader = Rereader::new(tokenizer, module);
 
   let result = make::make(lazy, &mut rereader);

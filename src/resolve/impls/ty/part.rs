@@ -3,7 +3,7 @@ use crate::lang::reference::TypePartReference;
 use super::*;
 
 impl TypeOf for TypePartReference {
-  fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
+  fn type_of(&self, lazy: &Lazy) -> Option<Type> {
     self.rget_from(lazy).type_of(lazy)
   }
 

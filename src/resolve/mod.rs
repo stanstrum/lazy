@@ -59,7 +59,7 @@ pub trait Coerce {
 }
 
 pub trait TypeOf {
-  fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>>;
+  fn type_of(&self, lazy: &Lazy) -> Option<Type>;
   fn reference(&self, lazy: &Lazy) -> Option<OverwriteTypeReference>;
 }
 

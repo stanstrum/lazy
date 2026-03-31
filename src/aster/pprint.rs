@@ -138,7 +138,7 @@ impl Pretty for TypeReference {
         format!("typeof {{{} {}}}::{}", v.parent().print(lazy), block.print(lazy), name.print(lazy))
       },
       TypeReference::Expression(expression) => {
-        let type_print = expression.type_of(lazy).ok().flatten().map(|s| format!(" /* {} */", s.print(lazy)));
+        let type_print = expression.type_of(lazy).map(|s| format!(" /* {} */", s.print(lazy)));
         let type_print = type_print.as_deref().unwrap_or_default();
 
         format!("typeof {{{}}}{type_print}", expression.print(lazy))

@@ -49,7 +49,7 @@ impl Resolve for FunctionReference {
       };
 
       let body = lazy.rget(function.body);
-      if let Some(ty) = ret_ty.type_of(lazy)? {
+      if let Some(ty) = ret_ty.type_of(lazy) {
         let expr_id = body.children.last().unwrap();
         let reference = TypeReference::Expression(ExpressionReference(function.body, *expr_id));
         let typed_reference = Type::Reference(reference);

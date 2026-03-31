@@ -14,7 +14,7 @@ trait DereferenceType {
 
 impl<T: TypeOf> DereferenceType for T {
   fn dereference(&self, lazy: &Lazy, r#mut: bool) -> Result<Option<TypePair>> {
-    let Some(ty) = self.type_of(lazy)? else {
+    let Some(ty) = self.type_of(lazy) else {
       return Ok(None);
     };
 
@@ -64,7 +64,7 @@ impl<T: TypeOf> DereferenceType for T {
 }
 
 impl TypeOf for Type {
-  fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
+  fn type_of(&self, lazy: &Lazy) -> Option<Type> {
     match self {
       | Type::Intrinsic { .. }
       | Type::WeakInteger { .. }
@@ -75,7 +75,7 @@ impl TypeOf for Type {
       | Type::UnsizedArrayOf { .. }
       | Type::SizedArrayOf { .. }
       | Type::Unresolved { .. }
-      => Ok(Some(self.clone())),
+        => Some(self.clone()),
       // SPONGE
       // | Type::Unresolved { .. }
       //   => Ok(None),
@@ -102,7 +102,7 @@ impl TypeOf for Type {
 }
 
 impl TypeOf for TypeReference {
-  fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
+  fn type_of(&self, lazy: &Lazy) -> Option<Type> {
     self.rget_from(lazy).type_of(lazy)
   }
 
@@ -161,7 +161,7 @@ impl Coerce for TypeReference {
 }
 
 pub(super) fn verify_typeof(lazy: &Lazy, ty: &(impl TypeOf + GetSpan + Pretty<Out = String>)) -> Result<()> {
-  let Some(ty) = ty.type_of(lazy)? else {
+  let Some(ty) = ty.type_of(lazy) else {
     return Err(Box::new(Error::UnresolvedInVerify {
       what: ty.print(lazy),
       span: ty.get_span(lazy),

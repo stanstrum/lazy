@@ -9,7 +9,7 @@ use crate::tokenize::token::Span;
 use super::*;
 
 impl TypeOf for VariableReference {
-  fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
+  fn type_of(&self, lazy: &Lazy) -> Option<Type> {
     TypeReference::Variable(*self).type_of(lazy)
   }
 
@@ -69,7 +69,7 @@ fn verify_variable(lazy: &Lazy, variable: VariableReference, tasks: &mut Tasks) 
 }
 
 impl TypeOf for ExpressionReference {
-  fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
+  fn type_of(&self, lazy: &Lazy) -> Option<Type> {
     match self.rget_from(lazy) {
       Expression::Block(block) => block.type_of(lazy),
       Expression::Variable { reference, .. } => reference.type_of(lazy),
@@ -96,7 +96,7 @@ impl TypeOf for ExpressionReference {
 impl Coerce for ExpressionReference {
   fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
     let a = self.print(lazy);
-    let b = other.type_of(lazy)?.map(|x| x.print(lazy)).unwrap_or_else(|| "{none}".into());
+    let b = other.type_of(lazy).map(|x| x.print(lazy)).unwrap_or_else(|| "{none}".into());
 
     let description = format!(line_dbg!("Coerce ExpressionReference\n- Reference: {}\n- Coerce w/: {}"), a, b);
 
@@ -116,7 +116,7 @@ impl Coerce for ExpressionReference {
 }
 
 impl TypeOf for BlockReference {
-  fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
+  fn type_of(&self, lazy: &Lazy) -> Option<Type> {
     // TODO: is this correct? should I try to match the expr type directly,
     //       maybe in addition to this?  Coerce in TypeOf? what could go
     //       wrong ???

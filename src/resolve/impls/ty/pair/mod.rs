@@ -19,7 +19,7 @@ use super::*;
 // }
 
 impl TypeOf for TypePair {
-  fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
+  fn type_of(&self, lazy: &Lazy) -> Option<Type> {
     self.ty.type_of(lazy)
   }
 
@@ -82,7 +82,7 @@ impl Resolve for TypePair {
 }
 
 impl TypeOf for OverwriteTypeReference {
-  fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
+  fn type_of(&self, lazy: &Lazy) -> Option<Type> {
     let mut ty = self.reference.rget_from(lazy).to_owned();
 
     for modifier in self.modifiers.iter() {
@@ -103,7 +103,7 @@ impl TypeOf for OverwriteTypeReference {
       }
     };
 
-    Ok(Some(ty))
+    Some(ty)
   }
 
   fn reference(&self, lazy: &Lazy) -> Option<OverwriteTypeReference> {
@@ -113,7 +113,7 @@ impl TypeOf for OverwriteTypeReference {
 
 impl Coerce for OverwriteTypeReference {
   fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
-    let Some(ty) = self.type_of(lazy)? else {
+    let Some(ty) = self.type_of(lazy) else {
       return Ok(());
     };
 
@@ -129,7 +129,9 @@ impl Coerce for TypePair {
   fn coerce(&self, lazy: &Lazy, other_ref: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
     let a = self.reference.print(lazy);
     let b = self.ty.print(lazy);
-    let c = other_ref.type_of(lazy)?.map(|x| x.print(lazy)).unwrap_or_else(|| "{none}".into());
+    let c = other_ref.type_of(lazy)
+      .map(|x| x.print(lazy))
+      .unwrap_or_else(|| "{none}".into());
     let d = format!("{:?}", &self.modifiers);
 
     let description = format!(
@@ -140,7 +142,7 @@ impl Coerce for TypePair {
     tasks.work(description, |tasks| {
         // println!(line_dbg!("here:\n{}"), tasks.explain(2));
 
-        let Some(other) = other_ref.type_of(lazy)? else {
+        let Some(other) = other_ref.type_of(lazy) else {
           return Ok(());
         };
 

@@ -56,6 +56,7 @@ impl Tasks {
 
   /// Returns a boolean corresponding to whether any tasks were executed
   pub fn execute_pass(&mut self, lazy: &mut Lazy) -> Result<bool> {
+    #[cfg(debug_assertions)]
     println!(line_dbg!("execute_pass start"));
 
     if self.tasks.is_empty() {
@@ -89,15 +90,18 @@ impl Tasks {
   }
 
   pub fn work<T>(&mut self, description: String, f: impl FnOnce(&mut Tasks) -> T) -> T {
+    #[cfg(debug_assertions)]
     // Get the status handle
     let status = self.status_handle(description);
 
+    #[cfg(debug_assertions)]
     // SPONGE: Print the explain() message for the whole stack
     println!("{}", self.explain(0));
 
     // Run the task
     let result = f(self);
 
+    #[cfg(debug_assertions)]
     // Drop the handle
     drop(status);
 
@@ -117,7 +121,7 @@ impl Tasks {
   }
 
   pub fn push(&mut self, task: impl Task + 'static, source: &'static str) {
-    println!(line_dbg!("push from {}"), source);
+    #[cfg(debug_assertions)] println!(line_dbg!("push from {}"), source);
     self.tasks.push_back(Box::new(task));
   }
 

@@ -26,7 +26,10 @@ pub(in crate::resolve) fn verify_function(lazy: &Lazy, function: &FunctionRefere
         // TODO: eventually just coerce main as fn(...) -> ...
         let ret_ty_pair = TypePair::new(ret_ty_reference, ret_ty.clone());
         {
-          let span = dbg!(&borrow.header.ret_ty).get_span(lazy);
+          let ret_ty = &borrow.header.ret_ty;
+
+          #[cfg(debug_assertions)] dbg!(ret_ty);
+          let span = ret_ty.get_span(lazy);
 
           ret_ty_pair.coerce(lazy, &Type::Intrinsic {
             kind: Intrinsic::I32,

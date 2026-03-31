@@ -298,7 +298,7 @@ impl Coerce for TypePair {
             }, tasks)
           },
           (a, b) => {
-            dbg!(a, b);
+            #[cfg(debug_assertions)] dbg!(a, b);
 
             if
               let Some(a) = self.dereference(lazy, false)? &&

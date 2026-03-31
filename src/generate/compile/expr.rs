@@ -1,12 +1,14 @@
 mod literal;
 
+use crate::generate::types::LazyValue;
+
 use super::*;
 
 fn compile_expr<'ctx>(
   comp: &mut Compilation<'_, '_, 'ctx>,
   function: inkwell::values::FunctionValue<'ctx>,
   expr: lang::reference::ExpressionReference,
-) -> Result<Option<inkwell::values::InstructionValue<'ctx>>> {
+) -> Result<LazyValue<'ctx>> {
   // for efficiency, we assume we are already positioned after the preceding
   // instruction.  otherwise we'd need block: BlockValue<'_> passed in, and then
   // call:
@@ -17,7 +19,7 @@ fn compile_expr<'ctx>(
     &lang::expr::Expression::Block(block)
       => compile_block(comp, function, block),
     &lang::expr::Expression::Literal { value, ref out, .. }
-      => literal::compile_literal(comp, function, value, out).map(Some),
+      => literal::compile_literal(comp, function, value, out),
     lang::expr::Expression::Variable { .. } => todo!(),
     lang::expr::Expression::Unknown { .. } => todo!(),
     lang::expr::Expression::Unary { .. } => todo!(),
@@ -29,7 +31,7 @@ pub(super) fn compile_block<'ctx>(
   comp: &mut Compilation<'_, '_, 'ctx>,
   function: inkwell::values::FunctionValue<'ctx>,
   block: lang::reference::BlockReference,
-) -> Result<Option<inkwell::values::InstructionValue<'ctx>>> {
+) -> Result<LazyValue<'ctx>> {
   // TODO: could the names be more imaginative here?
   //       perhaps programmatically named for clarity
   let span = block.get_span(comp.lazy);
@@ -46,14 +48,7 @@ pub(super) fn compile_block<'ctx>(
   // position the builder at the label so we can insert from there on
   comp.llvm.builder.position_at_end(here);
 
-  #[derive(Debug)]
-  enum LastValue<'ctx> {
-    SomeButNoValue,
-    Some(inkwell::values::InstructionValue<'ctx>),
-    None,
-  }
-
-  let mut last_value = LastValue::None;
+  let mut last_value = LazyValue::Void;
 
   let borrow = comp.lazy.rget(block);
 
@@ -61,19 +56,8 @@ pub(super) fn compile_block<'ctx>(
     let expr = lang::reference::ExpressionReference(block, id);
     let value = compile_expr(comp, function, expr)?;
 
-    last_value = match value {
-      Some(value) => LastValue::Some(value),
-      None => LastValue::SomeButNoValue,
-    };
+    last_value = value;
   };
 
-  Ok(if borrow.returns_last {
-    let LastValue::Some(value) = last_value else {
-      todo!("error: expected LastValue::Some, got {last_value:?}")
-    };
-
-    Some(value)
-  } else {
-    None
-  })
+  Ok(last_value)
 }

@@ -8,9 +8,17 @@ fn compile_function(comp: &mut Compilation, function: lang::reference::FunctionR
 
   let function_value = comp.get_or_declare_function(function)?;
 
-  let return_last = expr::compile_block(comp, function_value, body)?;
+  let last_value = expr::compile_block(comp, function_value, body)?
+    .as_basic_value_enum()
+    .ok();
 
-  todo!()
+  let last_value = last_value.as_ref()
+    .map(|value| value as _);
+
+  comp.llvm.builder.build_return(last_value)
+    .expect("build_return");
+
+  Ok(())
 }
 
 pub(super) fn compile_module(comp: &mut Compilation, module: lang::reference::ModuleReference) -> Result {

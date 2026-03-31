@@ -7,21 +7,19 @@ pub(super) fn compile_literal<'ctx>(
   function: inkwell::values::FunctionValue<'ctx>,
   kind: lang::expr::LiteralKind,
   out: &lang::ty::Type,
-) -> Result<inkwell::values::InstructionValue<'ctx>> {
+) -> Result<LazyValue<'ctx>> {
   match kind {
     lang::expr::LiteralKind::Numeric(token::NumericValue::U64(value)) => {
+      // we use `out` because, despite internally storing u64, the literal
+      // could be u32, i32, etc.
       let value = make_type(comp, out)?
-        .into_int_type()
+        .into_int_type()?
         // SPONGE: `sign_extend` might be used for something
         .const_int(value, false);
 
-      dbg!(&value);
-      dbg!(value.as_instruction());
-
-      todo!()
+      Ok(LazyValue::Int(value))
     },
     lang::expr::LiteralKind::Numeric(token::NumericValue::F64(value)) => todo!(),
-    lang::expr::LiteralKind::Numeric(numeric_value) => todo!(),
     lang::expr::LiteralKind::String { value, kind } => todo!(),
   }
 }

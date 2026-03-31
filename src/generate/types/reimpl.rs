@@ -12,11 +12,20 @@ impl<'ctx> LazyType<'ctx> {
     })
   }
 
-  pub(crate) fn into_int_type(self) -> inkwell::types::IntType<'ctx> {
+  pub(crate) fn into_int_type(self) -> Result<inkwell::types::IntType<'ctx>> {
     match self {
       LazyType::Void(void_type) => todo!(),
-      LazyType::Int(int_type) => todo!(),
+      LazyType::Int(int_type) => Ok(int_type),
       LazyType::Float(float_type) => todo!(),
+    }
+  }
+}
+
+impl<'ctx> LazyValue<'ctx> {
+  pub(crate) fn as_basic_value_enum(self) -> Result<inkwell::values::BasicValueEnum<'ctx>> {
+    match self {
+      LazyValue::Void => todo!(),
+      LazyValue::Int(int_value) => Ok(int_value.into()),
     }
   }
 }

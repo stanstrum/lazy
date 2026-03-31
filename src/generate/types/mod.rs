@@ -11,6 +11,12 @@ pub(super) enum LazyType<'ctx> {
   Float(inkwell::types::FloatType<'ctx>),
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub(super) enum LazyValue<'ctx> {
+  Void,
+  Int(inkwell::values::IntValue<'ctx>),
+}
+
 fn make_intrinsic_type<'ctx>(comp: &Compilation<'_, '_, 'ctx>, intrinsic: lang::ty::Intrinsic) -> LazyType<'ctx> {
   match intrinsic {
     lang::ty::Intrinsic::Void => comp.llvm.context.void_type().into(),

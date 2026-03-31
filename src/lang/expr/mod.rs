@@ -25,7 +25,7 @@ pub struct BlockExpression {
   pub variables: Vec<Variable>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum LiteralKind {
   Numeric(NumericValue),
   String {

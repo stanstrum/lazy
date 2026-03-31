@@ -18,7 +18,7 @@ pub trait Reference<S: Store<Self>>: Sized {
   fn rget_from_mut<'a>(&self, store: &'a mut S) -> &'a mut S::Out;
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FunctionReference(pub usize);
 
 #[derive(Debug, Clone, Copy, PartialEq)]

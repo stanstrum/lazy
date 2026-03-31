@@ -212,6 +212,18 @@ impl From<crate::resolve::Error> for PrintableMessage {
 
 impl From<crate::generate::Error> for PrintableMessage {
   fn from(value: crate::generate::Error) -> Self {
-    todo!()
+    match value {
+      crate::generate::Error::StillUnresolved { what, note, span } => Self {
+        level: Level::Error,
+        force: true,
+        description: format!("unresolved in generation: {what}"),
+        contents: MessageContents::WithinSource(WithinSource::new(
+          vec![MessageSection {
+            text: note,
+            span,
+          }]
+        )),
+      },
+    }
   }
 }

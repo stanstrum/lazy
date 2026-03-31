@@ -11,9 +11,8 @@ mod settings;
 
 #[cfg(test)] mod test;
 
-use std::fs::File;
 use std::os::unix::fs::PermissionsExt;
-use std::process::{ExitCode, ExitStatus};
+use std::process::ExitCode;
 
 use lang::Lazy;
 
@@ -60,7 +59,7 @@ fn error_handler<'lazy, 'pool>(
   resolve::resolve_and_verify(lazy, global)?;
 
   // Debug source
-  let source = lazy.rget(global).print(&lazy)
+  let source = lazy.rget(global).print(lazy)
     .map(|s| format!(line_dbg!("{}"), s))
     .collect::<Vec<_>>()
     .join("\n");

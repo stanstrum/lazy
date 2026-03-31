@@ -4,7 +4,6 @@ mod compile;
 
 mod types;
 
-use core::arch;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
@@ -105,7 +104,7 @@ impl Program {
     }
   }
 
-  pub(super) fn compile<'lazy, 'ctx>(&'ctx self, lazy: &'lazy lang::Lazy) -> Result<ProgramCompilation<'ctx>> {
+  pub(super) fn compile<'ctx>(&'ctx self, lazy: &lang::Lazy) -> Result<ProgramCompilation<'ctx>> {
     let llvm_ctx = LLVMContext::new(&self.context, &self.cli_args);
     let mut comp = Compilation::new(lazy, llvm_ctx);
 
@@ -172,12 +171,12 @@ impl ProgramObjectFile {
 
     let path = self.path;
 
-    let output = out_path.file_name()
-      .map(|path| path.to_str().expect("out_path to have a file name"))
-      .unwrap_or("a.out");
+    // let output = out_path.file_name()
+    //   .map(|path| path.to_str().expect("out_path to have a file name"))
+    //   .unwrap_or("a.out");
 
     // SPONGE: may be possible to inject arguments this way?
-    let links = linked.into_iter()
+    let links = linked.iter()
       .map(|name| format!("-l{name}"));
 
     let mut builder = cc::Build::new();
@@ -202,7 +201,7 @@ impl ProgramObjectFile {
 
     let compiler_result = compiler.to_command()
       .args(compiler.args())
-      .args(&["-o", out_path_str])
+      .args(["-o", out_path_str])
       .arg(temp_path_str)
       .spawn()
       .expect("to spawn compiler subprocess")

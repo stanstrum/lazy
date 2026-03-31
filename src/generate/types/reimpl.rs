@@ -14,9 +14,9 @@ impl<'ctx> LazyType<'ctx> {
 
   pub(crate) fn into_int_type(self) -> Result<inkwell::types::IntType<'ctx>> {
     match self {
-      LazyType::Void(void_type) => todo!(),
+      LazyType::Void(_) => todo!(),
       LazyType::Int(int_type) => Ok(int_type),
-      LazyType::Float(float_type) => todo!(),
+      LazyType::Float(_) => todo!(),
     }
   }
 }

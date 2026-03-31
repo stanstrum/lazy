@@ -19,7 +19,7 @@ pub(super) fn compile_literal<'ctx>(
 
       Ok(LazyValue::Int(value))
     },
-    lang::expr::LiteralKind::Numeric(token::NumericValue::F64(value)) => todo!(),
-    lang::expr::LiteralKind::String { value, kind } => todo!(),
+    lang::expr::LiteralKind::Numeric(token::NumericValue::F64(_)) => todo!(),
+    lang::expr::LiteralKind::String { .. } => todo!(),
   }
 }

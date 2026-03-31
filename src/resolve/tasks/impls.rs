@@ -1,7 +1,6 @@
 use crate::aster::pprint::Pretty;
 use crate::lang::expr::Expression;
 use crate::lang::reference::{ExpressionReference, TypeReference};
-use crate::lang::span::GetSpan;
 
 use super::*;
 

@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 // SPONGE
 pub struct CliArgs {
   pub target: Option<String>,

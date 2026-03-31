@@ -23,7 +23,7 @@ impl<'ctx> LLVMContext<'ctx> {
     };
 
     let config = Default::default();
-    let sponge = inkwell::targets::Target::initialize_native(&config)
+    inkwell::targets::Target::initialize_native(&config)
       .expect("initialize native");
 
     // SPONGE: what to do here?  do i need to parse the triple to figure out
@@ -62,18 +62,18 @@ impl<'ctx> LLVMContext<'ctx> {
     );
   }
 
-  /// This method will write assembly of module to memory buffer, read as UTF-8 and print
-  /// to screen.
-  pub fn dump_assembly(&self) -> () {
-    let buf = self.machine
-      .write_to_memory_buffer(&self.module, inkwell::targets::FileType::Assembly)
-      .expect("Failed to write assembly representation");
+  // /// This method will write assembly of module to memory buffer, read as UTF-8 and print
+  // /// to screen.
+  // pub fn dump_assembly(&self) -> () {
+  //   let buf = self.machine
+  //     .write_to_memory_buffer(&self.module, inkwell::targets::FileType::Assembly)
+  //     .expect("Failed to write assembly representation");
 
-    println!(
-      "Assembly Representation:\n{}\n",
-      std::str::from_utf8(buf.as_slice()).unwrap()
-    );
-  }
+  //   println!(
+  //     "Assembly Representation:\n{}\n",
+  //     std::str::from_utf8(buf.as_slice()).unwrap()
+  //   );
+  // }
 
   /// Optimization passes
   pub fn run_passes(&self, passes: &str) {

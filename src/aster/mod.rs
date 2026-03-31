@@ -8,7 +8,6 @@ use std::fs::File;
 use bufreader::BufferedUtf8MetadataReader;
 use crate::aster::rereader::Rereader;
 use crate::lang::reference::{ModuleReference, Store};
-use crate::string_pool::StringPool;
 
 use crate::tokenize::Tokenizer;
 use crate::tokenize::{self, token::Span};

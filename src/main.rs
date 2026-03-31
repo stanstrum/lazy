@@ -11,7 +11,9 @@ mod settings;
 
 #[cfg(test)] mod test;
 
-use std::process::ExitCode;
+use std::fs::File;
+use std::os::unix::fs::PermissionsExt;
+use std::process::{ExitCode, ExitStatus};
 
 use lang::Lazy;
 
@@ -25,51 +27,8 @@ fn main() -> ExitCode {
   run_with(args.into_iter())
 }
 
-fn error_handler<'lazy, 'pool>(lazy: &'lazy mut Lazy<'pool>, global: ModuleReference, verb: settings::Verb) -> Result<(), error::PrintableMessage> {
-  aster::asterize(lazy, global)?;
-  resolve::resolve_and_verify(lazy, global)?;
-
-  let source = lazy.rget(global).print(&lazy)
-    .map(|s| format!(line_dbg!("{}"), s))
-    .collect::<Vec<_>>()
-    .join("\n");
-
-  println!("{source}");
-  println!("{:?}", &lazy.pool);
-
-  if matches!(verb, settings::Verb::Check) {
-    return Ok(());
-  };
-
-  let args = generate::args::CliArgs {
-    target: None,
-    opt_level: generate::args::OptimizationLevel::O0,
-    passes: "instcombine,reassociate,gvn,simplifycfg,mem2reg".into(),
-  };
-  // file_type: inkwell::targets::FileType::Object,
-  // out_path: lazy.settings.output_path.clone(),
-
-  let program = generate::Program::new(global, args);
-  let compilation = program.compile(lazy)?;
-
-  compilation.debug();
-  // compilation.optimize();
-
-  // TODO: get this from settings
-  let file_type = inkwell::targets::FileType::Object;
-  let _result = compilation.save_to_file(file_type, &lazy.settings.output_path)?;
-
-  if matches!(verb, settings::Verb::Build) {
-    return Ok(());
-  };
-
-  todo!("run executable");
-
-  Ok(())
-}
-
 fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
-    let (settings, verb) = match settings::parse_and_display(args) {
+  let (settings, verb) = match settings::parse_and_display(args) {
     Ok(settings) => settings,
     Err(exit_code) => return exit_code,
   };
@@ -81,10 +40,97 @@ fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
   let global = lazy.add_file("global", path);
 
   match error_handler(&mut lazy, global, verb) {
-    Ok(()) => ExitCode::SUCCESS,
+    Ok(exit_code) => exit_code,
     Err(message) => {
       error::print_message(&lazy, message);
       ExitCode::FAILURE
     },
   }
+}
+
+fn error_handler<'lazy, 'pool>(
+  lazy: &'lazy mut Lazy<'pool>,
+  global: ModuleReference,
+  verb: settings::Verb,
+) -> Result<ExitCode, error::PrintableMessage> {
+  // Tokenize, asterize (parse AST)
+  aster::asterize(lazy, global)?;
+
+  // Resolve, verify
+  resolve::resolve_and_verify(lazy, global)?;
+
+  // Debug source
+  let source = lazy.rget(global).print(&lazy)
+    .map(|s| format!(line_dbg!("{}"), s))
+    .collect::<Vec<_>>()
+    .join("\n");
+
+  println!("{source}");
+  println!("{:?}", &lazy.pool);
+
+  // Stop here if all we wanted was to check
+  if matches!(verb, settings::Verb::Check) {
+    return Ok(ExitCode::SUCCESS);
+  };
+
+  // Otherwise, let's go build the module
+  let args = generate::args::CliArgs {
+    target: None,
+    opt_level: generate::args::OptimizationLevel::O0,
+    passes: "instcombine,reassociate,gvn,simplifycfg,mem2reg".into(),
+  };
+
+  let program = generate::Program::new(global, args);
+  let compilation = program.compile(lazy)?;
+
+  // Debug the LLVM source
+  compilation.debug();
+  // compilation.optimize();
+
+  // Write out the object file for the global module
+  // TODO: get this from settings
+  let file_type = inkwell::targets::FileType::Object;
+  let object_file = compilation.save_to_file(file_type)?;
+
+  // TODO: find out what needs to be linked
+  let linked = [
+    "c", // libc
+  ];
+
+  // Link the module and write the program to the output file
+  let executable = object_file.link_with(&lazy.settings.output_path, &linked)?;
+
+  // Set the output file's permissions to be executable
+  let perms = std::fs::Permissions::from_mode(0o755);
+  std::fs::set_permissions(executable, perms)
+    .expect("failed to chmod 755 {executable:?}");
+
+  // Stop here if all we wanted was to build
+  if matches!(verb, settings::Verb::Build) {
+    return Ok(ExitCode::SUCCESS);
+  };
+
+  // Otherwise, go run the child program
+  let mut command = std::process::Command::new(executable)
+    // .args(args);
+    .spawn()
+    .expect("to launch {executable:?}");
+
+  // Wait on the child and get an exit status
+  let exit_status = command.wait()
+    .expect("to wait on child process");
+
+  // Print that info and set our own exit code accordingly
+  let exit_code = if exit_status.success() {
+    println!("Program exited successfully");
+    ExitCode::SUCCESS
+  } else if let Some(code) = exit_status.code() {
+    println!("Program exited with status code: {code}");
+    ExitCode::FAILURE
+  } else {
+    println!("Program exited unsuccessfully");
+    ExitCode::FAILURE
+  };
+
+  Ok(exit_code)
 }

@@ -1,3 +1,5 @@
+mod debug;
+
 use std::cell::{Ref, RefCell};
 use std::collections::VecDeque;
 
@@ -30,33 +32,6 @@ impl PoolNode {
       parent,
       tail: false,
     }
-  }
-}
-
-impl std::fmt::Debug for StringPool {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    // find all the tails -- we manage this in the `insert` function, so even
-    // substrings can be identified as distinct from their greater parts
-    let tails = self.nodes.borrow()
-      .iter()
-      .enumerate()
-      .filter_map(|(id, node)| {
-        if node.tail {
-          Some(PoolId(id))
-        } else {
-          None
-        }
-      }).collect::<Vec<_>>();
-
-    // collect the strings so we can display them as if they weren't completely
-    // illegible in the debug format
-    let strings = tails.into_iter()
-      .map(|id| self.get(id).collect())
-      .collect::<Vec<String>>();
-
-    f.debug_struct("StringPool")
-      .field("strings", &strings)
-      .finish()
   }
 }
 

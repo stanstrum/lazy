@@ -73,7 +73,7 @@ impl WithinSource {
 
       assert!(!sources.is_empty());
       let start = sources.first().unwrap().span;
-      let end = sources.first().unwrap().span;
+      let end = sources.last().unwrap().span;
 
       let range = Span::from_pair(start, end);
 

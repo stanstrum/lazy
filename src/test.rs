@@ -90,7 +90,6 @@ fn debug_tokens() {
       other => print!("{other:?}"),
     };
 
-
     if let tokenize::token::Token::Indent(difference) = token {
       print!(" (indent: {})", span.start.indentation);
       indentation += difference;

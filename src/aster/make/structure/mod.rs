@@ -1,6 +1,10 @@
-use crate::error::WithinSource;
-use crate::lang::reference::AliasReference;
+mod import;
+
 use crate::line_dbg;
+use crate::error::WithinSource;
+use crate::string_pool::StringId;
+
+use crate::lang::reference::AliasReference;
 use crate::lang::span::GetSpan;
 use crate::tokenize::token::{Keyword, Operator};
 
@@ -10,6 +14,7 @@ use super::*;
 pub enum Structure {
   Function(lang::reference::FunctionReference),
   TypeAlias(lang::reference::AliasReference),
+  ImportFrom(()),
 }
 
 fn make_type_alias<'pool, const N: usize, T: Read>(
@@ -115,6 +120,10 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
     });
 
     return Ok(Some(Structure::TypeAlias(alias)))
+  };
+
+  if let Some(import) = import::make_import(lazy, stream)? {
+    todo!("{import:#?}")
   };
 
   Ok(None)

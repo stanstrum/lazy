@@ -17,7 +17,24 @@ fn compile_expr<'ctx>(
 
   match comp.lazy.rget(expr) {
     &lang::expr::Expression::Block(block)
-      => compile_block(comp, function, block),
+      => {
+        let value = compile_block(comp, function, block)?;
+
+        let new_block = function.get_last_basic_block()
+          .expect("to have created a BasicBlock");
+
+        let prev_block = new_block.get_previous_basic_block()
+          .expect("to have come from a previous BasicBlock");
+
+        assert!(new_block != prev_block, "previous and current blocks are the same!");
+
+        comp.llvm.builder.position_at_end(prev_block);
+        comp.llvm.builder.build_unconditional_branch(new_block)
+          .expect("to create unconditional branch");
+        comp.llvm.builder.position_at_end(new_block);
+
+        Ok(value)
+      },
     &lang::expr::Expression::Literal { value, ref out, .. }
       => literal::compile_literal(comp, function, value, out),
     lang::expr::Expression::Variable { .. } => todo!(),

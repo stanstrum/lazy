@@ -35,6 +35,22 @@ struct Compilation<'lazy, 'pool, 'llvm> {
   >,
 }
 
+pub(super) struct Program {
+  context: inkwell::context::Context,
+  global: lang::reference::ModuleReference,
+  cli_args: CliArgs,
+}
+
+pub(super) struct ProgramCompilation<'ctx> {
+  program: &'ctx Program,
+  llvm: LLVMContext<'ctx>,
+}
+
+pub(super) struct ProgramObjectFile {
+  target: String,
+  path: tempfile::TempPath,
+}
+
 impl<'lazy, 'pool, 'llvm> Compilation<'lazy, 'pool, 'llvm> {
   fn new(lazy: &'lazy lang::Lazy<'pool>, context: LLVMContext<'llvm>) -> Self {
     Self {
@@ -72,22 +88,6 @@ impl<'lazy, 'pool, 'llvm> Compilation<'lazy, 'pool, 'llvm> {
 
     Ok(function_value)
   }
-}
-
-pub(super) struct Program {
-  context: inkwell::context::Context,
-  global: lang::reference::ModuleReference,
-  cli_args: CliArgs,
-}
-
-pub(super) struct ProgramCompilation<'ctx> {
-  program: &'ctx Program,
-  llvm: LLVMContext<'ctx>,
-}
-
-pub(super) struct ProgramObjectFile {
-  target: String,
-  path: tempfile::TempPath,
 }
 
 impl Program {

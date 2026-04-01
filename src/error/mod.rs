@@ -229,6 +229,12 @@ impl From<crate::generate::Error> for PrintableMessage {
           }]
         )),
       },
+      crate::generate::Error::LLVMError(description) => Self {
+        level: Level::Error,
+        force: true,
+        description,
+        contents: MessageContents::None,
+      },
     }
   }
 }

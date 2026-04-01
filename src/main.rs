@@ -87,6 +87,8 @@ fn error_handler<'lazy, 'pool>(
   let file_type = inkwell::targets::FileType::Object;
   let object_file = compilation.save_to_file(file_type)?;
 
+  debug::object_file(lazy, &object_file);
+
   // TODO: find out what needs to be linked
   let linked = [
     "c", // libc

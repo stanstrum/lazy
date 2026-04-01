@@ -17,6 +17,7 @@ use {args::*, context::*};
 
 #[derive(Debug)]
 pub enum Error {
+  LLVMError(String),
   StillUnresolved {
     what: String,
     note: String,
@@ -25,6 +26,12 @@ pub enum Error {
 }
 
 type Result<T = ()> = std::result::Result<T, Error>;
+
+impl From<inkwell::support::LLVMString> for Error {
+  fn from(value: inkwell::support::LLVMString) -> Self {
+    Self::LLVMError(value.to_string())
+  }
+}
 
 struct Compilation<'lazy, 'pool, 'llvm> {
   lazy: &'lazy lang::Lazy<'pool>,
@@ -47,8 +54,8 @@ pub(super) struct ProgramCompilation<'ctx> {
 }
 
 pub(super) struct ProgramObjectFile {
-  target: String,
-  path: tempfile::TempPath,
+  pub target: String,
+  pub path: tempfile::TempPath,
 }
 
 impl<'lazy, 'pool, 'llvm> Compilation<'lazy, 'pool, 'llvm> {
@@ -130,13 +137,13 @@ impl<'ctx> ProgramCompilation<'ctx> {
 
     let path = file.into_temp_path();
 
-    if let Err(err) = self.llvm.machine.write_to_file(
+    self.llvm.module.verify()?;
+
+    self.llvm.machine.write_to_file(
       &self.llvm.module,
       file_type,
       &path,
-    ) {
-      panic!("LLVM error: {err}");
-    };
+    )?;
 
     let target = self.llvm.machine.get_triple().as_str().to_string_lossy().to_string();
 

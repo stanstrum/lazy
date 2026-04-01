@@ -186,7 +186,7 @@ pub(super) fn verify_block(lazy: &Lazy, block: &BlockReference, ret_ty: Option<&
         irr.coerce(lazy, ret_ty, tasks)?;
       };
 
-      verify_expr(lazy, expr, ret_ty, tasks)?;
+      verify_expr(lazy, expr, None, tasks)?;
     };
 
     Ok(())

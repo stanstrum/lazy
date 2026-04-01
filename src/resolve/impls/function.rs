@@ -1,7 +1,6 @@
 use crate::{print_message, print_once_per_thread};
 
 use crate::resolve::TypePair;
-use crate::lang::ty::{Intrinsic, Type};
 use crate::lang::reference::{FunctionReference, TypeReference};
 
 use super::*;

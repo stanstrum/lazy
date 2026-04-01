@@ -16,25 +16,27 @@ fn compile_expr<'ctx>(
   // comp.llvm.builder.position_at_end(block);
 
   match comp.lazy.rget(expr) {
-    &lang::expr::Expression::Block(block)
-      => {
-        let value = compile_block(comp, function, block)?;
+    &lang::expr::Expression::Block(block) => {
+      let prev_block = comp.llvm.builder.get_insert_block()
+        .expect("to have come from a previous BasicBlock");
 
-        let new_block = function.get_last_basic_block()
-          .expect("to have created a BasicBlock");
+      let value = compile_block(comp, function, block)?;
 
-        let prev_block = new_block.get_previous_basic_block()
-          .expect("to have come from a previous BasicBlock");
+      let continue_position = comp.llvm.builder.get_insert_block()
+        .expect("to be positioned in a BasicBlock");
 
-        assert!(new_block != prev_block, "previous and current blocks are the same!");
+      let after_prev_block = prev_block.get_next_basic_block()
+        .expect("to have created a BasicBlock");
 
-        comp.llvm.builder.position_at_end(prev_block);
-        comp.llvm.builder.build_unconditional_branch(new_block)
-          .expect("to create unconditional branch");
-        comp.llvm.builder.position_at_end(new_block);
+      assert!(prev_block != after_prev_block, "prev_block and after_prev_block are the same!");
 
-        Ok(value)
-      },
+      comp.llvm.builder.position_at_end(prev_block);
+      comp.llvm.builder.build_unconditional_branch(after_prev_block)
+        .expect("to create unconditional branch");
+      comp.llvm.builder.position_at_end(continue_position);
+
+      Ok(value)
+    },
     &lang::expr::Expression::Literal { value, ref out, .. }
       => literal::compile_literal(comp, function, value, out),
     lang::expr::Expression::Variable { .. } => todo!(),

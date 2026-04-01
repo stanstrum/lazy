@@ -108,13 +108,16 @@ fn error_handler<'lazy, 'pool>(
   };
 
   // Otherwise, go run the child program
-  let mut command = std::process::Command::new(executable)
+  let mut command = std::process::Command::new(executable);
+  debug::subprocess_command(lazy, &command);
+
+  let mut child = command
     // .args(args);
     .spawn()
     .expect("to launch {executable:?}");
 
   // Wait on the child and get an exit status
-  let exit_status = command.wait()
+  let exit_status = child.wait()
     .expect("to wait on child process");
 
   // Print that info and set our own exit code accordingly

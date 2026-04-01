@@ -1,3 +1,5 @@
+use std::process::Command;
+
 use crate::print_message;
 
 use crate::aster::pprint::Pretty;
@@ -67,7 +69,7 @@ pub(super) fn object_file(lazy: &Lazy, object_file: &ProgramObjectFile) {
     .stdout(std::process::Stdio::piped())
     .stderr(std::process::Stdio::piped());
 
-  let command_text = format!("{command:?}");
+  let command_text = format!("Running `{command:?}`");
 
   let output = command.spawn()
     .expect("to spawn stat subprocess")
@@ -75,11 +77,9 @@ pub(super) fn object_file(lazy: &Lazy, object_file: &ProgramObjectFile) {
     .expect("to wait for stat subprocess");
 
   let stdout = std::str::from_utf8(&output.stdout)
-    .expect("to parse stdout")
-    .trim();
+    .expect("to parse stdout");
   let stderr = std::str::from_utf8(&output.stderr)
-    .expect("to parse stderr")
-    .trim();
+    .expect("to parse stderr");
 
   let exit_status = if output.status.success() {
     "stat exited successfully."
@@ -90,9 +90,7 @@ pub(super) fn object_file(lazy: &Lazy, object_file: &ProgramObjectFile) {
   };
 
   if !stderr.is_empty() {
-    let description = indent(stderr, ERROR_PAD_LEN)
-      .trim_start()
-      .to_owned();
+    let description = indent(stderr, ERROR_PAD_LEN);
 
     print_message!(lazy, {
       level: Level::Error,
@@ -111,6 +109,18 @@ pub(super) fn object_file(lazy: &Lazy, object_file: &ProgramObjectFile) {
   let description = indent(&altogether, DEBUG_PAD_LEN)
     .trim_start()
     .to_owned();
+
+  print_message!(lazy, {
+    level: Level::Debug,
+    force: false,
+    description,
+    contents: MessageContents::None,
+  });
+}
+
+pub(super) fn subprocess_command(lazy: &Lazy, command: &Command) {
+  let command_text = format!("{command:?}");
+  let description = format!("Running `{command_text}`");
 
   print_message!(lazy, {
     level: Level::Debug,

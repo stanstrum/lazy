@@ -63,8 +63,8 @@ fn verify_variable(lazy: &Lazy, variable: VariableReference, tasks: &mut Tasks) 
     )
   };
 
-  tasks.work(description, |_| {
-    ty::verify_typeof(lazy, &TypeReference::Variable(variable))
+  tasks.work(description, |tasks| {
+    ty::verify_typeof(lazy, &TypeReference::Variable(variable), tasks)
   })
 }
 
@@ -286,10 +286,10 @@ impl Resolve for ExpressionReference {
             };
           };
 
-          Err(Box::new(Error::UnknownTypeName {
+          tasks.seed_error(ErrorBase::UnknownTypeName {
             module_name: lazy.describe_module(self.0.0.rget_from(lazy).parent),
             span: borrow.get_span(lazy),
-          }))
+          })
         },
         _ => todo!("{borrow:?}\n{}", borrow.print_with(lazy.rget(self.0.0), lazy).collect::<Vec<_>>().join("\n")),
       }
@@ -307,17 +307,17 @@ fn verify_expr(lazy: &Lazy, expr: ExpressionReference, ret_ty: Option<&TypePair>
 
   tasks.work(description, |tasks| match lazy.rget(expr) {
     Expression::Block(block) => verify_block(lazy, block, ret_ty, tasks),
-    Expression::Literal { out, .. } => ty::verify_type(lazy, out),
+    Expression::Literal { out, .. } => ty::verify_type(lazy, out, tasks),
     Expression::Variable { reference, .. } => verify_variable(lazy, *reference, tasks),
     Expression::Unknown { qualified, .. } => {
       // SPONGE: there must be a better way.
       let module = lazy.rget(expr.0.0).parent;
       let module_name = lazy.describe_module(module);
 
-      Err(Box::new(Error::UnknownTypeName {
+      tasks.seed_error(ErrorBase::UnknownTypeName {
         module_name,
         span: qualified.span,
-      }))
+      })
     },
     Expression::Unary { .. } => todo!(),
     Expression::Binary {

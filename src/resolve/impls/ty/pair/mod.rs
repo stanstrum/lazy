@@ -38,7 +38,7 @@ impl Resolve for TypePair {
     tasks.work(description, |tasks| {
       match &self.ty {
         Type::Unresolved { module, qualified } => {
-          if let Some(ty) = unknown::resolve_qualified_to_type(lazy, *module, qualified)? {
+          if let Some(ty) = unknown::resolve_qualified_to_type(lazy, *module, qualified, tasks)? {
             tasks.push(tasks::Subjugate {
               prerequisite: Box::new(tasks::OverwriteType {
                 dest: self.clone().into(),
@@ -298,7 +298,7 @@ impl Coerce for TypePair {
             }, tasks)
           },
           (a, b) => {
-            #[cfg(debug_assertions)] dbg!(a, b);
+            // #[cfg(debug_assertions)] dbg!(a, b);
 
             if
               let Some(a) = self.dereference(lazy, false)? &&
@@ -307,13 +307,13 @@ impl Coerce for TypePair {
               return a.coerce(lazy, &b, tasks);
             };
 
-            Err(Box::new(Error::TypeMismatch {
+            tasks.seed_error(ErrorBase::TypeMismatch {
               whence: line_dbg!(""),
               a_print: a.print(lazy),
               a_span: a.get_span(lazy),
               b_print: b.print(lazy),
               b_span: b.get_span(lazy),
-            }))
+            })
           },
         }
       }

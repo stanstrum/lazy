@@ -20,7 +20,7 @@ pub(in crate::resolve) fn verify_function(lazy: &Lazy, function: &FunctionRefere
     let ret_ty_pair = tasks.work(line_dbg!("verify return type").into(),
     |tasks| -> Result<TypePair> {
         let ret_ty = &borrow.header.ret_ty;
-        ty::verify_type(lazy, ret_ty)?;
+        ty::verify_type(lazy, ret_ty, tasks)?;
 
         // set up some perfunctory data to coerce return type to i32
         // TODO: eventually just coerce main as fn(...) -> ...
@@ -43,7 +43,7 @@ pub(in crate::resolve) fn verify_function(lazy: &Lazy, function: &FunctionRefere
 
     // verify argument types
     for argument in borrow.header.arguments.iter() {
-      ty::verify_type(lazy, &argument.ty)?;
+      ty::verify_type(lazy, &argument.ty, tasks)?;
     };
 
     {

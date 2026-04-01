@@ -140,4 +140,13 @@ impl Tasks {
 
     out
   }
+
+  pub fn seed_error<T>(&self, base: ErrorBase) -> Result<T> {
+    let call_stack = format!("Call Stack:\n{}", self.explain(4));
+
+    Err(Box::new(Error {
+      base,
+      call_stack,
+    }))
+  }
 }

@@ -12,7 +12,7 @@ use crate::lang::span::GetSpan;
 use crate::lang::reference::{Reference, Store};
 use crate::resolve::{Coerce, Resolve, TypeOf};
 
-use super::{Lazy, Result, Error, Tasks};
+use super::{Lazy, Result, Error, ErrorBase, Tasks};
 
 #[macro_export]
 macro_rules! print_once_per_thread {

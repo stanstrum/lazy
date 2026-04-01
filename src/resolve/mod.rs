@@ -16,7 +16,7 @@ use tasks::Tasks;
 type Result<T> = std::result::Result<T, Box<Error>>;
 
 #[derive(Debug)]
-pub enum Error {
+pub enum ErrorBase {
   MissingEntryPoint {
     module_name: String,
     file: ModuleReference,
@@ -36,6 +36,12 @@ pub enum Error {
     what: String,
     span: Span,
   },
+}
+
+#[derive(Debug)]
+pub struct Error {
+  pub base: ErrorBase,
+  pub call_stack: String,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -86,26 +92,26 @@ impl TypePair {
 //   }
 // }
 
-fn find_main(lazy: &Lazy, module: ModuleReference) -> Result<FunctionReference> {
+fn find_main(lazy: &Lazy, module: ModuleReference, tasks: &mut Tasks) -> Result<FunctionReference> {
   let main_search = {
     let main_id = lazy.pool.insert("main");
 
     module.rget_from(lazy)
-    .functions.iter()
-    .find(|&function| {
-      function.rget_from(lazy)
-        .header.name.id == main_id
-    })
+      .functions.iter()
+      .find(|&function| {
+        function.rget_from(lazy)
+          .header.name.id == main_id
+      })
   };
 
   let Some(main) = main_search else {
     let root = lazy.get_root_module(module);
     let module_name = lazy.describe_module(root);
 
-    return Err(Box::new(Error::MissingEntryPoint {
+    return tasks.seed_error(ErrorBase::MissingEntryPoint {
       module_name,
       file: module,
-    }));
+    });
   };
 
   {
@@ -152,7 +158,7 @@ pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()
   tasks.work::<Result<()>>(
     line_dbg!("Verify global").into(),
     |tasks| {
-      let _main = find_main(lazy, module)?;
+      let _main = find_main(lazy, module, tasks)?;
 
       // impls::function::verify_function(lazy, main, tasks)?;
       impls::structure::verify_module(lazy, &module, tasks)?;

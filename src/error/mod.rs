@@ -146,8 +146,10 @@ impl From<crate::aster::Error> for PrintableMessage {
 
 impl From<Box<crate::resolve::Error>> for PrintableMessage {
   fn from(value: Box<crate::resolve::Error>) -> Self {
-    match *value {
-      crate::resolve::Error::UnknownTypeName { module_name, span } => Self {
+    println!("{}", value.call_stack);
+
+    match value.base {
+      crate::resolve::ErrorBase::UnknownTypeName { module_name, span } => Self {
         level: Level::Error,
         force: true,
         description: format!(line_dbg!("unknown type name in {}"), module_name),
@@ -159,13 +161,13 @@ impl From<Box<crate::resolve::Error>> for PrintableMessage {
           }],
         }]),
       },
-      crate::resolve::Error::MissingEntryPoint { module_name, file } => Self {
+      crate::resolve::ErrorBase::MissingEntryPoint { module_name, file } => Self {
         level: Level::Error,
         force: true,
         description: format!(line_dbg!("{:?} is missing an entry point!"), module_name),
         contents: MessageContents::File(file),
       },
-      crate::resolve::Error::TypeMismatch {
+      crate::resolve::ErrorBase::TypeMismatch {
         whence,
         a_print, a_span,
         b_print, b_span,
@@ -195,7 +197,7 @@ impl From<Box<crate::resolve::Error>> for PrintableMessage {
           contents: MessageContents::WithinSource(within_sources),
         }
       },
-      crate::resolve::Error::UnresolvedInVerify { what, span } => Self {
+      crate::resolve::ErrorBase::UnresolvedInVerify { what, span } => Self {
         level: Level::Error,
         force: true,
         description: format!(line_dbg!("verify error: {} is not resolved"), what),

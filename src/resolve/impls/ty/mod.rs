@@ -160,35 +160,39 @@ impl Coerce for TypeReference {
   }
 }
 
-pub(super) fn verify_typeof(lazy: &Lazy, ty: &(impl TypeOf + GetSpan + Pretty<Out = String>)) -> Result<()> {
+pub(super) fn verify_typeof(
+  lazy: &Lazy,
+  ty: &(impl TypeOf + GetSpan + Pretty<Out = String>),
+  tasks: &mut Tasks,
+) -> Result<()> {
   let Some(ty) = ty.type_of(lazy) else {
-    return Err(Box::new(Error::UnresolvedInVerify {
+    return tasks.seed_error(ErrorBase::UnresolvedInVerify {
       what: ty.print(lazy),
       span: ty.get_span(lazy),
-    }));
+    });
   };
 
-  verify_type(lazy, &ty)
+  verify_type(lazy, &ty, tasks)
 }
 
-pub(super) fn verify_type(lazy: &Lazy, ty: &Type) -> Result<()> {
+pub(super) fn verify_type(lazy: &Lazy, ty: &Type, tasks: &mut Tasks) -> Result<()> {
   match ty {
-    Type::Reference(type_reference) => verify_typeof(lazy, type_reference),
+    Type::Reference(type_reference) => verify_typeof(lazy, type_reference, tasks),
 
     | Type::Resolved { part: ty, .. }
     | Type::ReferenceTo { ty, .. }
     | Type::UnsizedArrayOf { ty, .. }
-    | Type::SizedArrayOf { ty, .. } => verify_type(lazy, ty.rget_from(lazy)),
+    | Type::SizedArrayOf { ty, .. } => verify_type(lazy, ty.rget_from(lazy), tasks),
 
     | &Type::Unresolved { qualified: Qualified { span, .. }, .. }
     | &Type::WeakInteger { span, .. }
     | &Type::WeakFloat { span, .. }
     | &Type::WeakString { span, .. }
     | &Type::Weak { span, .. }
-      => Err(Box::new(Error::UnresolvedInVerify {
+      => tasks.seed_error(ErrorBase::UnresolvedInVerify {
         what: ty.print(lazy),
         span,
-      })),
+      }),
     Type::Intrinsic { .. } => Ok(()),
   }
 }

@@ -3,7 +3,12 @@ use super::*;
 use crate::lang::ty::{Qualified, QualifiedSearchSpace};
 use crate::lang::reference::{AliasReference, ModuleReference};
 
-pub(super) fn resolve_qualified_to_type(lazy: &Lazy, module: ModuleReference, qualified: &Qualified) -> Result<Option<Type>> {
+pub(super) fn resolve_qualified_to_type(
+  lazy: &Lazy,
+  module: ModuleReference,
+  qualified: &Qualified,
+  tasks: &mut Tasks,
+) -> Result<Option<Type>> {
   let mut space = qualified.implicit.to_owned();
 
   for (count, part) in qualified.parts.iter().enumerate() {
@@ -36,10 +41,10 @@ pub(super) fn resolve_qualified_to_type(lazy: &Lazy, module: ModuleReference, qu
       other => todo!("{other:?}"),
     };
 
-    return Err(Box::new(Error::UnknownTypeName {
+    return tasks.seed_error(ErrorBase::UnknownTypeName {
       module_name: lazy.describe_module(module),
       span: qualified.span,
-    }))
+    })
   };
 
   Ok(match space {

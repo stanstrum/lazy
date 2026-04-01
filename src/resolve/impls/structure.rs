@@ -70,7 +70,7 @@ impl Resolve for FunctionReference {
 
 fn verify_alias(lazy: &Lazy, alias: &AliasReference, tasks: &mut Tasks) -> Result<()> {
   let ty = Type::Reference(TypeReference::Alias(*alias));
-  verify_typeof(lazy, &ty)
+  verify_typeof(lazy, &ty, tasks)
 }
 
 pub(in crate::resolve) fn verify_module(lazy: &Lazy, module: &ModuleReference, tasks: &mut Tasks) -> Result<()> {

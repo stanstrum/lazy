@@ -9,6 +9,7 @@ pub(super) enum LazyType<'ctx> {
   Void(inkwell::types::VoidType<'ctx>),
   Int(inkwell::types::IntType<'ctx>),
   Float(inkwell::types::FloatType<'ctx>),
+  Pointer(inkwell::types::PointerType<'ctx>),
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -70,7 +71,11 @@ pub(super) fn make_type<'ctx>(comp: &Compilation<'_, '_, 'ctx>, t: &impl TypeOf)
     lang::ty::Type::Reference(_) => todo!(),
     lang::ty::Type::Resolved { .. } => todo!(),
     lang::ty::Type::Intrinsic { kind, .. } => Ok(make_intrinsic_type(comp, kind)),
-    lang::ty::Type::ReferenceTo { .. } => todo!(),
+    lang::ty::Type::ReferenceTo { .. } => {
+      Ok(LazyType::Pointer(
+        comp.llvm.context.ptr_type(Default::default())
+      ))
+    },
     lang::ty::Type::UnsizedArrayOf { .. } => todo!(),
     lang::ty::Type::SizedArrayOf { .. } => todo!(),
 

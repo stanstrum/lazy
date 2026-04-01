@@ -122,11 +122,9 @@ impl Coerce for TypePair {
           Type::Intrinsic { kind, .. },
         ) if !matches!(kind, Intrinsic::Bool | Intrinsic::Void) => {
           tasks.push(tasks::OverwriteType {
-            dest: dbg!(self.clone().into()),
+            dest: self.clone().into(),
             src: other,
           }, line_dbg!("here"));
-
-          dbg!("HERE");
 
           Ok(())
         },

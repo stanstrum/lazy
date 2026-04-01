@@ -1,3 +1,4 @@
+use crate::print_once_per_thread;
 use crate::tokenize::token::{GroupingKind, GroupingType, Keyword, Operator};
 use crate::lang::expr::operator::{BinaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 
@@ -93,14 +94,17 @@ pub(super) fn make_unary_suffix<'pool, const N: usize, T: Read>(
     return Ok(Some((UnarySuffixOperator::PostDecrement, span)));
   };
 
-  unsafe {
-    static mut DID_PRINT: bool = false;
-
-    if !DID_PRINT {
-      eprintln!(line_dbg!("stub: parse cast"));
-      DID_PRINT = true;
-    };
-  };
+  print_once_per_thread!(lazy, {
+    level: Level::Stub,
+    force: false,
+    description: line_dbg!("parse cast").into(),
+    contents: MessageContents::WithinSource(WithinSource::new(
+      vec![MessageSection {
+        text: "here".into(),
+        span: stream.here()?,
+      }]
+    )),
+  });
 
   if let Some((Token::Grouping(GroupingType::Open(GroupingKind::Parenthesis)), mut span)) = stream.peek()? {
     stream.seek();

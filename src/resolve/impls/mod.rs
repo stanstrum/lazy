@@ -12,11 +12,19 @@ use crate::lang::span::GetSpan;
 use crate::lang::reference::{Reference, Store};
 use crate::resolve::{Coerce, Resolve, TypeOf};
 
-use super::{Lazy, Result, Error, ErrorBase, Tasks};
+use super::{Lazy, Result, ErrorBase, Tasks};
+
+#[macro_export]
+macro_rules! print_message {
+  ($lazy:expr, $x:tt) => {
+    use $crate::error::*;
+    print_message($lazy, PrintableMessage $x);
+  }
+}
 
 #[macro_export]
 macro_rules! print_once_per_thread {
-  ($lazy:ident, $x:tt) => {
+  ($lazy:expr, $x:tt) => {
     let should_print = unsafe {
       static mut DID_RUN: bool = false;
 
@@ -27,8 +35,8 @@ macro_rules! print_once_per_thread {
     };
 
     if should_print {
-      use $crate::error::*;
-      print_message($lazy, PrintableMessage $x);
+      use $crate::print_message;
+      print_message!($lazy, $x);
     };
   };
 }

@@ -2,7 +2,7 @@ mod impls;
 pub mod tasks;
 
 use crate::lang::reference::FunctionReference;
-use crate::line_dbg;
+use crate::{print_message, line_dbg};
 use crate::error::*;
 
 use crate::resolve::tasks::OverwriteTypeReference;
@@ -163,7 +163,12 @@ pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()
       // impls::function::verify_function(lazy, main, tasks)?;
       impls::structure::verify_module(lazy, &module, tasks)?;
 
-      println!(line_dbg!("stub: verify rest of program, apart from main"));
+      print_message!(lazy, {
+        level: Level::Stub,
+        force: false,
+        description: line_dbg!("verify rest of program, apart from main").into(),
+        contents: MessageContents::File(module),
+      });
 
       Ok(())
     },

@@ -93,6 +93,7 @@ pub fn print_message(lazy: &Lazy, message: PrintableMessage) {
     MessageContents::File(module) => {
       print_partial_section_header(&mut out, lazy, module);
     },
+    MessageContents::None => {},
   };
 
   let out = std::str::from_utf8(&out).expect("output parsed as utf-8");

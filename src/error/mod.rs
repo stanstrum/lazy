@@ -16,6 +16,7 @@ pub use print::print_message;
 #[allow(unused)]
 pub enum Level {
   Debug,
+  Stub,
   Info,
   Warn,
   Error,
@@ -39,6 +40,7 @@ pub struct WithinSource {
 pub enum MessageContents {
   WithinSource(Vec<WithinSource>),
   File(ModuleReference),
+  None,
 }
 
 #[derive(Debug)]
@@ -50,9 +52,10 @@ pub struct MessageSection {
 impl std::fmt::Display for Level {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     f.write_str(match self {
-      Level::Debug => concat!(colorize!(7), colorize!(3), "debug", colorize!(0)),
-      Level::Info => concat!(colorize!(7), colorize!(92), "info", colorize!(0)),
-      Level::Warn => concat!(colorize!(7), colorize!(93), "warn", colorize!(0)),
+      Level::Debug => concat!(              colorize!(36), "debug", colorize!(0)),
+      Level::Stub =>  concat!(colorize!(7), colorize!(3),  "stub" , colorize!(0)),
+      Level::Info =>  concat!(colorize!(7), colorize!(92), "info" , colorize!(0)),
+      Level::Warn =>  concat!(colorize!(7), colorize!(93), "warn" , colorize!(0)),
       Level::Error => concat!(colorize!(7), colorize!(91), "error", colorize!(0)),
     })
   }

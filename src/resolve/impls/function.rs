@@ -1,4 +1,4 @@
-use crate::print_once_per_thread;
+use crate::{print_message, print_once_per_thread};
 
 use crate::resolve::TypePair;
 use crate::lang::ty::{Intrinsic, Type};
@@ -27,9 +27,22 @@ pub(in crate::resolve) fn verify_function(lazy: &Lazy, function: &FunctionRefere
         let ret_ty_pair = TypePair::new(ret_ty_reference, ret_ty.clone());
         {
           let ret_ty = &borrow.header.ret_ty;
-
-          #[cfg(debug_assertions)] dbg!(ret_ty);
           let span = ret_ty.get_span(lazy);
+
+          print_message!(lazy, {
+            level: Level::Debug,
+            force: false,
+            description: format!(line_dbg!("{reference} is {ty}"),
+              reference = ret_ty_reference.print(lazy),
+              ty = ret_ty.print(lazy),
+            ),
+            contents: MessageContents::WithinSource(WithinSource::new(vec![
+              MessageSection {
+                text: "here".into(),
+                span,
+              }
+            ])),
+          });
 
           ret_ty_pair.coerce(lazy, &Type::Intrinsic {
             kind: Intrinsic::I32,
@@ -50,9 +63,9 @@ pub(in crate::resolve) fn verify_function(lazy: &Lazy, function: &FunctionRefere
       let root = lazy.get_root_module(borrow.parent);
 
       print_once_per_thread!(lazy, {
-        level: Level::Debug,
+        level: Level::Stub,
         force: false,
-        description: line_dbg!("stub: verify that main arguments match expected function signature").into(),
+        description: line_dbg!("verify that main arguments match expected function signature").into(),
         contents: MessageContents::File(root),
       });
     };

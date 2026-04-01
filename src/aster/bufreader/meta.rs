@@ -39,7 +39,7 @@ impl Metadata {
     };
 
     if self.reading_whitespace {
-      if matches!(ch, ' ' | '\n') {
+      if matches!(ch, ' ' | '\t') {
         self.whitespace += 1;
       } else {
         self.reading_whitespace = false;

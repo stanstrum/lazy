@@ -184,7 +184,6 @@ impl ProgramObjectFile {
       .target(&self.target)
       .host(&self.target)
       .opt_level_str("2")
-      .env("LC_ALL", "C")
       .cargo_debug(false)
       .cargo_metadata(false)
       .cargo_output(false)

@@ -23,7 +23,7 @@ impl TypeOf for TypePair {
     self.ty.type_of(lazy)
   }
 
-  fn reference(&self, lazy: &Lazy) -> Option<OverwriteTypeReference> {
+  fn reference(&self, _lazy: &Lazy) -> Option<OverwriteTypeReference> {
     Some(self.clone().into())
   }
 }
@@ -106,7 +106,7 @@ impl TypeOf for OverwriteTypeReference {
     Some(ty)
   }
 
-  fn reference(&self, lazy: &Lazy) -> Option<OverwriteTypeReference> {
+  fn reference(&self, _lazy: &Lazy) -> Option<OverwriteTypeReference> {
     todo!()
   }
 }

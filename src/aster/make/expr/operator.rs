@@ -168,10 +168,10 @@ pub(super) fn make_unary_suffix<'pool, const N: usize, T: Read>(
 // }
 
 pub(super) fn make_binary_op<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  _lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  module: lang::reference::ModuleReference,
-  function: lang::reference::FunctionReference,
+  _module: lang::reference::ModuleReference,
+  _function: lang::reference::FunctionReference,
 ) -> Result<Option<(BinaryOperator, Span)>, Error> {
   let Some((Token::Operator(token), mut span)) = stream.peek()? else {
     return Ok(None);

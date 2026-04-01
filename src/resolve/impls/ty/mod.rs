@@ -84,7 +84,7 @@ impl TypeOf for Type {
     }
   }
 
-  fn reference(&self, lazy: &Lazy) -> Option<OverwriteTypeReference> {
+  fn reference(&self, _lazy: &Lazy) -> Option<OverwriteTypeReference> {
     match dbg!(self) {
       &Type::Reference(type_reference) => Some(type_reference.into()),
       &Type::Resolved { part, .. } => Some(TypeReference::Part(part).into()),
@@ -106,7 +106,7 @@ impl TypeOf for TypeReference {
     self.rget_from(lazy).type_of(lazy)
   }
 
-  fn reference(&self, lazy: &Lazy) -> Option<OverwriteTypeReference> {
+  fn reference(&self, _lazy: &Lazy) -> Option<OverwriteTypeReference> {
     Some((*self).into())
   }
 }

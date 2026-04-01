@@ -4,7 +4,7 @@ use super::*;
 
 pub(super) fn compile_literal<'ctx>(
   comp: &mut Compilation<'_, '_, 'ctx>,
-  function: inkwell::values::FunctionValue<'ctx>,
+  _function: inkwell::values::FunctionValue<'ctx>,
   kind: lang::expr::LiteralKind,
   out: &lang::ty::Type,
 ) -> Result<LazyValue<'ctx>> {

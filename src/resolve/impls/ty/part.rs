@@ -7,7 +7,7 @@ impl TypeOf for TypePartReference {
     self.rget_from(lazy).type_of(lazy)
   }
 
-  fn reference(&self, lazy: &Lazy) -> Option<OverwriteTypeReference> {
+  fn reference(&self, _lazy: &Lazy) -> Option<OverwriteTypeReference> {
     Some(TypeReference::Part(*self).into())
   }
 }

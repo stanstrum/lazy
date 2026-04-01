@@ -13,7 +13,7 @@ impl TypeOf for VariableReference {
     TypeReference::Variable(*self).type_of(lazy)
   }
 
-  fn reference(&self, lazy: &Lazy) -> Option<OverwriteTypeReference> {
+  fn reference(&self, _lazy: &Lazy) -> Option<OverwriteTypeReference> {
     Some(TypeReference::Variable(*self).into())
   }
 }
@@ -88,7 +88,7 @@ impl TypeOf for ExpressionReference {
     }
   }
 
-  fn reference(&self, lazy: &Lazy) -> Option<OverwriteTypeReference> {
+  fn reference(&self, _lazy: &Lazy) -> Option<OverwriteTypeReference> {
     Some(TypeReference::Expression(*self).into())
   }
 }
@@ -126,7 +126,7 @@ impl TypeOf for BlockReference {
     OverwriteTypeReference::from(TypePair::new(reference, ty.clone())).type_of(lazy)
   }
 
-  fn reference(&self, lazy: &Lazy) -> Option<OverwriteTypeReference> {
+  fn reference(&self, _lazy: &Lazy) -> Option<OverwriteTypeReference> {
     Some(TypeReference::Block(*self).into())
   }
 }

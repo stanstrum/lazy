@@ -37,7 +37,7 @@ impl<'a> Lazy<'a> {
     };
 
     let argv = lazy.settings.argv.iter()
-      .map(|arg| format_argument(&arg))
+      .map(|arg| format_argument(arg))
       .collect::<Vec<_>>()
       .join(" ");
 

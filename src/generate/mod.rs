@@ -5,7 +5,7 @@ mod compile;
 mod types;
 
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use crate::lang;
 use crate::lang::span::GetSpan;
@@ -88,10 +88,6 @@ pub(super) struct ProgramCompilation<'ctx> {
 pub(super) struct ProgramObjectFile {
   target: String,
   path: tempfile::TempPath,
-}
-
-pub(super) struct ProgramExecutable {
-  path: PathBuf,
 }
 
 impl Program {

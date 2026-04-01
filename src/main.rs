@@ -17,10 +17,8 @@ use std::process::ExitCode;
 
 use lang::Lazy;
 
-use crate::lang::reference::{ModuleReference, Store};
+use crate::lang::reference::ModuleReference;
 use crate::string_pool::StringPool;
-
-use crate::aster::pprint::Pretty;
 
 fn main() -> ExitCode {
   let args = std::env::args();

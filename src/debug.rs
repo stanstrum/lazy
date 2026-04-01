@@ -123,7 +123,7 @@ pub(super) fn subprocess_command(lazy: &Lazy, command: &Command) {
   let description = format!("Running `{command_text}`");
 
   print_message!(lazy, {
-    level: Level::Debug,
+    level: Level::Info,
     force: false,
     description,
     contents: MessageContents::None,

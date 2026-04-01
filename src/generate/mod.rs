@@ -7,7 +7,7 @@ mod types;
 use std::collections::HashMap;
 use std::path::Path;
 
-use crate::lang;
+use crate::{lang, line_dbg, print_message};
 use crate::lang::span::GetSpan;
 use crate::lang::reference::{Reference, Store};
 use crate::resolve::TypeOf;
@@ -157,8 +157,15 @@ impl<'ctx> ProgramCompilation<'ctx> {
     self.llvm.dump_module()
   }
 
-  pub(super) fn optimize(&mut self) {
-    self.llvm.run_passes(&self.program.cli_args.passes);
+  pub(super) fn optimize(&self, lazy: &lang::Lazy) -> Result {
+    print_message!(lazy, {
+      level: Level::Info,
+      force: false,
+      description: line_dbg!("Optimizing LLVM code").into(),
+      contents: MessageContents::None,
+    });
+
+    self.llvm.run_passes(&self.program.cli_args.passes)
   }
 }
 

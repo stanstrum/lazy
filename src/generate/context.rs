@@ -1,3 +1,5 @@
+use super::Result;
+
 use crate::generate::args::CliArgs;
 
 pub(super) struct LLVMContext<'ctx> {
@@ -73,7 +75,7 @@ impl<'ctx> LLVMContext<'ctx> {
   // }
 
   /// Optimization passes
-  pub fn run_passes(&self, passes: &str) {
+  pub fn run_passes(&self, passes: &str) -> Result {
     if !passes.is_empty() {
       let pass_options = inkwell::passes::PassBuilderOptions::create();
 
@@ -81,9 +83,9 @@ impl<'ctx> LLVMContext<'ctx> {
       pass_options.set_verify_each(true);
       pass_options.set_debug_logging(false);
 
-      self.module
-        .run_passes(passes, &self.machine, pass_options)
-        .unwrap();
-    }
+      self.module.run_passes(passes, &self.machine, pass_options)?;
+    };
+
+    Ok(())
   }
 }

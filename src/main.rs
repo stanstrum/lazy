@@ -79,8 +79,9 @@ fn error_handler<'lazy, 'pool>(
   // Debug the LLVM source
   debug::llvm_source(lazy, &compilation);
 
-  // // Optimize the IR
-  // compilation.optimize();
+  // Optimize the IR
+  compilation.optimize(lazy)?;
+  debug::llvm_source(lazy, &compilation);
 
   // Write out the object file for the global module
   // TODO: get this from settings
@@ -121,16 +122,29 @@ fn error_handler<'lazy, 'pool>(
     .expect("to wait on child process");
 
   // Print that info and set our own exit code accordingly
-  let exit_code = if exit_status.success() {
-    println!("Program exited successfully.");
-    ExitCode::SUCCESS
+  let (exit_code, level, message) = if exit_status.success() {
+    (
+      ExitCode::SUCCESS, error::Level::Info,
+      "Program exited successfully.".into(),
+    )
   } else if let Some(code) = exit_status.code() {
-    println!("Program exited with status code {code}.");
-    ExitCode::FAILURE
+    (
+      ExitCode::FAILURE, error::Level::Error,
+      format!("Program exited with status code {code}."),
+    )
   } else {
-    println!("Program exited unsuccessfully.");
-    ExitCode::FAILURE
+    (
+      ExitCode::FAILURE, error::Level::Error,
+      "Program exited unsuccessfully.".into(),
+    )
   };
+
+  print_message!(lazy, {
+    level,
+    force: false,
+    description: message,
+    contents: MessageContents::None,
+  });
 
   Ok(exit_code)
 }

@@ -217,7 +217,10 @@ pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()
     description: line_dbg!("No further work should be done.").into(),
     contents: MessageContents::None,
   });
-  assert!(!tasks.execute_pass(lazy)?);
+  assert!(
+    !tasks.execute_pass(lazy)?,
+    "verifying should not have queued any more work",
+  );
 
   Ok(())
 }

@@ -182,11 +182,14 @@ pub(super) fn verify_block(lazy: &Lazy, block: &BlockReference, ret_ty: Option<&
 
       let irr = TypePair::new(irr_reference, irr_ty.clone());
 
-      if is_last(id) && let Some(ret_ty) = ret_ty {
+      let ret_ty = if is_last(id) && let Some(ret_ty) = ret_ty {
         irr.coerce(lazy, ret_ty, tasks)?;
+        Some(ret_ty)
+      } else {
+        None
       };
 
-      verify_expr(lazy, expr, None, tasks)?;
+      verify_expr(lazy, expr, ret_ty, tasks)?;
     };
 
     Ok(())

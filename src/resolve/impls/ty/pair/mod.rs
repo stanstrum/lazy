@@ -81,50 +81,6 @@ impl Resolve for TypePair {
   }
 }
 
-impl TypeOf for OverwriteTypeReference {
-  fn type_of(&self, lazy: &Lazy) -> Option<Type> {
-    let mut ty = self.reference.rget_from(lazy).to_owned();
-
-    for modifier in self.modifiers.iter() {
-      match modifier {
-        TypePairModifier::Dereference => match ty {
-          Type::Reference(_) => todo!(),
-          Type::Resolved { .. } => todo!(),
-          Type::Unresolved { .. } => todo!(),
-          Type::Intrinsic { .. } => todo!(),
-          Type::WeakInteger { .. } => todo!(),
-          Type::WeakFloat { .. } => todo!(),
-          Type::WeakString { .. } => todo!(),
-          Type::Weak { .. } => todo!(),
-          Type::ReferenceTo { .. } => todo!(),
-          Type::UnsizedArrayOf { .. } => todo!(),
-          Type::SizedArrayOf { .. } => todo!(),
-        },
-      }
-    };
-
-    Some(ty)
-  }
-
-  fn reference(&self, _lazy: &Lazy) -> Option<OverwriteTypeReference> {
-    todo!()
-  }
-}
-
-impl Coerce for OverwriteTypeReference {
-  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
-    let Some(ty) = self.type_of(lazy) else {
-      return Ok(());
-    };
-
-    TypePair {
-      reference: self.reference,
-      modifiers: self.modifiers.clone(),
-      ty,
-    }.coerce(lazy, other, tasks)
-  }
-}
-
 impl Coerce for TypePair {
   fn coerce(&self, lazy: &Lazy, other_ref: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
     let a = self.reference.print(lazy);
@@ -140,183 +96,183 @@ impl Coerce for TypePair {
     );
 
     tasks.work(description, |tasks| {
-        // println!(line_dbg!("here:\n{}"), tasks.explain(2));
+      // println!(line_dbg!("here:\n{}"), tasks.explain(2));
 
-        let Some(other) = other_ref.type_of(lazy) else {
-          return Ok(());
-        };
+      let Some(other) = other_ref.type_of(lazy) else {
+        return Ok(());
+      };
 
-        // println!(
-        //   line_dbg!("TypePair({}, {}) coerced by {}"),
-        //   self.0.print(lazy),
-        //   self.1.print(lazy),
-        //   other.print(lazy),
-        // );
+      // println!(
+      //   line_dbg!("TypePair({}, {}) coerced by {}"),
+      //   self.0.print(lazy),
+      //   self.1.print(lazy),
+      //   other.print(lazy),
+      // );
 
-        match (&self.ty, &other) {
-          (Type::Intrinsic { kind: kind_a, .. }, Type::Intrinsic { kind: kind_b, .. })
-            if kind_a == kind_b
+      match (&self.ty, &other) {
+        (Type::Intrinsic { kind: kind_a, .. }, Type::Intrinsic { kind: kind_b, .. })
+          if kind_a == kind_b
+        => {
+          // do nothing
+          Ok(())
+        },
+        (
+          | Type::WeakInteger { .. }
+          | Type::WeakFloat { .. },
+          Type::Intrinsic { kind, .. },
+        ) if !matches!(kind, Intrinsic::Bool | Intrinsic::Void) => {
+          tasks.push(tasks::OverwriteType {
+            dest: dbg!(self.clone().into()),
+            src: other,
+          }, line_dbg!("here"));
+
+          dbg!("HERE");
+
+          Ok(())
+        },
+        (Type::Intrinsic { kind, .. }, Type::WeakInteger { .. }) if kind.is_integer() => {
+          Ok(())
+        },
+        (Type::Resolved { part, .. }, _) => {
+          let ty = part.rget_from(lazy);
+          let reference = TypeReference::Part(*part);
+
+          TypePair::new(reference, ty.clone()).coerce(lazy, other_ref, tasks)
+        },
+        (Type::Reference(reference), _) => {
+          let ty = reference.rget_from(lazy);
+          TypePair::new(*reference, ty.clone()).coerce(lazy, other_ref, tasks)
+        },
+        (_, Type::Resolved { part, .. }) => {
+          let ty = part.rget_from(lazy);
+          let reference = TypeReference::Part(*part);
+          let other_ref = TypePair::new(reference, ty.clone());
+          self.coerce(lazy, &other_ref, tasks)
+        },
+        (_, Type::Reference(reference)) => {
+          let ty = reference.rget_from(lazy);
+          let other_ref = TypePair::new(*reference, ty.clone());
+          self.coerce(lazy, &other_ref, tasks)
+        },
+        (Type::Weak { .. }, _) => {
+          tasks.push(tasks::OverwriteType {
+            dest: OverwriteTypeReference {
+              reference: self.reference,
+              modifiers: self.modifiers.clone(),
+            },
+            src: other,
+          }, line_dbg!("here"));
+
+          Ok(())
+        },
+        (_, Type::Unresolved { .. })
           => {
-            // do nothing
-            Ok(())
-          },
-          (
-            | Type::WeakInteger { .. }
-            | Type::WeakFloat { .. },
-            Type::Intrinsic { kind, .. },
-          ) if !matches!(kind, Intrinsic::Bool | Intrinsic::Void) => {
-            tasks.push(tasks::OverwriteType {
-              dest: OverwriteTypeReference {
-                reference: self.reference,
-                modifiers: self.modifiers.clone(),
-              },
-              src: other,
-            }, line_dbg!("here"));
+          // An unresolved doesn't tell us much
+          Ok(())
+        },
+        (Type::Unresolved { module, qualified }, _) if qualified.is_implicit() => {
+          let dest = self.clone().into();
 
-            Ok(())
-          },
-          (Type::Intrinsic { kind, .. }, Type::WeakInteger { .. }) if kind.is_integer() => {
-            Ok(())
-          },
-          (Type::Resolved { part, .. }, _) => {
-            let ty = part.rget_from(lazy);
-            TypePair::new(self.reference, ty.clone()).coerce(lazy, other_ref, tasks)
-          },
-          (Type::Reference(reference), _) => {
-            let ty = reference.rget_from(lazy);
-            TypePair::new(self.reference, ty.clone()).coerce(lazy, other_ref, tasks)
-          },
-          (_, Type::Resolved { part, .. }) => {
-            let ty = part.rget_from(lazy);
-            let reference = TypeReference::Part(*part);
-            let other_ref = TypePair::new(reference, ty.clone());
-            self.coerce(lazy, &other_ref, tasks)
-          },
-          (_, Type::Reference(reference)) => {
-            let ty = reference.rget_from(lazy);
-            let other_ref = TypePair::new(*reference, ty.clone());
-            self.coerce(lazy, &other_ref, tasks)
-          },
-          (Type::Weak { .. }, _) => {
-            tasks.push(tasks::OverwriteType {
-              dest: OverwriteTypeReference {
-                reference: self.reference,
-                modifiers: self.modifiers.clone(),
-              },
-              src: other,
-            }, line_dbg!("here"));
+          let mut qualified = qualified.clone();
+          qualified.implicit = QualifiedSearchSpace::Type(other_ref.reference(lazy).expect("god help me"));
 
-            Ok(())
-          },
-          (_, Type::Unresolved { .. })
-            => {
-            // An unresolved doesn't tell us much
-            Ok(())
-          },
-          (Type::Unresolved { module, qualified }, _) if qualified.is_implicit() => {
-            let dest = self.clone().into();
+          let src = Type::Unresolved {
+            module: *module,
+            qualified,
+          };
 
-            let mut qualified = qualified.clone();
-            qualified.implicit = QualifiedSearchSpace::Type(other_ref.reference(lazy).expect("god help me"));
+          // RHS should be anything but another Unresolved.  Try to resolve
+          // an implicit
+          let task = tasks::Subjugate {
+            prerequisite: Box::new(tasks::OverwriteType {
+              dest,
+              src,
+            }),
+            after: Box::new(tasks::ResolveAsTask {
+              reference: self.reference,
+            }),
+          };
 
-            let src = Type::Unresolved {
-              module: *module,
-              qualified,
-            };
+          tasks.push(task, line_dbg!("here"));
 
-            // RHS should be anything but another Unresolved.  Try to resolve
-            // an implicit
-            let task = tasks::Subjugate {
-              prerequisite: Box::new(tasks::OverwriteType {
-                dest,
-                src,
-              }),
-              after: Box::new(tasks::ResolveAsTask {
-                reference: self.reference,
-              }),
-            };
+          Ok(())
+        },
+        (Type::Unresolved { .. }, _) => {
+          // Can't just throw an error here.  A task could have yet to come
+          // around and update this.  Let the resolver or verifier sort out
+          // this mess.
+          Ok(())
+        },
+        (
+          Type::WeakString { kind: kind_a, characters: characters_a, dereferenced: dereferenced_a, .. },
+          Type::WeakString { kind: kind_b, characters: characters_b, dereferenced: dereferenced_b, .. },
+        ) => {
+          assert!(
+            matches!(
+              (kind_a, kind_b),
+              | (StringKind::Wide, StringKind::Wide)
+              | (StringKind::Byte, StringKind::Byte)
+              | (StringKind::Byte, StringKind::C)
+              | (StringKind::C, StringKind::Byte)
+              | (StringKind::C, StringKind::C)
+            )
+          );
 
-            tasks.push(task, line_dbg!("here"));
+          assert!(characters_a == characters_b);
+          assert!(dereferenced_a == dereferenced_b);
 
-            Ok(())
-          },
-          (Type::Unresolved { .. }, _) => {
-            // Can't just throw an error here.  A task could have yet to come
-            // around and update this.  Let the resolver or verifier sort out
-            // this mess.
-            Ok(())
-          },
-          (
-            Type::WeakString { kind: kind_a, characters: characters_a, dereferenced: dereferenced_a, .. },
-            Type::WeakString { kind: kind_b, characters: characters_b, dereferenced: dereferenced_b, .. },
-          ) => {
-            assert!(
-              matches!(
-                (kind_a, kind_b),
-                | (StringKind::Wide, StringKind::Wide)
-                | (StringKind::Byte, StringKind::Byte)
-                | (StringKind::Byte, StringKind::C)
-                | (StringKind::C, StringKind::Byte)
-                | (StringKind::C, StringKind::C)
-              )
-            );
+          Ok(())
+        },
+        | (
+          Type::SizedArrayOf { ty, size, .. },
+          Type::WeakString { kind, characters, dereferenced, span },
+        )
+        | (
+          Type::WeakString { kind, characters, dereferenced, span },
+          Type::SizedArrayOf { ty, size, .. },
+        ) /* if size == characters */ => {
+          assert!(dereferenced, "todo");
+          assert!(size == characters, "throw error for weak string size mismatch");
 
-            assert!(characters_a == characters_b);
-            assert!(dereferenced_a == dereferenced_b);
+          ty.coerce(lazy, &Type::Intrinsic {
+            kind: kind.into_intrinsic(),
+            span: *span,
+          }, tasks)?;
 
-            Ok(())
-          },
-          | (
-            Type::SizedArrayOf { ty, size, .. },
-            Type::WeakString { kind, characters, dereferenced, span },
-          )
-          | (
-            Type::WeakString { kind, characters, dereferenced, span },
-            Type::SizedArrayOf { ty, size, .. },
-          ) /* if size == characters */ => {
-            assert!(dereferenced, "todo");
-            assert!(size == characters, "throw error for weak string size mismatch");
+          Ok(())
+        },
+        | (
+          Type::UnsizedArrayOf { ty, .. },
+          Type::WeakString { kind, span, .. },
+        )
+        | (
+          Type::WeakString { kind, span, .. },
+          Type::UnsizedArrayOf { ty, .. },
+        ) => {
+          ty.coerce(lazy, &Type::Intrinsic {
+            kind: kind.into_intrinsic(),
+            span: *span,
+          }, tasks)
+        },
+        (a, b) => {
+          // #[cfg(debug_assertions)] dbg!(a, b);
 
-            ty.coerce(lazy, &Type::Intrinsic {
-              kind: kind.into_intrinsic(),
-              span: *span,
-            }, tasks)?;
+          if
+            let Some(a) = self.dereference(lazy, false)? &&
+            let Some(b) = other_ref.dereference(lazy, false)?
+          {
+            return a.coerce(lazy, &b, tasks);
+          };
 
-            Ok(())
-          },
-          | (
-            Type::UnsizedArrayOf { ty, .. },
-            Type::WeakString { kind, span, .. },
-          )
-          | (
-            Type::WeakString { kind, span, .. },
-            Type::UnsizedArrayOf { ty, .. },
-          ) => {
-            ty.coerce(lazy, &Type::Intrinsic {
-              kind: kind.into_intrinsic(),
-              span: *span,
-            }, tasks)
-          },
-          (a, b) => {
-            // #[cfg(debug_assertions)] dbg!(a, b);
-
-            if
-              let Some(a) = self.dereference(lazy, false)? &&
-              let Some(b) = other_ref.dereference(lazy, false)?
-            {
-              return a.coerce(lazy, &b, tasks);
-            };
-
-            tasks.seed_error(ErrorBase::TypeMismatch {
-              whence: line_dbg!(""),
-              a_print: a.print(lazy),
-              a_span: a.get_span(lazy),
-              b_print: b.print(lazy),
-              b_span: b.get_span(lazy),
-            })
-          },
-        }
+          tasks.seed_error(ErrorBase::TypeMismatch {
+            whence: line_dbg!(""),
+            a_print: a.print(lazy),
+            a_span: a.get_span(lazy),
+            b_print: b.print(lazy),
+            b_span: b.get_span(lazy),
+          })
+        },
       }
-    )
+    })
   }
 }

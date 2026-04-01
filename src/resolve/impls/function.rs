@@ -22,35 +22,10 @@ pub(in crate::resolve) fn verify_function(lazy: &Lazy, function: &FunctionRefere
         let ret_ty = &borrow.header.ret_ty;
         ty::verify_type(lazy, ret_ty, tasks)?;
 
-        // set up some perfunctory data to coerce return type to i32
-        // TODO: eventually just coerce main as fn(...) -> ...
-        let ret_ty_pair = TypePair::new(ret_ty_reference, ret_ty.clone());
-        {
-          let ret_ty = &borrow.header.ret_ty;
-          let span = ret_ty.get_span(lazy);
-
-          print_message!(lazy, {
-            level: Level::Debug,
-            force: false,
-            description: format!(line_dbg!("{reference} is {ty}"),
-              reference = ret_ty_reference.print(lazy),
-              ty = ret_ty.print(lazy),
-            ),
-            contents: MessageContents::WithinSource(WithinSource::new(vec![
-              MessageSection {
-                text: "here".into(),
-                span,
-              }
-            ])),
-          });
-
-          ret_ty_pair.coerce(lazy, &Type::Intrinsic {
-            kind: Intrinsic::I32,
-            span,
-          }, tasks)?;
-        };
-
-        Ok(ret_ty_pair)
+        Ok(TypePair::new(
+          ret_ty_reference,
+          ret_ty.clone(),
+        ))
       },
     )?;
 

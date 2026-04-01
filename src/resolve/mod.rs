@@ -1,13 +1,15 @@
 mod impls;
 pub mod tasks;
 
-use crate::lang::reference::FunctionReference;
+use crate::aster::pprint::Pretty;
+use crate::lang::reference::{FunctionReference, Store};
+use crate::lang::span::GetSpan;
 use crate::{print_message, line_dbg};
 use crate::error::*;
 
 use crate::resolve::tasks::OverwriteTypeReference;
 use crate::tokenize::token::Span;
-use crate::lang::ty::Type;
+use crate::lang::ty::{Intrinsic, Type};
 use crate::lang::reference::{ModuleReference, Reference, TypeReference};
 use crate::lang::Lazy;
 
@@ -158,9 +160,6 @@ pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()
   tasks.work::<Result<()>>(
     line_dbg!("Verify global").into(),
     |tasks| {
-      let _main = find_main(lazy, module, tasks)?;
-
-      // impls::function::verify_function(lazy, main, tasks)?;
       impls::structure::verify_module(lazy, &module, tasks)?;
 
       print_message!(lazy, {
@@ -169,6 +168,44 @@ pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()
         description: line_dbg!("verify rest of program, apart from main").into(),
         contents: MessageContents::File(module),
       });
+
+      Ok(())
+    },
+  )?;
+
+  tasks.work::<Result<()>>(
+    line_dbg!("Verify main").into(),
+    |tasks| {
+      let main = find_main(lazy, module, tasks)?;
+      let borrow = lazy.rget(main);
+      let ret_ty_reference = TypeReference::ReturnTypeOf(main);
+
+      // set up some perfunctory data to coerce return type to i32
+      // TODO: eventually just coerce main as fn(...) -> ...
+      {
+        let ret_ty = &borrow.header.ret_ty;
+        let span = ret_ty.get_span(lazy);
+
+        print_message!(lazy, {
+          level: Level::Debug,
+          force: false,
+          description: format!(line_dbg!("{reference} is {ty}"),
+            reference = ret_ty_reference.print(lazy),
+            ty = ret_ty.print(lazy),
+          ),
+          contents: MessageContents::WithinSource(WithinSource::new(vec![
+            MessageSection {
+              text: "here".into(),
+              span,
+            }
+          ])),
+        });
+
+        ret_ty_reference.coerce(lazy, &Type::Intrinsic {
+          kind: Intrinsic::I32,
+          span,
+        }, tasks)?;
+      };
 
       Ok(())
     },

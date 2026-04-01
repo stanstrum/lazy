@@ -71,7 +71,9 @@ impl Task for OverwriteType {
     let part = self.dest.reference.parent_module(lazy)
       .add_type_part(self.src, lazy);
 
-    *lazy.rget_mut(self.dest.reference) = Type::Resolved { part, span };
+    let replace = Type::Resolved { part, span };
+
+    *lazy.rget_mut(self.dest) = replace;
 
     Ok(TaskResponse::Pop)
   }

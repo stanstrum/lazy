@@ -16,6 +16,7 @@ pub(super) enum LazyType<'ctx> {
 pub(super) enum LazyValue<'ctx> {
   Void,
   Int(inkwell::values::IntValue<'ctx>),
+  Pointer(inkwell::values::PointerValue<'ctx>),
 }
 
 fn make_intrinsic_type<'ctx>(comp: &Compilation<'_, '_, 'ctx>, intrinsic: lang::ty::Intrinsic) -> LazyType<'ctx> {

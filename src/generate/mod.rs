@@ -90,6 +90,9 @@ impl<'lazy, 'pool, 'llvm> Compilation<'lazy, 'pool, 'llvm> {
     // add the function
     let function_value = self.llvm.module.add_function(&name, function_ty, linkage);
 
+    // get an entry block
+    let _entry = self.llvm.context.append_basic_block(function_value, "entry");
+
     // store to our cache
     self.functions.insert(function, function_value);
 

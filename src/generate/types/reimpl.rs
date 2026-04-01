@@ -1,3 +1,5 @@
+use inkwell::types::BasicType;
+
 use super::*;
 
 impl<'ctx> LazyType<'ctx> {
@@ -15,10 +17,19 @@ impl<'ctx> LazyType<'ctx> {
 
   pub(crate) fn into_int_type(self) -> Result<inkwell::types::IntType<'ctx>> {
     match self {
-      LazyType::Void(_) => todo!(),
+      LazyType::Void(_) => unimplemented!(),
       LazyType::Int(int_type) => Ok(int_type),
-      LazyType::Float(_) => todo!(),
-      LazyType::Pointer(_) => todo!(),
+      LazyType::Float(_) => unimplemented!(),
+      LazyType::Pointer(_) => unimplemented!(),
+    }
+  }
+
+  pub(crate) fn as_basic_type_enum(self) -> Result<inkwell::types::BasicTypeEnum<'ctx>> {
+    match self {
+      LazyType::Void(void_type) => unimplemented!(),
+      LazyType::Int(int_type) => Ok(int_type.as_basic_type_enum()),
+      LazyType::Float(float_type) => Ok(float_type.as_basic_type_enum()),
+      LazyType::Pointer(pointer_type) => Ok(pointer_type.as_basic_type_enum()),
     }
   }
 }
@@ -26,8 +37,9 @@ impl<'ctx> LazyType<'ctx> {
 impl<'ctx> LazyValue<'ctx> {
   pub(crate) fn as_basic_value_enum(self) -> Result<inkwell::values::BasicValueEnum<'ctx>> {
     match self {
-      LazyValue::Void => todo!(),
+      LazyValue::Void => unimplemented!(),
       LazyValue::Int(int_value) => Ok(int_value.into()),
+      LazyValue::Pointer(pointer_value) => Ok(pointer_value.into()),
     }
   }
 }
@@ -50,6 +62,20 @@ impl<'ctx> From<inkwell::types::FloatType<'ctx>> for LazyType<'ctx> {
   }
 }
 
+impl<'ctx> From<inkwell::types::BasicTypeEnum<'ctx>> for LazyType<'ctx> {
+  fn from(value: inkwell::types::BasicTypeEnum<'ctx>) -> Self {
+    match value {
+      inkwell::types::BasicTypeEnum::ArrayType(_) => todo!(),
+      inkwell::types::BasicTypeEnum::FloatType(float_type) => Self::Float(float_type),
+      inkwell::types::BasicTypeEnum::IntType(int_type) => Self::Int(int_type),
+      inkwell::types::BasicTypeEnum::PointerType(pointer_type) => Self::Pointer(pointer_type),
+      inkwell::types::BasicTypeEnum::StructType(_) => todo!(),
+      inkwell::types::BasicTypeEnum::VectorType(_) => todo!(),
+      inkwell::types::BasicTypeEnum::ScalableVectorType(_) => todo!(),
+    }
+  }
+}
+
 impl<'ctx> From<LazyType<'ctx>> for inkwell::types::BasicMetadataTypeEnum<'ctx> {
   fn from(value: LazyType<'ctx>) -> Self {
     match value {
@@ -59,6 +85,20 @@ impl<'ctx> From<LazyType<'ctx>> for inkwell::types::BasicMetadataTypeEnum<'ctx> 
       LazyType::Int(int_type) => inkwell::types::BasicMetadataTypeEnum::IntType(int_type),
       LazyType::Float(float_type) => inkwell::types::BasicMetadataTypeEnum::FloatType(float_type),
       LazyType::Pointer(pointer_type) => inkwell::types::BasicMetadataTypeEnum::PointerType(pointer_type)
+    }
+  }
+}
+
+impl<'ctx> From<inkwell::values::BasicValueEnum<'ctx>> for LazyValue<'ctx> {
+  fn from(value: inkwell::values::BasicValueEnum<'ctx>) -> Self {
+    match value {
+      inkwell::values::BasicValueEnum::ArrayValue(_) => todo!(),
+      inkwell::values::BasicValueEnum::IntValue(int_type) => Self::Int(int_type),
+      inkwell::values::BasicValueEnum::FloatValue(_) => todo!(),
+      inkwell::values::BasicValueEnum::PointerValue(pointer_value) => Self::Pointer(pointer_value),
+      inkwell::values::BasicValueEnum::StructValue(_) => todo!(),
+      inkwell::values::BasicValueEnum::VectorValue(_) => todo!(),
+      inkwell::values::BasicValueEnum::ScalableVectorValue(_) => todo!(),
     }
   }
 }

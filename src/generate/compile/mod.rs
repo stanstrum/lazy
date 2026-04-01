@@ -1,14 +1,76 @@
 mod expr;
 
+use crate::generate::types::make_type;
+
 use super::*;
 
-fn compile_function(comp: &mut Compilation, function: lang::reference::FunctionReference) -> Result {
-  let borrow = comp.lazy.rget(function);
+struct FunctionScope<'ctx> {
+  block: lang::reference::BlockReference,
+  variables: Vec<inkwell::values::PointerValue<'ctx>>,
+}
+
+struct FunctionScopes<'ctx> {
+  reference: lang::reference::FunctionReference,
+  value: inkwell::values::FunctionValue<'ctx>,
+  scopes: Vec<FunctionScope<'ctx>>,
+}
+
+impl<'ctx> FunctionScopes<'ctx> {
+  fn new(
+    reference: lang::reference::FunctionReference,
+    value: inkwell::values::FunctionValue<'ctx>,
+  ) -> Self {
+    Self {
+      reference,
+      value,
+      scopes: vec![],
+    }
+  }
+
+  fn push(&mut self, comp: &mut Compilation<'_, '_, 'ctx>, block: lang::reference::BlockReference) -> Result {
+    let borrow = comp.lazy.rget(block);
+
+    let variables = borrow.variables.iter()
+      .map(|variable| {
+        let name = comp.lazy.pool.get(variable.name.id).collect::<String>();
+        let ty = make_type(comp, &variable.ty)?;
+
+        let pointer = comp.llvm.builder.build_alloca(
+          ty.as_basic_type_enum()?,
+          &name
+        ).expect("to create variable");
+
+        Ok(pointer)
+      }).collect::<Result<Vec<_>>>()?;
+
+    self.scopes.push(FunctionScope {
+      block,
+      variables,
+    });
+
+    Ok(())
+  }
+
+  fn pop(&mut self) {
+    self.scopes.pop();
+  }
+}
+
+fn compile_function(comp: &mut Compilation, function_reference: lang::reference::FunctionReference) -> Result {
+  let borrow = comp.lazy.rget(function_reference);
   let body = borrow.body;
 
-  let function_value = comp.get_or_declare_function(function)?;
+  let function_value = comp.get_or_declare_function(function_reference)?;
 
-  let last_value = expr::compile_block(comp, function_value, body)?
+  let entry = function_value.get_last_basic_block()
+    .expect("function to have an entry block");
+
+  assert!(entry.get_name().to_string_lossy() == "entry");
+  comp.llvm.builder.position_at_end(entry);
+
+  let mut scopes = FunctionScopes::new(function_reference, function_value);
+
+  let last_value = expr::compile_block(comp, function_value, body, &mut scopes)?
     .as_basic_value_enum()
     .ok();
 

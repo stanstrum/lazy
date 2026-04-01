@@ -6,6 +6,7 @@ mod aster;
 mod resolve;
 mod generate;
 
+mod debug;
 mod error;
 mod settings;
 
@@ -58,14 +59,9 @@ fn error_handler<'lazy, 'pool>(
   // Resolve, verify
   resolve::resolve_and_verify(lazy, global)?;
 
-  // Debug source
-  let source = lazy.rget(global).print(lazy)
-    .map(|s| format!(line_dbg!("{}"), s))
-    .collect::<Vec<_>>()
-    .join("\n");
-
-  println!("{source}");
-  println!("{:?}", &lazy.pool);
+  // Debugs
+  debug::source(lazy, &global);
+  debug::string_pool(lazy);
 
   // Stop here if all we wanted was to check
   if matches!(verb, settings::Verb::Check) {
@@ -83,7 +79,9 @@ fn error_handler<'lazy, 'pool>(
   let compilation = program.compile(lazy)?;
 
   // Debug the LLVM source
-  compilation.debug();
+  debug::llvm_source(lazy, &compilation);
+
+  // // Optimize the IR
   // compilation.optimize();
 
   // Write out the object file for the global module

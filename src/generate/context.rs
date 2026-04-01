@@ -55,11 +55,8 @@ impl<'ctx> LLVMContext<'ctx> {
     }
   }
 
-  pub fn dump_module(&self) {
-    println!(
-      "LLVM IR Representation:\n{}",
-      self.module.print_to_string().to_string(),
-    );
+  pub fn dump_module(&self) -> String {
+    self.module.print_to_string().to_string()
   }
 
   // /// This method will write assembly of module to memory buffer, read as UTF-8 and print

@@ -150,8 +150,8 @@ impl<'ctx> ProgramCompilation<'ctx> {
     })
   }
 
-  pub(super) fn debug(&self) {
-    self.llvm.dump_module();
+  pub(super) fn dump(&self) -> String {
+    self.llvm.dump_module()
   }
 
   pub(super) fn optimize(&mut self) {

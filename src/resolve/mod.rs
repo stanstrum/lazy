@@ -174,7 +174,12 @@ pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()
     },
   )?;
 
-  println!(line_dbg!("No further work should be done."));
+  print_message!(lazy, {
+    level: Level::Info,
+    force: false,
+    description: line_dbg!("No further work should be done.").into(),
+    contents: MessageContents::None,
+  });
   assert!(!tasks.execute_pass(lazy)?);
 
   Ok(())

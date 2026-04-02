@@ -1,0 +1,11 @@
+import from "std"
+	libc::
+		CString
+		printf
+	Slice
+
+main -> i32
+	i32        argc
+	&[]CString argv
+
+	argc

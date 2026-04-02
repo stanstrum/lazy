@@ -31,6 +31,16 @@ pub struct Import {
   pub group: ImportGroup,
 }
 
+impl ImportQualify {
+  pub fn new(name: Name) -> Self {
+    Self {
+      name,
+      next: None,
+      span: name.span,
+    }
+  }
+}
+
 impl GetSpan for ImportPart {
   fn get_span(&self, _lazy: &Lazy) -> Span {
     match self {

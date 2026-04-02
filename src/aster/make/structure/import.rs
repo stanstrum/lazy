@@ -3,56 +3,6 @@ use crate::print_once_per_thread;
 
 use super::*;
 
-impl lang::module::import::ImportQualify {
-  fn new(name: lang::module::Name) -> Self {
-    Self {
-      name,
-      next: None,
-      span: name.span,
-    }
-  }
-}
-
-fn print_part(lazy: &lang::Lazy, part: &lang::module::import::ImportPart, indent: usize, out: &mut String) {
-  match part {
-    lang::module::import::ImportPart::Star(_) => *out += "*",
-    lang::module::import::ImportPart::Group(import_group) => {
-      print_group(lazy, import_group, indent + 1, out);
-    },
-    lang::module::import::ImportPart::Qualify(import_qualify) => {
-      let name = lazy.pool.get(import_qualify.name.id)
-        .collect::<String>();
-      *out += &name;
-
-      if let Some(next) = &import_qualify.next {
-        *out += "::";
-
-        print_part(lazy, next, indent, out);
-      };
-    },
-  };
-}
-
-fn print_group(lazy: &lang::Lazy, group: &lang::module::import::ImportGroup, indent: usize, out: &mut String) {
-  let padding = " ".repeat(2 * indent);
-
-  for selector in group.selectors.iter() {
-    *out += &format!("\n{padding}");
-
-    print_part(lazy, selector, indent, out);
-  };
-}
-
-fn print_import(lazy: &lang::Lazy, import: &lang::module::import::Import) -> String {
-  let w = lazy.pool.get_string(import.source);
-
-  let mut out = format!("import from {w:?}");
-
-  print_group(lazy, &import.group, 1, &mut out);
-
-  out
-}
-
 fn make_group<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
@@ -215,8 +165,6 @@ pub(super) fn make_import<'pool, const N: usize, T: Read>(
     source: value,
     group,
   };
-
-  println!("{}", print_import(lazy, &import));
 
   Ok(Some(import))
 }

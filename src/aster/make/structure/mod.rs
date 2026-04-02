@@ -1,5 +1,7 @@
 mod import;
 
+use std::path::PathBuf;
+
 use crate::line_dbg;
 use crate::error::WithinSource;
 use crate::string_pool::StringId;
@@ -123,8 +125,60 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
   };
 
   if let Some(import) = import::make_import(lazy, stream)? {
-    todo!("{import:#?}")
+    something(lazy, &import);
+
+    todo!("import:#?")
   };
 
   Ok(None)
+}
+
+fn print_names(lazy: &lang::Lazy, names: &[lang::module::Name], end_asterisk: bool) {
+  let mut out = String::new();
+
+  for part in names {
+    let name = lazy.pool.get(part.id).collect::<String>();
+
+    out += &format!("::{name}");
+  };
+
+  if end_asterisk {
+    out += "::*";
+  };
+
+  println!("{}", out);
+}
+
+fn part(lazy: &lang::Lazy, selector: &import::ImportPart, names: &mut Vec<lang::module::Name>) {
+  match selector {
+    import::ImportPart::Star(_) => {
+      print_names(lazy, names, true);
+    },
+    import::ImportPart::Group(import_group) => group(lazy, import_group, names),
+    import::ImportPart::Qualify(import_qualify) => {
+      names.push(import_qualify.name);
+
+      if let Some(next) = &import_qualify.next {
+        part(lazy, next, names);
+      } else {
+        print_names(lazy, names, false);
+      };
+
+      names.pop();
+    },
+  }
+}
+
+fn group(lazy: &lang::Lazy, group: &import::ImportGroup, names: &mut Vec<lang::module::Name>) {
+  for selector in group.selectors.iter() {
+    part(lazy, selector, names);
+  };
+}
+
+fn something(lazy: &lang::Lazy, import: &import::Import) {
+  let mut names = vec![];
+
+  group(lazy, &import.group, &mut names);
+
+  todo!()
 }

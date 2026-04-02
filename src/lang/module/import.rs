@@ -29,6 +29,7 @@ pub enum ImportPart {
 pub struct Import {
   pub source: StringId,
   pub group: ImportGroup,
+  pub span: Span,
 }
 
 impl ImportQualify {

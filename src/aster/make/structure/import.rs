@@ -1,5 +1,5 @@
-use crate::tokenize::token::StringKind;
 use crate::print_once_per_thread;
+use crate::tokenize::token::StringKind;
 
 use super::*;
 
@@ -140,7 +140,7 @@ pub(super) fn make_import<'pool, const N: usize, T: Read>(
     return stream.expected_here(line_dbg!("the path literal"));
   };
 
-  let lang::expr::Expression::Literal { value, span, out } = expr else {
+  let lang::expr::Expression::Literal { value, span: literal_span, .. } = expr else {
     return Err(Error::Invalid {
       what: line_dbg!("expression, expected string literal"),
       at: expr.get_span(lazy),
@@ -150,7 +150,7 @@ pub(super) fn make_import<'pool, const N: usize, T: Read>(
   let lang::expr::LiteralKind::String { value, kind: StringKind::Wide } = value else {
     return Err(Error::Invalid {
       what: line_dbg!("literal, expected normal string"),
-      at: span,
+      at: literal_span,
     });
   };
 
@@ -161,9 +161,13 @@ pub(super) fn make_import<'pool, const N: usize, T: Read>(
     return stream.expected_here(line_dbg!("an import group"));
   };
 
+  let end = group.span;
+  let span = Span::from_pair(start, end);
+
   let import = lang::module::import::Import {
     source: value,
     group,
+    span,
   };
 
   Ok(Some(import))

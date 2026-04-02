@@ -2,6 +2,7 @@ mod import;
 
 use std::path::PathBuf;
 
+use crate::aster::pprint::Pretty;
 use crate::line_dbg;
 use crate::error::WithinSource;
 use crate::string_pool::StringId;
@@ -133,35 +134,40 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
   Ok(None)
 }
 
-fn print_names(lazy: &lang::Lazy, names: &[lang::module::Name], end_asterisk: bool) {
-  let mut out = String::new();
+fn print_names(lazy: &lang::Lazy, names: &[lang::module::Name], end_asterisk: bool, out: &mut Vec<lang::ty::Qualified>) {
+  let mut string = String::new();
 
   for part in names {
     let name = lazy.pool.get(part.id).collect::<String>();
 
-    out += &format!("::{name}");
+    string += &format!("::{name}");
   };
 
   if end_asterisk {
-    out += "::*";
+    string += "::*";
   };
 
-  println!("{}", out);
+  println!("{}", string);
+  out.push(lang::ty::Qualified {
+    implicit: lang::ty::QualifiedSearchSpace::Implicit,
+    parts: names.to_owned(),
+    span: names.last().unwrap().span,
+  });
 }
 
-fn part(lazy: &lang::Lazy, selector: &import::ImportPart, names: &mut Vec<lang::module::Name>) {
+fn part(lazy: &lang::Lazy, selector: &import::ImportPart, names: &mut Vec<lang::module::Name>, out: &mut Vec<lang::ty::Qualified>) {
   match selector {
     import::ImportPart::Star(_) => {
-      print_names(lazy, names, true);
+      print_names(lazy, names, true, out);
     },
-    import::ImportPart::Group(import_group) => group(lazy, import_group, names),
+    import::ImportPart::Group(import_group) => group(lazy, import_group, names, out),
     import::ImportPart::Qualify(import_qualify) => {
       names.push(import_qualify.name);
 
       if let Some(next) = &import_qualify.next {
-        part(lazy, next, names);
+        part(lazy, next, names, out);
       } else {
-        print_names(lazy, names, false);
+        print_names(lazy, names, false, out);
       };
 
       names.pop();
@@ -169,16 +175,27 @@ fn part(lazy: &lang::Lazy, selector: &import::ImportPart, names: &mut Vec<lang::
   }
 }
 
-fn group(lazy: &lang::Lazy, group: &import::ImportGroup, names: &mut Vec<lang::module::Name>) {
+fn group(lazy: &lang::Lazy, group: &import::ImportGroup, names: &mut Vec<lang::module::Name>, out: &mut Vec<lang::ty::Qualified>) {
   for selector in group.selectors.iter() {
-    part(lazy, selector, names);
+    part(lazy, selector, names, out);
   };
 }
 
 fn something(lazy: &lang::Lazy, import: &import::Import) {
+  let mut out = vec![];
   let mut names = vec![];
 
-  group(lazy, &import.group, &mut names);
+  // lang::ty::Qualified {
+  //   implicit: lang::ty::QualifiedSearchSpace::Module(added_module),
+  //   parts: todo!(),
+  //   span: todo!(),
+  // };
+
+  group(lazy, &import.group, &mut names, &mut out);
+
+  for out in out {
+    println!("16: {}", out.print(lazy));
+  };
 
   todo!()
 }

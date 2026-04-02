@@ -1,3 +1,5 @@
+pub mod import;
+
 use std::path::PathBuf;
 
 use crate::lang::Lazy;
@@ -28,6 +30,7 @@ pub struct TypePartId(pub usize);
 #[derive(Debug)]
 pub struct Module {
   pub name: PoolId,
+  // pub imports: HashMap<PoolId>
   pub modules: Vec<ModuleReference>,
   pub functions: Vec<FunctionReference>,
   pub parent: ModuleParent,

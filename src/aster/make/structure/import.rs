@@ -3,27 +3,7 @@ use crate::print_once_per_thread;
 
 use super::*;
 
-#[derive(Debug)]
-pub(super) struct ImportGroup {
-  pub(super) selectors: Vec<ImportPart>,
-  pub(super) span: Span,
-}
-
-#[derive(Debug)]
-pub(super) struct ImportQualify {
-  pub(super) name: lang::module::Name,
-  pub(super) next: Option<Box<ImportPart>>,
-  pub(super) span: Span,
-}
-
-#[derive(Debug)]
-pub(super) enum ImportPart {
-  Star(Span),
-  Group(ImportGroup),
-  Qualify(ImportQualify),
-}
-
-impl ImportQualify {
+impl lang::module::import::ImportQualify {
   fn new(name: lang::module::Name) -> Self {
     Self {
       name,
@@ -33,13 +13,13 @@ impl ImportQualify {
   }
 }
 
-fn print_part(lazy: &lang::Lazy, part: &ImportPart, indent: usize, out: &mut String) {
+fn print_part(lazy: &lang::Lazy, part: &lang::module::import::ImportPart, indent: usize, out: &mut String) {
   match part {
-    ImportPart::Star(_) => *out += "*",
-    ImportPart::Group(import_group) => {
+    lang::module::import::ImportPart::Star(_) => *out += "*",
+    lang::module::import::ImportPart::Group(import_group) => {
       print_group(lazy, import_group, indent + 1, out);
     },
-    ImportPart::Qualify(import_qualify) => {
+    lang::module::import::ImportPart::Qualify(import_qualify) => {
       let name = lazy.pool.get(import_qualify.name.id)
         .collect::<String>();
       *out += &name;
@@ -53,7 +33,7 @@ fn print_part(lazy: &lang::Lazy, part: &ImportPart, indent: usize, out: &mut Str
   };
 }
 
-fn print_group(lazy: &lang::Lazy, group: &ImportGroup, indent: usize, out: &mut String) {
+fn print_group(lazy: &lang::Lazy, group: &lang::module::import::ImportGroup, indent: usize, out: &mut String) {
   let padding = " ".repeat(2 * indent);
 
   for selector in group.selectors.iter() {
@@ -63,7 +43,7 @@ fn print_group(lazy: &lang::Lazy, group: &ImportGroup, indent: usize, out: &mut 
   };
 }
 
-fn print_import(lazy: &lang::Lazy, import: &Import) -> String {
+fn print_import(lazy: &lang::Lazy, import: &lang::module::import::Import) -> String {
   let w = lazy.pool.get_string(import.source);
 
   let mut out = format!("import from {w:?}");
@@ -73,27 +53,11 @@ fn print_import(lazy: &lang::Lazy, import: &Import) -> String {
   out
 }
 
-impl GetSpan for ImportPart {
-  fn get_span(&self, lazy: &lang::Lazy) -> Span {
-    match self {
-      ImportPart::Star(span) => *span,
-      ImportPart::Group(group) => group.span,
-      ImportPart::Qualify(qualify) => qualify.span,
-    }
-  }
-}
-
-#[derive(Debug)]
-pub(super) struct Import {
-  pub source: StringId,
-  pub group: ImportGroup,
-}
-
 fn make_group<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   indenter: &Indenter,
-) -> Result<Option<ImportGroup>, Error> {
+) -> Result<Option<lang::module::import::ImportGroup>, Error> {
   let Some((Token::Indent(indent), mut span)) = indenter.peek(stream)? else {
     return Ok(None);
   };
@@ -127,7 +91,7 @@ fn make_group<'pool, const N: usize, T: Read>(
     span.extend(last.get_span(lazy));
   };
 
-  Ok(Some(ImportGroup {
+  Ok(Some(lang::module::import::ImportGroup {
     selectors,
     span,
   }))
@@ -137,7 +101,7 @@ fn make_qualify<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   indenter: &Indenter,
-) -> Result<Option<ImportQualify>, Error> {
+) -> Result<Option<lang::module::import::ImportQualify>, Error> {
   let Some((Token::Identifier(_), _)) = indenter.peek(stream)? else {
     return Ok(None);
   };
@@ -146,7 +110,7 @@ fn make_qualify<'pool, const N: usize, T: Read>(
 
   stream.skip_whitespace_and_comments()?;
 
-  let mut qualify = ImportQualify::new(name);
+  let mut qualify = lang::module::import::ImportQualify::new(name);
 
   if let Some((Token::Operator(Operator::DoubleColon), colon)) = indenter.peek(stream)? {
     stream.seek();
@@ -176,13 +140,13 @@ fn make_selector<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   indenter: &Indenter,
-) -> Result<Option<ImportPart>, Error> {
+) -> Result<Option<lang::module::import::ImportPart>, Error> {
   if let Some(qualify) = make_qualify(lazy, stream, indenter)? {
-    return Ok(Some(ImportPart::Qualify(qualify)))
+    return Ok(Some(lang::module::import::ImportPart::Qualify(qualify)))
   };
 
   if let Some(group) = make_group(lazy, stream, indenter)? {
-    return Ok(Some(ImportPart::Group(group)))
+    return Ok(Some(lang::module::import::ImportPart::Group(group)))
   };
 
   if let Some((Token::Operator(Operator::Asterisk), span)) = indenter.peek(stream)? {
@@ -193,7 +157,7 @@ fn make_selector<'pool, const N: usize, T: Read>(
       stream.seek();
     };
 
-    return Ok(Some(ImportPart::Star(span)));
+    return Ok(Some(lang::module::import::ImportPart::Star(span)));
   };
 
   print_once_per_thread!(lazy, {
@@ -209,7 +173,7 @@ fn make_selector<'pool, const N: usize, T: Read>(
 pub(super) fn make_import<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-) -> Result<Option<Import>, Error> {
+) -> Result<Option<lang::module::import::Import>, Error> {
   let Some((Token::Keyword(Keyword::Import), start)) = stream.peek()? else {
     return Ok(None);
   };
@@ -247,7 +211,7 @@ pub(super) fn make_import<'pool, const N: usize, T: Read>(
     return stream.expected_here(line_dbg!("an import group"));
   };
 
-  let import = Import {
+  let import = lang::module::import::Import {
     source: value,
     group,
   };

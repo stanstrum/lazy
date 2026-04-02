@@ -1,7 +1,5 @@
 mod import;
 
-use std::path::PathBuf;
-
 use crate::aster::pprint::Pretty;
 use crate::line_dbg;
 use crate::error::WithinSource;
@@ -155,13 +153,13 @@ fn print_names(lazy: &lang::Lazy, names: &[lang::module::Name], end_asterisk: bo
   });
 }
 
-fn part(lazy: &lang::Lazy, selector: &import::ImportPart, names: &mut Vec<lang::module::Name>, out: &mut Vec<lang::ty::Qualified>) {
+fn part(lazy: &lang::Lazy, selector: &lang::module::import::ImportPart, names: &mut Vec<lang::module::Name>, out: &mut Vec<lang::ty::Qualified>) {
   match selector {
-    import::ImportPart::Star(_) => {
+    lang::module::import::ImportPart::Star(_) => {
       print_names(lazy, names, true, out);
     },
-    import::ImportPart::Group(import_group) => group(lazy, import_group, names, out),
-    import::ImportPart::Qualify(import_qualify) => {
+    lang::module::import::ImportPart::Group(import_group) => group(lazy, import_group, names, out),
+    lang::module::import::ImportPart::Qualify(import_qualify) => {
       names.push(import_qualify.name);
 
       if let Some(next) = &import_qualify.next {
@@ -175,13 +173,13 @@ fn part(lazy: &lang::Lazy, selector: &import::ImportPart, names: &mut Vec<lang::
   }
 }
 
-fn group(lazy: &lang::Lazy, group: &import::ImportGroup, names: &mut Vec<lang::module::Name>, out: &mut Vec<lang::ty::Qualified>) {
+fn group(lazy: &lang::Lazy, group: &lang::module::import::ImportGroup, names: &mut Vec<lang::module::Name>, out: &mut Vec<lang::ty::Qualified>) {
   for selector in group.selectors.iter() {
     part(lazy, selector, names, out);
   };
 }
 
-fn something(lazy: &lang::Lazy, import: &import::Import) {
+fn something(lazy: &lang::Lazy, import: &lang::module::import::Import) {
   let mut out = vec![];
   let mut names = vec![];
 

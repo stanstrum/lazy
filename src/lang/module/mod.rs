@@ -3,6 +3,7 @@ pub mod import;
 use std::path::PathBuf;
 
 use crate::lang::Lazy;
+use crate::lang::module::import::Import;
 use crate::lang::reference::{FunctionReference, ModuleReference, Reference, TypePartReference};
 use crate::lang::ty::Type;
 use crate::string_pool::PoolId;
@@ -30,7 +31,7 @@ pub struct TypePartId(pub usize);
 #[derive(Debug)]
 pub struct Module {
   pub name: PoolId,
-  // pub imports: HashMap<PoolId>
+  pub imports: Vec<Import>,
   pub modules: Vec<ModuleReference>,
   pub functions: Vec<FunctionReference>,
   pub parent: ModuleParent,
@@ -56,6 +57,7 @@ impl Module {
     Self {
       name,
       parent,
+      imports: vec![],
       modules: vec![],
       functions: vec![],
       aliases: vec![],

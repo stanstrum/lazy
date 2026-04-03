@@ -68,7 +68,7 @@ fn make_qualify<'pool, const N: usize, T: Read>(
 
     qualify.span.extend(colon);
 
-    let Some(next) = make_selector(lazy, stream, &indenter)?.map(Box::new) else {
+    let Some(next) = make_selector(lazy, stream, indenter)?.map(Box::new) else {
       return stream.expected_here(line_dbg!("a qualification"))
     };
 

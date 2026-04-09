@@ -14,7 +14,7 @@ pub(super) fn resolve_qualified_to_space(
 
   for (index, part) in qualified.parts.iter().enumerate() {
     if index == 0 {
-      let part_string = lazy.pool.get(part.id).collect::<String>();
+      let part_string = lazy.pool.get(part.id);
       if let Some(kind) = Intrinsic::try_from_str(&part_string) {
         space = QualifiedSearchSpace::Intrinsic {
           kind,

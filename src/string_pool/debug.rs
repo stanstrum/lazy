@@ -18,7 +18,7 @@ impl StringPool {
     // collect the strings so we can display them as if they weren't completely
     // illegible in the debug format
     tails.into_iter()
-      .map(|id| self.get(id).collect())
+      .map(|id| self.get(id))
   }
 }
 

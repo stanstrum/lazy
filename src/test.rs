@@ -87,7 +87,7 @@ fn debug_tokens() {
     print!("{i:<2}: [{indentation:>+3}] {padding}");
 
     match &token {
-      tokenize::token::Token::Identifier(id) => print!("Identifier({:?})", pool.get(*id).collect::<String>()),
+      tokenize::token::Token::Identifier(id) => print!("Identifier({:?})", pool.get(*id)),
       other => print!("{other:?}"),
     };
 

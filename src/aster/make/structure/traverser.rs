@@ -62,7 +62,7 @@ fn traverse_part(
           let map = &mut module.rget_from_mut(lazy).imports;
 
           if map.contains_key(&id) {
-            let id_text = lazy.pool.get(id).collect::<String>();
+            let id_text = lazy.pool.get(id);
 
             panic!("id {id:?} already exists: {id_text}");
           };

@@ -103,7 +103,7 @@ impl<'a> Lazy<'a> {
 
   pub fn describe_module(&self, ModuleReference(id): ModuleReference) -> String {
     let module = self.modules.get(id).unwrap();
-    let name = self.pool.get(module.name).collect::<String>();
+    let name = self.pool.get(module.name);
 
     match &module.parent {
       ModuleParent::Path(ModulePath { /* path, */ .. }) => {

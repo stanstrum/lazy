@@ -10,7 +10,7 @@ pub(in crate::resolve) fn verify_function(lazy: &Lazy, function: &FunctionRefere
   let borrow = function.rget_from(lazy);
 
   let parent = lazy.describe_module(borrow.parent);
-  let name = lazy.pool.get(borrow.header.name.id).collect::<String>();
+  let name = lazy.pool.get(borrow.header.name.id);
 
   tasks.work(format!(line_dbg!("Verify function: {}::{}"), parent, name), |tasks| {
     let ret_ty_reference = TypeReference::ReturnTypeOf(*function);

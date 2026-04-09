@@ -21,7 +21,7 @@ impl Pretty for PoolId {
   type Out = String;
 
   fn print(&self, lazy: &Lazy) -> Self::Out {
-    lazy.pool.get(*self).collect()
+    lazy.pool.get(*self)
   }
 }
 

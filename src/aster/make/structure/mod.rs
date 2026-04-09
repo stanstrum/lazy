@@ -72,7 +72,7 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
   if let Some(function) = function::make_function(lazy, stream, parent)? {
     let name = &function.rget_from(lazy).header.name;
     let (name, span) = (
-      lazy.pool.get(name.id).collect::<String>(),
+      lazy.pool.get(name.id),
       name.span,
     );
 
@@ -96,7 +96,7 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
 
   if let Some(alias) = make_type_alias(lazy, stream, parent)? {
     let alias_ref = alias.rget_from(lazy);
-    let name = lazy.pool.get(alias_ref.name.id).collect::<String>();
+    let name = lazy.pool.get(alias_ref.name.id);
 
     let module_name = lazy.describe_module(stream.module);
 

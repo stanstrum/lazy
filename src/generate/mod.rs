@@ -79,7 +79,7 @@ impl<'lazy, 'pool, 'llvm> Compilation<'lazy, 'pool, 'llvm> {
     let name = {
       let borrow = function.rget_from(self.lazy);
       let name_id = borrow.header.name.id;
-      self.lazy.pool.get(name_id).collect::<String>()
+      self.lazy.pool.get(name_id)
     };
 
     let function_ty = types::make_function_type(self, function)?;

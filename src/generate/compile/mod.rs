@@ -32,7 +32,7 @@ impl<'ctx> FunctionScopes<'ctx> {
 
     let variables = borrow.variables.iter()
       .map(|variable| {
-        let name = comp.lazy.pool.get(variable.name.id).collect::<String>();
+        let name = comp.lazy.pool.get(variable.name.id);
         let ty = make_type(comp, &variable.ty)?;
 
         let pointer = comp.llvm.builder.build_alloca(

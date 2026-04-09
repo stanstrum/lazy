@@ -145,7 +145,7 @@ impl StringPool {
     PoolId(last_id)
   }
 
-  pub fn get(&self, PoolId(mut id): PoolId) -> impl Iterator<Item = char> {
+  pub fn get(&self, PoolId(mut id): PoolId) -> String {
     // the nodes are actually traversed backwards in this method, then drained
     // from the end
     let mut deque = VecDeque::new();
@@ -169,6 +169,6 @@ impl StringPool {
     };
 
     // read the string front-to-back
-    deque.into_iter()
+    deque.into_iter().collect()
   }
 }

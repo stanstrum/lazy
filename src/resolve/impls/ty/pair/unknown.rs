@@ -2,17 +2,18 @@ use super::*;
 
 use crate::lang::ty::{Qualified, QualifiedSearchSpace};
 use crate::lang::reference::{AliasReference, ModuleReference};
+use crate::print_once_per_thread;
 
-pub(super) fn resolve_qualified_to_type(
+pub(super) fn resolve_qualified_to_space(
   lazy: &Lazy,
   module: ModuleReference,
   qualified: &Qualified,
   tasks: &mut Tasks,
-) -> Result<Option<Type>> {
+) -> Result<Option<QualifiedSearchSpace>> {
   let mut space = qualified.implicit.to_owned();
 
-  for (count, part) in qualified.parts.iter().enumerate() {
-    if count == 0 {
+  for (index, part) in qualified.parts.iter().enumerate() {
+    if index == 0 {
       let part_string = lazy.pool.get(part.id).collect::<String>();
       if let Some(kind) = Intrinsic::try_from_str(&part_string) {
         space = QualifiedSearchSpace::Intrinsic {
@@ -27,8 +28,27 @@ pub(super) fn resolve_qualified_to_type(
     match space {
       // QualifiedSearchSpace::Type(ty) => todo!("match space: {ty:#?}"),
       QualifiedSearchSpace::Module(module) => {
+        let borrow = module.rget_from(lazy);
+
+        if let Some(qualified) = borrow.imports.get(&part.id) {
+          let Some(new_space) = resolve_qualified_to_space(lazy, module, qualified, tasks)? else {
+            print_once_per_thread!(lazy, {
+              level: Level::Stub,
+              force: false,
+              description: line_dbg!("disregarding failed resolution of qualified").into(),
+              contents: MessageContents::None,
+            });
+
+            return Ok(None);
+          };
+
+          space = new_space;
+
+          continue;
+        };
+
         // Look for type aliases by this name
-        if let Some(id) = module.rget_from(lazy)
+        if let Some(id) = borrow
           .aliases.iter()
           .position(|alias| part.id == alias.name.id)
         {
@@ -45,6 +65,19 @@ pub(super) fn resolve_qualified_to_type(
       module_name: lazy.describe_module(module),
       span: qualified.span,
     });
+  };
+
+  Ok(Some(space))
+}
+
+pub(super) fn resolve_qualified_to_type(
+  lazy: &Lazy,
+  module: ModuleReference,
+  qualified: &Qualified,
+  tasks: &mut Tasks,
+) -> Result<Option<Type>> {
+  let Some(space) = resolve_qualified_to_space(lazy, module, qualified, tasks)? else {
+    return Ok(None);
   };
 
   Ok(match space {

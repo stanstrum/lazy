@@ -123,7 +123,7 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
   };
 
   if let Some(import) = import::make_import(lazy, stream.module, stream)? {
-    traverser::traverse_import(lazy, &import)?;
+    traverser::traverse_import(lazy, stream.module, &import)?;
 
     return Ok(Some(Structure::ImportFrom(())));
   };

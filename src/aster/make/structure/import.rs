@@ -1,3 +1,6 @@
+use std::path::PathBuf;
+
+use crate::lang::reference::ModuleReference;
 use crate::print_once_per_thread;
 use crate::tokenize::token::StringKind;
 
@@ -122,6 +125,7 @@ fn make_selector<'pool, const N: usize, T: Read>(
 
 pub(super) fn make_import<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
+  module: ModuleReference,
   stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<lang::module::import::Import>, Error> {
   let Some((Token::Keyword(Keyword::Import), start)) = stream.peek()? else {
@@ -164,8 +168,26 @@ pub(super) fn make_import<'pool, const N: usize, T: Read>(
   let end = group.span;
   let span = Span::from_pair(start, end);
 
+  let name = lazy.pool.get_string(value);
+  let mut path = PathBuf::from(&*name);
+
+  // SPONGE: this needs to be its own method, hopefully in Lazy or some kind of
+  //         central context manager and/or dispatcher
+  if path.is_relative() {
+    let current_path = lazy.get_path(module).path.as_path();
+
+    assert!(current_path.is_absolute(), "source directory must have been fully resolved");
+    assert!(current_path.is_file(), "source must be a file");
+
+    let current_path_parent = current_path.parent().expect("source to have a parent");
+
+    path = current_path_parent.join(path);
+  };
+
+  let source = lazy.add_file(&name, path)?;
+
   let import = lang::module::import::Import {
-    source: value,
+    source,
     group,
     span,
   };

@@ -20,6 +20,7 @@ use crate::tokenize::token;
 #[derive(Debug)]
 pub enum LazyError {
   NotExist(PathBuf),
+  Aster(crate::aster::Error),
 }
 
 #[derive(Debug)]
@@ -29,6 +30,12 @@ pub struct Lazy<'a> {
   modules: Vec<Module>,
   functions: Vec<Function>,
   tokens: Vec<Vec<token::TokenSpan>>,
+}
+
+impl From<crate::aster::Error> for LazyError {
+  fn from(value: crate::aster::Error) -> Self {
+    Self::Aster(value)
+  }
 }
 
 impl<'a> Lazy<'a> {
@@ -57,6 +64,15 @@ impl<'a> Lazy<'a> {
   }
 
   pub fn add_file(&mut self, name: &str, mut path: PathBuf) -> Result<ModuleReference, LazyError> {
+    // SPONGE: this logic is spread out over many disparate areas of the program
+    //         e.g. in Import's `make_import`
+    if path.is_relative() {
+      let cwd = std::env::current_dir()
+        .expect("cwd to return current dir");
+
+      path = cwd.join(path);
+    };
+
     if path.is_dir() {
       path.push("index.zy");
     };
@@ -73,6 +89,9 @@ impl<'a> Lazy<'a> {
 
     self.tokens.push(vec![]);
     self.modules.push(Module::new(name, parent));
+
+    // Tokenize, asterize (parse AST)
+    crate::aster::asterize(self, module)?;
 
     Ok(module)
   }

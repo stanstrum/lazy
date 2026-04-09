@@ -50,9 +50,6 @@ fn error_handler<'lazy, 'pool>(
   let path = lazy.settings.input_path.to_owned();
   let global = lazy.add_file("global", path)?;
 
-  // Tokenize, asterize (parse AST)
-  aster::asterize(lazy, global)?;
-
   // Resolve, verify
   resolve::resolve_and_verify(lazy, global)?;
 

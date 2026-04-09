@@ -2,11 +2,11 @@ pub mod import;
 
 use std::path::PathBuf;
 
+use crate::string_pool::PoolId;
 use crate::lang::Lazy;
 use crate::lang::module::import::Import;
 use crate::lang::reference::{FunctionReference, ModuleReference, Reference, TypePartReference};
 use crate::lang::ty::Type;
-use crate::string_pool::PoolId;
 use crate::tokenize::token::Span;
 
 #[derive(Debug, Clone, Copy)]

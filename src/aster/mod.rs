@@ -16,6 +16,7 @@ use crate::lang::Lazy;
 #[derive(Debug)]
 pub enum Error {
   Token(tokenize::Error),
+  Lazy(Box<crate::lang::LazyError>),
   Expected {
     what: &'static str,
     at: Span,
@@ -42,4 +43,13 @@ pub fn asterize(lazy: &mut Lazy, module: ModuleReference) -> Result<(), Error> {
   };
 
   result
+}
+
+impl From<crate::lang::LazyError> for Error {
+  fn from(value: crate::lang::LazyError) -> Self {
+    match value {
+      value @ crate::lang::LazyError::NotExist(_) => Self::Lazy(Box::new(value)),
+      crate::lang::LazyError::Aster(error) => error,
+    }
+  }
 }

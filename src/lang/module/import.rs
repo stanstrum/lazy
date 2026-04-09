@@ -1,9 +1,8 @@
-use crate::string_pool::StringId;
-
 use crate::tokenize::token::Span;
 use crate::lang::Lazy;
 use crate::lang::span::GetSpan;
 use crate::lang::module::Name;
+use crate::lang::reference::ModuleReference;
 
 #[derive(Debug)]
 pub struct ImportGroup {
@@ -27,7 +26,7 @@ pub enum ImportPart {
 
 #[derive(Debug)]
 pub struct Import {
-  pub source: StringId,
+  pub source: ModuleReference,
   pub group: ImportGroup,
   pub span: Span,
 }

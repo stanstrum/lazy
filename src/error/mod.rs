@@ -143,6 +143,7 @@ impl From<crate::aster::Error> for PrintableMessage {
           }],
         }]),
       },
+      crate::aster::Error::Lazy(lazy) => (*lazy).into(),
     }
   }
 }
@@ -248,6 +249,7 @@ impl From<crate::lang::LazyError> for PrintableMessage {
         description: format!(line_dbg!("not a file {:?}"), &path_buf),
         contents: MessageContents::None,
       },
+      crate::lang::LazyError::Aster(aster) => aster.into(),
     }
   }
 }

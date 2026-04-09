@@ -121,7 +121,7 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
     return Ok(Some(Structure::TypeAlias(alias)))
   };
 
-  if let Some(import) = import::make_import(lazy, stream)? {
+  if let Some(import) = import::make_import(lazy, stream.module, stream)? {
     lazy.rget_mut(parent).imports.push(import);
 
     return Ok(Some(Structure::ImportFrom(())));

@@ -66,7 +66,8 @@ fn debug_tokens() {
   let pool = StringPool::new();
   let mut lazy = Lazy::new(&pool, settings);
 
-  let global = lazy.add_file("global", lazy.settings.input_path.to_owned());
+  let global = lazy.add_file("global", lazy.settings.input_path.to_owned())
+    .expect("to add global module");
   let path = lazy.get_path(global).path.as_path();
 
   let file = std::fs::File::open(path).unwrap();

@@ -17,7 +17,6 @@ use std::process::ExitCode;
 
 use lang::Lazy;
 
-use crate::lang::reference::ModuleReference;
 use crate::string_pool::StringPool;
 
 fn main() -> ExitCode {
@@ -34,10 +33,7 @@ fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
   let pool = StringPool::new();
   let mut lazy = Lazy::new(&pool, settings);
 
-  let path = lazy.settings.input_path.to_owned();
-  let global = lazy.add_file("global", path);
-
-  match error_handler(&mut lazy, global, verb) {
+  match error_handler(&mut lazy, verb) {
     Ok(exit_code) => exit_code,
     Err(message) => {
       error::print_message(&lazy, message);
@@ -48,9 +44,12 @@ fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
 
 fn error_handler<'lazy, 'pool>(
   lazy: &'lazy mut Lazy<'pool>,
-  global: ModuleReference,
   verb: settings::Verb,
 ) -> Result<ExitCode, error::PrintableMessage> {
+  // Instantiate the global scope
+  let path = lazy.settings.input_path.to_owned();
+  let global = lazy.add_file("global", path)?;
+
   // Tokenize, asterize (parse AST)
   aster::asterize(lazy, global)?;
 

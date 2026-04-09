@@ -238,3 +238,16 @@ impl From<crate::generate::Error> for PrintableMessage {
     }
   }
 }
+
+impl From<crate::lang::LazyError> for PrintableMessage {
+  fn from(value: crate::lang::LazyError) -> Self {
+    match value {
+      crate::lang::LazyError::NotExist(path_buf) => Self {
+        level: Level::Error,
+        force: true,
+        description: format!(line_dbg!("not a file {:?}"), &path_buf),
+        contents: MessageContents::None,
+      },
+    }
+  }
+}

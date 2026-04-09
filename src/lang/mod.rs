@@ -18,6 +18,11 @@ use crate::lang::reference::{FunctionReference, ModuleReference, Store};
 use crate::tokenize::token;
 
 #[derive(Debug)]
+pub enum LazyError {
+  NotExist(PathBuf),
+}
+
+#[derive(Debug)]
 pub struct Lazy<'a> {
   pub pool: &'a StringPool,
   pub settings: Settings,
@@ -51,14 +56,25 @@ impl<'a> Lazy<'a> {
     lazy
   }
 
-  pub fn add_file(&mut self, name: &str, path: PathBuf) -> ModuleReference {
-    let name = self.pool.insert(name);
+  pub fn add_file(&mut self, name: &str, mut path: PathBuf) -> Result<ModuleReference, LazyError> {
+    if path.is_dir() {
+      path.push("index.zy");
+    };
+
+    if !path.is_file() {
+      return Err(LazyError::NotExist(path));
+    };
+
     let module = ModuleReference(self.modules.len());
     let tokens = TokensId(self.tokens.len());
+
+    let name = self.pool.insert(name);
     let parent = ModuleParent::Path(ModulePath { path, tokens, module });
+
     self.tokens.push(vec![]);
     self.modules.push(Module::new(name, parent));
-    module
+
+    Ok(module)
   }
 
   pub fn create_function(&mut self, module: ModuleReference, header: FunctionHeader) -> FunctionReference {

@@ -44,7 +44,7 @@ pub(super) fn resolve_qualified_to_type(
     return tasks.seed_error(ErrorBase::UnknownTypeName {
       module_name: lazy.describe_module(module),
       span: qualified.span,
-    })
+    });
   };
 
   Ok(match space {

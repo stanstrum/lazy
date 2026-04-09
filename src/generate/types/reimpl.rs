@@ -26,7 +26,7 @@ impl<'ctx> LazyType<'ctx> {
 
   pub(crate) fn as_basic_type_enum(self) -> Result<inkwell::types::BasicTypeEnum<'ctx>> {
     match self {
-      LazyType::Void(void_type) => unimplemented!(),
+      LazyType::Void(_) => unimplemented!(),
       LazyType::Int(int_type) => Ok(int_type.as_basic_type_enum()),
       LazyType::Float(float_type) => Ok(float_type.as_basic_type_enum()),
       LazyType::Pointer(pointer_type) => Ok(pointer_type.as_basic_type_enum()),

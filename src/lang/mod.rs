@@ -66,12 +66,7 @@ impl<'a> Lazy<'a> {
   pub fn add_file(&mut self, name: &str, mut path: PathBuf) -> Result<ModuleReference, LazyError> {
     // SPONGE: this logic is spread out over many disparate areas of the program
     //         e.g. in Import's `make_import`
-    if path.is_relative() {
-      let cwd = std::env::current_dir()
-        .expect("cwd to return current dir");
-
-      path = cwd.join(path);
-    };
+    assert!(path.is_absolute(), "source path must be absolute");
 
     if path.is_dir() {
       path.push("index.zy");

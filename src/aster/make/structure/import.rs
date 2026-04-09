@@ -186,11 +186,9 @@ pub(super) fn make_import<'pool, const N: usize, T: Read>(
 
   let source = lazy.add_file(&name, path)?;
 
-  let import = lang::module::import::Import {
+  Ok(Some(lang::module::import::Import {
     source,
     group,
     span,
-  };
-
-  Ok(Some(import))
+  }))
 }

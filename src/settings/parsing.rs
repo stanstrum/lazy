@@ -103,11 +103,18 @@ pub(super) fn digest(executable: &str, argv: impl Iterator<Item = String>) -> Re
     return Err(Error::Verbless);
   };
 
-  let Some(input_path) = input_path else {
+  let Some(mut input_path) = input_path else {
     return Err(Error::Missing {
       what: "input path",
       position,
     });
+  };
+
+  if input_path.is_relative() {
+    let cwd = std::env::current_dir()
+      .expect("cwd to return current directory");
+
+    input_path = cwd.join(input_path);
   };
 
   let output_path = output_path.unwrap_or_else(|| PathBuf::from("./a.out"));

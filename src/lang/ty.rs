@@ -1,8 +1,6 @@
-use std::fmt::Display;
-
-use crate::lang::module::{Name};
-use crate::lang::reference::{ModuleReference, TypePartReference, TypeReference};
 use crate::tokenize::token::{Span, StringKind};
+use crate::lang::module::Name;
+use crate::lang::reference::{ModuleReference, TypePartReference, TypeReference};
 use crate::resolve::tasks::OverwriteTypeReference;
 
 #[derive(Debug, Clone)]
@@ -145,7 +143,7 @@ impl Intrinsic {
   }
 }
 
-impl Display for Intrinsic {
+impl std::fmt::Display for Intrinsic {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     f.write_str(match self {
       Intrinsic::Void => "void",

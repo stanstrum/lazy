@@ -1,12 +1,12 @@
 pub mod import;
 
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 use crate::string_pool::PoolId;
 use crate::lang::Lazy;
-use crate::lang::module::import::Import;
 use crate::lang::reference::{FunctionReference, ModuleReference, Reference, TypePartReference};
-use crate::lang::ty::Type;
+use crate::lang::ty::{Qualified, Type};
 use crate::tokenize::token::Span;
 
 #[derive(Debug, Clone, Copy)]
@@ -31,7 +31,7 @@ pub struct TypePartId(pub usize);
 #[derive(Debug)]
 pub struct Module {
   pub name: PoolId,
-  pub imports: Vec<Import>,
+  pub imports: HashMap<PoolId, Qualified>,
   pub modules: Vec<ModuleReference>,
   pub functions: Vec<FunctionReference>,
   pub parent: ModuleParent,
@@ -57,7 +57,7 @@ impl Module {
     Self {
       name,
       parent,
-      imports: vec![],
+      imports: HashMap::new(),
       modules: vec![],
       functions: vec![],
       aliases: vec![],

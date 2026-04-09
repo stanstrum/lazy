@@ -17,7 +17,7 @@ pub struct StringPool {
   pub strings: RefCell<Vec<String>>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PoolId(usize);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

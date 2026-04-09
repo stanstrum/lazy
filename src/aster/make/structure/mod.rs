@@ -1,4 +1,5 @@
 mod import;
+mod traverser;
 
 use crate::line_dbg;
 use crate::error::WithinSource;
@@ -122,7 +123,7 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
   };
 
   if let Some(import) = import::make_import(lazy, stream.module, stream)? {
-    lazy.rget_mut(parent).imports.push(import);
+    traverser::traverse_import(lazy, &import)?;
 
     return Ok(Some(Structure::ImportFrom(())));
   };

@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 
-use crate::lang::reference::ModuleReference;
 use crate::print_once_per_thread;
 use crate::tokenize::token::StringKind;
 
@@ -125,7 +124,7 @@ fn make_selector<'pool, const N: usize, T: Read>(
 
 pub(super) fn make_import<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
-  module: ModuleReference,
+  module: lang::reference::ModuleReference,
   stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<lang::module::import::Import>, Error> {
   let Some((Token::Keyword(Keyword::Import), start)) = stream.peek()? else {

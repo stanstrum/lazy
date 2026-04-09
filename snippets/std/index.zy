@@ -5,9 +5,18 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import libc from "./libc.zy"
+/* import from "./libc.zy"
+ *  libc
+ *
+ * template T
+ * struct Slice
+ *   &[]T ptr
+ *  usize len
+ */
 
-template T
-struct Slice
-  &[]T ptr
-  usize len
+type CStr := &[]u8
+
+type usize := u64
+type isize := i64
+
+type char := u32

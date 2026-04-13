@@ -1,7 +1,7 @@
 use super::*;
 
 pub(super) fn compile_variable<'ctx>(
-  comp: &mut Compilation<'_, '_, 'ctx>,
+  _comp: &mut Compilation<'_, '_, 'ctx>,
   variable: &lang::reference::VariableReference,
   scopes: &mut FunctionScopes<'ctx>,
 ) -> Result<LazyValue<'ctx>> {

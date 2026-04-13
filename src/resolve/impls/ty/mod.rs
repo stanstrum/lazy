@@ -176,6 +176,13 @@ pub(super) fn verify_typeof(
   verify_type(lazy, &ty, tasks)
 }
 
+pub(super) fn default_types_of_type(lazy: &mut Lazy, reference: &TypeReference, tasks: &mut Tasks) -> Result<()> {
+  let ty = reference.type_of(lazy).expect("to get a type");
+  let pair = TypePair::new(*reference, ty);
+
+  ty::pair::default_types_of_type_pair(lazy, &pair, tasks)
+}
+
 pub(super) fn verify_type(lazy: &Lazy, ty: &Type, tasks: &mut Tasks) -> Result<()> {
   match ty {
     Type::Reference(type_reference) => verify_typeof(lazy, type_reference, tasks),

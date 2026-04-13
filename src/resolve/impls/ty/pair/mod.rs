@@ -103,9 +103,8 @@ impl Coerce for TypePair {
       };
 
       // println!(
-      //   line_dbg!("TypePair({}, {}) coerced by {}"),
-      //   self.0.print(lazy),
-      //   self.1.print(lazy),
+      //   line_dbg!("TypePair({}) coerced by {}"),
+      //   self.print(lazy),
       //   other.print(lazy),
       // );
 
@@ -219,6 +218,8 @@ impl Coerce for TypePair {
           assert!(characters_a == characters_b);
           assert!(dereferenced_a == dereferenced_b);
 
+
+
           Ok(())
         },
         | (
@@ -272,5 +273,56 @@ impl Coerce for TypePair {
         },
       }
     })
+  }
+}
+
+pub(in crate::resolve::impls) fn default_types_of_type_pair(lazy: &mut Lazy, pair: &TypePair, tasks: &mut Tasks) -> Result<()> {
+  match &pair.ty {
+    Type::Reference(ty) => default_types_of_type(lazy, ty, tasks),
+    Type::Resolved { part, .. } => default_types_of_type(
+      lazy, &TypeReference::Part(*part), tasks,
+    ),
+    Type::Unresolved { .. } => todo!(),
+    Type::Intrinsic { .. } => Ok(()),
+    Type::WeakInteger { .. } => todo!(),
+    Type::WeakFloat { .. } => todo!(),
+    &Type::WeakString { kind, characters, dereferenced, span } => {
+      // dbg!(kind, characters, dereferenced);
+
+      if dereferenced {
+        todo!()
+      };
+
+      let src = {
+        let parent_module = pair.reference.parent_module(lazy);
+
+        let element_intrinsic = kind.into_intrinsic();
+        let element_part = Type::Intrinsic { kind: element_intrinsic, span };
+        let element_reference = parent_module.add_type_part(element_part, lazy);
+
+        let arr_of_element_part = Type::SizedArrayOf { ty: element_reference, size: characters, span };
+        let arr_of_element_reference = parent_module.add_type_part(arr_of_element_part, lazy);
+
+        Type::ReferenceTo { ty: arr_of_element_reference, r#mut: false, span }
+      };
+
+      tasks.push(tasks::OverwriteType {
+        dest: pair.to_owned().into(),
+        src,
+      }, line_dbg!("here"));
+
+      Ok(())
+    },
+    Type::Weak { .. } => todo!(),
+    Type::ReferenceTo { r#mut, .. } => {
+      let pair = pair.dereference(lazy, *r#mut)?
+        .expect("to dereference the type");
+
+      default_types_of_type_pair(lazy, &pair, tasks)
+    },
+    | Type::SizedArrayOf { ty, .. }
+    | Type::UnsizedArrayOf { ty, .. } => {
+      ty::default_types_of_type(lazy, &TypeReference::Part(*ty), tasks)
+    },
   }
 }

@@ -151,6 +151,27 @@ impl Resolve for BlockReference {
   }
 }
 
+pub(super) fn default_types_in_block_expr(lazy: &mut Lazy, block: &BlockReference, tasks: &mut Tasks) -> Result<()> {
+  let description = {
+    let Span { start, end, .. } = block.get_span(lazy);
+
+    format!(line_dbg!("Make default ambiguous types for block: {}:{} - {}:{}"),
+      start.line, start.column,
+      end.line, end.column,
+    )
+  };
+
+  tasks.work(description, |tasks| {
+    ty::default_types_of_type(lazy, &TypeReference::Block(*block), tasks)?;
+
+    for expr in block.rget_from(lazy).children.clone() {
+      default_types_in_expr(lazy, &ExpressionReference(*block, expr), tasks)?;
+    };
+
+    Ok(())
+  })
+}
+
 pub(super) fn verify_block(lazy: &Lazy, block: &BlockReference, ret_ty: Option<&TypePair>, tasks: &mut Tasks) -> Result<()> {
   let block_borrow = block.rget_from(lazy);
 
@@ -300,6 +321,36 @@ impl Resolve for ExpressionReference {
   }
 }
 
+fn default_types_in_expr(lazy: &mut Lazy, expr: &ExpressionReference, tasks: &mut Tasks) -> Result<()> {
+  let Span { start, end , .. } = expr.get_span(lazy);
+
+  let description = format!(line_dbg!("Make default ambiguous types for expr {}:{} - {}:{}"),
+    start.line, start.column,
+    end.line, end.column,
+  );
+
+  ty::default_types_of_type(lazy, &TypeReference::Expression(*expr), tasks)?;
+
+  tasks.work(description, |tasks| match expr.rget_from(lazy) {
+    &Expression::Block(block) => default_types_in_block_expr(lazy, &block, tasks),
+    Expression::Literal { .. } => Ok(()),
+    Expression::Variable {.. } => Ok(()),
+    Expression::Unknown { .. } => todo!(),
+    Expression::Unary { .. } => {
+      // SPONGE: There are actually two type fields in a unary expression because
+      // one is contained within the expr and one is part of the Expression
+      // variant ... maybe fix this?
+      ty::default_types_of_type(lazy, &TypeReference::Expression(*expr), tasks)
+    },
+    &Expression::Binary { a, b, .. } => {
+      default_types_in_expr(lazy, &a, tasks)?;
+      default_types_in_expr(lazy, &b, tasks)?;
+
+      Ok(())
+    },
+  })
+}
+
 fn verify_expr(lazy: &Lazy, expr: ExpressionReference, ret_ty: Option<&TypePair>, tasks: &mut Tasks) -> Result<()> {
   let Span { start, end , .. } = lazy.rget(expr).get_span(lazy);
 
@@ -335,6 +386,9 @@ fn verify_expr(lazy: &Lazy, expr: ExpressionReference, ret_ty: Option<&TypePair>
 
       verify_expr(lazy, *a, None, tasks)?;
       verify_expr(lazy, *b, None, tasks)?;
+
+      // TypeReference::Expression(*a).coerce(lazy, &TypeReference::Expression(*b), tasks)?;
+      // TypeReference::Expression(*b).coerce(lazy, &TypeReference::Expression(*a), tasks)?;
 
       out_pair.coerce(lazy, &Type::Intrinsic {
         kind: Intrinsic::Void,

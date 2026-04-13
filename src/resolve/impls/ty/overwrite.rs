@@ -19,7 +19,7 @@ impl TypeOf for OverwriteTypeReference {
           Type::UnsizedArrayOf { .. } => todo!(),
           Type::SizedArrayOf { .. } => todo!(),
         },
-      }
+      };
     };
 
     Some(ty)
@@ -47,7 +47,7 @@ impl Coerce for OverwriteTypeReference {
 impl<'a> Store<OverwriteTypeReference> for Lazy<'a> {
   type Out = Type;
 
-  fn rget(&self, key: OverwriteTypeReference) -> &Self::Out {
+  fn rget(&self, _key: OverwriteTypeReference) -> &Self::Out {
     todo!()
   }
 

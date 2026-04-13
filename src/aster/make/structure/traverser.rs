@@ -50,7 +50,7 @@ fn traverse_part(
   stack: &mut Vec<lang::module::Name>,
 )  -> Result<usize, Error> {
   match part {
-    lang::module::import::ImportPart::Star(span) => todo!(),
+    lang::module::import::ImportPart::Star(_) => todo!(),
     lang::module::import::ImportPart::Group(group) => traverse_group(lazy, module, source, group, stack),
     lang::module::import::ImportPart::Qualify(qualify) => {
       stack.push(qualify.name);

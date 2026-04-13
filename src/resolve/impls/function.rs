@@ -1,9 +1,47 @@
 use crate::{print_message, print_once_per_thread};
 
 use crate::resolve::TypePair;
-use crate::lang::reference::{FunctionReference, TypeReference};
+use crate::lang::reference::{FunctionReference, TypeReference, VariableReference};
 
 use super::*;
+
+pub(super) fn default_types_in_function(lazy: &mut Lazy, function: &FunctionReference, tasks: &mut Tasks) -> Result<()> {
+  let header_arguments;
+  let body;
+
+  let description = {
+    let borrow = function.rget_from(lazy);
+
+    header_arguments = borrow.header.arguments.len();
+    body = borrow.body;
+
+    let parent = lazy.describe_module(borrow.parent);
+    let name = lazy.pool.get(borrow.header.name.id);
+
+    format!(line_dbg!("Make default ambiguous types in function: {}::{}"), parent, name)
+  };
+
+  tasks.work(
+    description,
+    |tasks| {
+      ty::default_types_of_type(lazy,
+        &TypeReference::ReturnTypeOf(*function),
+        tasks,
+      )?;
+
+      for i in 0..header_arguments {
+        ty::default_types_of_type(lazy,
+          &TypeReference::Variable(VariableReference::Argument(*function, i)),
+          tasks,
+        )?
+      };
+
+      expr::default_types_in_block_expr(lazy, &body, tasks)?;
+
+      Ok(())
+    },
+  )
+}
 
 pub(in crate::resolve) fn verify_function(lazy: &Lazy, function: &FunctionReference, tasks: &mut Tasks) -> Result<()> {
   // get main function
@@ -12,7 +50,9 @@ pub(in crate::resolve) fn verify_function(lazy: &Lazy, function: &FunctionRefere
   let parent = lazy.describe_module(borrow.parent);
   let name = lazy.pool.get(borrow.header.name.id);
 
-  tasks.work(format!(line_dbg!("Verify function: {}::{}"), parent, name), |tasks| {
+  tasks.work(
+    format!(line_dbg!("Verify function: {}::{}"), parent, name),
+    |tasks| {
     let ret_ty_reference = TypeReference::ReturnTypeOf(*function);
 
     // verify return type

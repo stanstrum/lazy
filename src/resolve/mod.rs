@@ -141,9 +141,8 @@ fn find_main(lazy: &Lazy, module: ModuleReference, tasks: &mut Tasks) -> Result<
 pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()> {
   let mut tasks = Tasks::new();
 
-  tasks.work::<Result<()>>(
-    line_dbg!("Resolve global").into(),
-    |tasks| loop {
+  let resolve_tasks = |description, lazy: &mut _, tasks: &mut Tasks| -> Result<()> {
+    tasks.work::<Result<()>>(description, |tasks| loop {
       // Resolve `global` recursively
       module.resolve(lazy, tasks)?;
 
@@ -154,7 +153,24 @@ pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()
       if !did_execute {
         return Ok(());
       };
+    })
+  };
+
+  resolve_tasks(line_dbg!("Resolve global").into(), lazy, &mut tasks)?;
+
+  tasks.work::<Result<()>>(
+    line_dbg!("Make default ambiguous types").into(),
+    |tasks| {
+
+      impls::structure::default_types_in_module(lazy, &module, tasks)?;
+
+      Ok(())
     },
+  )?;
+
+  resolve_tasks(
+    line_dbg!("Resolve after make default ambiguous types").into(),
+    lazy, &mut tasks
   )?;
 
   tasks.work::<Result<()>>(
@@ -176,7 +192,9 @@ pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()
   tasks.work::<Result<()>>(
     line_dbg!("Verify main").into(),
     |tasks| {
+      // get main and error if it's not present
       let main = find_main(lazy, module, tasks)?;
+
       let borrow = lazy.rget(main);
       let ret_ty_reference = TypeReference::ReturnTypeOf(main);
 

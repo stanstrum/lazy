@@ -73,6 +73,29 @@ fn verify_alias(lazy: &Lazy, alias: &AliasReference, tasks: &mut Tasks) -> Resul
   verify_typeof(lazy, &ty, tasks)
 }
 
+pub(in crate::resolve) fn default_types_in_module(lazy: &mut Lazy, module: &ModuleReference, tasks: &mut Tasks) -> Result<()> {
+  // let description = {
+  let borrow = module.rget_from(lazy);
+
+  let modules = borrow.modules.clone();
+  let functions = borrow.functions.clone();
+
+  for id in 0..borrow.aliases.len() {
+    let reference = AliasReference(*module, id);
+    ty::default_types_of_type(lazy, &TypeReference::Alias(reference), tasks)?;
+  };
+
+  for module in modules {
+    default_types_in_module(lazy, &module, tasks)?;
+  };
+
+  for function in functions {
+    function::default_types_in_function(lazy, &function, tasks)?;
+  };
+
+  Ok(())
+}
+
 pub(in crate::resolve) fn verify_module(lazy: &Lazy, module: &ModuleReference, tasks: &mut Tasks) -> Result<()> {
   let borrow = module.rget_from(lazy);
 

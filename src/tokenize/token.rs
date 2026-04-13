@@ -175,7 +175,7 @@ pub fn parse_escape(value: &str) -> Result<EscapeValue, Error> {
     };
   };
 
-  if let Some(value) = value.strip_prefix("u") {
+  if let Some(_value) = value.strip_prefix("u") {
     todo!("unicode");
   };
 

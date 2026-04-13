@@ -221,8 +221,10 @@ impl Pretty for FunctionAnd<'_, Expression> {
               StringKind::C => "c",
             };
 
-            let value = lazy.pool.get_string(*value);
-            format!("{prefix}{value:?} {{{ty}}}")
+            format!(
+              "{prefix}{value:?} {{{ty}}}",
+              value = unsafe { lazy.pool.get_string(*value) },
+            )
           },
         }].into_iter()
       },

@@ -50,11 +50,21 @@ impl StringPool {
     id
   }
 
-  pub fn get_string(&self, StringId(id): StringId) -> Ref<'_, String> {
+  /// ISSUE/SPONGE: needs revision
+  /// This can't call `add_file` with the `name` paramater being a `Ref` to the
+  /// pool's string vector, as it may well be reallocated during subsequent
+  /// `insert_string` calls.  See `get_own_string`.
+  pub unsafe fn get_string(&self, StringId(id): StringId) -> Ref<'_, String> {
     Ref::map(
       self.strings.borrow(),
       |strings| strings.get(id).unwrap()
     )
+  }
+
+  pub fn get_own_string(&self, string_id: StringId) -> String {
+    unsafe {
+      self.get_string(string_id).to_owned()
+    }
   }
 
   pub fn insert(&self, str: &str) -> PoolId {

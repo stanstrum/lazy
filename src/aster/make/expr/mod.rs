@@ -20,7 +20,7 @@ fn new_weak_string(
   value: crate::string_pool::StringId,
   span: token::Span
 ) -> lang::ty::Type {
-  let length = lazy.pool.get_string(value).len();
+  let length = unsafe { lazy.pool.get_string(value).len() };
 
   let characters = match kind {
     token::StringKind::C => length + 1,

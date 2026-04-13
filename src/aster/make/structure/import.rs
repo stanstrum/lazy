@@ -167,7 +167,7 @@ pub(super) fn make_import<'pool, const N: usize, T: Read>(
   let end = group.span;
   let span = Span::from_pair(start, end);
 
-  let name = lazy.pool.get_string(value);
+  let name = lazy.pool.get_own_string(value);
   let mut path = PathBuf::from(&*name);
 
   // SPONGE: this needs to be its own method, hopefully in Lazy or some kind of

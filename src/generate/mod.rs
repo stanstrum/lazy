@@ -29,7 +29,13 @@ type Result<T = ()> = std::result::Result<T, Error>;
 
 impl From<inkwell::support::LLVMString> for Error {
   fn from(value: inkwell::support::LLVMString) -> Self {
-    Self::LLVMError(value.to_string())
+    Self::LLVMError(format!("LLVM error: {}", value.to_string()))
+  }
+}
+
+impl From<inkwell::builder::BuilderError> for Error {
+  fn from(value: inkwell::builder::BuilderError) -> Self {
+    Self::LLVMError(format!("Builder error: {}", value.to_string()))
   }
 }
 

@@ -38,7 +38,7 @@ impl<'ctx> FunctionScopes<'ctx> {
         let pointer = comp.llvm.builder.build_alloca(
           ty.as_basic_type_enum()?,
           &name
-        ).expect("to create variable");
+        )?;
 
         Ok(pointer)
       }).collect::<Result<Vec<_>>>()?;
@@ -77,8 +77,7 @@ fn compile_function(comp: &mut Compilation, function_reference: lang::reference:
   let last_value = last_value.as_ref()
     .map(|value| value as _);
 
-  comp.llvm.builder.build_return(last_value)
-    .expect("build_return");
+  comp.llvm.builder.build_return(last_value)?;
 
   Ok(())
 }

@@ -34,8 +34,7 @@ fn compile_expr<'ctx>(
       let ptr = lhs.as_basic_value_enum()?.into_pointer_value();
       let value  = rhs.as_basic_value_enum()?;
 
-      comp.llvm.builder.build_store(ptr, value)
-        .expect("to generate store");
+      comp.llvm.builder.build_store(ptr, value)?;
 
       Ok(LazyValue::Void)
     },
@@ -98,8 +97,7 @@ pub(super) fn compile_block<'ctx>(
   // Position to where we came from
   comp.llvm.builder.position_at_end(prev_block);
   // Build a branch from thence to block we just
-  comp.llvm.builder.build_unconditional_branch(after_prev_block)
-    .expect("to create unconditional branch");
+  comp.llvm.builder.build_unconditional_branch(after_prev_block)?;
   comp.llvm.builder.position_at_end(continue_block);
 
   Ok(last_value)

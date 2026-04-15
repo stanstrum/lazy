@@ -200,6 +200,15 @@ impl Coerce for TypePair {
           Ok(())
         },
         (
+          Type::SizedArrayOf { ty: ty_a, .. } | Type::UnsizedArrayOf { ty: ty_a, .. },
+          Type::SizedArrayOf { ty: ty_b, .. } | Type::UnsizedArrayOf { ty: ty_b, .. },
+        ) => {
+          ty_a.coerce(lazy, ty_b, tasks)?;
+          ty_b.coerce(lazy, ty_a, tasks)?;
+
+          Ok(())
+        },
+        (
           Type::WeakString { kind: kind_a, characters: characters_a, dereferenced: dereferenced_a, .. },
           Type::WeakString { kind: kind_b, characters: characters_b, dereferenced: dereferenced_b, .. },
         ) => {

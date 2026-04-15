@@ -1,6 +1,7 @@
 mod literal;
 mod variable;
 
+use crate::lang::expr::operator::BinaryOperator;
 use crate::generate::types::LazyValue;
 
 use super::*;
@@ -26,7 +27,19 @@ fn compile_expr<'ctx>(
       => variable::compile_variable(comp, reference, scopes),
     lang::expr::Expression::Unknown { .. } => todo!(),
     lang::expr::Expression::Unary { .. } => todo!(),
-    lang::expr::Expression::Binary { .. } => todo!(),
+    lang::expr::Expression::Binary { a, b, op: (BinaryOperator::Assign, _), .. } => {
+      let lhs = compile_expr(comp, function, *a, scopes)?;
+      let rhs = compile_expr(comp, function, *b, scopes)?;
+
+      let ptr = lhs.as_basic_value_enum()?.into_pointer_value();
+      let value  = rhs.as_basic_value_enum()?;
+
+      comp.llvm.builder.build_store(ptr, value)
+        .expect("to generate store");
+
+      Ok(LazyValue::Void)
+    },
+    other => todo!("{other:#?}"),
   }
 }
 

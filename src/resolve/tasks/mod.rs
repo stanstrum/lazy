@@ -33,6 +33,7 @@ pub enum TaskResponse {
 
 pub struct Tasks {
   tasks: VecDeque<Box<dyn Task>>,
+  #[cfg(debug_assertions)]
   trace: Rc<RefCell<Vec<String>>>,
 }
 
@@ -94,9 +95,9 @@ impl Tasks {
     // Get the status handle
     let status = self.status_handle(description);
 
-    #[cfg(debug_assertions)]
-    // SPONGE: Print the explain() message for the whole stack
-    println!("{}", self.explain(0));
+    // #[cfg(debug_assertions)]
+    // // SPONGE: Print the explain() message for the whole stack
+    // println!("{}", self.explain(0));
 
     // Run the task
     let result = f(self);

@@ -11,7 +11,6 @@ use super::*;
 //     let modifiers = self.modifiers.clone();
 //     let reference = *self.pair.0;
 
-
 //     clone.modifiers.push(TypePairModifier::Dereference);
 
 //     Ok(Some(clone))
@@ -218,8 +217,6 @@ impl Coerce for TypePair {
           assert!(characters_a == characters_b);
           assert!(dereferenced_a == dereferenced_b);
 
-
-
           Ok(())
         },
         | (
@@ -264,7 +261,7 @@ impl Coerce for TypePair {
           };
 
           tasks.seed_error(ErrorBase::TypeMismatch {
-            whence: line_dbg!(""),
+            whence: line_dbg!(),
             a_print: a.print(lazy),
             a_span: a.get_span(lazy),
             b_print: b.print(lazy),

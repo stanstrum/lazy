@@ -15,6 +15,10 @@ use super::Error;
 
 #[macro_export]
 macro_rules! line_dbg {
+  () => {
+    line_dbg!("")
+  };
+
   ($str:expr) => {
     concat!("[\x1b[1;4m", file!(), ":", line!(), "\x1b[0;24m]: ", $str)
   };

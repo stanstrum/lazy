@@ -33,7 +33,6 @@ pub enum TaskResponse {
 
 pub struct Tasks {
   tasks: VecDeque<Box<dyn Task>>,
-  #[cfg(debug_assertions)]
   trace: Rc<RefCell<Vec<String>>>,
 }
 

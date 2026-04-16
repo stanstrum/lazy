@@ -59,7 +59,7 @@ pub(super) fn make_function_type<'ctx>(
   let is_var_args = false;
 
   let ret_ty = make_type(comp, &borrow.header.ret_ty)?;
-  let function_type = ret_ty.fn_type(&param_types, is_var_args)?;
+  let function_type = ret_ty.fn_type(&param_types, is_var_args);
 
   Ok(function_type)
 }

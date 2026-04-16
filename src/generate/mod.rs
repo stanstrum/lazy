@@ -35,7 +35,7 @@ impl From<inkwell::support::LLVMString> for Error {
 
 impl From<inkwell::builder::BuilderError> for Error {
   fn from(value: inkwell::builder::BuilderError) -> Self {
-    Self::LLVMError(format!("Builder error: {}", value.to_string()))
+    Self::LLVMError(format!("Builder error: {value}"))
   }
 }
 

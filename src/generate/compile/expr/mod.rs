@@ -31,8 +31,11 @@ fn compile_expr<'ctx>(
       let lhs = compile_expr(comp, function, *a, scopes)?;
       let rhs = compile_expr(comp, function, *b, scopes)?;
 
-      let ptr = lhs.as_basic_value_enum()?.into_pointer_value();
-      let value  = rhs.as_basic_value_enum()?;
+      let ptr = lhs.as_basic_value_enum()
+        .expect("lhs value to to be PointerValue")
+        .into_pointer_value();
+      let value  = rhs.as_basic_value_enum()
+        .expect("rhs to be BasicValueEnum");
 
       comp.llvm.builder.build_store(ptr, value)?;
 

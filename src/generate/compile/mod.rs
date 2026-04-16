@@ -36,7 +36,7 @@ impl<'ctx> FunctionScopes<'ctx> {
         let ty = make_type(comp, &variable.ty)?;
 
         let pointer = comp.llvm.builder.build_alloca(
-          ty.as_basic_type_enum()?,
+          ty.as_basic_type_enum().expect("type to be BasicValueEnum"),
           &name
         )?;
 
@@ -71,11 +71,9 @@ fn compile_function(comp: &mut Compilation, function_reference: lang::reference:
   let mut scopes = FunctionScopes::new(function_reference, function_value);
 
   let last_value = expr::compile_block(comp, function_value, body, &mut scopes)?
-    .as_basic_value_enum()
-    .ok();
+    .as_basic_value_enum();
 
-  let last_value = last_value.as_ref()
-    .map(|value| value as _);
+  let last_value = last_value.as_ref().map(|x| x as _);
 
   comp.llvm.builder.build_return(last_value)?;
 

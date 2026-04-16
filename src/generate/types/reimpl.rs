@@ -6,40 +6,40 @@ impl<'ctx> LazyType<'ctx> {
   pub(crate) fn fn_type(self,
     param_types: &[inkwell::types::BasicMetadataTypeEnum<'ctx>],
     is_var_args: bool,
-  ) -> Result<inkwell::types::FunctionType<'ctx>> {
-    Ok(match self {
+  ) -> inkwell::types::FunctionType<'ctx> {
+    match self {
       LazyType::Void(void_type) => void_type.fn_type(param_types, is_var_args),
       LazyType::Int(int_type) => int_type.fn_type(param_types, is_var_args),
       LazyType::Float(float_type) => float_type.fn_type(param_types, is_var_args),
       LazyType::Pointer(pointer_type) => pointer_type.fn_type(param_types, is_var_args),
-    })
-  }
-
-  pub(crate) fn into_int_type(self) -> Result<inkwell::types::IntType<'ctx>> {
-    match self {
-      LazyType::Void(_) => unimplemented!(),
-      LazyType::Int(int_type) => Ok(int_type),
-      LazyType::Float(_) => unimplemented!(),
-      LazyType::Pointer(_) => unimplemented!(),
     }
   }
 
-  pub(crate) fn as_basic_type_enum(self) -> Result<inkwell::types::BasicTypeEnum<'ctx>> {
+  pub(crate) fn into_int_type(self) -> Option<inkwell::types::IntType<'ctx>> {
     match self {
-      LazyType::Void(_) => unimplemented!(),
-      LazyType::Int(int_type) => Ok(int_type.as_basic_type_enum()),
-      LazyType::Float(float_type) => Ok(float_type.as_basic_type_enum()),
-      LazyType::Pointer(pointer_type) => Ok(pointer_type.as_basic_type_enum()),
+      LazyType::Void(_) => None,
+      LazyType::Int(int_type) => Some(int_type),
+      LazyType::Float(_) => None,
+      LazyType::Pointer(_) => None,
+    }
+  }
+
+  pub(crate) fn as_basic_type_enum(self) -> Option<inkwell::types::BasicTypeEnum<'ctx>> {
+    match self {
+      LazyType::Void(_) => None,
+      LazyType::Int(int_type) => Some(int_type.as_basic_type_enum()),
+      LazyType::Float(float_type) => Some(float_type.as_basic_type_enum()),
+      LazyType::Pointer(pointer_type) => Some(pointer_type.as_basic_type_enum()),
     }
   }
 }
 
 impl<'ctx> LazyValue<'ctx> {
-  pub(crate) fn as_basic_value_enum(self) -> Result<inkwell::values::BasicValueEnum<'ctx>> {
+  pub(crate) fn as_basic_value_enum(self) -> Option<inkwell::values::BasicValueEnum<'ctx>> {
     match self {
-      LazyValue::Void => unimplemented!(),
-      LazyValue::Int(int_value) => Ok(int_value.into()),
-      LazyValue::Pointer(pointer_value) => Ok(pointer_value.into()),
+      LazyValue::Void => None,
+      LazyValue::Int(int_value) => Some(int_value.into()),
+      LazyValue::Pointer(pointer_value) => Some(pointer_value.into()),
     }
   }
 }

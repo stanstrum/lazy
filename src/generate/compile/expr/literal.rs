@@ -16,7 +16,7 @@ pub(super) fn compile_literal<'ctx>(
       // we use `out` because, despite internally storing u64, the literal
       // could be u32, i32, etc.
       let value = make_type(comp, out)?
-        .into_int_type()?
+        .into_int_type().expect("literal out type to be IntType")
         // SPONGE: `sign_extend` might be used for something
         .const_int(value, false);
 

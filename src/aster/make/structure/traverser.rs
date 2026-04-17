@@ -44,6 +44,33 @@ fn traverse_group(
   Ok(count)
 }
 
+fn insert_to_import_map(
+  lazy: &mut lang::Lazy,
+  module: &lang::reference::ModuleReference,
+  key: string_pool::PoolId,
+  value: lang::ty::Qualified,
+) -> Result<(), Error> {
+  let map = &mut module.rget_from_mut(lazy).imports;
+
+  if map.contains_key(&key) {
+    let id_text = lazy.pool.get(key);
+
+    panic!("id {key:?} already exists: {id_text}");
+  };
+
+  map.insert(key, value);
+
+  Ok(())
+}
+
+/// Processes a [`lang::module::import::ImportPart`].  Some notes on the params:
+/// * `module`: The module parsed the [`lang::module::import::Import`] in the
+///   first place.
+/// * `source`: The module pointed to by [`lang::module::import::Import::source`]
+/// * `part`  : The [`lang::module::import::ImportPart`] to process.
+/// * `stack` : The history of [`lang::module::import::ImportQualify`]s that got
+///   us to the current point.  This is scope that this should be
+///   contexutualized/represented with an [`lang::ty::Qualified`].
 fn traverse_part(
   lazy: &mut lang::Lazy,
   module: &lang::reference::ModuleReference,
@@ -52,7 +79,76 @@ fn traverse_part(
   stack: &mut Vec<lang::module::Name>,
 )  -> Result<usize, Error> {
   match part {
-    lang::module::import::ImportPart::Star(_) => todo!(),
+    &lang::module::import::ImportPart::Star(span) => {
+      print_once_per_thread!(lazy, {
+        level: Stub,
+        force: false,
+        description: line_dbg!("restrict ImportPart::Start selector to expored members only").into(),
+        contents: MessageContents::File(*module),
+      });
+
+      let mut count = 0;
+
+      let where_are_we_now = lang::ty::Qualified {
+        implicit: lang::ty::QualifiedSearchSpace::Module(*source),
+        parts: stack.to_owned(),
+        span,
+      };
+
+      let space_search = resolve_qualified_to_space(lazy, *module, &where_are_we_now, &None)
+        // shouldn't actually throw an error if we don't pass it `tasks`, rather
+        // return `None`
+        .unwrap();
+
+      match &space_search {
+        Some(implicit @ lang::ty::QualifiedSearchSpace::Module(module_reference)) => {
+          let mut to_add = vec![];
+
+          // borrow the module in question
+          let module_borrow = module_reference.rget_from(lazy);
+
+          // for all imports ...
+          for (key, mut value) in module_borrow.imports.clone() {
+            // replace their span with that of the asterisk selector
+            value.span = span;
+
+            // and add them to the add queue
+            to_add.push((key, value));
+          };
+
+          // for all aliases
+          for alias in module_borrow.aliases.iter() {
+            let key = alias.name.id;
+            let name = lang::module::Name {
+              id: key,
+              span,
+            };
+
+            // creating a new qualified based on the old one saves having to
+            // resolve the entire part `stack` in resolve
+            let value = lang::ty::Qualified {
+              implicit: implicit.to_owned(),
+              parts: vec![name],
+              span,
+            };
+
+            // the downside is, though, um no short circuiting occurs if we add
+            // a bad kv-pair to the queue since we don't get around to inserting
+            // them until afterwards.  we don't do that since the borrows get
+            // messy and we'll be making more than just one buffer
+            to_add.push((key, value));
+          };
+
+          count += to_add.len();
+          for (key, value) in to_add {
+            insert_to_import_map(lazy, module, key, value)?;
+          };
+        },
+        other => todo!("error for bad import selector(s): {other:#?}"),
+      };
+
+      Ok(count)
+    },
     lang::module::import::ImportPart::Group(group) => traverse_group(lazy, module, source, group, stack),
     lang::module::import::ImportPart::Qualify(qualify) => {
       stack.push(qualify.name);
@@ -60,20 +156,14 @@ fn traverse_part(
       let result = match &qualify.next {
         Some(next_part) => traverse_part(lazy, module, source, next_part, stack),
         None => {
-          let id = qualify.name.id;
-          let map = &mut module.rget_from_mut(lazy).imports;
-
-          if map.contains_key(&id) {
-            let id_text = lazy.pool.get(id);
-
-            panic!("id {id:?} already exists: {id_text}");
-          };
-
-          map.insert(id, lang::ty::Qualified {
+          let key = qualify.name.id;
+          let value = lang::ty::Qualified {
             implicit: lang::ty::QualifiedSearchSpace::Module(*source),
             parts: stack.to_owned(),
             span: qualify.name.span,
-          });
+          };
+
+          insert_to_import_map(lazy, module, key, value)?;
 
           Ok(1)
         },

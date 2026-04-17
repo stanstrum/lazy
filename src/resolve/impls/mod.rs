@@ -1,6 +1,6 @@
 pub mod structure;
 pub mod function;
-mod ty;
+pub mod ty;
 mod expr;
 
 mod tasks;

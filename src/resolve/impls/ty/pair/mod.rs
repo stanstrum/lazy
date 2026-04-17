@@ -1,4 +1,4 @@
-mod unknown;
+pub mod unknown;
 
 use crate::lang::ty::{Intrinsic, QualifiedSearchSpace};
 use crate::resolve::TypePair;

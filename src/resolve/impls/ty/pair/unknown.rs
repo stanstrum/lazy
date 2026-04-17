@@ -5,11 +5,11 @@ use crate::print_once_per_thread;
 use crate::lang::ty::{Qualified, QualifiedSearchSpace};
 use crate::lang::reference::{AliasReference, ModuleReference};
 
-pub(super) fn resolve_qualified_to_space(
+pub(crate) fn resolve_qualified_to_space(
   lazy: &Lazy,
   module: ModuleReference,
   qualified: &Qualified,
-  tasks: &mut Tasks,
+  tasks: &Option<&mut Tasks>,
 ) -> Result<Option<QualifiedSearchSpace>> {
   let mut space = qualified.implicit.to_owned();
 
@@ -62,10 +62,14 @@ pub(super) fn resolve_qualified_to_space(
       other => todo!("{other:?}"),
     };
 
-    return tasks.seed_error(ErrorBase::UnknownTypeName {
-      module_name: lazy.describe_module(module),
-      span: qualified.span,
-    });
+    return if let Some(tasks) = &tasks {
+      tasks.seed_error(ErrorBase::UnknownTypeName {
+        module_name: lazy.describe_module(module),
+        span: qualified.span,
+      })
+    } else {
+      Ok(None)
+    };
   };
 
   Ok(Some(space))

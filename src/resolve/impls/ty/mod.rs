@@ -7,6 +7,8 @@ use crate::lang::reference::TypeReference;
 use crate::resolve::tasks::OverwriteTypeReference;
 use crate::resolve::{TypePair, TypePairModifier};
 
+pub(crate) use pair::unknown::resolve_qualified_to_space;
+
 use super::*;
 
 trait DereferenceType {

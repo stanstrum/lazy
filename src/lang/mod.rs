@@ -5,7 +5,7 @@ pub mod ty;
 pub mod expr;
 pub mod span;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::print_message;
 use crate::settings::Settings;
@@ -54,7 +54,7 @@ impl<'a> Lazy<'a> {
       .join(" ");
 
     print_message!(&lazy, {
-      level: Level::Debug,
+      level: Debug,
       force: false,
       description: argv,
       contents: MessageContents::None,

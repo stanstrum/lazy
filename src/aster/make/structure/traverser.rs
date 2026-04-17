@@ -12,7 +12,7 @@ pub(super) fn traverse_import(
   let count = traverse_group(lazy, &module, &import.source, &import.group, &mut stack)?;
 
   print_message!(lazy, {
-    level: Level::Debug,
+    level: Debug,
     force: false,
     description: format!(line_dbg!("parsed {} import entry(s)"), count),
     contents: MessageContents::WithinSource(WithinSource::new(

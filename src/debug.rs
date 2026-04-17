@@ -31,7 +31,7 @@ pub(super) fn source(lazy: &Lazy, global: &ModuleReference) {
     .to_owned();
 
   print_message!(lazy, {
-    level: Level::Debug,
+    level: Debug,
     force: false,
     description,
     contents: MessageContents::None,
@@ -40,7 +40,7 @@ pub(super) fn source(lazy: &Lazy, global: &ModuleReference) {
 
 pub(super) fn string_pool(lazy: &Lazy) {
   print_message!(lazy, {
-    level: Level::Debug,
+    level: Debug,
     force: false,
     description: format!("{:?}", lazy.pool),
     contents: MessageContents::None,
@@ -54,7 +54,7 @@ pub(super) fn llvm_source(lazy: &Lazy, compilation: &ProgramCompilation) {
     .to_owned();
 
   print_message!(lazy, {
-    level: Level::Debug,
+    level: Debug,
     force: false,
     description,
     contents: MessageContents::None,
@@ -93,7 +93,7 @@ pub(super) fn object_file(lazy: &Lazy, object_file: &ProgramObjectFile) {
     let description = indent(stderr, ERROR_PAD_LEN);
 
     print_message!(lazy, {
-      level: Level::Error,
+      level: Error,
       force: false,
       description,
       contents: MessageContents::None,
@@ -111,7 +111,7 @@ pub(super) fn object_file(lazy: &Lazy, object_file: &ProgramObjectFile) {
     .to_owned();
 
   print_message!(lazy, {
-    level: Level::Debug,
+    level: Debug,
     force: false,
     description,
     contents: MessageContents::None,
@@ -123,7 +123,7 @@ pub(super) fn subprocess_command(lazy: &Lazy, command: &Command) {
   let description = format!("Running `{command_text}`");
 
   print_message!(lazy, {
-    level: Level::Info,
+    level: Info,
     force: false,
     description,
     contents: MessageContents::None,

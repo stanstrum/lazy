@@ -77,7 +77,7 @@ pub(in crate::resolve) fn verify_function(lazy: &Lazy, function: &FunctionRefere
       let root = lazy.get_root_module(borrow.parent);
 
       print_once_per_thread!(lazy, {
-        level: Level::Stub,
+        level: Stub,
         force: false,
         description: line_dbg!("verify that main arguments match expected function signature").into(),
         contents: MessageContents::File(root),

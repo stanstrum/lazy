@@ -168,7 +168,7 @@ impl<'ctx> ProgramCompilation<'ctx> {
 
   pub(super) fn optimize(&self, lazy: &lang::Lazy) -> Result {
     print_message!(lazy, {
-      level: Level::Info,
+      level: Info,
       force: false,
       description: line_dbg!("Optimizing LLVM code").into(),
       contents: MessageContents::None,

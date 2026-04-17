@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use crate::print_once_per_thread;
 use crate::tokenize::token::StringKind;
 
@@ -113,7 +111,7 @@ fn make_selector<'pool, const N: usize, T: Read>(
   };
 
   print_once_per_thread!(lazy, {
-    level: Level::Stub,
+    level: Stub,
     force: false,
     description: line_dbg!("parse other kinds of selector").into(),
     contents: MessageContents::None,

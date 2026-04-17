@@ -1,6 +1,8 @@
+use crate::print_message;
+
 use std::cmp::Ordering;
+
 use crate::aster::make::Indenter;
-use crate::error::*;
 use crate::lang::reference::{BlockReference, ExpressionReference, Store};
 use crate::lang::span::GetSpan;
 use crate::tokenize::token::{GroupingKind, GroupingType, Operator, Span};
@@ -64,8 +66,8 @@ pub fn make_block_statement<'pool, const N: usize, T: Read>(
       .find(|prior| prior.id == variable.name.id);
 
     if let Some(conflict) = conflict {
-      print_message(lazy, PrintableMessage {
-        level: Level::Warn,
+      print_message!(lazy, {
+        level: Warn,
         force: false,
         description: line_dbg!("conflicting name will be shadowed").into(),
         contents: MessageContents::WithinSource(vec![WithinSource {

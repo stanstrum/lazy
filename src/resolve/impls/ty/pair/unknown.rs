@@ -33,7 +33,7 @@ pub(super) fn resolve_qualified_to_space(
         if let Some(qualified) = borrow.imports.get(&part.id) {
           let Some(new_space) = resolve_qualified_to_space(lazy, module, qualified, tasks)? else {
             print_once_per_thread!(lazy, {
-              level: Level::Stub,
+              level: Stub,
               force: false,
               description: line_dbg!("disregarding failed resolution of qualified").into(),
               contents: MessageContents::None,

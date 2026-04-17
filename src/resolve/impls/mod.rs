@@ -17,7 +17,11 @@ use super::{Lazy, Result, ErrorBase, Tasks};
 #[macro_export]
 macro_rules! print_message {
   ($lazy:expr, $x:tt) => {
-    use $crate::error::*;
+    #[allow(unused_imports)]
+    use $crate::error::{
+      Level::*,
+      *
+    };
     print_message($lazy, PrintableMessage $x);
   }
 }

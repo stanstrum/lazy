@@ -1,7 +1,8 @@
+use crate::print_message;
+
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-use crate::error::*;
 use crate::lang::span::GetSpan;
 use crate::lang::expr::operator::{BinaryOperator, UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 
@@ -265,8 +266,8 @@ pub(crate) fn melt(lazy: &mut lang::Lazy, mut parts: Vec<ExpressionPart>) -> Res
     let end = debug_gspan(lazy, parts.last().unwrap());
     let range = Span::from_pair(start, end);
 
-    print_message(lazy, PrintableMessage {
-      level: Level::Warn,
+    print_message!(lazy, {
+      level: Warn,
       force: false,
       description: format!(line_dbg!("{} parts"), parts.len()),
       contents: MessageContents::WithinSource(vec![WithinSource {

@@ -1,17 +1,17 @@
 mod impls;
 pub mod tasks;
 
+use crate::{print_message, line_dbg};
+
 use crate::aster::pprint::Pretty;
 use crate::lang::reference::{FunctionReference, Store};
 use crate::lang::span::GetSpan;
-use crate::{print_message, line_dbg};
-use crate::error::*;
 
 use crate::resolve::tasks::OverwriteTypeReference;
 use crate::tokenize::token::Span;
+use crate::lang::Lazy;
 use crate::lang::ty::{Intrinsic, Type};
 use crate::lang::reference::{ModuleReference, Reference, TypeReference};
-use crate::lang::Lazy;
 
 use tasks::Tasks;
 
@@ -121,8 +121,8 @@ fn find_main(lazy: &Lazy, module: ModuleReference, tasks: &mut Tasks) -> Result<
     let function = main.rget_from(lazy);
     let span = function.header.name.span;
 
-    print_message(lazy, PrintableMessage {
-      level: Level::Debug,
+    print_message!(lazy, {
+      level: Debug,
       force: false,
       description: format!(line_dbg!("{} has the entrypoint \"main\""), module_name),
       contents: MessageContents::WithinSource(vec![WithinSource {
@@ -179,7 +179,7 @@ pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()
       impls::structure::verify_module(lazy, &module, tasks)?;
 
       print_message!(lazy, {
-        level: Level::Stub,
+        level: Stub,
         force: false,
         description: line_dbg!("verify rest of program, apart from main").into(),
         contents: MessageContents::File(module),
@@ -205,7 +205,7 @@ pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()
         let span = ret_ty.get_span(lazy);
 
         print_message!(lazy, {
-          level: Level::Debug,
+          level: Debug,
           force: false,
           description: format!(line_dbg!("{reference} is {ty}"),
             reference = ret_ty_reference.print(lazy),
@@ -230,7 +230,7 @@ pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()
   )?;
 
   print_message!(lazy, {
-    level: Level::Info,
+    level: Info,
     force: false,
     description: line_dbg!("No further work should be done.").into(),
     contents: MessageContents::None,

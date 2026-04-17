@@ -95,7 +95,7 @@ pub(super) fn make_unary_suffix<'pool, const N: usize, T: Read>(
   };
 
   print_once_per_thread!(lazy, {
-    level: Level::Stub,
+    level: Stub,
     force: false,
     description: line_dbg!("parse cast").into(),
     contents: MessageContents::WithinSource(WithinSource::new(

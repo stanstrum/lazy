@@ -1,8 +1,9 @@
+use crate::print_message;
+
 mod import;
 mod traverser;
 
 use crate::line_dbg;
-use crate::error::WithinSource;
 
 use crate::lang::reference::AliasReference;
 use crate::lang::span::GetSpan;
@@ -78,8 +79,8 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
 
     let module_name = lazy.describe_module(stream.module);
 
-    print_message(lazy, PrintableMessage {
-      level: Level::Debug,
+    print_message!(lazy, {
+      level: Debug,
       force: false,
       description: format!(line_dbg!("parsed a function: {}::{}"), module_name, name),
       contents: MessageContents::WithinSource(vec![WithinSource {
@@ -100,8 +101,8 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
 
     let module_name = lazy.describe_module(stream.module);
 
-    print_message(lazy, PrintableMessage {
-      level: Level::Debug,
+    print_message!(lazy, {
+      level: Debug,
       force: false,
       description: format!(line_dbg!("parsed a type alias: {}::{}"), module_name, name),
       contents: MessageContents::WithinSource(vec![WithinSource {

@@ -5,18 +5,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-/* import from "./libc.zy"
- *  libc
- *
- * template T
- * struct Slice
- *   &[]T ptr
- *  usize len
- */
+// NOTE: this module should be included along the following lines:
+//       import * from "std"
 
-type CStr := &[]u8
+import from "types.zy"
+  *
 
-type usize := u64
-type isize := i64
+export mod std
+  export *
 
-type char := u32
+  import * from "types"
+  import libc from "libc

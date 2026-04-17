@@ -124,7 +124,7 @@ fn find_main(lazy: &Lazy, module: ModuleReference, tasks: &mut Tasks) -> Result<
     print_message!(lazy, {
       level: Debug,
       force: false,
-      description: format!(line_dbg!("{} has the entrypoint \"main\""), module_name),
+      description: format!(line_dbg!("{} has the entry point \"main\""), module_name),
       contents: MessageContents::WithinSource(vec![WithinSource {
         range: span,
         sections: vec![MessageSection {

@@ -165,23 +165,18 @@ pub(super) fn make_import<'pool, const N: usize, T: Read>(
   let end = group.span;
   let span = Span::from_pair(start, end);
 
+  // Set up the imported source file's name, path
   let name = lazy.pool.get_own_string(value);
-  let mut path = PathBuf::from(&*name);
+  let path = name.as_str().into();
 
-  // SPONGE: this needs to be its own method, hopefully in Lazy or some kind of
-  //         central context manager and/or dispatcher
-  if path.is_relative() {
-    let current_path = lazy.get_path(module).path.as_path();
+  // This is where we're going to look for this file if its path is relative:
+  // in the directory of the current module
+  let current_path = lazy.get_path(module).path.as_path();
+  let relative_to = current_path.parent()
+    .expect("source to have a parent directory")
+    .to_owned();
 
-    assert!(current_path.is_absolute(), "source directory must have been fully resolved");
-    assert!(current_path.is_file(), "source must be a file");
-
-    let current_path_parent = current_path.parent().expect("source to have a parent");
-
-    path = current_path_parent.join(path);
-  };
-
-  let source = lazy.add_file(&name, path)?;
+  let source = lazy.add_file(&name, path, Some(&relative_to))?;
 
   Ok(Some(lang::module::import::Import {
     source,

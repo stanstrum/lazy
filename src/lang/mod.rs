@@ -63,27 +63,84 @@ impl<'a> Lazy<'a> {
     lazy
   }
 
-  pub fn add_file(&mut self, name: &str, mut path: PathBuf) -> Result<ModuleReference, LazyError> {
-    // SPONGE: this logic is spread out over many disparate areas of the program
-    //         e.g. in Import's `make_import`
-    assert!(path.is_absolute(), "source path must be absolute");
-
-    if path.is_dir() {
-      path.push("index.zy");
+  /// Creates a module with the provided values.  This module's
+  /// [`ModuleParent`] will be [`ModuleParent::Path`] (from `path`) and this
+  /// path will be resolved either using the provided path in `relative_to`, or
+  /// the current working directory using [`std::env::current_dir`].
+  ///
+  /// The path will be validated and then the source code will be parsed for
+  /// tokens and AST.  If successful, the corresponding [`ModuleReference`] will
+  /// be returned.
+  pub fn add_file(&mut self, name: &str, mut path: PathBuf, relative_to: Option<&Path>) -> Result<ModuleReference, LazyError> {
+    // Make sure relative_to is absolute
+    if let Some(relative_to) = &relative_to {
+      assert!(relative_to.is_absolute(), "relative_to must be an absolute path");
     };
 
+    // Prefix path with relative_to or cwd
+    if path.is_relative() {
+      let cwd; // SPONGE: there's certainly a better way to do this
+      let relative_to = if let Some(relative_to) = relative_to {
+        relative_to
+      } else {
+        cwd = std::env::current_dir()
+          .expect("cwd to return current directory");
+
+        cwd.as_path()
+      };
+
+      path = relative_to.join(path);
+    };
+
+    // If it's a directory, we'll take the index.zy module from it, if it
+    // exists
+    if path.is_dir() {
+      path.push("index");
+    };
+
+    if
+      // If the path, as it stands, is not a file,
+      !path.is_file() &&
+      // And it _does_ have a file name component,
+      let Some(fname) = path.file_name() &&
+      // And said component does not end with our extension,
+      !fname.to_string_lossy().ends_with(".zy")
+    {
+      // Get our own copy
+      let mut fname = fname.to_owned();
+
+      // Then tack on that extension and try again.  When we try again, the
+      // above conditions should prevent this happening more than once
+      fname.push(".zy");
+
+      // Apply it to the filename
+      path.set_file_name(fname);
+    };
+
+    print_message!(self, {
+      level: Debug,
+      force: false,
+      description: format!("Adding module {name:?} from {path:?}"),
+      contents: MessageContents::None,
+    });
+
+    // Check if our file is actually there
     if !path.is_file() {
       return Err(LazyError::NotExist(path));
     };
 
+    // Make the references for this file
     let module = ModuleReference(self.modules.len());
     let tokens = TokensId(self.tokens.len());
 
+    // Initialize the module struct
     let name = self.pool.insert(name);
     let parent = ModuleParent::Path(ModulePath { path, tokens, module });
+    let to_insert = Module::new(name, parent);
 
+    // Store the module's entries
+    self.modules.push(to_insert);
     self.tokens.push(vec![]);
-    self.modules.push(Module::new(name, parent));
 
     // Tokenize, asterize (parse AST)
     crate::aster::asterize(self, module)?;

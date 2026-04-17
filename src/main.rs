@@ -42,13 +42,13 @@ fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
   }
 }
 
-fn error_handler<'lazy, 'pool>(
-  lazy: &'lazy mut Lazy<'pool>,
+fn error_handler(
+  lazy: &mut Lazy,
   verb: settings::Verb,
 ) -> Result<ExitCode, error::PrintableMessage> {
   // Instantiate the global scope
   let path = lazy.settings.input_path.to_owned();
-  let global = lazy.add_file("global", path)?;
+  let global = lazy.add_file("@global", path, None)?;
 
   // Resolve, verify
   resolve::resolve_and_verify(lazy, global)?;

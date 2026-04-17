@@ -99,23 +99,12 @@ pub(super) fn digest(executable: &str, argv: impl Iterator<Item = String>) -> Re
     };
   };
 
-  let Some(verb) = verb else {
-    return Err(Error::Verbless);
-  };
+  let verb = verb.ok_or(Error::Verbless)?;
 
-  let Some(mut input_path) = input_path else {
-    return Err(Error::Missing {
-      what: "input path",
-      position,
-    });
-  };
-
-  if input_path.is_relative() {
-    let cwd = std::env::current_dir()
-      .expect("cwd to return current directory");
-
-    input_path = cwd.join(input_path);
-  };
+  let input_path = input_path.ok_or(Error::Missing {
+    what: "input path",
+    position,
+  })?;
 
   let output_path = output_path.unwrap_or_else(|| PathBuf::from("./a.out"));
   let log_level = log_level.unwrap_or(Level::Info);

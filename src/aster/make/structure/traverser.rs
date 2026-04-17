@@ -50,7 +50,7 @@ fn insert_to_import_map(
   key: string_pool::PoolId,
   value: lang::ty::Qualified,
 ) -> Result<(), Error> {
-  let map = &mut module.rget_from_mut(lazy).imports;
+  let map = &mut module.rget_from_mut(lazy).transports.import_map;
 
   if map.contains_key(&key) {
     let id_text = lazy.pool.get(key);
@@ -87,10 +87,8 @@ fn traverse_part(
         contents: MessageContents::File(*module),
       });
 
-      let mut count = 0;
-
       let where_are_we_now = lang::ty::Qualified {
-        implicit: lang::ty::QualifiedSearchSpace::Module(*source),
+        implicit: lang::ty::QualifiedSearchSpace::Module(*module),
         parts: stack.to_owned(),
         span,
       };
@@ -100,54 +98,13 @@ fn traverse_part(
         // return `None`
         .unwrap();
 
-      match &space_search {
-        Some(implicit @ lang::ty::QualifiedSearchSpace::Module(module_reference)) => {
-          let mut to_add = vec![];
-
-          // borrow the module in question
-          let module_borrow = module_reference.rget_from(lazy);
-
-          // for all imports ...
-          for (key, mut value) in module_borrow.imports.clone() {
-            // replace their span with that of the asterisk selector
-            value.span = span;
-
-            // and add them to the add queue
-            to_add.push((key, value));
-          };
-
-          // for all aliases
-          for alias in module_borrow.aliases.iter() {
-            let key = alias.name.id;
-            let name = lang::module::Name {
-              id: key,
-              span,
-            };
-
-            // creating a new qualified based on the old one saves having to
-            // resolve the entire part `stack` in resolve
-            let value = lang::ty::Qualified {
-              implicit: implicit.to_owned(),
-              parts: vec![name],
-              span,
-            };
-
-            // the downside is, though, um no short circuiting occurs if we add
-            // a bad kv-pair to the queue since we don't get around to inserting
-            // them until afterwards.  we don't do that since the borrows get
-            // messy and we'll be making more than just one buffer
-            to_add.push((key, value));
-          };
-
-          count += to_add.len();
-          for (key, value) in to_add {
-            insert_to_import_map(lazy, module, key, value)?;
-          };
-        },
-        other => todo!("error for bad import selector(s): {other:#?}"),
+      let Some(space) = space_search else {
+        todo!("error for bad import selector(s): not found");
       };
 
-      Ok(count)
+      module.rget_from_mut(lazy).transports.import_stars.push((space, span));
+
+      Ok(1)
     },
     lang::module::import::ImportPart::Group(group) => traverse_group(lazy, module, source, group, stack),
     lang::module::import::ImportPart::Qualify(qualify) => {

@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use crate::string_pool::PoolId;
 use crate::lang::Lazy;
 use crate::lang::reference::{FunctionReference, ModuleReference, Reference, TypePartReference};
-use crate::lang::ty::{Qualified, Type};
+use crate::lang::ty::{Qualified, QualifiedSearchSpace, Type};
 use crate::tokenize::token::Span;
 
 #[derive(Debug, Clone, Copy)]
@@ -25,13 +25,19 @@ pub enum ModuleParent {
   Module(ModuleReference),
 }
 
+#[derive(Debug)]
+pub struct ModuleTransports {
+  pub import_map: HashMap<PoolId, Qualified>,
+  pub import_stars: Vec<(QualifiedSearchSpace, Span)>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TypePartId(pub usize);
 
 #[derive(Debug)]
 pub struct Module {
   pub name: PoolId,
-  pub imports: HashMap<PoolId, Qualified>,
+  pub transports: ModuleTransports,
   pub modules: Vec<ModuleReference>,
   pub functions: Vec<FunctionReference>,
   pub parent: ModuleParent,
@@ -57,7 +63,10 @@ impl Module {
     Self {
       name,
       parent,
-      imports: HashMap::new(),
+      transports: ModuleTransports {
+        import_map: HashMap::new(),
+        import_stars: Vec::new(),
+      },
       modules: vec![],
       functions: vec![],
       aliases: vec![],

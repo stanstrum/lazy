@@ -13,7 +13,7 @@ pub(crate) fn resolve_qualified_to_space(
 ) -> Result<Option<QualifiedSearchSpace>> {
   let mut space = qualified.implicit.to_owned();
 
-  for (index, part) in qualified.parts.iter().enumerate() {
+  'part_match: for (index, part) in qualified.parts.iter().enumerate() {
     if index == 0 {
       let part_string = lazy.pool.get(part.id);
       if let Some(kind) = Intrinsic::try_from_str(&part_string) {
@@ -31,7 +31,7 @@ pub(crate) fn resolve_qualified_to_space(
       QualifiedSearchSpace::Module(module) => {
         let borrow = module.rget_from(lazy);
 
-        if let Some(qualified) = borrow.imports.get(&part.id) {
+        if let Some(qualified) = borrow.transports.import_map.get(&part.id) {
           let Some(new_space) = resolve_qualified_to_space(lazy, module, qualified, tasks)? else {
             print_once_per_thread!(lazy, {
               level: Stub,
@@ -43,9 +43,23 @@ pub(crate) fn resolve_qualified_to_space(
             return Ok(None);
           };
 
+          // replace the space and search from there
           space = new_space;
+          continue 'part_match;
+        };
 
-          continue;
+        for (wildcard_space, span) in borrow.transports.import_stars.iter() {
+          let test_qualified = Qualified {
+            implicit: wildcard_space.to_owned(),
+            parts: vec![*part],
+            span: *span,
+          };
+
+          if let Some(next_space) = resolve_qualified_to_space(lazy, module, &test_qualified, tasks)? {
+            // replace the space and search from there
+            space = next_space;
+            continue 'part_match;
+          };
         };
 
         // Look for type aliases by this name
@@ -54,9 +68,10 @@ pub(crate) fn resolve_qualified_to_space(
           .position(|alias| part.id == alias.name.id)
         {
           let alias = AliasReference(module, id);
-          space = QualifiedSearchSpace::Type(TypeReference::Alias(alias).into());
 
-          continue;
+          // replace the space and search from there
+          space = QualifiedSearchSpace::Type(TypeReference::Alias(alias).into());
+          continue 'part_match;
         };
       },
       other => todo!("{other:?}"),

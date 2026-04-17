@@ -21,20 +21,14 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
       return Err(Error::InvalidNumeric { span });
     };
 
-    let value = if content.contains('.') {
-      let Ok(value) = content.parse::<f64>() else {
-        return Err(Error::InvalidNumeric { span });
-      };
-
-      NumericValue::F64(value)
+    let parse = if content.contains('.') {
+      content.parse().map(NumericValue::F64)
+        .or(Err(Error::InvalidNumeric { span }))
     } else {
-      let Ok(value) = u64::from_str_radix(content, radix) else {
-        return Err(Error::InvalidNumeric { span });
-      };
-
-      NumericValue::U64(value)
+      u64::from_str_radix(content, radix).map(NumericValue::U64)
+        .or(Err(Error::InvalidNumeric { span }))
     };
 
-    Ok(Token::Numeric(value))
+    parse.map(Token::Numeric)
   }
 }

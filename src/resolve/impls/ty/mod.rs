@@ -2,8 +2,8 @@ mod part;
 mod pair;
 mod overwrite;
 
-use crate::lang::reference::TypeReference;
 use crate::lang::ty::{Qualified, Type};
+use crate::lang::reference::TypeReference;
 use crate::resolve::tasks::OverwriteTypeReference;
 use crate::resolve::{TypePair, TypePairModifier};
 

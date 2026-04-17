@@ -1,4 +1,6 @@
-use crate::print_message;
+use crate::{print_message, print_once_per_thread, string_pool};
+
+use crate::resolve::impls::ty::resolve_qualified_to_space;
 
 use super::*;
 

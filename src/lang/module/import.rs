@@ -26,6 +26,11 @@ pub enum ImportPart {
 
 #[derive(Debug)]
 pub struct Import {
+  /// The imported module, i.e. `module` in the following snippet:
+  /// ```
+  /// import from "module"
+  ///   foo::bar::*
+  /// ```
   pub source: ModuleReference,
   pub group: ImportGroup,
   pub span: Span,

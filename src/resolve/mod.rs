@@ -4,14 +4,12 @@ pub mod tasks;
 use crate::{print_message, line_dbg};
 
 use crate::aster::pprint::Pretty;
-use crate::lang::reference::{FunctionReference, Store};
-use crate::lang::span::GetSpan;
-
-use crate::resolve::tasks::OverwriteTypeReference;
 use crate::tokenize::token::Span;
 use crate::lang::Lazy;
 use crate::lang::ty::{Intrinsic, Type};
-use crate::lang::reference::{ModuleReference, Reference, TypeReference};
+use crate::lang::span::GetSpan;
+use crate::lang::reference::{FunctionReference, ModuleReference, Reference, Store, TypeReference};
+use crate::resolve::tasks::OverwriteTypeReference;
 
 use tasks::Tasks;
 

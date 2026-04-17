@@ -1,8 +1,9 @@
 use super::*;
 
+use crate::print_once_per_thread;
+
 use crate::lang::ty::{Qualified, QualifiedSearchSpace};
 use crate::lang::reference::{AliasReference, ModuleReference};
-use crate::print_once_per_thread;
 
 pub(super) fn resolve_qualified_to_space(
   lazy: &Lazy,
@@ -76,17 +77,14 @@ pub(super) fn resolve_qualified_to_type(
   qualified: &Qualified,
   tasks: &mut Tasks,
 ) -> Result<Option<Type>> {
-  let Some(space) = resolve_qualified_to_space(lazy, module, qualified, tasks)? else {
-    return Ok(None);
-  };
-
-  Ok(match space {
-    QualifiedSearchSpace::Type(ty) => ty.type_of(lazy),
-    QualifiedSearchSpace::Intrinsic { kind, span } => Some(Type::Intrinsic { kind, span }),
-    QualifiedSearchSpace::Implicit => {
+  Ok(match resolve_qualified_to_space(lazy, module, qualified, &Some(tasks))? {
+    Some(QualifiedSearchSpace::Type(ty)) => ty.type_of(lazy),
+    Some(QualifiedSearchSpace::Intrinsic { kind, span }) => Some(Type::Intrinsic { kind, span }),
+    Some(QualifiedSearchSpace::Implicit) => {
       // not enough info ... do nothing and pray the problem goes away by itself
       None
     },
+    None => None,
     other => todo!("{other:#?}"),
   })
 }

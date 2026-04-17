@@ -1,6 +1,6 @@
-struct usize := u64
-struct isize := i64
+type usize := u64
+type isize := i64
 
-struct char := u32
+type char := u32
 
-export *
+// export *

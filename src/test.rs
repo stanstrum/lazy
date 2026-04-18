@@ -8,16 +8,26 @@ macro_rules! compile_test {
   ($file:literal: $test:ident) => {
     #[test]
     fn $test() {
+      let out_handle = tempfile::Builder::new()
+        .tempfile()
+        .expect("to create tempfile")
+        .into_temp_path();
+
+      let out_path = out_handle.to_string_lossy();
+
       let exit = run_with(
         [
           "lazy:test",
-          "--log=debug",
-          "ck",
+          "--log-level=debug",
+          &format!("--output-file={out_path}"),
+          "run",
           concat!(env!("CARGO_MANIFEST_DIR"), "/snippets/", $file)
         ]
           .map(String::from)
           .into_iter()
       );
+
+      out_handle.close().expect("to close tempfile");
 
       assert!(exit == ExitCode::SUCCESS);
     }

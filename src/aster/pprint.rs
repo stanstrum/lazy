@@ -375,6 +375,19 @@ impl Pretty for Function {
   }
 }
 
+impl Pretty for QualifiedSearchSpace {
+  type Out = String;
+
+  fn print(&self, lazy: &Lazy) -> Self::Out {
+    match self {
+      QualifiedSearchSpace::Implicit => "::".into(),
+      QualifiedSearchSpace::Type(overwrite_type_reference) => overwrite_type_reference.print(lazy),
+      QualifiedSearchSpace::Intrinsic { kind, .. } => kind.to_string(),
+      QualifiedSearchSpace::Module(module_reference) => lazy.describe_module(*module_reference),
+    }
+  }
+}
+
 impl Pretty for Module {
   type Out = std::vec::IntoIter<String>;
 
@@ -384,35 +397,70 @@ impl Pretty for Module {
       format!("namespace {name}")
     ];
 
+    let mut needs_empty = false;
+
+    for (key, value) in self.transports.import_map.iter() {
+      if needs_empty {
+        lines.push("".into());
+      };
+
+      lines.push(format!("  import from {:?}", value.implicit.print(lazy)));
+      lines.push(format!("    {} // {}", key.print(lazy), value.print(lazy)));
+
+      needs_empty = true;
+    };
+
+    for (space, _) in self.transports.import_stars.iter() {
+      if needs_empty {
+        lines.push("".into());
+      };
+
+      lines.push(format!("  import from {}", space.print(lazy)));
+      lines.push(format!("    *"));
+
+      needs_empty = true;
+    };
+
+    if needs_empty {
+      lines.push("".into());
+      needs_empty = false;
+    };
+
     for alias in self.aliases.iter() {
       let name = alias.name.print(lazy);
       let ty = alias.ty.print(lazy);
       lines.push(format!("  type {name} := {ty}"));
+
+      needs_empty = true;
     };
 
-    for (i, &module) in self.modules.iter().enumerate() {
-      let module_ref = lazy.rget(module);
+    for &module in self.modules.iter() {
+      let module_borrow = lazy.rget(module);
 
-      if i != 0 {
+      if needs_empty {
         lines.push("".into());
       };
 
       lines.push(format!("  {{{}}}", lazy.describe_module(module)));
-      for line in module_ref.print(lazy) {
+      for line in module_borrow.print(lazy) {
         lines.push(format!("  {line}"));
       };
+
+      needs_empty = true;
     };
 
-    for (i, &function) in self.functions.iter().enumerate() {
-      let function_ref = lazy.rget(function);
+    for function in self.functions.iter() {
+      let function_borrow = function.rget_from(lazy);
 
-      if i != 0 {
+      if needs_empty {
         lines.push("".into());
       };
 
-      for line in function_ref.print(lazy) {
+      for line in function_borrow.print(lazy) {
         lines.push(format!("  {line}"));
       };
+
+      needs_empty = true;
     };
 
     lines.into_iter()

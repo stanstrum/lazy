@@ -1,8 +1,8 @@
-import from "std"
-  CStr
+import from "06_type_alias"
+  foo_c_str
 
 main -> i32
   i32 argc
-  &[]CStr argv
+  &[]foo_c_str argv
 
   argc

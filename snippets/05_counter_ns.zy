@@ -1,5 +1,3 @@
-type str := &[]u32
-
 namespace io
   struct Stdin
 

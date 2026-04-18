@@ -8,7 +8,10 @@
 // NOTE: this module should be included along the following lines:
 //       import * from "std"
 
-import from "types.zy"
+import from "types"
+  *
+
+import from "libc"
   *
 
 // import from "libc"

@@ -3,4 +3,6 @@ type isize := i64
 
 type char := u32
 
+type str := []char
+
 // export *

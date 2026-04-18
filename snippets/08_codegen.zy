@@ -1,9 +1,7 @@
-type c_str := []u8
-
 main -> i32
   i32 argc
-  &[]&c_str argv
-  &[]&c_str envp
+  &[]&CStr argv
+  &[]&CStr envp
 
   i32 a := 0;
 

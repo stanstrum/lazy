@@ -1,5 +1,3 @@
-type c_str := &[]u8
-
 pi_r_squared -> f32
   f32 r
 
@@ -9,7 +7,7 @@ pi_r_squared -> f32
 
 main -> i32
   i32 argc
-  &[]c_str argv
+  &[]&CStr argv
 
   i32 a := 0 + 1 - 2 * 3 / 4 ** 5 % 6 & 7 | +8 ^ -9
   bool b := true || false ^^ true && !false
@@ -28,3 +26,5 @@ main -> i32
 
   b++
   b--
+
+  0

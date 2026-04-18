@@ -1,9 +1,9 @@
 namespace Something
-  type c_str := &[]u8
+  type foo_c_str := &[]u8
 
   struct HelloWorld
     u64 a
-    c_str text
+    foo_c_str text
 
   struct Other
     u8 a

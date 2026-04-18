@@ -8,7 +8,7 @@
 // import { libc::printf } from "std/index.zy"
 
 extern printf -> i32
-  &[]u8 format
+  &CStr format
   ...
 
 template<T>

@@ -1,7 +1,8 @@
 // lib!("c") libc
 // allow! non_lowercase_type
-type CString := []u8
+type CStr := []u8
 
+/*
 namespace mem
   extern malloc -> &[]u8
     usize size
@@ -41,3 +42,4 @@ extern printf -> i32
 
 extern puts -> i32
   &CString s
+*/

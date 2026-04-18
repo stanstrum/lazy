@@ -1,3 +1,5 @@
-main
+main -> i32
   while true
     // do nothing :)
+
+  0

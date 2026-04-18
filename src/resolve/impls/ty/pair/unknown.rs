@@ -1,6 +1,6 @@
 use super::*;
 
-use crate::print_once_per_thread;
+use crate::{print_message, print_once_per_thread};
 
 use crate::lang::ty::{Qualified, QualifiedSearchSpace};
 use crate::lang::reference::{AliasReference, ModuleReference};
@@ -29,29 +29,32 @@ pub(crate) fn resolve_qualified_to_space(
       // If the first part is something that can be found in `std`, do that.
       // We must make sure we aren't stuck in an infinite loop so that the
       // standard library doesn't try to go look itself up recursively
-      let std = lazy.std.unwrap();
-      if module != std {
-        let std_qualified = Qualified {
-          implicit: QualifiedSearchSpace::Module(std),
-          parts: vec![*part],
-          span: part.span,
-        };
+      if let QualifiedSearchSpace::Module(space_module) = space {
+        let std = lazy.std.unwrap();
 
-        // Search std for the part
-        if let Some(next_space) = resolve_qualified_to_space(lazy, module, &std_qualified, tasks)? {
-          space = next_space;
-          continue;
+        if space_module != std && module != std {
+          let std_qualified = Qualified {
+            implicit: QualifiedSearchSpace::Module(std),
+            parts: vec![*part],
+            span: part.span,
+          };
+
+          // Search std for the part
+          if let Ok(Some(next_space)) = resolve_qualified_to_space(lazy, module, &std_qualified, tasks) {
+            space = next_space;
+            continue;
+          };
         };
       };
     };
 
     match space {
       // QualifiedSearchSpace::Type(ty) => todo!("match space: {ty:#?}"),
-      QualifiedSearchSpace::Module(module) => {
-        let borrow = module.rget_from(lazy);
+      QualifiedSearchSpace::Module(new_module) => {
+        let borrow = new_module.rget_from(lazy);
 
         if let Some(qualified) = borrow.transports.import_map.get(&part.id) {
-          let Some(new_space) = resolve_qualified_to_space(lazy, module, qualified, tasks)? else {
+          let Some(new_space) = resolve_qualified_to_space(lazy, new_module, qualified, tasks)? else {
             print_once_per_thread!(lazy, {
               level: Stub,
               force: false,
@@ -92,7 +95,7 @@ pub(crate) fn resolve_qualified_to_space(
             span: *span,
           };
 
-          if let Some(next_space) = resolve_qualified_to_space(lazy, module, &test_qualified, tasks)? {
+          if let Ok(Some(next_space)) = resolve_qualified_to_space(lazy, new_module, &test_qualified, tasks) {
             // replace the space and search from there
             space = next_space;
             continue 'part_match;
@@ -104,7 +107,7 @@ pub(crate) fn resolve_qualified_to_space(
           .aliases.iter()
           .position(|alias| part.id == alias.name.id)
         {
-          let alias = AliasReference(module, id);
+          let alias = AliasReference(new_module, id);
 
           // replace the space and search from there
           space = QualifiedSearchSpace::Type(TypeReference::Alias(alias).into());

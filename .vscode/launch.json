@@ -11,11 +11,11 @@
       "program": "${workspaceFolder}/target/debug/lazy",
       "args": [
         "run",
-        "${workspaceFolder}/a.zy",
+        "${workspaceFolder}/snippets/01_assn.zy",
         "--log=debug",
       ],
       "stopAtEntry": false,
-      "cwd": "${fileDirname}",
+      "cwd": "${workspaceFolder}",
       "environment": [],
       "externalConsole": false,
       "MIMode": "gdb",

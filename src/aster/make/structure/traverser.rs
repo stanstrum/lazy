@@ -83,7 +83,7 @@ fn traverse_part(
       print_once_per_thread!(lazy, {
         level: Stub,
         force: false,
-        description: line_dbg!("restrict ImportPart::Start selector to expored members only").into(),
+        description: line_dbg!("restrict ImportPart::Star selector to expored members only").into(),
         contents: MessageContents::File(*module),
       });
 

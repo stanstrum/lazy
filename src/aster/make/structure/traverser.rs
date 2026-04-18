@@ -88,12 +88,12 @@ fn traverse_part(
       });
 
       let where_are_we_now = lang::ty::Qualified {
-        implicit: lang::ty::QualifiedSearchSpace::Module(*module),
+        implicit: lang::ty::QualifiedSearchSpace::Module(*source),
         parts: stack.to_owned(),
         span,
       };
 
-      let space_search = resolve_qualified_to_space(lazy, *module, &where_are_we_now, &None)
+      let space_search = resolve_qualified_to_space(lazy, *source, &where_are_we_now, &None)
         // shouldn't actually throw an error if we don't pass it `tasks`, rather
         // return `None`
         .unwrap();

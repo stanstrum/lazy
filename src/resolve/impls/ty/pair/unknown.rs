@@ -68,6 +68,24 @@ pub(crate) fn resolve_qualified_to_space(
         };
 
         for (wildcard_space, span) in borrow.transports.import_stars.iter() {
+          if
+            let QualifiedSearchSpace::Module(wildscare_space_module) = wildcard_space &&
+            let QualifiedSearchSpace::Module(space_module) = &space &&
+            wildscare_space_module == space_module
+          {
+            let module_name = lazy.describe_module(*wildscare_space_module);
+            let description = format!(line_dbg!("BUGBGUG: Module {} contains itself as an import star selector ... this will cause crashes."), module_name);
+
+            print_message!(lazy, {
+              level: Warn,
+              force: false,
+              description,
+              contents: MessageContents::File(*wildscare_space_module),
+            });
+
+            continue;
+          };
+
           let test_qualified = Qualified {
             implicit: wildcard_space.to_owned(),
             parts: vec![*part],

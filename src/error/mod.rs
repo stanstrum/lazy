@@ -151,6 +151,7 @@ impl From<crate::aster::Error> for PrintableMessage {
 
 impl From<Box<crate::resolve::Error>> for PrintableMessage {
   fn from(value: Box<crate::resolve::Error>) -> Self {
+    #[cfg(debug_assertions)]
     println!("{}", value.call_stack);
 
     match value.base {

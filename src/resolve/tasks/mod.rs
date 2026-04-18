@@ -91,8 +91,8 @@ impl Tasks {
 
   pub fn work<T>(&mut self, description: String, f: impl FnOnce(&mut Tasks) -> T) -> T {
     #[cfg(debug_assertions)]
-    // Get the status handle
-    let status = self.status_handle(description);
+    // Push the description to the stack
+    self.trace.borrow_mut().push(description);
 
     // #[cfg(debug_assertions)]
     // // SPONGE: Print the explain() message for the whole stack
@@ -103,21 +103,11 @@ impl Tasks {
 
     #[cfg(debug_assertions)]
     // Drop the handle
-    drop(status);
+    self.trace.borrow_mut().pop()
+      .expect("to pop status from trace");
 
     // Return the result, error or not
     result
-  }
-
-  #[must_use = "task status is to be kept alive as long as the task is working"]
-  fn status_handle(&self, description: String) -> TaskStatus {
-    let trace = self.trace.clone();
-
-    trace.borrow_mut().push(description);
-
-    TaskStatus {
-      trace: trace.clone(),
-    }
   }
 
   pub fn push(&mut self, task: impl Task + 'static, _source: &'static str) {

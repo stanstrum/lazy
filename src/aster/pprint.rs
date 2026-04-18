@@ -416,7 +416,7 @@ impl Pretty for Module {
       };
 
       lines.push(format!("  import from {}", space.print(lazy)));
-      lines.push(format!("    *"));
+      lines.push("    *".into());
 
       needs_empty = true;
     };

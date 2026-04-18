@@ -17,6 +17,7 @@ pub enum Structure {
   Module(lang::reference::ModuleReference),
   Function(lang::reference::FunctionReference),
   TypeAlias(lang::reference::AliasReference),
+  Struct(lang::reference::StructReference),
   ImportFrom(()),
 }
 
@@ -67,10 +68,102 @@ fn make_type_alias<'pool, const N: usize, T: Read>(
   Ok(Some(alias_reference))
 }
 
+/// Not a fan of the similarity between [`make_struct`] and [`make_structure`],
+/// in their names.  This one is for making [`lang::module::struc::Struct`]s:
+///
+///     struct Square
+///       u32 height
+///       u32 width
+fn make_struct<'pool, const N: usize, T: Read>(
+  lazy: &mut lang::Lazy<'pool>,
+  parent: lang::reference::ModuleReference,
+  stream: &mut Rereader<'pool, N, T>,
+) -> Result<Option<lang::module::struc::Struct>, Error> {
+  let Some((Token::Keyword(Keyword::Struct), start)) = stream.peek()? else {
+    return Ok(None);
+  };
+
+  let indenter = stream.indenter_here()?;
+  stream.seek();
+
+  if !stream.skip_whitespace_and_comments()? {
+    return stream.expected_here(line_dbg!("whitespace"));
+  };
+
+  let Some(name) = make_name(stream)? else {
+    return stream.expected_here(line_dbg!("a name"));
+  };
+
+  stream.skip_whitespace_and_comments()?;
+
+  let mut members = vec![];
+
+  match indenter.peek(stream)? {
+    Some((Token::Indent(1..), _)) => {
+      stream.seek();
+    },
+    Some((Token::Indent(0), _)) | None => {
+      return Ok(Some(lang::module::struc::Struct {
+        name,
+        members,
+        span: Span::from_pair(start, stream.here()?),
+      }));
+    },
+    other => todo!("{other:#?}"),
+  };
+
+  let mut end;
+  loop {
+    stream.skip_whitespace_and_comments()?;
+
+    match indenter.peek(stream)? {
+      Some((Token::Indent(1..), at)) => {
+        return Err(Error::Invalid {
+          what: line_dbg!("indent").into(),
+          at,
+        });
+      },
+      Some((Token::Indent(0), _)) => {
+        // skip empty lines
+        stream.seek();
+        continue;
+      },
+      next_tok @ (None | Some((Token::Indent(..=-1), _))) => {
+        end = stream.here()?;
+        // only skip the token if we can see it.  TODO: would be nice to have
+        // some kind of a shorthand for this
+        if next_tok.is_some() { stream.seek(); };
+        break;
+      },
+      Some(_) => {
+        // this will be code for us to
+      },
+    };
+
+    let Some(variable) = function::make_function_argument(lazy, stream, parent)? else {
+      return stream.expected_here(line_dbg!("a struct member"));
+    };
+
+    members.push(variable);
+  };
+
+  let span = Span::from_pair(start, end);
+
+  Ok(Some(lang::module::struc::Struct {
+    name,
+    members,
+    span,
+  }))
+}
+
+/// This should be the entry point to making a structure, whether from top-level
+/// or from within a submodule, since this is where the processing/registration
+/// of the data structues get handled, i.e. storing the module in `parent` or
+/// traversing imports.
 pub(super) fn make_structure<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
-  stream: &mut Rereader<'pool, N, T>,
   parent: lang::reference::ModuleReference,
+  stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<Structure>, Error> {
   let here = stream.here()?;
 
@@ -146,6 +239,16 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
     });
 
     return Ok(Some(Structure::TypeAlias(alias)))
+  };
+
+  if let Some(struc) = make_struct(lazy, parent, stream)? {
+    // Make the next StructReference for the struct and then add it.
+    // TODO: This is far too clumsy to keep this way forever
+    let parent_borrow = lazy.rget_mut(parent);
+    let id = parent_borrow.structs.len();
+    let struct_reference = lang::reference::StructReference(parent, id);
+    parent_borrow.structs.push(struc);
+    return Ok(Some(Structure::Struct(struct_reference)))
   };
 
   if let Some(import) = import::make_import(lazy, parent, stream)? {

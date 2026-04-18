@@ -130,7 +130,7 @@ pub(super) fn make<'pool, const N: usize, T: Read>(
       continue;
     };
 
-    let Some(_) = structure::make_structure(lazy, stream, stream.module)? else {
+    let Some(_) = structure::make_structure(lazy, stream.module, stream)? else {
       return stream.expected_here(line_dbg!("a top-level structure"));
     };
   };

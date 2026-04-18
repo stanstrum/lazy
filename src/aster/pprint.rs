@@ -394,7 +394,7 @@ impl Pretty for Module {
   fn print(&self, lazy: &Lazy) -> Self::Out {
     let name = self.name.print(lazy);
     let mut lines = vec![
-      format!("namespace {name}")
+      format!("mod {name}")
     ];
 
     let mut needs_empty = false;
@@ -434,6 +434,22 @@ impl Pretty for Module {
       needs_empty = true;
     };
 
+    for struc in self.structs.iter() {
+      if needs_empty {
+        lines.push("".into());
+      };
+
+      let name = struc.name.print(lazy);
+
+      lines.push(format!("  struct {name}"));
+
+      for member in struc.members.iter() {
+        lines.push(format!("    {} {}", member.ty.print(lazy), member.name.print(lazy)));
+      };
+
+      needs_empty = true;
+    };
+
     for &module in self.modules.iter() {
       let module_borrow = lazy.rget(module);
 
@@ -441,7 +457,7 @@ impl Pretty for Module {
         lines.push("".into());
       };
 
-      lines.push(format!("  {{{}}}", lazy.describe_module(module)));
+      lines.push(format!("  // {}", lazy.describe_module(module)));
       for line in module_borrow.print(lazy) {
         lines.push(format!("  {line}"));
       };

@@ -62,7 +62,7 @@ pub(super) fn make_mod<'pool, const N: usize, T: Read>(
     };
 
     // build a structure inside of `module`, not `parent`
-    let Some(_) = structure::make_structure(lazy, stream, module)? else {
+    let Some(_) = structure::make_structure(lazy, module, stream)? else {
       return stream.expected_here(line_dbg!("a structure"));
     };
   };

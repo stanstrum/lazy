@@ -1,8 +1,10 @@
 pub mod import;
+pub mod struc;
 
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use crate::lang::module::struc::Struct;
 use crate::string_pool::PoolId;
 use crate::lang::Lazy;
 use crate::lang::reference::{FunctionReference, ModuleReference, Reference, TypePartReference};
@@ -42,6 +44,7 @@ pub struct Module {
   pub functions: Vec<FunctionReference>,
   pub parent: ModuleParent,
   pub aliases: Vec<TypeAlias>,
+  pub structs: Vec<Struct>,
   pub type_parts: Vec<Type>,
 }
 
@@ -70,6 +73,7 @@ impl Module {
       modules: vec![],
       functions: vec![],
       aliases: vec![],
+      structs: vec![],
       type_parts: vec![],
     }
   }

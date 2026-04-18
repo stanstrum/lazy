@@ -1,4 +1,6 @@
-use crate::lang::{expr::Variable, ty::Type};
+use crate::lang::module::struc::Struct;
+use crate::lang::expr::Variable;
+use crate::lang::ty::Type;
 
 use super::*;
 
@@ -23,6 +25,18 @@ impl<'a> Store<AliasReference> for Lazy<'a> {
 
   fn rget_mut(&mut self, AliasReference(module, index): AliasReference) -> &mut Self::Out {
     self.rget_mut(module).aliases.get_mut(index).unwrap()
+  }
+}
+
+impl<'a> Store<StructReference> for Lazy<'a> {
+  type Out = Struct;
+
+  fn rget(&self, StructReference(module, index): StructReference) -> &Self::Out {
+    self.rget(module).structs.get(index).unwrap()
+  }
+
+  fn rget_mut(&mut self, StructReference(module, index): StructReference) -> &mut Self::Out {
+    self.rget_mut(module).structs.get_mut(index).unwrap()
   }
 }
 

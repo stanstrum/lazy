@@ -36,6 +36,9 @@ pub enum ErrorBase {
     what: String,
     span: Span,
   },
+  BadQualify {
+    span: Span,
+  },
   Lazy(Box<LazyError>),
 }
 

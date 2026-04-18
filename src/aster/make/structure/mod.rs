@@ -1,5 +1,6 @@
 use crate::print_message;
 
+mod module;
 mod import;
 mod traverser;
 
@@ -13,6 +14,7 @@ use super::*;
 
 #[derive(Debug)]
 pub enum Structure {
+  Module(lang::reference::ModuleReference),
   Function(lang::reference::FunctionReference),
   TypeAlias(lang::reference::AliasReference),
   ImportFrom(()),
@@ -70,6 +72,29 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
   stream: &mut Rereader<'pool, N, T>,
   parent: lang::reference::ModuleReference,
 ) -> Result<Option<Structure>, Error> {
+  let here = stream.here()?;
+
+  if let Some(module) = module::make_mod(lazy, stream, parent)? {
+    lazy.rget_mut(parent).modules.push(module);
+
+    let module_name = lazy.describe_module(module);
+
+    print_message!(lazy, {
+      level: Debug,
+      force: false,
+      description: format!(line_dbg!("parsed a module: {}"), module_name),
+      contents: MessageContents::WithinSource(vec![WithinSource {
+        range: here,
+        sections: vec![MessageSection {
+          text: "here".into(),
+          span: here,
+        }],
+      }]),
+    });
+
+    return Ok(Some(Structure::Module(module)));
+  };
+
   if let Some(function) = function::make_function(lazy, stream, parent)? {
     let name = &function.rget_from(lazy).header.name;
     let (name, span) = (
@@ -77,7 +102,7 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
       name.span,
     );
 
-    let module_name = lazy.describe_module(stream.module);
+    let module_name = lazy.describe_module(parent);
 
     print_message!(lazy, {
       level: Debug,
@@ -99,7 +124,7 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
     let alias_ref = alias.rget_from(lazy);
     let name = lazy.pool.get(alias_ref.name.id);
 
-    let module_name = lazy.describe_module(stream.module);
+    let module_name = lazy.describe_module(parent);
 
     print_message!(lazy, {
       level: Debug,
@@ -123,7 +148,7 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
     return Ok(Some(Structure::TypeAlias(alias)))
   };
 
-  if let Some(import) = import::make_import(lazy, stream.module, stream)? {
+  if let Some(import) = import::make_import(lazy, parent, stream)? {
     traverser::traverse_import(lazy, stream.module, &import)?;
 
     return Ok(Some(Structure::ImportFrom(())));

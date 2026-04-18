@@ -4,6 +4,7 @@ pub mod function;
 pub mod ty;
 pub mod expr;
 pub mod span;
+pub mod keys;
 
 use std::path::{Path, PathBuf};
 
@@ -26,6 +27,7 @@ pub enum LazyError {
 #[derive(Debug)]
 pub struct Lazy<'a> {
   pub pool: &'a StringPool,
+  pub pool_keys: keys::PoolKeys,
   pub settings: Settings,
   pub std: Option<ModuleReference>,
   modules: Vec<Module>,
@@ -45,6 +47,7 @@ impl<'a> Lazy<'a> {
       pool,
       settings,
       std: None,
+      pool_keys: keys::PoolKeys::init(pool),
       modules: vec![],
       functions: vec![],
       tokens: vec![],
@@ -152,23 +155,29 @@ impl<'a> Lazy<'a> {
       return Err(LazyError::NotExist(path));
     };
 
+    let parent = |tokens, module| ModuleParent::Path(ModulePath { path, tokens, module });
+    let module = self.create_module(name, parent);
+
+    // Tokenize, asterize (parse AST)
+    crate::aster::asterize(self, module)?;
+
+    Ok(module)
+  }
+
+  pub fn create_module(&mut self, name: &str, parent: impl FnOnce(TokensId, ModuleReference) -> ModuleParent) -> ModuleReference {
     // Make the references for this file
     let module = ModuleReference(self.modules.len());
     let tokens = TokensId(self.tokens.len());
 
     // Initialize the module struct
     let name = self.pool.insert(name);
-    let parent = ModuleParent::Path(ModulePath { path, tokens, module });
-    let to_insert = Module::new(name, parent);
+    let to_insert = Module::new(name, parent(tokens, module));
 
     // Store the module's entries
     self.modules.push(to_insert);
     self.tokens.push(vec![]);
 
-    // Tokenize, asterize (parse AST)
-    crate::aster::asterize(self, module)?;
-
-    Ok(module)
+    module
   }
 
   pub fn create_function(&mut self, module: ModuleReference, header: FunctionHeader) -> FunctionReference {

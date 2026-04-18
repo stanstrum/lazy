@@ -6,7 +6,7 @@ use crate::tokenize::token::Operator;
 
 use super::*;
 
-fn make_function_argument<'pool, const N: usize, T: Read>(
+pub(super) fn make_function_argument<'pool, const N: usize, T: Read>(
   lazy: &mut lang::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   parent: lang::reference::ModuleReference,

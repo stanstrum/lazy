@@ -1,5 +1,6 @@
 use super::*;
 
+use crate::lang::module::ModuleParent;
 use crate::{print_message, print_once_per_thread};
 
 use crate::lang::ty::{Qualified, QualifiedSearchSpace};
@@ -13,9 +14,53 @@ pub(crate) fn resolve_qualified_to_space(
 ) -> Result<Option<QualifiedSearchSpace>> {
   let mut space = qualified.implicit.to_owned();
 
-  'part_match: for (index, part) in qualified.parts.iter().enumerate() {
-    // Special behaviors for first, non-implicit part
-    if !matches!(&qualified.implicit, QualifiedSearchSpace::Implicit) && index == 0 {
+  let seed = |base: ErrorBase| -> Result<Option<QualifiedSearchSpace>> {
+    if let Some(tasks) = tasks {
+      tasks.seed_error(base)
+    } else {
+      Ok(None)
+    }
+  };
+
+  // For each part ...
+  'part_match: for part in qualified.parts.iter() {
+    // println!(line_dbg!("resolve_qualified_to_space: search for {} in {}"), part.print(lazy), space.print(lazy));
+
+    // First thing, if it's super, we'll do that first.  I don't mind having
+    // 'super' be something you can't name something, without it being a Keyword,
+    // no yeah, it doesn't bother me at all :(
+    if part.id == lazy.pool_keys.super_ {
+      print_message!(lazy, {
+        level: Info,
+        force: true,
+        description: format!(line_dbg!("super keyword in {}"), lazy.describe_module(part.span.module)),
+        contents: MessageContents::WithinSource(WithinSource::new(
+          vec![MessageSection {
+            text: format!("space is {}", space.print(lazy)),
+            span: part.span,
+          }],
+        )),
+      });
+
+      let QualifiedSearchSpace::Module(space_module) = space else {
+        return seed(ErrorBase::BadQualify {
+          span: part.span,
+        });
+      };
+
+      let ModuleParent::Module(parent) = lazy.rget(space_module).parent else {
+        return seed(ErrorBase::BadQualify {
+          span: part.span,
+        });
+      };
+
+      space = QualifiedSearchSpace::Module(parent);
+      continue;
+    };
+
+    if // Special behaviors for first, non-implicit part
+      !matches!(&qualified.implicit, QualifiedSearchSpace::Implicit)
+    {
       // If the first part is an intrinsic, make it so
       let part_string = lazy.pool.get(part.id);
       if let Some(kind) = Intrinsic::try_from_str(&part_string) {
@@ -50,11 +95,11 @@ pub(crate) fn resolve_qualified_to_space(
 
     match space {
       // QualifiedSearchSpace::Type(ty) => todo!("match space: {ty:#?}"),
-      QualifiedSearchSpace::Module(new_module) => {
-        let borrow = new_module.rget_from(lazy);
+      QualifiedSearchSpace::Module(current_module) => {
+        let borrow = current_module.rget_from(lazy);
 
         if let Some(qualified) = borrow.transports.import_map.get(&part.id) {
-          let Some(new_space) = resolve_qualified_to_space(lazy, new_module, qualified, tasks)? else {
+          let Some(new_space) = resolve_qualified_to_space(lazy, current_module, qualified, tasks)? else {
             print_once_per_thread!(lazy, {
               level: Stub,
               force: false,
@@ -95,11 +140,20 @@ pub(crate) fn resolve_qualified_to_space(
             span: *span,
           };
 
-          if let Ok(Some(next_space)) = resolve_qualified_to_space(lazy, new_module, &test_qualified, tasks) {
+          if let Ok(Some(next_space)) = resolve_qualified_to_space(lazy, current_module, &test_qualified, tasks) {
             // replace the space and search from there
             space = next_space;
             continue 'part_match;
           };
+        };
+
+        // Look for submodules by this name
+        if let Some(found_submodule) = borrow
+          .modules.iter()
+          .find(|submodule| part.id == (*submodule).rget_from(lazy).name)
+        {
+          space = QualifiedSearchSpace::Module(*found_submodule);
+          continue 'part_match;
         };
 
         // Look for type aliases by this name
@@ -107,7 +161,7 @@ pub(crate) fn resolve_qualified_to_space(
           .aliases.iter()
           .position(|alias| part.id == alias.name.id)
         {
-          let alias = AliasReference(new_module, id);
+          let alias = AliasReference(current_module, id);
 
           // replace the space and search from there
           space = QualifiedSearchSpace::Type(TypeReference::Alias(alias).into());
@@ -117,14 +171,10 @@ pub(crate) fn resolve_qualified_to_space(
       other => todo!("{other:?}"),
     };
 
-    return if let Some(tasks) = &tasks {
-      tasks.seed_error(ErrorBase::UnknownTypeName {
-        module_name: lazy.describe_module(module),
-        span: qualified.span,
-      })
-    } else {
-      Ok(None)
-    };
+    return seed(ErrorBase::UnknownTypeName {
+      module_name: lazy.describe_module(module),
+      span: qualified.span,
+    });
   };
 
   Ok(Some(space))

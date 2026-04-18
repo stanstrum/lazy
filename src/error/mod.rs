@@ -211,7 +211,18 @@ impl From<Box<crate::resolve::Error>> for PrintableMessage {
           vec![MessageSection {
             text: "here".into(),
             span,
-          }]
+          }],
+        )),
+      },
+      crate::resolve::ErrorBase::BadQualify { span } => Self {
+        level: Level::Error,
+        force: true,
+        description: line_dbg!("invalid part in qualifier").into(),
+        contents: MessageContents::WithinSource(WithinSource::new(
+          vec![MessageSection {
+            text: "here".into(),
+            span,
+          }],
         )),
       },
       crate::resolve::ErrorBase::Lazy(lazy_error) => (*lazy_error).into(),
@@ -230,7 +241,7 @@ impl From<crate::generate::Error> for PrintableMessage {
           vec![MessageSection {
             text: note,
             span,
-          }]
+          }],
         )),
       },
       crate::generate::Error::LLVMError(description) => Self {

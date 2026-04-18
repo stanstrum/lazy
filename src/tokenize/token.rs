@@ -231,6 +231,7 @@ string_enum!(Keyword {
   Switch => "switch",
   Match => "match",
   Case => "case",
+  Mod => "mod",
   Struct => "struct",
   Interface => "interface",
   Abstract => "abstract",

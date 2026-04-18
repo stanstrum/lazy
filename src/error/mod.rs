@@ -213,6 +213,7 @@ impl From<Box<crate::resolve::Error>> for PrintableMessage {
           }]
         )),
       },
+      crate::resolve::ErrorBase::Lazy(lazy_error) => (*lazy_error).into(),
     }
   }
 }

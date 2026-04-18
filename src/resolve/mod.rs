@@ -5,7 +5,7 @@ use crate::{print_message, line_dbg};
 
 use crate::aster::pprint::Pretty;
 use crate::tokenize::token::Span;
-use crate::lang::Lazy;
+use crate::lang::{Lazy, LazyError};
 use crate::lang::ty::{Intrinsic, Type};
 use crate::lang::span::GetSpan;
 use crate::lang::reference::{FunctionReference, ModuleReference, Reference, Store, TypeReference};
@@ -36,6 +36,7 @@ pub enum ErrorBase {
     what: String,
     span: Span,
   },
+  Lazy(Box<LazyError>),
 }
 
 #[derive(Debug)]
@@ -138,6 +139,14 @@ fn find_main(lazy: &Lazy, module: ModuleReference, tasks: &mut Tasks) -> Result<
 
 pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()> {
   let mut tasks = Tasks::new();
+
+  tasks.work::<Result<()>>(
+    line_dbg!("Get standard library").into(),
+    |tasks| match lazy.get_std() {
+      Ok(_) => Ok(()),
+      Err(err) => tasks.seed_error(ErrorBase::Lazy(Box::new(err))),
+    },
+  )?;
 
   let resolve_tasks = |description, lazy: &mut _, tasks: &mut Tasks| -> Result<()> {
     tasks.work::<Result<()>>(description, |tasks| loop {

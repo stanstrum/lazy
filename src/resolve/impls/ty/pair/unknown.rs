@@ -14,15 +14,34 @@ pub(crate) fn resolve_qualified_to_space(
   let mut space = qualified.implicit.to_owned();
 
   'part_match: for (index, part) in qualified.parts.iter().enumerate() {
-    if index == 0 {
+    // Special behaviors for first, non-implicit part
+    if !matches!(&qualified.implicit, QualifiedSearchSpace::Implicit) && index == 0 {
+      // If the first part is an intrinsic, make it so
       let part_string = lazy.pool.get(part.id);
       if let Some(kind) = Intrinsic::try_from_str(&part_string) {
         space = QualifiedSearchSpace::Intrinsic {
           kind,
           span: part.span,
         };
-
         continue;
+      };
+
+      // If the first part is something that can be found in `std`, do that.
+      // We must make sure we aren't stuck in an infinite loop so that the
+      // standard library doesn't try to go look itself up recursively
+      let std = lazy.std.unwrap();
+      if module != std {
+        let std_qualified = Qualified {
+          implicit: QualifiedSearchSpace::Module(std),
+          parts: vec![*part],
+          span: part.span,
+        };
+
+        // Search std for the part
+        if let Some(next_space) = resolve_qualified_to_space(lazy, module, &std_qualified, tasks)? {
+          space = next_space;
+          continue;
+        };
       };
     };
 

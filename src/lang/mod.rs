@@ -7,7 +7,7 @@ pub mod span;
 
 use std::path::{Path, PathBuf};
 
-use crate::print_message;
+use crate::{line_dbg, print_message};
 use crate::settings::Settings;
 use crate::settings::format::format_argument;
 use crate::string_pool::StringPool;
@@ -27,6 +27,7 @@ pub enum LazyError {
 pub struct Lazy<'a> {
   pub pool: &'a StringPool,
   pub settings: Settings,
+  pub std: Option<ModuleReference>,
   modules: Vec<Module>,
   functions: Vec<Function>,
   tokens: Vec<Vec<token::TokenSpan>>,
@@ -43,6 +44,7 @@ impl<'a> Lazy<'a> {
     let lazy = Self {
       pool,
       settings,
+      std: None,
       modules: vec![],
       functions: vec![],
       tokens: vec![],
@@ -61,6 +63,27 @@ impl<'a> Lazy<'a> {
     });
 
     lazy
+  }
+
+  /// Sounds like a rough time.
+  ///
+  /// Returns a [`ModuleReference`] to the standard library, tokenizing those
+  /// structures if necessary
+  pub(in crate) fn get_std(&mut self) -> Result<ModuleReference, LazyError> {
+    if let Some(std) = self.std {
+      return Ok(std);
+    };
+
+    print_message!(self, {
+      level: Stub,
+      force: false,
+      description: line_dbg!("@std can only be imported from cwd").into(),
+      contents: MessageContents::None,
+    });
+
+    let std_reference = self.add_file("@std", "std".into(), None)?;
+
+    Ok(*self.std.insert(std_reference))
   }
 
   /// Creates a module with the provided values.  This module's

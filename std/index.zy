@@ -11,8 +11,5 @@
 import from "types.zy"
   *
 
-export mod std
-  export *
-
-  import * from "types"
-  import libc from "libc
+// import from "libc"
+//   *

@@ -1,0 +1,14 @@
+type Bar := &CStr
+
+mod submodule
+  type Foo := &[]super::Bar
+
+main -> i32
+  i32 argc
+  submodule::Foo argv
+
+  0
+
+mod has_a_struct
+  struct Abcd
+    i32 Efg

@@ -1,4 +1,5 @@
 main -> i32
+
   while true
     // do nothing :)
 

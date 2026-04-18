@@ -133,10 +133,10 @@ impl<'ctx> ProgramCompilation<'ctx> {
   pub(super) fn save_to_file(self, file_type: inkwell::targets::FileType) -> Result<ProgramObjectFile> {
     let file = {
       let temp_file_result = tempfile::Builder::new()
-      // .prefix("lazy-object-")
-      .suffix(".o")
-      .append(false)
-      .tempfile();
+        .prefix("lazy-object-")
+        .suffix(".o")
+        .append(false)
+        .tempfile();
 
       match temp_file_result {
         Ok(file) => file,

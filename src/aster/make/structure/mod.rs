@@ -112,14 +112,14 @@ fn make_struct<'pool, const N: usize, T: Read>(
     other => todo!("{other:#?}"),
   };
 
-  let mut end;
+  let end;
   loop {
     stream.skip_whitespace_and_comments()?;
 
     match indenter.peek(stream)? {
       Some((Token::Indent(1..), at)) => {
         return Err(Error::Invalid {
-          what: line_dbg!("indent").into(),
+          what: line_dbg!("indent"),
           at,
         });
       },

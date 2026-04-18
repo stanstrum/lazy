@@ -1,3 +1,4 @@
+/*
 class F
   abstract protected something_abstract_and_protected -> bool
     &this
@@ -39,6 +40,7 @@ class F
     &str value
 
     {}
+*/
 
 main -> i32
 

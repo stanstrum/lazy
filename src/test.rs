@@ -34,34 +34,36 @@ macro_rules! compile_test {
   };
 }
 
-compile_test!("00_base_main.zy": base_main);
-compile_test!("00_basic.zy": basic);
-compile_test!("01_assn.zy": assn);
-compile_test!("02_hello_world.zy": hello_world);
-compile_test!("03_trait_imp.zy": trait_imp);
-compile_test!("04_extended_operators.zy": extended_operators);
-compile_test!("05_counter_ns.zy": counter_ns);
-compile_test!("06_type_alias.zy": type_alias);
-compile_test!("07_struct_stuff.zy": struct_stuff);
-compile_test!("08_codegen.zy": codegen);
-compile_test!("09_extern.zy": r#extern);
-compile_test!("10_read_source.zy": read_source);
-compile_test!("11_import_std.zy": import_std);
-compile_test!("12_structs.zy": structs);
-compile_test!("13_struct_generic.zy": struct_generic);
-compile_test!("14_slice.zy": slice);
-compile_test!("15_namespace.zy": namespace);
-compile_test!("16_namespaces.zy": namespaces);
-compile_test!("17_string_and_char_escapes.zy": string_and_char_escapes);
-compile_test!("18_control_flow.zy": control_flow);
-compile_test!("19_class_methods.zy": class_methods);
-compile_test!("20_hang.zy": hang);
-compile_test!("21_operator_coverage.zy": operator_coverage);
-compile_test!("bare_bones.zy": bare_bones);
-compile_test!("counter.zy": counter);
-compile_test!("if.zy": r#if);
-compile_test!("message.zy": message);
-compile_test!("std.zy": std);
+compile_test!("00_base_main": base_main);
+compile_test!("00_basic": basic);
+compile_test!("01_assn": assn);
+compile_test!("02_hello_world": hello_world);
+compile_test!("03_trait_imp": trait_imp);
+compile_test!("04_extended_operators": extended_operators);
+compile_test!("05_counter_ns": counter_ns);
+compile_test!("06_type_alias": type_alias);
+compile_test!("07_struct_stuff": struct_stuff);
+compile_test!("08_codegen": codegen);
+compile_test!("09_extern": r#extern);
+compile_test!("10_read_source": read_source);
+compile_test!("11_import_std": import_std);
+compile_test!("12_structs": structs);
+compile_test!("13_struct_generic": struct_generic);
+compile_test!("14_slice": slice);
+compile_test!("15_namespace": namespace);
+compile_test!("16_namespaces": namespaces);
+compile_test!("17_string_and_char_escapes": string_and_char_escapes);
+compile_test!("18_control_flow": control_flow);
+compile_test!("19_class_methods": class_methods);
+compile_test!("20_hang": hang);
+compile_test!("21_operator_coverage": operator_coverage);
+compile_test!("22_import_26": import_26);
+compile_test!("23_struct_mod": struct_mod);
+compile_test!("bare_bones": bare_bones);
+compile_test!("counter": counter);
+compile_test!("if": r#if);
+compile_test!("message": message);
+compile_test!("std_future": std);
 
 #[test]
 fn debug_tokens() {

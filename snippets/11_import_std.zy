@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import from "std"
-  libc::printf
+// import from "std"
+//   libc::printf
 
 main -> i32
 

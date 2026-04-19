@@ -62,6 +62,7 @@ impl<T: TypeOf> DereferenceType for T {
       }),
       Type::UnsizedArrayOf { .. } => Ok(None),
       Type::SizedArrayOf { .. } => Ok(None),
+      Type::Struct { .. } => Ok(None),
     }
   }
 }
@@ -78,6 +79,7 @@ impl TypeOf for Type {
       | Type::UnsizedArrayOf { .. }
       | Type::SizedArrayOf { .. }
       | Type::Unresolved { .. }
+      | Type::Struct { .. }
         => Some(self.clone()),
       // SPONGE
       // | Type::Unresolved { .. }
@@ -100,6 +102,7 @@ impl TypeOf for Type {
       Type::ReferenceTo { .. } => todo!(),
       Type::UnsizedArrayOf { .. } => todo!(),
       Type::SizedArrayOf { .. } => todo!(),
+      Type::Struct { .. } => todo!(),
     }
   }
 }
@@ -129,12 +132,16 @@ impl Resolve for TypeReference {
 
         TypePair::new(*self, ty.clone()).resolve(lazy, tasks)
       },
+      TypeReference::StructMember(struct_reference, id) => {
+        let ty = &struct_reference.rget_from(lazy).members.get(*id).unwrap().ty;
+
+        TypePair::new(*self, ty.clone()).resolve(lazy, tasks)
+      },
       TypeReference::Alias(alias) => {
         let ty = &alias.rget_from(lazy).ty;
 
         TypePair::new(*self, ty.clone()).resolve(lazy, tasks)
       },
-      TypeReference::Struct(_) => todo!(),
       TypeReference::Variable(v) => {
         let variable = v.rget_from(lazy);
         let ty = &variable.ty;
@@ -205,5 +212,6 @@ pub(super) fn verify_type(lazy: &Lazy, ty: &Type, tasks: &mut Tasks) -> Result<(
         span,
       }),
     Type::Intrinsic { .. } => Ok(()),
+    Type::Struct { prototype } => structure::verify_struct(lazy, prototype, tasks),
   }
 }

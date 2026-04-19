@@ -10,6 +10,7 @@ pub(super) enum LazyType<'ctx> {
   Int(inkwell::types::IntType<'ctx>),
   Float(inkwell::types::FloatType<'ctx>),
   Pointer(inkwell::types::PointerType<'ctx>),
+  Struct(inkwell::types::StructType<'ctx>),
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -17,6 +18,7 @@ pub(super) enum LazyValue<'ctx> {
   Void,
   Int(inkwell::values::IntValue<'ctx>),
   Pointer(inkwell::values::PointerValue<'ctx>),
+  Struct(inkwell::values::StructValue<'ctx>),
 }
 
 fn make_intrinsic_type<'ctx>(comp: &Compilation<'_, '_, 'ctx>, intrinsic: lang::ty::Intrinsic) -> LazyType<'ctx> {
@@ -90,6 +92,20 @@ pub(super) fn make_type<'ctx>(comp: &Compilation<'_, '_, 'ctx>, t: &impl TypeOf)
         note: format!("is {}", ty.print(comp.lazy)),
         span,
       })
+    },
+    lang::ty::Type::Struct { prototype } => {
+      let field_types = comp.lazy.rget(prototype).members.iter()
+        .map(|variable| {
+          make_type(comp, &variable.ty)
+            .map(LazyType::as_basic_type_enum)
+            .map(Option::unwrap)
+        })
+        .collect::<Result<Vec<_>>>()?;
+
+      // SPONGE: packed is not implemented
+      let struct_type = comp.llvm.context.struct_type(&field_types, false);
+
+      Ok(LazyType::Struct(struct_type))
     },
   }
 }

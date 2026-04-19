@@ -1,4 +1,4 @@
-use inkwell::types::BasicType;
+use inkwell::{types::BasicType, values::BasicValue};
 
 use super::*;
 
@@ -12,6 +12,7 @@ impl<'ctx> LazyType<'ctx> {
       LazyType::Int(int_type) => int_type.fn_type(param_types, is_var_args),
       LazyType::Float(float_type) => float_type.fn_type(param_types, is_var_args),
       LazyType::Pointer(pointer_type) => pointer_type.fn_type(param_types, is_var_args),
+      LazyType::Struct(struct_type) => struct_type.fn_type(param_types, is_var_args),
     }
   }
 
@@ -21,6 +22,7 @@ impl<'ctx> LazyType<'ctx> {
       LazyType::Int(int_type) => Some(int_type),
       LazyType::Float(_) => None,
       LazyType::Pointer(_) => None,
+      LazyType::Struct(_) => None,
     }
   }
 
@@ -30,6 +32,7 @@ impl<'ctx> LazyType<'ctx> {
       LazyType::Int(int_type) => Some(int_type.as_basic_type_enum()),
       LazyType::Float(float_type) => Some(float_type.as_basic_type_enum()),
       LazyType::Pointer(pointer_type) => Some(pointer_type.as_basic_type_enum()),
+      LazyType::Struct(struct_type) => Some(struct_type.as_basic_type_enum()),
     }
   }
 }
@@ -40,6 +43,7 @@ impl<'ctx> LazyValue<'ctx> {
       LazyValue::Void => None,
       LazyValue::Int(int_value) => Some(int_value.into()),
       LazyValue::Pointer(pointer_value) => Some(pointer_value.into()),
+      LazyValue::Struct(struct_value) => Some(struct_value.as_basic_value_enum()),
     }
   }
 }
@@ -84,7 +88,8 @@ impl<'ctx> From<LazyType<'ctx>> for inkwell::types::BasicMetadataTypeEnum<'ctx> 
       },
       LazyType::Int(int_type) => inkwell::types::BasicMetadataTypeEnum::IntType(int_type),
       LazyType::Float(float_type) => inkwell::types::BasicMetadataTypeEnum::FloatType(float_type),
-      LazyType::Pointer(pointer_type) => inkwell::types::BasicMetadataTypeEnum::PointerType(pointer_type)
+      LazyType::Pointer(pointer_type) => inkwell::types::BasicMetadataTypeEnum::PointerType(pointer_type),
+      LazyType::Struct(struct_type) => inkwell::types::BasicMetadataTypeEnum::StructType(struct_type),
     }
   }
 }

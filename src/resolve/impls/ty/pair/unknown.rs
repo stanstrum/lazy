@@ -4,7 +4,7 @@ use crate::lang::module::ModuleParent;
 use crate::{print_message, print_once_per_thread};
 
 use crate::lang::ty::{Qualified, QualifiedSearchSpace};
-use crate::lang::reference::{AliasReference, ModuleReference};
+use crate::lang::reference::{AliasReference, ModuleReference, StructReference};
 
 pub(crate) fn resolve_qualified_to_space(
   lazy: &Lazy,
@@ -167,10 +167,23 @@ pub(crate) fn resolve_qualified_to_space(
           space = QualifiedSearchSpace::Type(TypeReference::Alias(alias).into());
           continue 'part_match;
         };
+
+        // Look for structs by this name
+        if let Some(id) = borrow
+          .structs.iter()
+          .position(|struc| struc.name.id == part.id)
+        {
+          let struct_reference = StructReference(current_module, id);
+
+          // replace the yadda yadda
+          space = QualifiedSearchSpace::Struct(struct_reference);
+          continue 'part_match;
+        };
       },
       other => todo!("{other:?}"),
     };
 
+    // fallthrough if no matches; yield error
     return seed(ErrorBase::UnknownTypeName {
       module_name: lazy.describe_module(module),
       span: qualified.span,
@@ -189,6 +202,7 @@ pub(super) fn resolve_qualified_to_type(
   Ok(match resolve_qualified_to_space(lazy, module, qualified, &Some(tasks))? {
     Some(QualifiedSearchSpace::Type(ty)) => ty.type_of(lazy),
     Some(QualifiedSearchSpace::Intrinsic { kind, span }) => Some(Type::Intrinsic { kind, span }),
+    Some(QualifiedSearchSpace::Struct(prototype)) => Some(Type::Struct { prototype }),
     Some(QualifiedSearchSpace::Implicit) => {
       // not enough info ... do nothing and pray the problem goes away by itself
       None

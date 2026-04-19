@@ -24,7 +24,7 @@ pub struct FunctionReference(pub usize);
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct AliasReference(pub ModuleReference, pub usize);
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct StructReference(pub ModuleReference, pub usize);
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -43,12 +43,12 @@ pub struct TypePartReference(pub ModuleReference, pub TypePartId);
 #[derive(Debug, Clone, Copy)]
 pub enum TypeReference {
   Alias(AliasReference),
-  Struct(StructReference),
   Part(TypePartReference),
   Expression(ExpressionReference),
   Block(BlockReference),
   ReturnTypeOf(FunctionReference),
   Variable(VariableReference),
+  StructMember(StructReference, usize),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -96,7 +96,6 @@ impl TypeReference {
     match self {
       &TypeReference::Alias(AliasReference(module_reference, _))
         => module_reference,
-      TypeReference::Struct(_) => todo!(),
       &TypeReference::Part(TypePartReference(module_reference, _))
         => module_reference,
       | TypeReference::Expression(ExpressionReference(BlockReference(function_reference, _), _))
@@ -108,6 +107,7 @@ impl TypeReference {
       TypeReference::Block(BlockReference(function, _)) => {
         function.rget_from(lazy).parent
       },
+      &TypeReference::StructMember(StructReference(parent, _), _) => parent,
     }
   }
 }

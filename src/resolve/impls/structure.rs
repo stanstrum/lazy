@@ -1,5 +1,5 @@
 use crate::lang::ty::Type;
-use crate::lang::reference::{AliasReference, ExpressionReference, FunctionReference, ModuleReference, TypeReference, VariableReference};
+use crate::lang::reference::{AliasReference, ExpressionReference, FunctionReference, ModuleReference, StructReference, TypeReference, VariableReference};
 use crate::resolve::TypePair;
 use crate::resolve::impls::ty::verify_typeof;
 
@@ -30,6 +30,25 @@ impl Resolve for AliasReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
     TypeReference::Alias(*self).resolve(lazy, tasks)
   }
+}
+
+impl Resolve for StructReference {
+  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
+    for id in 0..self.rget_from(lazy).members.len() {
+      TypeReference::StructMember(*self, id).resolve(lazy, tasks)?;
+    };
+
+    Ok(())
+  }
+}
+
+pub(super) fn verify_struct(lazy: &Lazy, struct_reference: &StructReference, tasks: &mut Tasks) -> Result<()> {
+  for id in 0..struct_reference.rget_from(lazy).members.len() {
+    let type_reference = TypeReference::StructMember(*struct_reference, id);
+    ty::verify_typeof(lazy, &type_reference, tasks)?;
+  };
+
+  Ok(())
 }
 
 impl Resolve for FunctionReference {

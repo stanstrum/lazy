@@ -75,6 +75,7 @@ impl Resolve for TypePair {
 
           new_reference.resolve(lazy, tasks)
         },
+        Type::Struct { prototype } => prototype.resolve(lazy, tasks),
       }
     })
   }
@@ -149,6 +150,11 @@ impl Coerce for TypePair {
           let ty = reference.rget_from(lazy);
           let other_ref = TypePair::new(*reference, ty.clone());
           self.coerce(lazy, &other_ref, tasks)
+        },
+        // SPONGE: structs can be equivalent to one another without being the
+        //         exact same ...
+        (Type::Struct { prototype: lhs }, Type::Struct { prototype: rhs }) if lhs == rhs => {
+          Ok(())
         },
         (Type::Weak { .. }, _) => {
           tasks.push(tasks::OverwriteType {
@@ -290,7 +296,19 @@ pub(in crate::resolve::impls) fn default_types_of_type_pair(lazy: &mut Lazy, pai
     ),
     Type::Unresolved { .. } => todo!(),
     Type::Intrinsic { .. } => Ok(()),
-    Type::WeakInteger { .. } => todo!(),
+    Type::WeakInteger { span, .. } => {
+      let src = Type::Intrinsic {
+        kind: Intrinsic::U32,
+        span: *span,
+      };
+
+      tasks.push(tasks::OverwriteType {
+        dest: pair.to_owned().into(),
+        src,
+      }, line_dbg!("here"));
+
+      Ok(())
+    },
     Type::WeakFloat { .. } => todo!(),
     &Type::WeakString { kind, characters, dereferenced, span } => {
       // dbg!(kind, characters, dereferenced);
@@ -329,6 +347,15 @@ pub(in crate::resolve::impls) fn default_types_of_type_pair(lazy: &mut Lazy, pai
     | Type::SizedArrayOf { ty, .. }
     | Type::UnsizedArrayOf { ty, .. } => {
       ty::default_types_of_type(lazy, &TypeReference::Part(*ty), tasks)
+    },
+    Type::Struct { prototype } => {
+      let borrow = prototype.rget_from(lazy);
+
+      for id in 0..borrow.members.len() {
+        default_types_of_type(lazy, &TypeReference::StructMember(*prototype, id), tasks)?;
+      };
+
+      Ok(())
     },
   }
 }

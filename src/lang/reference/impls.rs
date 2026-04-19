@@ -112,7 +112,6 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
       TypeReference::Alias(alias) => {
         &self.rget(alias).ty
       },
-      TypeReference::Struct(_) => todo!(),
       TypeReference::Variable(VariableReference::Argument(function, index)) => {
         &self.rget(function).header.arguments.get(index).unwrap().ty
       },
@@ -132,6 +131,9 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
         }
       },
       TypeReference::Block(block) => &self.rget(block).out,
+      TypeReference::StructMember(struct_reference, id) => {
+        &self.rget(struct_reference).members.get(id).unwrap().ty
+      },
     }
   }
 
@@ -141,10 +143,12 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
       TypeReference::ReturnTypeOf(function) => {
         &mut self.rget_mut(function).header.ret_ty
       },
+      TypeReference::StructMember(struct_reference, id) => {
+        &mut self.rget_mut(struct_reference).members.get_mut(id).unwrap().ty
+      },
       TypeReference::Alias(alias) => {
         &mut self.rget_mut(alias).ty
       },
-      TypeReference::Struct(_) => todo!(),
       TypeReference::Variable(VariableReference::Argument(function, index)) => {
         &mut self.rget_mut(function).header.arguments.get_mut(index).unwrap().ty
       },
@@ -162,17 +166,19 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
           let variable = self.rget_mut(reference);
           return &mut variable.ty;
         };
+
         if let
           | Expression::Unary { out, .. }
           | Expression::Binary { out, .. }
           | Expression::Literal { out, .. }
           | Expression::Unknown { out, .. }
+          | Expression::StructInitializer { ty: out, .. }
           = self.rget_mut(expr)
         {
           return out;
         };
 
-        unimplemented!()
+        unimplemented!("get `out` type for expression")
       },
       TypeReference::Block(block) => {
         &mut self.rget_mut(block).out

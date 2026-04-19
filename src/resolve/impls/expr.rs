@@ -2,6 +2,7 @@ use crate::lang::expr::Expression;
 use crate::lang::expr::operator::BinaryOperator;
 use crate::lang::reference::{BlockReference, ExpressionReference, TypeReference, VariableReference};
 use crate::lang::ty::{Intrinsic, Type};
+use crate::print_once_per_thread;
 use crate::resolve::TypePair;
 use crate::resolve::tasks::OverwriteTypeReference;
 use crate::tokenize::token::Span;
@@ -316,6 +317,36 @@ impl Resolve for ExpressionReference {
             span: borrow.get_span(lazy),
           })
         },
+        Expression::StructInitializer { ty, members, .. } => {
+          TypePair::new(
+            TypeReference::Expression(*self),
+            ty.clone(),
+          ).resolve(lazy, tasks)?;
+
+          print_once_per_thread!(lazy, {
+            level: Stub,
+            force: false,
+            description: format!("coerce member expressions from struct `ty`"),
+            contents: MessageContents::WithinSource(
+              WithinSource::new(
+                members.iter().map(|(name, expr)| {
+                  let span = Span::from_pair(name.span, expr.get_span(lazy));
+
+                  crate::error::MessageSection {
+                    text: "here".into(),
+                    span,
+                  }
+                }).collect(),
+              ),
+            ),
+          });
+
+          for (_, member) in members.iter() {
+            member.resolve(lazy, tasks)?;
+          };
+
+          Ok(())
+        },
         other => tasks.seed_error(ErrorBase::NotImplemented {
           what: line_dbg!("impl Resolve for ExpressionReference"),
           span: other.get_span(lazy),
@@ -335,24 +366,36 @@ fn default_types_in_expr(lazy: &mut Lazy, expr: &ExpressionReference, tasks: &mu
 
   ty::default_types_of_type(lazy, &TypeReference::Expression(*expr), tasks)?;
 
-  tasks.work(description, |tasks| match expr.rget_from(lazy) {
-    &Expression::Block(block) => default_types_in_block_expr(lazy, &block, tasks),
-    Expression::Literal { .. } => Ok(()),
-    Expression::Variable {.. } => Ok(()),
-    Expression::Unknown { .. } => todo!(),
-    Expression::Unary { .. } => {
-      // SPONGE: There are actually two type fields in a unary expression because
-      // one is contained within the expr and one is part of the Expression
-      // variant ... maybe fix this?
-      ty::default_types_of_type(lazy, &TypeReference::Expression(*expr), tasks)
-    },
-    &Expression::Binary { a, b, .. } => {
-      default_types_in_expr(lazy, &a, tasks)?;
-      default_types_in_expr(lazy, &b, tasks)?;
+  tasks.work(description, |tasks| {
+    match expr.rget_from(lazy) {
+      &Expression::Block(block) => {
+        default_types_in_block_expr(lazy, &block, tasks)?;
+      },
+      Expression::Literal { .. } => {},
+      Expression::Variable {.. } => {},
+      Expression::Unknown { .. } => todo!(),
+      Expression::Unary { expr: a, .. } => {
+        // SPONGE: There are actually two type fields in a unary expression because
+        // one is contained within the expr and one is part of the Expression
+        // variant ... maybe fix this?
+        ty::default_types_of_type(lazy, &TypeReference::Expression(*a), tasks)?;
+      },
+      &Expression::Binary { a, b, .. } => {
+        default_types_in_expr(lazy, &a, tasks)?;
+        default_types_in_expr(lazy, &b, tasks)?;
+      },
+      Expression::StructInitializer { members, .. } => {
+        let value_iter = members.iter()
+          .map(|(_, value)| *value)
+          .collect::<Vec<_>>();
 
-      Ok(())
-    },
-    Expression::StructInitializer { .. } => todo!(),
+        for value in value_iter {
+          default_types_in_expr(lazy, &value, tasks)?;
+        };
+      },
+    };
+
+    ty::default_types_of_type(lazy, &TypeReference::Expression(*expr), tasks)
   })
 }
 
@@ -403,6 +446,12 @@ fn verify_expr(lazy: &Lazy, expr: ExpressionReference, ret_ty: Option<&TypePair>
       Ok(())
     },
     Expression::Binary { .. } => todo!(),
-    Expression::StructInitializer { .. } => todo!(),
+    Expression::StructInitializer { members, .. } => {
+      for (_, value) in members.iter() {
+        verify_expr(lazy, *value, None, tasks)?;
+      };
+
+      Ok(())
+    },
   })
 }

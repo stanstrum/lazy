@@ -18,6 +18,7 @@ impl TypeOf for OverwriteTypeReference {
           Type::ReferenceTo { .. } => todo!(),
           Type::UnsizedArrayOf { .. } => todo!(),
           Type::SizedArrayOf { .. } => todo!(),
+          Type::Struct { .. } => todo!(),
         },
       };
     };

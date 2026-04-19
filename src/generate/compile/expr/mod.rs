@@ -2,7 +2,7 @@ mod literal;
 mod variable;
 
 use crate::lang::expr::operator::BinaryOperator;
-use crate::generate::types::LazyValue;
+use crate::generate::types::{LazyType, LazyValue};
 
 use super::*;
 
@@ -40,6 +40,35 @@ fn compile_expr<'ctx>(
       comp.llvm.builder.build_store(ptr, value)?;
 
       Ok(LazyValue::Void)
+    },
+    lang::expr::Expression::StructInitializer { ty, members, span } => {
+      let lang::ty::Type::Struct { prototype } = ty.type_of(comp.lazy).expect("type to exist") else {
+        todo!("error for bad struct out type");
+      };
+
+      let LazyType::Struct(struct_type) = make_type(comp, ty)? else {
+        todo!("error for bad struct generate type");
+      };
+
+      let mut values = vec![];
+
+      for variable in comp.lazy.rget(prototype).members.iter() {
+        let Some(expr) = members.iter()
+          .find_map(|(name, expr)| (name.id == variable.name.id).then_some(*expr))
+        else {
+          todo!("error for missing struct member entry");
+        };
+
+        let value = compile_expr(comp, function, expr, scopes)?
+          .as_basic_value_enum()
+          .expect("to generate a LazyValue for struct initializer");
+
+        values.push(value);
+      };
+
+      let value = struct_type.const_named_struct(&values);
+
+      Ok(LazyValue::Struct(value))
     },
     other => todo!("{other:#?}"),
   }

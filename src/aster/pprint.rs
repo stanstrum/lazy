@@ -1,6 +1,6 @@
 use crate::lang::expr::operator::{UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 use crate::lang::expr::{BlockExpression, Expression, LiteralKind};
-use crate::lang::reference::{BlockReference, ExpressionReference, FunctionReference, Reference, Store, TypePartReference, TypeReference, VariableReference};
+use crate::lang::reference::{BlockReference, ExpressionReference, FunctionReference, Reference, Store, StructReference, TypePartReference, TypeReference, VariableReference};
 use crate::lang::span::GetSpan;
 use crate::resolve::{TypeOf, TypePair, TypePairModifier};
 use crate::string_pool::PoolId;
@@ -68,6 +68,7 @@ impl Pretty for Qualified {
       QualifiedSearchSpace::Type(type_reference) => {
         out += &type_reference.print(lazy);
       },
+      QualifiedSearchSpace::Struct(_) => todo!(),
     };
 
     out += "::";
@@ -129,7 +130,6 @@ impl Pretty for TypeReference {
         let name = alias.rget_from(lazy).name.print(lazy);
         format!("{path}::{name}")
       },
-      TypeReference::Struct(_) => todo!(),
       TypeReference::Variable(VariableReference::Argument(parent, index)) => {
         format!("ArgumentOf<{}>[{index}]", parent.print(lazy))
       },
@@ -145,6 +145,14 @@ impl Pretty for TypeReference {
         format!("typeof {{{}}}{type_print}", expression.print(lazy))
       },
       TypeReference::Block(block) => format!("typeof {{{}}}", block.print(lazy)),
+      TypeReference::StructMember(struct_reference, id) => {
+        let struct_borrow = struct_reference.rget_from(lazy);
+        let member = struct_borrow.members.get(*id).unwrap();
+        let member_name = member.name.print(lazy);
+        let parent_name = lazy.describe_module(struct_reference.0);
+
+        format!("{parent_name}::{member_name}")
+      },
     }
   }
 }
@@ -180,6 +188,12 @@ impl Pretty for Type {
       Type::Resolved { part, .. } => format!("|{}|", part.print(lazy)),
       Type::Reference(reference) => format!("|{}|", reference.print(lazy)),
       Type::Weak { .. } => "{weak}".into(),
+      Type::Struct { prototype } => {
+        let parent_name = lazy.describe_module(prototype.0);
+        let name = prototype.rget_from(lazy).name.print(lazy);
+
+        format!("{{struct}} {parent_name}::{name}")
+      },
       // other => todo!("{other:?}"),
     }
   }
@@ -402,6 +416,7 @@ impl Pretty for QualifiedSearchSpace {
       QualifiedSearchSpace::Type(overwrite_type_reference) => overwrite_type_reference.print(lazy),
       QualifiedSearchSpace::Intrinsic { kind, .. } => kind.to_string(),
       QualifiedSearchSpace::Module(module_reference) => lazy.describe_module(*module_reference),
+      QualifiedSearchSpace::Struct(_) => todo!(),
     }
   }
 }

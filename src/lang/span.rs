@@ -52,6 +52,7 @@ impl GetSpan for Type {
       | Type::WeakString { span, .. }
         => *span,
       Type::Reference(reference) => reference.get_span(lazy),
+      Type::Struct { prototype } => prototype.rget_from(lazy).span,
     }
   }
 }

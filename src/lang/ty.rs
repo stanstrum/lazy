@@ -1,11 +1,12 @@
 use crate::tokenize::token::{Span, StringKind};
 use crate::lang::module::Name;
-use crate::lang::reference::{ModuleReference, TypePartReference, TypeReference};
+use crate::lang::reference::{ModuleReference, StructReference, TypePartReference, TypeReference};
 use crate::resolve::tasks::OverwriteTypeReference;
 
 #[derive(Debug, Clone)]
 pub enum QualifiedSearchSpace {
   Implicit,
+  Struct(StructReference),
   Type(OverwriteTypeReference),
   Intrinsic {
     kind: Intrinsic,
@@ -91,6 +92,9 @@ pub enum Type {
     ty: TypePartReference,
     size: usize,
     span: Span,
+  },
+  Struct {
+    prototype: StructReference,
   },
 }
 

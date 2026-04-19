@@ -112,6 +112,7 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
       TypeReference::Alias(alias) => {
         &self.rget(alias).ty
       },
+      TypeReference::Struct(_) => todo!(),
       TypeReference::Variable(VariableReference::Argument(function, index)) => {
         &self.rget(function).header.arguments.get(index).unwrap().ty
       },
@@ -143,6 +144,7 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
       TypeReference::Alias(alias) => {
         &mut self.rget_mut(alias).ty
       },
+      TypeReference::Struct(_) => todo!(),
       TypeReference::Variable(VariableReference::Argument(function, index)) => {
         &mut self.rget_mut(function).header.arguments.get_mut(index).unwrap().ty
       },

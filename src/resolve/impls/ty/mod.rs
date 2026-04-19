@@ -134,6 +134,7 @@ impl Resolve for TypeReference {
 
         TypePair::new(*self, ty.clone()).resolve(lazy, tasks)
       },
+      TypeReference::Struct(_) => todo!(),
       TypeReference::Variable(v) => {
         let variable = v.rget_from(lazy);
         let ty = &variable.ty;

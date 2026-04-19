@@ -129,6 +129,7 @@ impl Pretty for TypeReference {
         let name = alias.rget_from(lazy).name.print(lazy);
         format!("{path}::{name}")
       },
+      TypeReference::Struct(_) => todo!(),
       TypeReference::Variable(VariableReference::Argument(parent, index)) => {
         format!("ArgumentOf<{}>[{index}]", parent.print(lazy))
       },

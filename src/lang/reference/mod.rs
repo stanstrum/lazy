@@ -43,6 +43,7 @@ pub struct TypePartReference(pub ModuleReference, pub TypePartId);
 #[derive(Debug, Clone, Copy)]
 pub enum TypeReference {
   Alias(AliasReference),
+  Struct(StructReference),
   Part(TypePartReference),
   Expression(ExpressionReference),
   Block(BlockReference),
@@ -95,6 +96,7 @@ impl TypeReference {
     match self {
       &TypeReference::Alias(AliasReference(module_reference, _))
         => module_reference,
+      TypeReference::Struct(_) => todo!(),
       &TypeReference::Part(TypePartReference(module_reference, _))
         => module_reference,
       | TypeReference::Expression(ExpressionReference(BlockReference(function_reference, _), _))

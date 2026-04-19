@@ -64,6 +64,7 @@ impl GetSpan for Expression {
       | Expression::Variable { span, .. }
       | Expression::Binary { span, .. }
       | Expression::Unary { span, .. }
+      | Expression::StructInitializer { span, .. }
         => *span,
       Expression::Unknown { qualified, .. } => qualified.span,
     }

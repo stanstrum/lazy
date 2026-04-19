@@ -125,6 +125,7 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
           | Expression::Unary { out, .. }
           | Expression::Binary { out, .. }
           | Expression::Unknown { out, .. }
+          | Expression::StructInitializer { ty: out, .. }
             => out,
           &Expression::Variable { reference, .. } => &self.rget(reference).ty,
         }

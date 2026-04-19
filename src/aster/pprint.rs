@@ -275,6 +275,23 @@ impl Pretty for FunctionAnd<'_, Expression> {
 
         vec![format!("{{ {a} {op} {b} }}")].into_iter()
       },
+      Expression::StructInitializer { ty, members, .. } => {
+        let mut lines = vec![
+          format!("{} {{", ty.print(lazy)),
+        ];
+
+        for (name, value) in members.iter() {
+          lines.push(format!("  {}: {}", name.print(lazy), value.print(lazy)));
+        };
+
+        if members.is_empty() {
+          *lines.first_mut().unwrap() += "}";
+        } else {
+          lines.push("}".into());
+        };
+
+        lines.into_iter()
+      },
     }
   }
 }

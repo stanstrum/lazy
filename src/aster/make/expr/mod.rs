@@ -2,6 +2,7 @@ pub mod variable;
 pub mod block;
 mod operator;
 mod pemdas;
+mod initializer;
 
 use std::io::Read;
 
@@ -73,6 +74,10 @@ fn make_expr_part<'pool, const N: usize, T: Read>(
   let function = block.0;
 
   let expr = 'expr: {
+    if let Some(initializer) = initializer::make_struct_initializer(lazy, stream, module, block)? {
+      break 'expr initializer;
+    };
+
     if let Some(block) = block::make_block(lazy, stream, module, function, Some(block))? {
       break 'expr lang::expr::Expression::Block(block);
     };

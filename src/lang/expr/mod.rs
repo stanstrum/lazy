@@ -63,6 +63,11 @@ pub enum Expression {
     span: Span,
     out: Type,
   },
+  StructInitializer {
+    ty: Type,
+    members: Vec<(Name, ExpressionReference)>,
+    span: Span,
+  },
 }
 
 impl Expression {

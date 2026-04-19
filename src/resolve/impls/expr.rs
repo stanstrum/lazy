@@ -80,6 +80,7 @@ impl TypeOf for ExpressionReference {
       | Expression::Unknown { out, .. }
       | Expression::Unary { out, .. }
       | Expression::Binary { out, .. }
+      | Expression::StructInitializer { ty: out, .. }
         => {
           let reference = TypeReference::Expression(*self);
 
@@ -315,7 +316,7 @@ impl Resolve for ExpressionReference {
             span: borrow.get_span(lazy),
           })
         },
-        _ => todo!("{borrow:?}\n{}", borrow.print_with(lazy.rget(self.0.0), lazy).collect::<Vec<_>>().join("\n")),
+        _ => todo!("{borrow:#?}\n{}", borrow.print_with(lazy.rget(self.0.0), lazy).collect::<Vec<_>>().join("\n")),
       }
     })
   }
@@ -348,6 +349,7 @@ fn default_types_in_expr(lazy: &mut Lazy, expr: &ExpressionReference, tasks: &mu
 
       Ok(())
     },
+    Expression::StructInitializer { .. } => todo!(),
   })
 }
 
@@ -398,5 +400,6 @@ fn verify_expr(lazy: &Lazy, expr: ExpressionReference, ret_ty: Option<&TypePair>
       Ok(())
     },
     Expression::Binary { .. } => todo!(),
+    Expression::StructInitializer { .. } => todo!(),
   })
 }

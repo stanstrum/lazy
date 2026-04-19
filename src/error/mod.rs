@@ -225,6 +225,17 @@ impl From<Box<crate::resolve::Error>> for PrintableMessage {
           }],
         )),
       },
+      crate::resolve::ErrorBase::NotImplemented { what, span } => Self {
+        level: Level::Error,
+        force: true,
+        description: format!("not implemented: {what}"),
+        contents: MessageContents::WithinSource(WithinSource::new(
+          vec![MessageSection {
+            text: "here".into(),
+            span,
+          }],
+        )),
+      },
       crate::resolve::ErrorBase::Lazy(lazy_error) => (*lazy_error).into(),
     }
   }

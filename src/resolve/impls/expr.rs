@@ -316,7 +316,10 @@ impl Resolve for ExpressionReference {
             span: borrow.get_span(lazy),
           })
         },
-        _ => todo!("{borrow:#?}\n{}", borrow.print_with(lazy.rget(self.0.0), lazy).collect::<Vec<_>>().join("\n")),
+        other => tasks.seed_error(ErrorBase::NotImplemented {
+          what: line_dbg!("impl Resolve for ExpressionReference"),
+          span: other.get_span(lazy),
+        }),
       }
     })
   }

@@ -78,12 +78,12 @@ impl TypeOf for Type {
       | Type::ReferenceTo { .. }
       | Type::UnsizedArrayOf { .. }
       | Type::SizedArrayOf { .. }
-      | Type::Unresolved { .. }
+      // | Type::Unresolved { .. }
       | Type::Struct { .. }
         => Some(self.clone()),
       // SPONGE
-      // | Type::Unresolved { .. }
-      //   => Ok(None),
+      | Type::Unresolved { .. }
+        => None,
       Type::Resolved { part, .. } => part.type_of(lazy),
       Type::Reference(reference) => reference.type_of(lazy),
     }

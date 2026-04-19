@@ -318,6 +318,14 @@ impl Resolve for ExpressionReference {
           })
         },
         Expression::StructInitializer { ty, members, .. } => {
+          let prototype = ty.type_of(lazy).map(|ty| {
+            let Type::Struct { prototype } = ty else {
+              todo!("error for bad struct initializer type at resolve");
+            };
+
+            prototype
+          });
+
           TypePair::new(
             TypeReference::Expression(*self),
             ty.clone(),
@@ -341,8 +349,18 @@ impl Resolve for ExpressionReference {
             ),
           });
 
-          for (_, member) in members.iter() {
-            member.resolve(lazy, tasks)?;
+          for (member_name, member_expr) in members.iter() {
+            member_expr.resolve(lazy, tasks)?;
+
+            if let Some(prototype) = prototype {
+              let field_ty = lazy.rget(prototype).members.iter()
+                .enumerate()
+                .find_map(|(id, field)| (field.name.id == member_name.id).then(|| TypeReference::StructMember(prototype, id)))
+                .expect("to find a corresponding field for a struct initializer member");
+
+              member_expr.coerce(lazy, &field_ty, tasks)?;
+              field_ty.coerce(lazy, &TypeReference::Expression(*member_expr), tasks)?;
+            };
           };
 
           Ok(())
@@ -446,9 +464,32 @@ fn verify_expr(lazy: &Lazy, expr: ExpressionReference, ret_ty: Option<&TypePair>
       Ok(())
     },
     Expression::Binary { .. } => todo!(),
-    Expression::StructInitializer { members, .. } => {
-      for (_, value) in members.iter() {
-        verify_expr(lazy, *value, None, tasks)?;
+    Expression::StructInitializer { ty, members, .. } => {
+      let Some(prototype) = ty.type_of(lazy).map(|ty| {
+        let Type::Struct { prototype } = ty else {
+          todo!("error for bad struct initializer type at resolve");
+        };
+
+        prototype
+      }) else {
+        todo!("error for uninitialized struct initializer type");
+      };
+
+      for (struct_index, field) in lazy.rget(prototype).members.iter().enumerate() {
+        let expr_reference = members.iter()
+          .find_map(|(name, value)| (field.name.id == name.id).then_some(value))
+          .expect("to find a corresponding field for this struct initializer member");
+
+        let Some(ty) = field.ty.type_of(lazy) else {
+          todo!("unresolved type");
+        };
+
+        let ret_ty = TypePair::new(
+          TypeReference::StructMember(prototype, struct_index),
+          ty,
+        );
+
+        verify_expr(lazy, *expr_reference, Some(&ret_ty), tasks)?;
       };
 
       Ok(())

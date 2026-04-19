@@ -271,7 +271,8 @@ impl Pretty for FunctionAnd<'_, Expression> {
               let exprs = exprs.iter().map(|expr| {
                 expr.rget_from(lazy)
                   .print_with(function, lazy)
-                  .collect::<String>()
+                  .collect::<Vec<String>>()
+                  .join("\n    ")
               });
 
               let args = exprs.collect::<Vec<_>>().join(", ");
@@ -284,8 +285,8 @@ impl Pretty for FunctionAnd<'_, Expression> {
         }].into_iter()
       }
       Expression::Binary { a, b, op, .. } => {
-        let a = a.rget_from(lazy).print_with(function, lazy).collect::<String>();
-        let b = b.rget_from(lazy).print_with(function, lazy).collect::<String>();
+        let a = a.rget_from(lazy).print_with(function, lazy).collect::<Vec<String>>().join("\n    ");
+        let b = b.rget_from(lazy).print_with(function, lazy).collect::<Vec<String>>().join("\n    ");
         let op = &op.0;
 
         vec![format!("{{ {a} {op} {b} }}")].into_iter()
@@ -296,7 +297,16 @@ impl Pretty for FunctionAnd<'_, Expression> {
         ];
 
         for (name, value) in members.iter() {
-          lines.push(format!("  {}: {}", name.print(lazy), value.print(lazy)));
+          let name = name.print(lazy);
+          let mut expr_line_iter = value.rget_from(lazy).print_with(function, lazy);
+
+          let first_line = expr_line_iter.next().unwrap();
+
+          lines.push(format!("  {name}: {first_line}"));
+
+          for rest_line in expr_line_iter {
+            lines.push(format!("    {rest_line}"));
+          };
         };
 
         if members.is_empty() {

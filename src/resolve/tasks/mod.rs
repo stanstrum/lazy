@@ -111,7 +111,7 @@ impl Tasks {
   }
 
   pub fn push(&mut self, task: impl Task + 'static, _source: &'static str) {
-    // #[cfg(debug_assertions)] println!(line_dbg!("push from {}"), source);
+    // #[cfg(debug_assertions)] println!(line_dbg!("push from {}"), _source);
     self.tasks.push_back(Box::new(task));
   }
 
@@ -119,7 +119,7 @@ impl Tasks {
     let mut out = String::new();
 
     for (count, explain) in self.trace.borrow().iter().enumerate() {
-      let spaces = " ".repeat(offset) + &"|   ".repeat(count);
+      let spaces = " ".repeat(offset) + &"|  ".repeat(count);
 
       for line in explain.split('\n') {
         out += &format!("{spaces}{line}\n");

@@ -334,7 +334,7 @@ impl Resolve for ExpressionReference {
           print_once_per_thread!(lazy, {
             level: Stub,
             force: false,
-            description: format!("coerce member expressions from struct `ty`"),
+            description: line_dbg!("coerce member expressions from struct `ty`").into(),
             contents: MessageContents::WithinSource(
               WithinSource::new(
                 members.iter().map(|(name, expr)| {
@@ -355,7 +355,7 @@ impl Resolve for ExpressionReference {
             if let Some(prototype) = prototype {
               let field_ty = lazy.rget(prototype).members.iter()
                 .enumerate()
-                .find_map(|(id, field)| (field.name.id == member_name.id).then(|| TypeReference::StructMember(prototype, id)))
+                .find_map(|(id, field)| (field.name.id == member_name.id).then_some(TypeReference::StructMember(prototype, id)))
                 .expect("to find a corresponding field for a struct initializer member");
 
               member_expr.coerce(lazy, &field_ty, tasks)?;

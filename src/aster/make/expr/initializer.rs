@@ -8,6 +8,8 @@ pub(super) fn make_struct_initializer<'pool, const N: usize, T: Read>(
   module: lang::reference::ModuleReference,
   block: lang::reference::BlockReference,
 ) -> Result<Option<lang::expr::Expression>, Error> {
+  let ret_mark = stream.mark();
+
   // Take care of the indentation; I have picked a very sketchy way of managing
   // these and it's not safe at all.  Too bad!
   let indenter = stream.indenter_here()?;
@@ -37,7 +39,11 @@ pub(super) fn make_struct_initializer<'pool, const N: usize, T: Read>(
   stream.skip_whitespace_and_comments()?;
 
   let Some((Token::Grouping(GroupingType::Open(GroupingKind::Brace)), _)) = stream.peek()? else {
-    return stream.expected_here(line_dbg!("an open brace"));
+    // Do not forget to rewind `stream`!  You will look like a fool!
+    stream.take_mark(ret_mark);
+
+    // can possible something else, e.g. a variable's value
+    return Ok(None);
   };
   stream.seek();
 

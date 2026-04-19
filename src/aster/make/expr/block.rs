@@ -91,7 +91,7 @@ pub fn make_block_statement<'pool, const N: usize, T: Read>(
 
     lazy.rget_mut(block).variables.push(variable);
 
-    if let Some(b) = expr {
+    expr.map(|b| {
       let span = b.rget_from(lazy).get_span(lazy);
 
       let variable_reference = lang::reference::VariableReference::Block(block, var_id);
@@ -108,10 +108,8 @@ pub fn make_block_statement<'pool, const N: usize, T: Read>(
       };
 
       let id = function.rget_from_mut(lazy).add_expr(assignment);
-      Some(lang::reference::ExpressionReference(block, id))
-    } else {
-      None
-    }
+      lang::reference::ExpressionReference(block, id)
+    })
   } else if let Some(expr) = make_expr(lazy, stream, module, block)? {
     Some(expr)
   } else {

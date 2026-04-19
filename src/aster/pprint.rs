@@ -1,6 +1,6 @@
 use crate::lang::expr::operator::{UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 use crate::lang::expr::{BlockExpression, Expression, LiteralKind};
-use crate::lang::reference::{BlockReference, ExpressionReference, FunctionReference, Reference, Store, StructReference, TypePartReference, TypeReference, VariableReference};
+use crate::lang::reference::{BlockReference, ExpressionReference, FunctionReference, Reference, Store, TypePartReference, TypeReference, VariableReference};
 use crate::lang::span::GetSpan;
 use crate::resolve::{TypeOf, TypePair, TypePairModifier};
 use crate::string_pool::PoolId;

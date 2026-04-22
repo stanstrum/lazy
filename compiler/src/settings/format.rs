@@ -60,7 +60,7 @@ pub fn format_argument(arg: &str) -> String {
   out
 }
 
-pub(super) fn show_error_position(args: Vec<String>, position: usize) {
+pub fn show_error_position(args: Vec<String>, position: usize) {
   let formatted = args.iter()
     .map(|x| format_argument(x));
 

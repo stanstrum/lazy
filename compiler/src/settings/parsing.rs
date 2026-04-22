@@ -15,7 +15,7 @@ pub(super) fn parse_log_level(level: String) -> Option<Level> {
   }
 }
 
-pub(super) fn digest(executable: &str, argv: impl Iterator<Item = String>) -> Result<(Settings, Verb), Error> {
+pub fn digest(executable: &str, argv: impl Iterator<Item = String>) -> Result<(Settings, Verb), Error> {
   let mut input_path = None;
   let mut log_level = None;
   let mut output_path = None;

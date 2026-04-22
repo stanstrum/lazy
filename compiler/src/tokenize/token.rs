@@ -5,7 +5,6 @@ use std::cmp::Ordering;
 use crate::lang::reference::ModuleReference;
 use crate::lang::ty::Intrinsic;
 use string_pool::{StringId, PoolId};
-use crate::aster::bufreader::Metadata;
 
 macro_rules! string_enum {
   ($name:ident { $($entries:ident => $values:expr,)* }) => {
@@ -303,35 +302,6 @@ pub enum Operator {
 
   DoublePlus,
   DoubleMinus,
-}
-
-/// Contains only the start position of a Span
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Position {
-  pub position: usize,
-  pub line: usize,
-  pub column: usize,
-  pub indentation: usize,
-}
-
-impl Position {
-  pub fn new() -> Self {
-    Self {
-      position: 0,
-      line: 1,
-      column: 1,
-      indentation: 0,
-    }
-  }
-
-  pub fn new_from_meta(meta: &Metadata) -> Self {
-    Self {
-      position: meta.position,
-      line: meta.line,
-      column: meta.column,
-      indentation: meta.whitespace,
-    }
-  }
 }
 
 impl Span {

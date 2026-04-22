@@ -1,8 +1,9 @@
 use std::cmp::Ordering;
 
+use ::token::Position;
 use crate::lang::module::ModulePath;
 use crate::lang::reference::Store;
-use crate::tokenize::token::{Position, Token, TokenSpan};
+use crate::tokenize::token::{Token, TokenSpan};
 
 use super::*;
 

@@ -1,3 +1,5 @@
+use token::Position;
+
 #[derive(Debug)]
 pub struct Metadata {
   pub line: usize,
@@ -47,5 +49,16 @@ impl Metadata {
     };
 
     self.column += 1;
+  }
+}
+
+impl From<&Metadata> for Position {
+  fn from(meta: &Metadata) -> Self {
+    Self {
+      position: meta.position,
+      line: meta.line,
+      column: meta.column,
+      indentation: meta.whitespace,
+    }
   }
 }

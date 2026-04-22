@@ -20,7 +20,7 @@ impl<'pool> Lazy<'pool> {
     Ok(global)
   }
 
-  pub fn build<'a>(&'a mut self) -> Result<&'a Path, error::PrintableMessage> {
+  pub fn build(&mut self) -> Result<&Path, error::PrintableMessage> {
     let global = self.check()?;
 
     // Otherwise, let's go build the module

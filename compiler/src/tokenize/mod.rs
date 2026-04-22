@@ -1,3 +1,5 @@
+use ::token::Position;
+
 pub mod token;
 mod numeric;
 mod state;
@@ -10,7 +12,7 @@ use crate::aster::bufreader::{BufferedUtf8MetadataReader};
 use string_pool::StringPool;
 
 use state::State;
-use token::{Position, Span, Token, TokenSpan};
+use token::{Span, Token, TokenSpan};
 
 #[derive(Debug)]
 pub struct Tokenizer<'pool, const N: usize, T: Read> {
@@ -117,7 +119,7 @@ impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
   }
 
   fn pos(&self) -> Position {
-    Position::new_from_meta(&self.meta_reader.meta)
+    (&self.meta_reader.meta).into()
   }
 }
 

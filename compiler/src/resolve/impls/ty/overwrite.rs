@@ -2,7 +2,7 @@ use super::*;
 
 impl TypeOf for OverwriteTypeReference {
   fn type_of(&self, lazy: &Lazy) -> Option<Type> {
-    let mut ty = self.reference.rget_from(lazy).to_owned();
+    let ty = self.reference.rget_from(lazy).to_owned();
 
     for modifier in self.modifiers.iter() {
       match modifier {
@@ -53,7 +53,7 @@ impl<'a> Store<OverwriteTypeReference> for Lazy<'a> {
   }
 
   fn rget_mut(&mut self, key: OverwriteTypeReference) -> &mut Self::Out {
-    let mut ty = self.rget_mut(key.reference);
+    let ty = self.rget_mut(key.reference);
 
     for modifier in key.modifiers.iter() {
       match modifier {

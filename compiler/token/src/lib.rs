@@ -1,14 +1,19 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+/// Contains only the start position of a Span
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Position {
+  pub position: usize,
+  pub line: usize,
+  pub column: usize,
+  pub indentation: usize,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+impl Position {
+  pub fn new() -> Self {
+    Self {
+      position: 0,
+      line: 1,
+      column: 1,
+      indentation: 0,
     }
+  }
 }

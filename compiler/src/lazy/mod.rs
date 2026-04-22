@@ -9,25 +9,13 @@ use crate::lang::module::{Module, ModuleParent, ModulePath, TokensId};
 use crate::lang::reference::{FunctionReference, ModuleReference, Store};
 use crate::settings::Settings;
 use crate::settings::format::format_argument;
-use crate::tokenize::token;
-use crate::{line_dbg, print_message};
+use crate::{Lazy, line_dbg, print_message};
 
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::os::unix::fs::PermissionsExt;
 
 use crate::error;
-
-#[derive(Debug)]
-pub struct Lazy<'pool> {
-  pub(crate) pool: &'pool StringPool,
-  pub(crate) pool_keys: keys::PoolKeys,
-  pub(crate) settings: Settings,
-  pub(crate) std: Option<ModuleReference>,
-  pub(crate) modules: Vec<Module>,
-  pub(crate) functions: Vec<Function>,
-  pub(crate) tokens: Vec<Vec<token::TokenSpan>>,
-}
 
 impl<'pool> Lazy<'pool> {
   pub fn check(&mut self) -> Result<ModuleReference, error::PrintableMessage> {

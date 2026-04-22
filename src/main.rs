@@ -15,7 +15,7 @@ fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
   };
 
   let pool = compiler::StringPool::new();
-  let mut lazy = compiler::lazy::Lazy::new(&pool, settings);
+  let mut lazy = compiler::Lazy::new(&pool, settings);
 
   match error_handler(&mut lazy, verb) {
     Ok(exit_code) => exit_code,
@@ -27,7 +27,7 @@ fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
 }
 
 fn error_handler(
-  lazy: &mut compiler::lazy::Lazy,
+  lazy: &mut compiler::Lazy,
   verb: compiler::settings::Verb,
 ) -> Result<ExitCode, compiler::error::PrintableMessage> {
   match verb {

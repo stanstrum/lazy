@@ -22,7 +22,7 @@ pub enum Structure {
 }
 
 fn make_type_alias<'pool, const N: usize, T: Read>(
-  lazy: &mut lazy::Lazy<'pool>,
+  lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   parent: lang::reference::ModuleReference,
 ) -> Result<Option<lang::reference::AliasReference>, Error> {
@@ -75,7 +75,7 @@ fn make_type_alias<'pool, const N: usize, T: Read>(
 ///       u32 height
 ///       u32 width
 fn make_struct<'pool, const N: usize, T: Read>(
-  lazy: &mut lazy::Lazy<'pool>,
+  lazy: &mut crate::Lazy<'pool>,
   parent: lang::reference::ModuleReference,
   stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<lang::module::struc::Struct>, Error> {
@@ -161,7 +161,7 @@ fn make_struct<'pool, const N: usize, T: Read>(
 /// of the data structues get handled, i.e. storing the module in `parent` or
 /// traversing imports.
 pub(super) fn make_structure<'pool, const N: usize, T: Read>(
-  lazy: &mut lazy::Lazy<'pool>,
+  lazy: &mut crate::Lazy<'pool>,
   parent: lang::reference::ModuleReference,
   stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<Structure>, Error> {

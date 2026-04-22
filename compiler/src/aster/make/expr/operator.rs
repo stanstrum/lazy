@@ -79,7 +79,7 @@ pub(super) fn make_unary_prefix<'pool, const N: usize, T: Read>(
 }
 
 pub(super) fn make_unary_suffix<'pool, const N: usize, T: Read>(
-  lazy: &mut lazy::Lazy<'pool>,
+  lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
   block: lang::reference::BlockReference,
@@ -151,7 +151,7 @@ pub(super) fn make_unary_suffix<'pool, const N: usize, T: Read>(
 }
 
 // pub(super) fn make_unary_op<'pool, const N: usize, T: Read>(
-//   lazy: &mut lazy::Lazy<'pool>,
+//   lazy: &mut crate::Lazy<'pool>,
 //   stream: &mut Rereader<'pool, N, T>,
 //   module: lang::reference::ModuleReference,
 //   function: lang::reference::FunctionReference,
@@ -168,7 +168,7 @@ pub(super) fn make_unary_suffix<'pool, const N: usize, T: Read>(
 // }
 
 pub(super) fn make_binary_op<'pool, const N: usize, T: Read>(
-  _lazy: &mut lazy::Lazy<'pool>,
+  _lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   _module: lang::reference::ModuleReference,
   _function: lang::reference::FunctionReference,

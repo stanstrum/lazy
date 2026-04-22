@@ -7,7 +7,7 @@ mod types;
 use std::collections::HashMap;
 use std::path::Path;
 
-use crate::{lang, lazy, line_dbg, print_message};
+use crate::{lang, line_dbg, print_message};
 use crate::lang::span::GetSpan;
 use crate::lang::reference::{Reference, Store};
 use crate::resolve::TypeOf;
@@ -40,7 +40,7 @@ impl From<inkwell::builder::BuilderError> for Error {
 }
 
 struct Compilation<'lazy, 'pool, 'llvm> {
-  lazy: &'lazy lazy::Lazy<'pool>,
+  lazy: &'lazy crate::Lazy<'pool>,
   llvm: LLVMContext<'llvm>,
   functions: HashMap<
     lang::reference::FunctionReference,
@@ -65,7 +65,7 @@ pub(super) struct ProgramObjectFile {
 }
 
 impl<'lazy, 'pool, 'llvm> Compilation<'lazy, 'pool, 'llvm> {
-  fn new(lazy: &'lazy lazy::Lazy<'pool>, context: LLVMContext<'llvm>) -> Self {
+  fn new(lazy: &'lazy crate::Lazy<'pool>, context: LLVMContext<'llvm>) -> Self {
     Self {
       lazy,
       llvm: context,
@@ -116,7 +116,7 @@ impl Program {
     }
   }
 
-  pub(super) fn compile<'ctx>(&'ctx self, lazy: &lazy::Lazy) -> Result<ProgramCompilation<'ctx>> {
+  pub(super) fn compile<'ctx>(&'ctx self, lazy: &crate::Lazy) -> Result<ProgramCompilation<'ctx>> {
     let llvm_ctx = LLVMContext::new(&self.context, &self.cli_args);
     let mut comp = Compilation::new(lazy, llvm_ctx);
 
@@ -166,7 +166,7 @@ impl<'ctx> ProgramCompilation<'ctx> {
     self.llvm.dump_module()
   }
 
-  pub(super) fn optimize(&self, lazy: &lazy::Lazy) -> Result {
+  pub(super) fn optimize(&self, lazy: &crate::Lazy) -> Result {
     print_message!(lazy, {
       level: Info,
       force: false,

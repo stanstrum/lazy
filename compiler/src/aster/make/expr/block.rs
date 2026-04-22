@@ -1,4 +1,4 @@
-use crate::print_message;
+use crate::{Lazy, print_message};
 
 use std::cmp::Ordering;
 
@@ -26,7 +26,7 @@ impl BlockStatement {
 }
 
 pub fn make_block_statement<'pool, const N: usize, T: Read>(
-  lazy: &mut lazy::Lazy<'pool>,
+  lazy: &mut Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   _indenter: &Indenter,
   module: lang::reference::ModuleReference,
@@ -163,7 +163,7 @@ pub fn make_block_statement<'pool, const N: usize, T: Read>(
 }
 
 pub(super) fn make_block<'pool, const N: usize, T: Read>(
-  lazy: &mut lazy::Lazy<'pool>,
+  lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
   function: lang::reference::FunctionReference,

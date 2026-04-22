@@ -16,7 +16,7 @@ use crate::lang::reference::Reference;
 use super::Error;
 
 fn new_weak_string(
-  lazy: &lazy::Lazy,
+  lazy: &crate::Lazy,
   kind: token::StringKind,
   value: string_pool::StringId,
   span: token::Span
@@ -37,7 +37,7 @@ fn new_weak_string(
 }
 
 pub(super) fn make_literal<'pool, const N: usize, T: Read>(
-  lazy: &mut lazy::Lazy<'pool>,
+  lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<lang::expr::Expression>, Error> {
   if let Some((Token::Numeric(value), span)) = stream.peek()? {
@@ -66,7 +66,7 @@ pub(super) fn make_literal<'pool, const N: usize, T: Read>(
 }
 
 fn make_expr_part<'pool, const N: usize, T: Read>(
-  lazy: &mut lazy::Lazy<'pool>,
+  lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
   block: lang::reference::BlockReference,
@@ -108,7 +108,7 @@ enum ExpressionPart {
 }
 
 pub(super) fn make_expr<'pool, const N: usize, T: Read>(
-  lazy: &mut lazy::Lazy<'pool>,
+  lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
   block: lang::reference::BlockReference,

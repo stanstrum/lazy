@@ -11,7 +11,7 @@ use crate::lang::reference::{ModuleReference, Store};
 
 use crate::tokenize::Tokenizer;
 use crate::tokenize::{self, token::Span};
-use crate::lazy::Lazy;
+use crate::Lazy;
 
 #[derive(Debug)]
 pub enum Error {

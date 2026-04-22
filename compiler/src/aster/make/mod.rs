@@ -115,7 +115,7 @@ fn make_name<'pool, const N: usize, T: Read>(
 }
 
 pub(super) fn make<'pool, const N: usize, T: Read>(
-  lazy: &mut lazy::Lazy<'pool>,
+  lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>
 ) -> Result<(), Error> {
   loop {

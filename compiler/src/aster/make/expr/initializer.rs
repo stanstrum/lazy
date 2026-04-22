@@ -1,9 +1,11 @@
-use crate::{aster::make::make_name, lang::span::GetSpan, tokenize::token::{GroupingKind, GroupingType, Operator}};
+use crate::lang::span::GetSpan;
+use crate::aster::make::make_name;
+use crate::tokenize::token::{GroupingKind, GroupingType, Operator};
 
 use super::*;
 
 pub(super) fn make_struct_initializer<'pool, const N: usize, T: Read>(
-  lazy: &mut lazy::Lazy<'pool>,
+  lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
   block: lang::reference::BlockReference,

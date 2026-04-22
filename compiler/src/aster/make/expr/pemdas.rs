@@ -26,7 +26,7 @@ enum Pemdas {
   Assign,
 }
 
-fn debug_gspan(lazy: &lazy::Lazy, part: &ExpressionPart) -> Span {
+fn debug_gspan(lazy: &crate::Lazy, part: &ExpressionPart) -> Span {
   match part {
     | &ExpressionPart::UnaryPrefix((_, span))
     | &ExpressionPart::UnarySuffix((_, span))
@@ -45,7 +45,7 @@ fn find_right_expr(cursor: usize, parts: &[ExpressionPart]) -> Option<usize> {
     .map(|offset| cursor + offset)
 }
 
-fn melt_left(lazy: &mut lazy::Lazy, cursor: &mut usize, parts: &mut Vec<ExpressionPart>) -> Result<lang::reference::ExpressionReference, Error> {
+fn melt_left(lazy: &mut crate::Lazy, cursor: &mut usize, parts: &mut Vec<ExpressionPart>) -> Result<lang::reference::ExpressionReference, Error> {
   let left = find_left_expr(*cursor, parts).unwrap();
   let melt_start = left + 1;
   let melt_end = (*cursor).min(parts.len());
@@ -86,7 +86,7 @@ fn melt_left(lazy: &mut lazy::Lazy, cursor: &mut usize, parts: &mut Vec<Expressi
   Ok(expr)
 }
 
-fn melt_right(lazy: &mut lazy::Lazy, cursor: usize, parts: &mut Vec<ExpressionPart>) -> Result<lang::reference::ExpressionReference, Error> {
+fn melt_right(lazy: &mut crate::Lazy, cursor: usize, parts: &mut Vec<ExpressionPart>) -> Result<lang::reference::ExpressionReference, Error> {
   let right = find_right_expr(cursor, parts).unwrap();
   let melt_start = cursor;
   let melt_end = right;
@@ -126,7 +126,7 @@ fn melt_right(lazy: &mut lazy::Lazy, cursor: usize, parts: &mut Vec<ExpressionPa
   Ok(expr)
 }
 
-pub(crate) fn melt(lazy: &mut lazy::Lazy, mut parts: Vec<ExpressionPart>) -> Result<lang::reference::ExpressionReference, Error> {
+pub(crate) fn melt(lazy: &mut crate::Lazy, mut parts: Vec<ExpressionPart>) -> Result<lang::reference::ExpressionReference, Error> {
   for step in Pemdas::iter() {
     let mut i = 0;
 

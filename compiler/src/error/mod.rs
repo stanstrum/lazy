@@ -6,7 +6,7 @@ use std::io::{BufRead, BufReader, Write};
 use std::fs::File;
 
 use crate::{colorize, line_dbg};
-use crate::lazy::Lazy;
+use crate::Lazy;
 use crate::lang::reference::ModuleReference;
 use crate::tokenize::token::Span;
 

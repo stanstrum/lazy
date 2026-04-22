@@ -5,7 +5,7 @@ use crate::lang::span::GetSpan;
 use crate::resolve::{TypeOf, TypePair, TypePairModifier};
 use string_pool::PoolId;
 
-use crate::lazy::Lazy;
+use crate::Lazy;
 use crate::lang::ty::{Qualified, QualifiedSearchSpace, Type};
 use crate::lang::module::{Module, Name};
 use crate::lang::function::Function;

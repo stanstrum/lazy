@@ -4,7 +4,7 @@ use crate::print_message;
 
 use crate::aster::pprint::Pretty;
 use crate::lang::reference::{ModuleReference, Reference};
-use crate::lazy::Lazy;
+use crate::Lazy;
 use crate::generate::{ProgramCompilation, ProgramObjectFile};
 
 const ERROR_PAD_LEN: usize = "error ".len();

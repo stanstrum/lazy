@@ -43,9 +43,16 @@ impl Resolve for StructReference {
 }
 
 pub(super) fn verify_struct(lazy: &Lazy, struct_reference: &StructReference, tasks: &mut Tasks) -> Result<()> {
-  for id in 0..struct_reference.rget_from(lazy).members.len() {
+  let struct_borrow = struct_reference.rget_from(lazy);
+
+  let module_name = lazy.describe_module(struct_reference.0);
+  let struct_name = struct_borrow.name.print(lazy);
+
+  for (id, field_name) in struct_borrow.members.iter().map(|x| x.name.print(lazy)).enumerate() {
+    let description = format!("Verifying struct field type {module_name}::{struct_name}::{field_name}");
     let type_reference = TypeReference::StructMember(*struct_reference, id);
-    ty::verify_typeof(lazy, &type_reference, tasks)?;
+
+    tasks.work(description, |tasks| ty::verify_typeof(lazy, &type_reference, tasks))?;
   };
 
   Ok(())
@@ -129,6 +136,11 @@ pub(in crate::resolve) fn verify_module(lazy: &Lazy, module: &ModuleReference, t
 
   for function in borrow.functions.iter() {
     function::verify_function(lazy, function, tasks)?;
+  };
+
+  for id in 0..borrow.structs.len() {
+    let reference = StructReference(*module, id);
+    verify_struct(lazy, &reference, tasks)?;
   };
 
   Ok(())

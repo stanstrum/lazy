@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::print_once_per_thread;
 use crate::tokenize::token::StringKind;
 
@@ -167,7 +169,7 @@ pub(super) fn make_import<'pool, const N: usize, T: Read>(
 
   // Set up the imported source file's name, path
   let name = lazy.pool.get_own_string(value);
-  let path = name.as_str().into();
+  let path = PathBuf::from(&name);
 
   // This is where we're going to look for this file if its path is relative:
   // in the directory of the current module

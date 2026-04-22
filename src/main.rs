@@ -13,10 +13,12 @@ mod settings;
 #[cfg(test)] mod test;
 
 use std::os::unix::fs::PermissionsExt;
+use std::path::Path;
 use std::process::ExitCode;
 
 use lang::Lazy;
 
+use crate::lang::reference::ModuleReference;
 use crate::string_pool::StringPool;
 
 fn main() -> ExitCode {
@@ -46,6 +48,24 @@ fn error_handler(
   lazy: &mut Lazy,
   verb: settings::Verb,
 ) -> Result<ExitCode, error::PrintableMessage> {
+  match verb {
+    settings::Verb::Check => {
+      check(lazy)?;
+
+      Ok(ExitCode::SUCCESS)
+    },
+    settings::Verb::Build => {
+      build(lazy)?;
+
+      Ok(ExitCode::SUCCESS)
+    },
+    settings::Verb::Run => {
+      run(lazy)
+    },
+  }
+}
+
+fn check(lazy: &mut Lazy) -> Result<ModuleReference, error::PrintableMessage> {
   // Instantiate the global scope
   let path = lazy.settings.input_path.to_owned();
   let global = lazy.add_file("@global", path, None)?;
@@ -57,10 +77,11 @@ fn error_handler(
   debug::source(lazy, &global);
   debug::string_pool(lazy);
 
-  // Stop here if all we wanted was to check
-  if matches!(verb, settings::Verb::Check) {
-    return Ok(ExitCode::SUCCESS);
-  };
+  Ok(global)
+}
+
+fn build<'a>(lazy: &'a mut Lazy) -> Result<&'a Path, error::PrintableMessage> {
+  let global = check(lazy)?;
 
   // Otherwise, let's go build the module
   let args = generate::args::CliArgs {
@@ -99,10 +120,11 @@ fn error_handler(
   std::fs::set_permissions(executable, perms)
     .expect("failed to chmod 755 {executable:?}");
 
-  // Stop here if all we wanted was to build
-  if matches!(verb, settings::Verb::Build) {
-    return Ok(ExitCode::SUCCESS);
-  };
+  Ok(executable)
+}
+
+fn run(lazy: &mut Lazy) -> Result<ExitCode, error::PrintableMessage> {
+  let executable = build(lazy)?;
 
   // Otherwise, go run the child program
   let mut command = std::process::Command::new(executable);

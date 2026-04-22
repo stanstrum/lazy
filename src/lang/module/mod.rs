@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 use crate::lang::module::struc::Struct;
 use string_pool::PoolId;
-use crate::lang::Lazy;
+use crate::lazy::Lazy;
 use crate::lang::reference::{FunctionReference, ModuleReference, Reference, TypePartReference};
 use crate::lang::ty::{Qualified, QualifiedSearchSpace, Type};
 use crate::tokenize::token::Span;

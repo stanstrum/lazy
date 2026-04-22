@@ -3,7 +3,7 @@ use crate::{aster::make::make_name, lang::span::GetSpan, tokenize::token::{Group
 use super::*;
 
 pub(super) fn make_struct_initializer<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
   block: lang::reference::BlockReference,

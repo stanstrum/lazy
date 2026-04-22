@@ -7,7 +7,7 @@ use crate::tokenize::token::Operator;
 use super::*;
 
 pub(super) fn make_function_argument<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   parent: lang::reference::ModuleReference,
 ) -> Result<Option<lang::expr::Variable>, Error> {
@@ -34,7 +34,7 @@ pub(super) fn make_function_argument<'pool, const N: usize, T: Read>(
 }
 
 fn make_function_header<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   parent: lang::reference::ModuleReference,
 ) -> Result<Option<lang::function::FunctionHeader>, Error> {
@@ -104,7 +104,7 @@ fn make_function_header<'pool, const N: usize, T: Read>(
 }
 
 pub(super) fn make_function<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
 ) -> Result<Option<lang::reference::FunctionReference>, Error> {

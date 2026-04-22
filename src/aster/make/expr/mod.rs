@@ -9,14 +9,14 @@ use std::io::Read;
 use crate::tokenize::token::{self, Token, Span};
 use crate::aster::make::ty;
 use crate::aster::Rereader;
-use crate::{lang, line_dbg};
+use crate::{lang, lazy, line_dbg};
 use crate::lang::expr::LiteralKind;
 use crate::lang::reference::Reference;
 
 use super::Error;
 
 fn new_weak_string(
-  lazy: &lang::Lazy,
+  lazy: &lazy::Lazy,
   kind: token::StringKind,
   value: string_pool::StringId,
   span: token::Span
@@ -37,7 +37,7 @@ fn new_weak_string(
 }
 
 pub(super) fn make_literal<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<lang::expr::Expression>, Error> {
   if let Some((Token::Numeric(value), span)) = stream.peek()? {
@@ -66,7 +66,7 @@ pub(super) fn make_literal<'pool, const N: usize, T: Read>(
 }
 
 fn make_expr_part<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
   block: lang::reference::BlockReference,
@@ -108,7 +108,7 @@ enum ExpressionPart {
 }
 
 pub(super) fn make_expr<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
   block: lang::reference::BlockReference,

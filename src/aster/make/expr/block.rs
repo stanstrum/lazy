@@ -26,7 +26,7 @@ impl BlockStatement {
 }
 
 pub fn make_block_statement<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   _indenter: &Indenter,
   module: lang::reference::ModuleReference,
@@ -163,7 +163,7 @@ pub fn make_block_statement<'pool, const N: usize, T: Read>(
 }
 
 pub(super) fn make_block<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
   function: lang::reference::FunctionReference,

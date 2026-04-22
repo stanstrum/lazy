@@ -6,7 +6,7 @@ use crate::tokenize::token::StringKind;
 use super::*;
 
 fn make_group<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   indenter: &Indenter,
 ) -> Result<Option<lang::module::import::ImportGroup>, Error> {
@@ -50,7 +50,7 @@ fn make_group<'pool, const N: usize, T: Read>(
 }
 
 fn make_qualify<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   indenter: &Indenter,
 ) -> Result<Option<lang::module::import::ImportQualify>, Error> {
@@ -89,7 +89,7 @@ fn make_qualify<'pool, const N: usize, T: Read>(
 }
 
 fn make_selector<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   indenter: &Indenter,
 ) -> Result<Option<lang::module::import::ImportPart>, Error> {
@@ -123,7 +123,7 @@ fn make_selector<'pool, const N: usize, T: Read>(
 }
 
 pub(super) fn make_import<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   module: lang::reference::ModuleReference,
   stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<lang::module::import::Import>, Error> {

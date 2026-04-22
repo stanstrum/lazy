@@ -5,7 +5,8 @@ use crate::{print_message, line_dbg};
 
 use crate::aster::pprint::Pretty;
 use crate::tokenize::token::Span;
-use crate::lang::{Lazy, LazyError};
+use crate::lazy::Lazy;
+use crate::lang::LazyError;
 use crate::lang::ty::{Intrinsic, Type};
 use crate::lang::span::GetSpan;
 use crate::lang::reference::{FunctionReference, ModuleReference, Reference, Store, TypeReference};

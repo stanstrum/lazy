@@ -4,6 +4,8 @@ mod aster;
 mod resolve;
 mod generate;
 
+mod lazy;
+
 mod debug;
 mod error;
 mod settings;
@@ -11,8 +13,6 @@ mod settings;
 #[cfg(test)] mod test;
 
 use std::process::ExitCode;
-
-pub use lang::Lazy;
 
 use string_pool::StringPool;
 
@@ -28,7 +28,7 @@ fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
   };
 
   let pool = StringPool::new();
-  let mut lazy = Lazy::new(&pool, settings);
+  let mut lazy = lazy::Lazy::new(&pool, settings);
 
   match error_handler(&mut lazy, verb) {
     Ok(exit_code) => exit_code,
@@ -40,7 +40,7 @@ fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
 }
 
 fn error_handler(
-  lazy: &mut Lazy,
+  lazy: &mut lazy::Lazy,
   verb: settings::Verb,
 ) -> Result<ExitCode, error::PrintableMessage> {
   match verb {

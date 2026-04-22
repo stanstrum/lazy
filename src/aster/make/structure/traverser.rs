@@ -5,7 +5,7 @@ use crate::resolve::impls::ty::resolve_qualified_to_space;
 use super::*;
 
 pub(super) fn traverse_import(
-  lazy: &mut lang::Lazy,
+  lazy: &mut lazy::Lazy,
   module: lang::reference::ModuleReference,
   import: &lang::module::import::Import,
 ) -> Result<(), Error> {
@@ -29,7 +29,7 @@ pub(super) fn traverse_import(
 }
 
 fn traverse_group(
-  lazy: &mut lang::Lazy,
+  lazy: &mut lazy::Lazy,
   module: &lang::reference::ModuleReference,
   source: &lang::reference::ModuleReference,
   group: &lang::module::import::ImportGroup,
@@ -45,7 +45,7 @@ fn traverse_group(
 }
 
 fn insert_to_import_map(
-  lazy: &mut lang::Lazy,
+  lazy: &mut lazy::Lazy,
   module: &lang::reference::ModuleReference,
   key: string_pool::PoolId,
   value: lang::ty::Qualified,
@@ -72,7 +72,7 @@ fn insert_to_import_map(
 ///   us to the current point.  This is scope that this should be
 ///   contexutualized/represented with an [`lang::ty::Qualified`].
 fn traverse_part(
-  lazy: &mut lang::Lazy,
+  lazy: &mut lazy::Lazy,
   module: &lang::reference::ModuleReference,
   source: &lang::reference::ModuleReference,
   part: &lang::module::import::ImportPart,

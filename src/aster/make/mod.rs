@@ -5,7 +5,7 @@ mod structure;
 
 use std::io::Read;
 
-use crate::lang;
+use crate::{lang, lazy};
 use crate::lang::reference::{Reference, Store};
 use crate::tokenize::token::{Span, Token, TokenSpan};
 use crate::aster::Rereader;
@@ -115,7 +115,7 @@ fn make_name<'pool, const N: usize, T: Read>(
 }
 
 pub(super) fn make<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>
 ) -> Result<(), Error> {
   loop {

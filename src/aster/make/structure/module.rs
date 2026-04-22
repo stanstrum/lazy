@@ -1,7 +1,7 @@
 use super::*;
 
 pub(super) fn make_mod<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   parent: lang::reference::ModuleReference,
 ) -> Result<Option<lang::reference::ModuleReference>, Error> {

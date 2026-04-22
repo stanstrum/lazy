@@ -1,6 +1,6 @@
 mod impls;
 
-use crate::lang::Lazy;
+use crate::lazy::Lazy;
 use crate::lang::expr::{BlockExpression, Expression};
 use crate::lang::function::{BlockId, ExprId, Function};
 use crate::lang::module::{Module, TokensId, TypeAlias, TypePartId};

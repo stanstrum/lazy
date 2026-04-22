@@ -1,4 +1,4 @@
-use crate::lang::Lazy;
+use crate::lazy::Lazy;
 use crate::lang::reference::{Reference, Store};
 use crate::tokenize::token::Span;
 use crate::lang::ty::Type;

@@ -1,5 +1,5 @@
 use crate::tokenize::token::Span;
-use crate::lang::Lazy;
+use crate::lazy::Lazy;
 use crate::lang::span::GetSpan;
 use crate::lang::module::Name;
 use crate::lang::reference::ModuleReference;

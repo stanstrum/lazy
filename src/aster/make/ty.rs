@@ -73,7 +73,7 @@ pub(super) fn make_qualified<'pool, const N: usize, T: Read>(
 }
 
 fn make_reference_to<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
 ) -> Result<Option<lang::ty::Type>, Error> {
@@ -103,7 +103,7 @@ fn make_reference_to<'pool, const N: usize, T: Read>(
 }
 
 fn make_array_of<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
 ) -> Result<Option<lang::ty::Type>, Error> {
@@ -162,7 +162,7 @@ fn make_array_of<'pool, const N: usize, T: Read>(
 }
 
 pub(super) fn make_type<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
 ) -> Result<Option<lang::ty::Type>, Error> {

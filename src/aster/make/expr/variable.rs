@@ -7,7 +7,7 @@ use super::*;
 type Value = (lang::expr::Variable, Option<lang::reference::ExpressionReference>);
 
 pub fn make_assignment<'pool, const N: usize, T: Read>(
-  lazy: &mut lang::Lazy<'pool>,
+  lazy: &mut lazy::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::reference::ModuleReference,
   block: lang::reference::BlockReference,

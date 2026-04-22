@@ -1,4 +1,4 @@
-fn format_hex_number(num: u8) -> char {
+pub fn format_hex_number(num: u8) -> char {
   assert!(num <= 15);
 
   (if num < 10 {

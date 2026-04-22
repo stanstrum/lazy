@@ -1,5 +1,3 @@
-pub mod format;
-
 use std::path::PathBuf;
 
 use crate::error::Level;

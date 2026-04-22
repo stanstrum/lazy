@@ -54,14 +54,14 @@ pub(super) fn parse_and_display(mut argv: impl Iterator<Item = String>) -> Resul
     },
     Err(Error::Invalid { what, position }) => {
       eprint!("\x1b[31merror\x1b[0m: invalid {what} at position #{position}:\n       ");
-      compiler::settings::format::show_error_position(our_copy, position);
+      compiler::format::show_error_position(our_copy, position);
       eprintln!();
       info::help(&executable);
       Err(ExitCode::FAILURE)
     },
     Err(Error::Missing { what, position }) => {
       eprint!("\x1b[31merror\x1b[0m: missing {what} at position #{position}:\n       ");
-      compiler::settings::format::show_error_position(our_copy, position);
+      compiler::format::show_error_position(our_copy, position);
       eprintln!();
       info::help(&executable);
       Err(ExitCode::FAILURE)

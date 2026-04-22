@@ -91,6 +91,12 @@ impl WithinSource {
   }
 }
 
+impl From<crate::aster::Error> for crate::lang::LazyError {
+  fn from(value: crate::aster::Error) -> Self {
+    Self::Aster(value)
+  }
+}
+
 impl From<crate::tokenize::Error> for PrintableMessage {
   fn from(value: crate::tokenize::Error) -> Self {
     match value {

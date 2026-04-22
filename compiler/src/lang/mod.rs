@@ -12,9 +12,3 @@ pub enum LazyError {
   NotExist(PathBuf),
   Aster(crate::aster::Error),
 }
-
-impl From<crate::aster::Error> for LazyError {
-  fn from(value: crate::aster::Error) -> Self {
-    Self::Aster(value)
-  }
-}

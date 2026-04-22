@@ -8,6 +8,9 @@ pub mod lazy;
 
 pub mod error;
 pub mod settings;
+pub mod format;
+
+mod steps;
 
 #[cfg(test)] mod test;
 
@@ -29,4 +32,32 @@ pub struct Lazy<'pool> {
   pub(crate) modules: Vec<Module>,
   pub(crate) functions: Vec<Function>,
   pub(crate) tokens: Vec<Vec<token::TokenSpan>>,
+}
+
+impl<'a> Lazy<'a> {
+  pub fn new(pool: &'a StringPool, settings: Settings) -> Self {
+    let lazy = Self {
+      pool,
+      settings,
+      std: None,
+      pool_keys: keys::PoolKeys::init(pool),
+      modules: vec![],
+      functions: vec![],
+      tokens: vec![],
+    };
+
+    let argv = lazy.settings.argv.iter()
+      .map(|arg| format::format_argument(arg))
+      .collect::<Vec<_>>()
+      .join(" ");
+
+    print_message!(&lazy, {
+      level: Debug,
+      force: false,
+      description: argv,
+      contents: MessageContents::None,
+    });
+
+    lazy
+  }
 }

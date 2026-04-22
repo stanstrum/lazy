@@ -14,7 +14,7 @@ pub struct PoolKeys {
 impl PoolKeys {
   /// Initializes [`PoolKeys`] with the provided [`StringPool`].  See fields
   /// for special keywords cached here.
-  pub(super) fn init(pool: &StringPool) -> Self {
+  pub(crate) fn init(pool: &StringPool) -> Self {
     Self {
       super_: pool.insert("super"),
     }

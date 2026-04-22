@@ -28,20 +28,20 @@ fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
 
 fn error_handler(
   lazy: &mut compiler::Lazy,
-  verb: compiler::settings::Verb,
+  verb: parse::Verb,
 ) -> Result<ExitCode, compiler::error::PrintableMessage> {
   match verb {
-    compiler::settings::Verb::Check => {
+    parse::Verb::Check => {
       lazy.check()?;
 
       Ok(ExitCode::SUCCESS)
     },
-    compiler::settings::Verb::Build => {
+    parse::Verb::Build => {
       lazy.build()?;
 
       Ok(ExitCode::SUCCESS)
     },
-    compiler::settings::Verb::Run => {
+    parse::Verb::Run => {
       lazy.run()
     },
   }

@@ -12,25 +12,3 @@ pub struct Settings {
   pub log_level: Level,
   pub argv: Vec<String>,
 }
-
-#[derive(Debug)]
-pub enum Verb {
-  Check,
-  Build,
-  Run,
-}
-
-#[derive(Debug)]
-pub enum Error {
-  Missing {
-    what: &'static str,
-    position: usize,
-  },
-  Invalid {
-    what: &'static str,
-    position: usize,
-  },
-  Verbless,
-  Version,
-  Help,
-}

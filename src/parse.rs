@@ -2,7 +2,29 @@ use std::process::ExitCode;
 use std::path::PathBuf;
 
 use compiler::error::Level;
-use compiler::settings::{Error, Settings, Verb};
+use compiler::settings::Settings;
+
+#[derive(Debug)]
+pub enum Verb {
+  Check,
+  Build,
+  Run,
+}
+
+#[derive(Debug)]
+pub enum Error {
+  Missing {
+    what: &'static str,
+    position: usize,
+  },
+  Invalid {
+    what: &'static str,
+    position: usize,
+  },
+  Verbless,
+  Version,
+  Help,
+}
 
 pub(super) fn parse_and_display(mut argv: impl Iterator<Item = String>) -> Result<(Settings, Verb), ExitCode> {
   let Some(executable) = argv.next() else {

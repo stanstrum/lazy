@@ -3,7 +3,7 @@ use crate::lang::expr::{BlockExpression, Expression, LiteralKind};
 use crate::lang::reference::{BlockReference, ExpressionReference, FunctionReference, Reference, Store, TypePartReference, TypeReference, VariableReference};
 use crate::lang::span::GetSpan;
 use crate::resolve::{TypeOf, TypePair, TypePairModifier};
-use crate::string_pool::PoolId;
+use string_pool::PoolId;
 
 use crate::lang::Lazy;
 use crate::lang::ty::{Qualified, QualifiedSearchSpace, Type};

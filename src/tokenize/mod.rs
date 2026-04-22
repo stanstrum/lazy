@@ -7,7 +7,7 @@ use std::io::Read;
 
 use crate::lang::reference::ModuleReference;
 use crate::aster::bufreader::{BufferedUtf8MetadataReader};
-use crate::string_pool::StringPool;
+use string_pool::StringPool;
 
 use state::State;
 use token::{Position, Span, Token, TokenSpan};

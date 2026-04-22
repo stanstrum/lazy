@@ -18,7 +18,7 @@ use super::Error;
 fn new_weak_string(
   lazy: &lang::Lazy,
   kind: token::StringKind,
-  value: crate::string_pool::StringId,
+  value: string_pool::StringId,
   span: token::Span
 ) -> lang::ty::Type {
   let length = unsafe { lazy.pool.get_string(value).len() };

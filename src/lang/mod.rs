@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 use crate::{line_dbg, print_message};
 use crate::settings::Settings;
 use crate::settings::format::format_argument;
-use crate::string_pool::StringPool;
+use string_pool::StringPool;
 
 use crate::lang::function::{Function, FunctionHeader};
 use crate::lang::module::{Module, ModuleParent, ModulePath, TokensId};

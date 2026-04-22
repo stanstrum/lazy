@@ -3,7 +3,7 @@ pub mod operator;
 use crate::lang::expr::operator::{BinaryOperator, UnaryOperator};
 use crate::lang::module::Name;
 use crate::lang::reference::{BlockReference, ExpressionReference, VariableReference};
-use crate::string_pool::StringId;
+use string_pool::StringId;
 use crate::tokenize::token::{NumericValue, Span, StringKind};
 use crate::lang::ty::{Qualified, Type};
 use crate::lang::function::ExprId;

@@ -1,5 +1,3 @@
-mod string_pool;
-
 mod lang;
 mod tokenize;
 mod aster;
@@ -16,7 +14,7 @@ use std::process::ExitCode;
 
 pub use lang::Lazy;
 
-use crate::string_pool::StringPool;
+use string_pool::StringPool;
 
 fn main() -> ExitCode {
   let args = std::env::args();

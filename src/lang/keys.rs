@@ -1,4 +1,4 @@
-use crate::string_pool::{PoolId, StringPool};
+use string_pool::{PoolId, StringPool};
 
 /// These are keys we need to have instantiated to avoid string comps and
 /// such shenanigans later.  A little spaghetti but it makes sense for now.

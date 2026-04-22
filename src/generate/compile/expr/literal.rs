@@ -32,7 +32,7 @@ fn compile_string_literal<'ctx>(
   comp: &mut Compilation<'_, '_, 'ctx>,
   _function: inkwell::values::FunctionValue<'ctx>,
   kind: token::StringKind,
-  value: crate::string_pool::StringId,
+  value: string_pool::StringId,
   out: &lang::ty::Type,
 ) -> Result<LazyValue<'ctx>> {
   // SAFETY: this ref doesn't leave scope and we aren't borrowing anything else

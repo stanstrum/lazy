@@ -15,6 +15,13 @@ use tasks::Tasks;
 
 type Result<T> = std::result::Result<T, Box<Error>>;
 
+struct Resolver<'lazy, 'pool> {
+  lazy: &'lazy mut Lazy<'pool>,
+  tasks: Tasks,
+  global: ModuleReference,
+  std: ModuleReference,
+}
+
 #[derive(Debug)]
 pub enum ErrorBase {
   MissingEntryPoint {
@@ -100,6 +107,42 @@ impl TypePair {
 //   }
 // }
 
+impl<'lazy, 'pool> Resolver<'lazy, 'pool> {
+  fn new(lazy: &'lazy mut Lazy<'pool>, global: ModuleReference) -> Result<Self> {
+    let mut tasks = Tasks::new();
+
+    let std = tasks.work::<Result<ModuleReference>>(
+      line_dbg!("Get standard library").into(),
+      |tasks| match lazy.get_std() {
+        Ok(std) => Ok(std),
+        Err(err) => tasks.seed_error(ErrorBase::Lazy(Box::new(err))),
+      },
+    )?;
+
+    Ok(Self {
+      lazy,
+      tasks,
+      global,
+      std
+    })
+  }
+
+  fn resolve_tasks(&mut self, description: String) -> Result<()> {
+    self.tasks.work(description, |tasks| loop {
+      // Resolve `global` recursively
+      self.global.resolve(self.lazy, tasks)?;
+
+      // Execute the tasks: typically overwriting unknown values with &mut
+      let did_execute = tasks.execute_pass(self.lazy)?;
+
+      // If no tasks ran, we _should_ be finished resolving
+      if !did_execute {
+        return Ok(());
+      };
+    })
+  }
+}
+
 fn find_main(lazy: &Lazy, module: ModuleReference, tasks: &mut Tasks) -> Result<FunctionReference> {
   let main_search = {
     let main_id = lazy.pool.insert("main");
@@ -144,86 +187,59 @@ fn find_main(lazy: &Lazy, module: ModuleReference, tasks: &mut Tasks) -> Result<
   Ok(*main)
 }
 
-pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()> {
-  let mut tasks = Tasks::new();
+pub fn resolve_and_verify(lazy: &mut Lazy, global: ModuleReference) -> Result<()> {
+  let mut resolver = Resolver::new(lazy, global)?;
 
-  tasks.work::<Result<()>>(
-    line_dbg!("Get standard library").into(),
-    |tasks| match lazy.get_std() {
-      Ok(_) => Ok(()),
-      Err(err) => tasks.seed_error(ErrorBase::Lazy(Box::new(err))),
-    },
-  )?;
+  resolver.resolve_tasks(line_dbg!("Resolve global").into())?;
 
-  let resolve_tasks = |description, lazy: &mut _, tasks: &mut Tasks| -> Result<()> {
-    tasks.work::<Result<()>>(description, |tasks| loop {
-      // Resolve `global` recursively
-      module.resolve(lazy, tasks)?;
-
-      // Execute the tasks: typically overwriting unknown values with &mut
-      let did_execute = tasks.execute_pass(lazy)?;
-
-      // If no tasks ran, we _should_ be finished resolving
-      if !did_execute {
-        return Ok(());
-      };
-    })
-  };
-
-  resolve_tasks(line_dbg!("Resolve global").into(), lazy, &mut tasks)?;
-
-  tasks.work::<Result<()>>(
+  resolver.tasks.work::<Result<()>>(
     line_dbg!("Make default ambiguous types").into(),
     |tasks| {
-
-      impls::structure::default_types_in_module(lazy, &module, tasks)?;
+      impls::structure::default_types_in_module(resolver.lazy, &global, tasks)?;
 
       Ok(())
     },
   )?;
 
-  resolve_tasks(
-    line_dbg!("Resolve after make default ambiguous types").into(),
-    lazy, &mut tasks
-  )?;
+  resolver.resolve_tasks(line_dbg!("Resolve after make default ambiguous types").into())?;
 
-  tasks.work::<Result<()>>(
+  resolver.tasks.work::<Result<()>>(
     line_dbg!("Verify global").into(),
     |tasks| {
-      impls::structure::verify_module(lazy, &module, tasks)?;
+      impls::structure::verify_module(resolver.lazy, &global, tasks)?;
 
-      print_message!(lazy, {
+      print_message!(resolver.lazy, {
         level: Stub,
         force: false,
         description: line_dbg!("verify rest of program, apart from main").into(),
-        contents: MessageContents::File(module),
+        contents: MessageContents::File(global),
       });
 
       Ok(())
     },
   )?;
 
-  tasks.work::<Result<()>>(
+  resolver.tasks.work::<Result<()>>(
     line_dbg!("Verify main").into(),
     |tasks| {
       // get main and error if it's not present
-      let main = find_main(lazy, module, tasks)?;
+      let main = find_main(resolver.lazy, global, tasks)?;
 
-      let borrow = lazy.rget(main);
+      let borrow = resolver.lazy.rget(main);
       let ret_ty_reference = TypeReference::ReturnTypeOf(main);
 
       // set up some perfunctory data to coerce return type to i32
       // TODO: eventually just coerce main as fn(...) -> ...
       {
         let ret_ty = &borrow.header.ret_ty;
-        let span = ret_ty.get_span(lazy);
+        let span = ret_ty.get_span(resolver.lazy);
 
-        print_message!(lazy, {
+        print_message!(resolver.lazy, {
           level: Debug,
           force: false,
           description: format!(line_dbg!("{reference} is {ty}"),
-            reference = ret_ty_reference.print(lazy),
-            ty = ret_ty.print(lazy),
+            reference = ret_ty_reference.print(resolver.lazy),
+            ty = ret_ty.print(resolver.lazy),
           ),
           contents: MessageContents::WithinSource(WithinSource::new(vec![
             MessageSection {
@@ -233,7 +249,7 @@ pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()
           ])),
         });
 
-        ret_ty_reference.coerce(lazy, &Type::Intrinsic {
+        ret_ty_reference.coerce(resolver.lazy, &Type::Intrinsic {
           kind: Intrinsic::I32,
           span,
         }, tasks)?;
@@ -243,14 +259,14 @@ pub fn resolve_and_verify(lazy: &mut Lazy, module: ModuleReference) -> Result<()
     },
   )?;
 
-  print_message!(lazy, {
+  print_message!(resolver.lazy, {
     level: Info,
     force: false,
     description: line_dbg!("No further work should be done.").into(),
     contents: MessageContents::None,
   });
   assert!(
-    !tasks.execute_pass(lazy)?,
+    !resolver.tasks.execute_pass(lazy)?,
     "verifying should not have queued any more work",
   );
 

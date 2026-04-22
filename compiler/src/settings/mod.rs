@@ -1,5 +1,4 @@
 pub mod format;
-pub mod parsing;
 
 use std::path::PathBuf;
 

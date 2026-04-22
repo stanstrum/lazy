@@ -176,14 +176,18 @@ pub(super) fn verify_typeof(
   ty: &(impl TypeOf + GetSpan + Pretty<Out = String>),
   tasks: &mut Tasks,
 ) -> Result<()> {
-  let Some(ty) = ty.type_of(lazy) else {
-    return tasks.seed_error(ErrorBase::UnresolvedInVerify {
-      what: ty.print(lazy),
-      span: ty.get_span(lazy),
-    });
-  };
+  let description = format!(line_dbg!("Verify type via TypeOf: {}"), ty.print(lazy));
 
-  verify_type(lazy, &ty, tasks)
+  tasks.work(description, |tasks| {
+    let Some(ty) = ty.type_of(lazy) else {
+      return tasks.seed_error(ErrorBase::UnresolvedInVerify {
+        what: ty.print(lazy),
+        span: ty.get_span(lazy),
+      });
+    };
+
+    verify_type(lazy, &ty, tasks)
+  })
 }
 
 pub(super) fn default_types_of_type(lazy: &mut Lazy, reference: &TypeReference, tasks: &mut Tasks) -> Result<()> {
@@ -194,7 +198,9 @@ pub(super) fn default_types_of_type(lazy: &mut Lazy, reference: &TypeReference, 
 }
 
 pub(super) fn verify_type(lazy: &Lazy, ty: &Type, tasks: &mut Tasks) -> Result<()> {
-  match ty {
+  let description = format!(line_dbg!("Verify type {}"), ty.print(lazy));
+
+  tasks.work(description, |tasks| match ty {
     Type::Reference(type_reference) => verify_typeof(lazy, type_reference, tasks),
 
     | Type::Resolved { part: ty, .. }
@@ -213,5 +219,5 @@ pub(super) fn verify_type(lazy: &Lazy, ty: &Type, tasks: &mut Tasks) -> Result<(
       }),
     Type::Intrinsic { .. } => Ok(()),
     Type::Struct { prototype } => structure::verify_struct(lazy, prototype, tasks),
-  }
+  })
 }

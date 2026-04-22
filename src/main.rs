@@ -6,7 +6,6 @@ mod generate;
 
 mod lazy;
 
-mod debug;
 mod error;
 mod settings;
 

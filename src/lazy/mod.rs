@@ -1,4 +1,5 @@
 pub mod keys;
+mod debug;
 
 use string_pool::StringPool;
 
@@ -38,8 +39,8 @@ impl<'pool> Lazy<'pool> {
     crate::resolve::resolve_and_verify(self, global)?;
 
     // Debugs
-    crate::debug::source(self, &global);
-    crate::debug::string_pool(self);
+    debug::source(self, &global);
+    debug::string_pool(self);
 
     Ok(global)
   }
@@ -58,18 +59,18 @@ impl<'pool> Lazy<'pool> {
     let compilation = program.compile(self)?;
 
     // Debug the LLVM source
-    crate::debug::llvm_source(self, &compilation);
+    debug::llvm_source(self, &compilation);
 
     // Optimize the IR
     compilation.optimize(self)?;
-    crate::debug::llvm_source(self, &compilation);
+    debug::llvm_source(self, &compilation);
 
     // Write out the object file for the global module
     // TODO: get this from settings
     let file_type = inkwell::targets::FileType::Object;
     let object_file = compilation.save_to_file(file_type)?;
 
-    crate::debug::object_file(self, &object_file);
+    debug::object_file(self, &object_file);
 
     // TODO: find out what needs to be linked
     let linked = [
@@ -92,7 +93,7 @@ impl<'pool> Lazy<'pool> {
 
     // Otherwise, go run the child program
     let mut command = std::process::Command::new(executable);
-    crate::debug::subprocess_command(self, &command);
+    debug::subprocess_command(self, &command);
 
     let mut child = command
       // .args(args);

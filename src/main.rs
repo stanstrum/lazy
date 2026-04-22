@@ -1,19 +1,6 @@
-mod lang;
-mod tokenize;
-mod aster;
-mod resolve;
-mod generate;
-
-mod lazy;
-
-mod error;
-mod settings;
-
-#[cfg(test)] mod test;
-
 use std::process::ExitCode;
 
-use string_pool::StringPool;
+use compiler::StringPool;
 
 fn main() -> ExitCode {
   let args = std::env::args();
@@ -21,39 +8,39 @@ fn main() -> ExitCode {
 }
 
 fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
-  let (settings, verb) = match settings::parse_and_display(args) {
+  let (settings, verb) = match compiler::settings::parse_and_display(args) {
     Ok(settings) => settings,
     Err(exit_code) => return exit_code,
   };
 
   let pool = StringPool::new();
-  let mut lazy = lazy::Lazy::new(&pool, settings);
+  let mut lazy = compiler::lazy::Lazy::new(&pool, settings);
 
   match error_handler(&mut lazy, verb) {
     Ok(exit_code) => exit_code,
     Err(message) => {
-      error::print_message(&lazy, message);
+      compiler::error::print_message(&lazy, message);
       ExitCode::FAILURE
     },
   }
 }
 
 fn error_handler(
-  lazy: &mut lazy::Lazy,
-  verb: settings::Verb,
-) -> Result<ExitCode, error::PrintableMessage> {
+  lazy: &mut compiler::lazy::Lazy,
+  verb: compiler::settings::Verb,
+) -> Result<ExitCode, compiler::error::PrintableMessage> {
   match verb {
-    settings::Verb::Check => {
+    compiler::settings::Verb::Check => {
       lazy.check()?;
 
       Ok(ExitCode::SUCCESS)
     },
-    settings::Verb::Build => {
+    compiler::settings::Verb::Build => {
       lazy.build()?;
 
       Ok(ExitCode::SUCCESS)
     },
-    settings::Verb::Run => {
+    compiler::settings::Verb::Run => {
       lazy.run()
     },
   }

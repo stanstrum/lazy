@@ -1,14 +1,14 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+mod lang;
+mod tokenize;
+mod aster;
+mod resolve;
+mod generate;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub mod lazy;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub mod error;
+pub mod settings;
+
+#[cfg(test)] mod test;
+
+pub use string_pool::StringPool;

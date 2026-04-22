@@ -1,4 +1,3 @@
-mod info;
 mod parse;
 
 use std::process::ExitCode;

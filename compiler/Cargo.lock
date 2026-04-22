@@ -41,6 +41,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "tempfile",
+ "token",
 ]
 
 [[package]]
@@ -391,6 +392,10 @@ dependencies = [
  "quote",
  "syn",
 ]
+
+[[package]]
+name = "token"
+version = "0.1.0"
 
 [[package]]
 name = "unicode-ident"

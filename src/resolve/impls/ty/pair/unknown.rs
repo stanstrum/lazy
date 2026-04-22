@@ -31,8 +31,8 @@ pub(crate) fn resolve_qualified_to_space(
     // no yeah, it doesn't bother me at all :(
     if part.id == lazy.pool_keys.super_ {
       print_message!(lazy, {
-        level: Info,
-        force: true,
+        level: Debug,
+        force: false,
         description: format!(line_dbg!("super keyword in {}"), lazy.describe_module(part.span.module)),
         contents: MessageContents::WithinSource(WithinSource::new(
           vec![MessageSection {

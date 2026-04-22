@@ -18,8 +18,11 @@ impl Resolve for ModuleReference {
     };
 
     for index in 0..module.aliases.len() {
-      let reference = AliasReference(*self, index);
-      reference.resolve(lazy, tasks)?;
+      AliasReference(*self, index).resolve(lazy, tasks)?;
+    };
+
+    for index in 0..module.structs.len() {
+      StructReference(*self, index).resolve(lazy, tasks)?;
     };
 
     Ok(())
@@ -34,8 +37,10 @@ impl Resolve for AliasReference {
 
 impl Resolve for StructReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
-    for id in 0..self.rget_from(lazy).members.len() {
-      TypeReference::StructMember(*self, id).resolve(lazy, tasks)?;
+    let struct_borrow = self.rget_from(lazy);
+
+    for index in 0..struct_borrow.members.len() {
+      TypeReference::StructMember(*self, index).resolve(lazy, tasks)?;
     };
 
     Ok(())

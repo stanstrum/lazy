@@ -9,7 +9,7 @@ use std::io::Read;
 use crate::tokenize::token::{self, Token, Span};
 use crate::aster::make::ty;
 use crate::aster::Rereader;
-use crate::{lang, lazy, line_dbg};
+use crate::{lang, line_dbg};
 use crate::lang::expr::LiteralKind;
 use crate::lang::reference::Reference;
 

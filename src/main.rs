@@ -16,7 +16,7 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::process::ExitCode;
 
-use lang::Lazy;
+pub use lang::Lazy;
 
 use crate::lang::reference::ModuleReference;
 use crate::string_pool::StringPool;

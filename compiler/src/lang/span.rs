@@ -19,44 +19,6 @@ impl<R: for<'a> Reference<Lazy<'a>>> GetSpan for R
   }
 }
 
-impl GetSpan for Module {
-  fn get_span(&self, _lazy: &Lazy) -> Span {
-    todo!()
-  }
-}
-
-impl GetSpan for Function {
-  fn get_span(&self, _lazy: &Lazy) -> Span {
-    self.span
-  }
-}
-
-impl GetSpan for TypeAlias {
-  fn get_span(&self, _lazy: &Lazy) -> Span {
-    self.span
-  }
-}
-
-impl GetSpan for Type {
-  fn get_span(&self, lazy: &Lazy) -> Span {
-    match self {
-      Type::Unresolved { qualified, .. } => qualified.span,
-      | Type::Resolved { span, .. }
-      | Type::ReferenceTo { span, .. }
-      | Type::SizedArrayOf { span, .. }
-      | Type::UnsizedArrayOf { span, .. }
-      | Type::Intrinsic { span, .. }
-      | Type::Weak { span }
-      | Type::WeakInteger { span }
-      | Type::WeakFloat { span }
-      | Type::WeakString { span, .. }
-        => *span,
-      Type::Reference(reference) => reference.get_span(lazy),
-      Type::Struct { prototype } => prototype.rget_from(lazy).span,
-    }
-  }
-}
-
 impl GetSpan for Expression {
   fn get_span(&self, lazy: &Lazy) -> Span {
     match self {
@@ -69,11 +31,5 @@ impl GetSpan for Expression {
         => *span,
       Expression::Unknown { qualified, .. } => qualified.span,
     }
-  }
-}
-
-impl GetSpan for BlockExpression {
-  fn get_span(&self, _lazy: &Lazy) -> Span {
-    self.span
   }
 }

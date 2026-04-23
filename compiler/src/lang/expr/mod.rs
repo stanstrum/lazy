@@ -3,6 +3,7 @@ pub mod operator;
 use crate::lang::expr::operator::{BinaryOperator, UnaryOperator};
 use crate::lang::module::Name;
 use crate::lang::reference::{BlockReference, ExpressionReference, VariableReference};
+use crate::lang::span::GetSpan;
 use string_pool::StringId;
 use crate::tokenize::token::{NumericValue, Span, StringKind};
 use crate::lang::ty::{Qualified, Type};
@@ -87,7 +88,7 @@ impl BlockExpression {
       parent,
       temp_span,
       Type::Intrinsic {
-        kind: crate::lang::ty::Intrinsic::Void,
+        kind: ::token::intrinsic::Intrinsic::Void,
         span: temp_span,
       },
     )
@@ -105,16 +106,8 @@ impl BlockExpression {
   }
 }
 
-// impl BlockReference {
-//   pub fn get_return_last(&self, lazy: &Lazy) -> Option<ExpressionReference> {
-//     let block = self.rget_from(lazy);
-
-//     if !block.returns_last {
-//       return None;
-//     };
-
-//     let &index = block.children.last().unwrap();
-
-//     Some(ExpressionReference { function: self.function, index })
-//   }
-// }
+impl GetSpan for BlockExpression {
+  fn get_span(&self, _lazy: &crate::Lazy) -> Span {
+    self.span
+  }
+}

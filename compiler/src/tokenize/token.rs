@@ -3,7 +3,7 @@ use super::*;
 use std::cmp::Ordering;
 
 use crate::lang::reference::ModuleReference;
-use crate::lang::ty::Intrinsic;
+use ::token::intrinsic::Intrinsic;
 
 pub use ::token::span::Position;
 pub type Span = ::token::span::ModuleSpan<ModuleReference>;
@@ -38,15 +38,6 @@ pub enum EscapeValue {
   ReadHex,
   ReadOctal,
   Unicode,
-}
-
-impl From<StringKind> for Intrinsic {
-  fn from(value: StringKind) -> Self {
-    match value {
-      StringKind::Wide => Self::U32,
-      StringKind::Byte | StringKind::C => Self::U8,
-    }
-  }
 }
 
 impl From<EscapeReturn> for State {

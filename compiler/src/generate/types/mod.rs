@@ -21,16 +21,16 @@ pub(super) enum LazyValue<'ctx> {
   Struct(inkwell::values::StructValue<'ctx>),
 }
 
-fn make_intrinsic_type<'ctx>(comp: &Compilation<'_, '_, 'ctx>, intrinsic: lang::ty::Intrinsic) -> LazyType<'ctx> {
+fn make_intrinsic_type<'ctx>(comp: &Compilation<'_, '_, 'ctx>, intrinsic: ::token::intrinsic::Intrinsic) -> LazyType<'ctx> {
   match intrinsic {
-    lang::ty::Intrinsic::Void => comp.llvm.context.void_type().into(),
-    lang::ty::Intrinsic::Bool => comp.llvm.context.bool_type().into(),
-    lang::ty::Intrinsic::I8  | lang::ty::Intrinsic::U8  => comp.llvm.context.i8_type().into(),
-    lang::ty::Intrinsic::I16 | lang::ty::Intrinsic::U16 => comp.llvm.context.i16_type().into(),
-    lang::ty::Intrinsic::I32 | lang::ty::Intrinsic::U32 => comp.llvm.context.i32_type().into(),
-    lang::ty::Intrinsic::I64 | lang::ty::Intrinsic::U64 => comp.llvm.context.i64_type().into(),
-    lang::ty::Intrinsic::F32 => comp.llvm.context.f32_type().into(),
-    lang::ty::Intrinsic::F64 => comp.llvm.context.f64_type().into(),
+    ::token::intrinsic::Intrinsic::Void => comp.llvm.context.void_type().into(),
+    ::token::intrinsic::Intrinsic::Bool => comp.llvm.context.bool_type().into(),
+    ::token::intrinsic::Intrinsic::I8  | ::token::intrinsic::Intrinsic::U8  => comp.llvm.context.i8_type().into(),
+    ::token::intrinsic::Intrinsic::I16 | ::token::intrinsic::Intrinsic::U16 => comp.llvm.context.i16_type().into(),
+    ::token::intrinsic::Intrinsic::I32 | ::token::intrinsic::Intrinsic::U32 => comp.llvm.context.i32_type().into(),
+    ::token::intrinsic::Intrinsic::I64 | ::token::intrinsic::Intrinsic::U64 => comp.llvm.context.i64_type().into(),
+    ::token::intrinsic::Intrinsic::F32 => comp.llvm.context.f32_type().into(),
+    ::token::intrinsic::Intrinsic::F64 => comp.llvm.context.f64_type().into(),
   }
 }
 

@@ -1,6 +1,7 @@
 pub mod unknown;
 
-use crate::lang::ty::{Intrinsic, QualifiedSearchSpace};
+use ::token::intrinsic::Intrinsic;
+use crate::lang::ty::{QualifiedSearchSpace};
 use crate::resolve::TypePair;
 use crate::tokenize::token::StringKind;
 

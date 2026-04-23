@@ -56,7 +56,7 @@ fn make_function_header<'pool, const N: usize, T: Read>(
       ret_ty
     } else {
       lang::ty::Type::Intrinsic {
-        kind: lang::ty::Intrinsic::Void,
+        kind: ::token::intrinsic::Intrinsic::Void,
         span: name.span,
       }
     }

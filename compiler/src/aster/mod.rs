@@ -38,8 +38,10 @@ pub fn asterize(lazy: &mut Lazy, module: ModuleReference) -> Result<(), Error> {
   let result = make::make(lazy, &mut rereader);
 
   let tokens_id = lazy.get_path(module).tokens;
+  let tokens_borrow = lazy.rget_mut(tokens_id);
+
   for token_span in rereader.examine_tokens() {
-    lazy.rget_mut(tokens_id).push(token_span);
+    tokens_borrow.push(token_span);
   };
 
   result

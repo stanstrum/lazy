@@ -2,6 +2,8 @@ use string_pool::{PoolId, StringId};
 
 pub mod span;
 pub mod special;
+pub mod intrinsic;
+pub mod ty;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Token {
@@ -27,4 +29,13 @@ pub enum StringKind {
 pub enum CharKind {
   Wide,
   Byte,
+}
+
+impl From<StringKind> for intrinsic::Intrinsic {
+  fn from(value: StringKind) -> Self {
+    match value {
+      StringKind::Wide => Self::U32,
+      StringKind::Byte | StringKind::C => Self::U8,
+    }
+  }
 }

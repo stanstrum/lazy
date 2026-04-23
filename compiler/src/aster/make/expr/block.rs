@@ -238,7 +238,7 @@ pub(super) fn make_block<'pool, const N: usize, T: Read>(
     )
   } else {
     lang::ty::Type::Intrinsic {
-      kind: lang::ty::Intrinsic::Void,
+      kind: ::token::intrinsic::Intrinsic::Void,
       span,
     }
   };

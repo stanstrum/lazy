@@ -246,7 +246,7 @@ impl Coerce for TypePair {
           assert!(size == characters, "throw error for weak string size mismatch");
 
           ty.coerce(lazy, &Type::Intrinsic {
-            kind: kind.into_intrinsic(),
+            kind: (*kind).into(),
             span: *span,
           }, tasks)?;
 
@@ -261,7 +261,7 @@ impl Coerce for TypePair {
           Type::UnsizedArrayOf { ty, .. },
         ) => {
           ty.coerce(lazy, &Type::Intrinsic {
-            kind: kind.into_intrinsic(),
+            kind: (*kind).into(),
             span: *span,
           }, tasks)
         },
@@ -320,7 +320,7 @@ pub(in crate::resolve::impls) fn default_types_of_type_pair(lazy: &mut Lazy, pai
       let src = {
         let parent_module = pair.reference.parent_module(lazy);
 
-        let element_intrinsic = kind.into_intrinsic();
+        let element_intrinsic = kind.into();
         let element_part = Type::Intrinsic { kind: element_intrinsic, span };
         let element_reference = parent_module.add_type_part(element_part, lazy);
 

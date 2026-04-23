@@ -4,28 +4,13 @@ use std::cmp::Ordering;
 
 use crate::lang::reference::ModuleReference;
 use crate::lang::ty::Intrinsic;
-use string_pool::{StringId, PoolId};
 
 pub use ::token::span::Position;
 pub type Span = ::token::span::ModuleSpan<ModuleReference>;
 pub use ::token::special::*;
+pub use ::token::{CharKind, StringKind, Token};
 
 pub type TokenSpan = (Token, Span);
-
-#[derive(Debug, Clone, Copy)]
-pub enum Token {
-  Identifier(PoolId),
-  #[allow(unused)]
-  Keyword(::token::special::Keyword),
-  Operator(::token::special::Operator),
-  Grouping(::token::special::GroupingType),
-  Whitespace,
-  Indent(isize),
-  #[allow(unused)]
-  Comment(StringId),
-  Numeric(::token::special::NumericValue),
-  String(StringKind, StringId)
-}
 
 #[derive(Debug)]
 pub struct StringState {
@@ -41,32 +26,27 @@ pub struct CharState {
   pub start: Position,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum StringKind {
-  Wide,
-  Byte,
-  C,
-}
-
-impl StringKind {
-  pub fn into_intrinsic(self) -> Intrinsic {
-    match self {
-      Self::Wide => Intrinsic::U32,
-      Self::Byte | Self::C => Intrinsic::U8,
-    }
-  }
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum CharKind {
-  Wide,
-  Byte,
-}
-
 #[derive(Debug)]
 pub enum EscapeReturn {
   String(StringState),
   Char(CharState),
+}
+
+#[derive(Debug)]
+pub enum EscapeValue {
+  Char(char),
+  ReadHex,
+  ReadOctal,
+  Unicode,
+}
+
+impl From<StringKind> for Intrinsic {
+  fn from(value: StringKind) -> Self {
+    match value {
+      StringKind::Wide => Self::U32,
+      StringKind::Byte | StringKind::C => Self::U8,
+    }
+  }
 }
 
 impl EscapeReturn {
@@ -81,14 +61,6 @@ impl EscapeReturn {
       },
     }
   }
-}
-
-#[derive(Debug)]
-pub enum EscapeValue {
-  Char(char),
-  ReadHex,
-  ReadOctal,
-  Unicode,
 }
 
 pub fn parse_escape(value: &str) -> Result<EscapeValue, Error> {

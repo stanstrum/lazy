@@ -1,4 +1,4 @@
-use token::Position;
+use token::span::Position;
 
 #[derive(Debug)]
 pub struct Metadata {

@@ -1,5 +1,3 @@
-use ::token::Position;
-
 pub mod token;
 mod numeric;
 mod state;
@@ -12,7 +10,7 @@ use crate::aster::bufreader::BufferedUtf8MetadataReader;
 use string_pool::StringPool;
 
 use state::State;
-use token::{Span, Token, TokenSpan};
+use token::{Position, Span, Token, TokenSpan};
 
 #[derive(Debug)]
 pub struct Tokenizer<'pool, const N: usize, T: Read> {

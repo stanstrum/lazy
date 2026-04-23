@@ -403,6 +403,9 @@ dependencies = [
 [[package]]
 name = "token"
 version = "0.1.0"
+dependencies = [
+ "string_pool",
+]
 
 [[package]]
 name = "unicode-ident"

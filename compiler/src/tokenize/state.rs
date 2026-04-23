@@ -1,6 +1,5 @@
 use std::io::Read;
 
-use ::token::Position;
 use crate::tokenize::token::{
   CharState,
   EscapeReturn,
@@ -10,6 +9,7 @@ use crate::tokenize::token::{
   Keyword,
   NumericKind,
   Operator,
+  Position,
   Span,
   StringKind,
   StringState,

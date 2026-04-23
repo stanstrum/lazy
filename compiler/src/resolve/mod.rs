@@ -1,5 +1,6 @@
 pub mod impls;
 pub mod tasks;
+pub mod pair;
 
 use crate::{print_message, line_dbg};
 
@@ -17,11 +18,12 @@ use tasks::Tasks;
 
 type Result<T> = std::result::Result<T, Box<Error>>;
 
-struct Resolver<'lazy, 'pool> {
-  lazy: &'lazy mut Lazy<'pool>,
-  tasks: Tasks,
-  global: ModuleReference,
-  std: ModuleReference,
+pub use pair::*;
+
+#[derive(Debug)]
+pub struct Error {
+  pub base: ErrorBase,
+  pub call_stack: String,
 }
 
 #[derive(Debug)]
@@ -55,22 +57,11 @@ pub enum ErrorBase {
   Lazy(Box<LazyError>),
 }
 
-#[derive(Debug)]
-pub struct Error {
-  pub base: ErrorBase,
-  pub call_stack: String,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum TypePairModifier {
-  Dereference,
-}
-
-#[derive(Debug, Clone)]
-pub struct TypePair {
-  pub reference: TypeReference,
-  pub ty: Type,
-  pub modifiers: Vec<TypePairModifier>,
+struct Resolver<'lazy, 'pool> {
+  lazy: &'lazy mut Lazy<'pool>,
+  tasks: Tasks,
+  global: ModuleReference,
+  std: ModuleReference,
 }
 
 pub trait Resolve {
@@ -84,16 +75,6 @@ pub trait Coerce {
 pub trait TypeOf {
   fn type_of(&self, lazy: &Lazy) -> Option<Type>;
   fn reference(&self, lazy: &Lazy) -> Option<OverwriteTypeReference>;
-}
-
-impl TypePair {
-  pub fn new(reference: TypeReference, ty: Type) -> Self {
-    Self {
-      reference,
-      ty,
-      modifiers: vec![],
-    }
-  }
 }
 
 // impl<R: Copy> TypeOf for R

@@ -13,6 +13,17 @@ use state::State;
 use token::{Position, Span, Token, TokenSpan};
 
 #[derive(Debug)]
+pub enum Error {
+  IO {
+    module: ModuleReference,
+    name: String,
+  },
+  InvalidNumeric {
+    span: Span,
+  },
+}
+
+#[derive(Debug)]
 pub struct Tokenizer<'pool, const N: usize, T: Read> {
   /// The [`StringPool`] that stores all of our identifiers and maps them to a
   /// [`Copy`] unique key.
@@ -43,17 +54,6 @@ pub struct Tokenizer<'pool, const N: usize, T: Read> {
   /// This is a bandaid to fix an issue with multiline comments having indentation
   /// inside them.
   override_indentation: Option<usize>,
-}
-
-#[derive(Debug)]
-pub enum Error {
-  IO {
-    module: ModuleReference,
-    name: String,
-  },
-  InvalidNumeric {
-    span: Span,
-  },
 }
 
 impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {

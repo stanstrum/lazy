@@ -49,6 +49,15 @@ impl From<StringKind> for Intrinsic {
   }
 }
 
+impl From<EscapeReturn> for State {
+  fn from(value: EscapeReturn) -> Self {
+    match value {
+      EscapeReturn::String(string_state) => Self::String(string_state),
+      EscapeReturn::Char(char_state) => Self::Char(char_state),
+    }
+  }
+}
+
 impl EscapeReturn {
   pub fn append_ch(&mut self, ch: char) {
     match self {

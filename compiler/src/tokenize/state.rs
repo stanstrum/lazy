@@ -20,15 +20,6 @@ use crate::tokenize::token::{
 
 use super::{Tokenizer, Error};
 
-impl From<EscapeReturn> for State {
-  fn from(value: EscapeReturn) -> Self {
-    match value {
-      EscapeReturn::String(string_state) => Self::String(string_state),
-      EscapeReturn::Char(char_state) => Self::Char(char_state),
-    }
-  }
-}
-
 fn trim_in_place(string: &mut String) {
   // trim end
   string.truncate(string.trim_end().len());

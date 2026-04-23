@@ -44,8 +44,8 @@ pub(super) fn make_literal<'pool, const N: usize, T: Read>(
     stream.seek();
 
     let out = match value {
-      ::token::special::NumericValue::U64(_) => lang::ty::Type::WeakInteger { span },
-      ::token::special::NumericValue::F64(_) => lang::ty::Type::WeakFloat { span },
+      ::lang::special::NumericValue::U64(_) => lang::ty::Type::WeakInteger { span },
+      ::lang::special::NumericValue::F64(_) => lang::ty::Type::WeakFloat { span },
     };
 
     let value = lang::expr::LiteralKind::Numeric(value);

@@ -3,7 +3,7 @@ use crate::lang::span::GetSpan;
 use crate::lang::module::Name;
 use crate::lang::reference::{ModuleReference, Reference, StructReference, TypePartReference, TypeReference};
 use crate::resolve::tasks::OverwriteTypeReference;
-use ::token::intrinsic::Intrinsic;
+use ::lang::intrinsic::Intrinsic;
 
 #[derive(Debug, Clone)]
 pub enum QualifiedSearchSpace {

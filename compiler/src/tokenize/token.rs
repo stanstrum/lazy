@@ -3,12 +3,12 @@ use super::*;
 use std::cmp::Ordering;
 
 use crate::lang::reference::ModuleReference;
-use ::token::intrinsic::Intrinsic;
+use ::lang::intrinsic::Intrinsic;
 
-pub use ::token::span::Position;
-pub type Span = ::token::span::ModuleSpan<ModuleReference>;
-pub use ::token::special::*;
-pub use ::token::{CharKind, StringKind, Token};
+pub use ::lang::span::Position;
+pub type Span = ::lang::span::ModuleSpan<ModuleReference>;
+pub use ::lang::special::*;
+pub use ::lang::{CharKind, StringKind, Token};
 
 pub type TokenSpan = (Token, Span);
 

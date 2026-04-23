@@ -7,7 +7,7 @@ use crate::aster::pprint::Pretty;
 use crate::tokenize::token::Span;
 use crate::Lazy;
 use crate::lang::LazyError;
-use ::token::intrinsic::Intrinsic;
+use ::lang::intrinsic::Intrinsic;
 use crate::lang::ty::Type;
 use crate::lang::span::GetSpan;
 use crate::lang::reference::{FunctionReference, ModuleReference, Reference, Store, TypeReference};

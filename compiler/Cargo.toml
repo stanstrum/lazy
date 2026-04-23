@@ -10,4 +10,4 @@ inkwell = { version = "0.8.0", features = ["llvm18-1"] }
 strum = "0.27.2"
 strum_macros = "0.27.2"
 tempfile = "3.27.0"
-token = { version = "0.1.0", path = "token" }
+lang = { version = "0.1.0", path = "lang" }

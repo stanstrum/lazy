@@ -1,10 +1,13 @@
 mod debug;
 
-use std::{os::unix::fs::PermissionsExt, path::Path, process::ExitCode};
+use std::path::Path;
+use std::process::ExitCode;
+use std::os::unix::fs::PermissionsExt;
 
-use crate::{Lazy, error, lang::reference::ModuleReference, print_message};
+use crate::{print_message, error};
+use crate::lang::reference::ModuleReference;
 
-impl<'pool> Lazy<'pool> {
+impl<'pool> crate::Lazy<'pool> {
   pub fn check(&mut self) -> Result<ModuleReference, error::PrintableMessage> {
     // Instantiate the global scope
     let path = self.settings.input_path.to_owned();

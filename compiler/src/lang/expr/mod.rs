@@ -88,7 +88,7 @@ impl BlockExpression {
       parent,
       temp_span,
       Type::Intrinsic {
-        kind: ::token::intrinsic::Intrinsic::Void,
+        kind: ::lang::intrinsic::Intrinsic::Void,
         span: temp_span,
       },
     )

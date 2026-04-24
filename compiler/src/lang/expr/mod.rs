@@ -111,3 +111,9 @@ impl GetSpan for BlockExpression {
     self.span
   }
 }
+
+impl GetSpan for Variable {
+  fn get_span(&self, _store: &crate::Lazy<'_>) -> Span {
+    self.span
+  }
+}

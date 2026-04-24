@@ -22,4 +22,3 @@ pub enum ModuleParent<C: Compiler> {
   Path(ModulePath<C>),
   Module(C::ModuleReference),
 }
-

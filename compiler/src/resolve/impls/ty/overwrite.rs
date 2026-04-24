@@ -63,3 +63,9 @@ impl<'a> Store<OverwriteTypeReference> for Lazy<'a> {
     ty
   }
 }
+
+impl GetSpan for OverwriteTypeReference {
+  fn get_span(&self, store: &crate::Lazy<'_>) -> crate::tokenize::token::Span {
+    self.reference.get_span(store)
+  }
+}

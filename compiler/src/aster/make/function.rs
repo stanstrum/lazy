@@ -24,7 +24,7 @@ pub(super) fn make_function_argument<'pool, const N: usize, T: Read>(
   };
 
   let mut span = ty.get_span(lazy);
-  span.extend(name.span);
+  span.extend(name.get_span(lazy));
 
   Ok(Some(lang::expr::Variable {
     name,

@@ -4,6 +4,8 @@ pub mod struc;
 use std::collections::HashMap;
 
 use crate::lang::module::struc::Struct;
+use crate::lang::span::GetSpan;
+use lang::reference::Store;
 use string_pool::PoolId;
 use crate::Lazy;
 use crate::lang::reference::{FunctionReference, ModuleReference, Reference, TypePartReference};
@@ -74,3 +76,15 @@ impl ModuleReference {
     TypePartReference(*self, id)
   }
 }
+
+impl GetSpan for Name {
+  fn get_span(&self, _store: &Lazy) -> Span {
+    self.span
+  }
+}
+
+// impl<S> GetSpan<S> for Name {
+//   fn get_span(&self, store: &S) -> Span {
+//     self.span
+//   }
+// }

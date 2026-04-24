@@ -72,7 +72,7 @@ pub trait Coerce {
   fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()>;
 }
 
-pub trait TypeOf {
+pub trait TypeOf: GetSpan<crate::lazy::LazyStructures> {
   fn type_of(&self, lazy: &Lazy) -> Option<Type>;
   fn reference(&self, lazy: &Lazy) -> Option<OverwriteTypeReference>;
 }

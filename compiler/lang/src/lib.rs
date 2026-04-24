@@ -1,11 +1,13 @@
-use string_pool::{PoolId, StringId};
-
 pub mod span;
 pub mod special;
 pub mod intrinsic;
 pub mod ty;
 pub mod module;
 pub mod reference;
+
+use std::fmt::Debug;
+
+use string_pool::{PoolId, StringId};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Token {
@@ -42,6 +44,16 @@ impl From<StringKind> for intrinsic::Intrinsic {
   }
 }
 
-trait Compiler {
-  type Module;
+pub trait Compiler: Debug
+  where for<'a> Self::Store<'a>:
+    reference::Store<Self::ModuleReference, Out = Self::Module> +
+    reference::Store<Self::TokensReference, Out = Self::Tokens> +
+{
+  type Store<'a>;
+  type Module: Debug;
+  type ModuleReference: Debug + Clone + Copy + PartialEq + Eq;
+  type Tokens: Debug;
+  type TokensReference: Debug + Clone + Copy + PartialEq + Eq;
+  // type Variable;
+  // type VariableReference;
 }

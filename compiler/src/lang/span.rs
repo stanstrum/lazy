@@ -1,10 +1,7 @@
 use crate::Lazy;
 use crate::lang::reference::{Reference, Store};
 use crate::tokenize::token::Span;
-use crate::lang::ty::Type;
-use crate::lang::module::{Module, TypeAlias};
-use crate::lang::function::Function;
-use crate::lang::expr::{BlockExpression, Expression};
+use crate::lang::expr::Expression;
 
 pub trait GetSpan {
   fn get_span(&self, lazy: &Lazy) -> Span;

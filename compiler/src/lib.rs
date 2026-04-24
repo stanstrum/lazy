@@ -34,8 +34,8 @@ pub struct Lazy<'pool> {
   pub(crate) tokens: Vec<Vec<token::TokenSpan>>,
 }
 
-impl<'a> Lazy<'a> {
-  pub fn new(pool: &'a StringPool, settings: Settings) -> Self {
+impl<'pool> Lazy<'pool> {
+  pub fn new(pool: &'pool StringPool, settings: Settings) -> Self {
     let lazy = Self {
       pool,
       settings,

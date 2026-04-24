@@ -1,5 +1,3 @@
-use crate::StringKind;
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[allow(unused)]
 pub enum Intrinsic {

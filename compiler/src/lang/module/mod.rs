@@ -2,7 +2,6 @@ pub mod import;
 pub mod struc;
 
 use std::collections::HashMap;
-use std::path::PathBuf;
 
 use crate::lang::module::struc::Struct;
 use string_pool::PoolId;
@@ -11,11 +10,11 @@ use crate::lang::reference::{FunctionReference, ModuleReference, Reference, Type
 use crate::lang::ty::{Qualified, QualifiedSearchSpace, Type};
 use crate::tokenize::token::Span;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TokensId(pub usize);
 
-pub type ModulePath = ::lang::module::ModulePath<TokensId, ModuleReference>;
-pub type ModuleParent = ::lang::module::ModuleParent<TokensId, ModuleReference>;
+pub type ModulePath = ::lang::module::ModulePath<crate::lazy::LazyStructures>;
+pub type ModuleParent = ::lang::module::ModuleParent<crate::lazy::LazyStructures>;
 
 #[derive(Debug)]
 pub struct ModuleTransports {
@@ -45,7 +44,7 @@ pub struct TypeAlias {
   pub span: Span,
 }
 
-pub type Name = ::lang::module::Name<ModuleReference>;
+pub type Name = ::lang::module::Name<crate::lazy::LazyStructures>;
 
 impl Module {
   pub fn new(name: PoolId, parent: ModuleParent) -> Self {

@@ -7,6 +7,9 @@ use crate::{Lazy, line_dbg, print_message};
 
 use std::path::{Path, PathBuf};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LazyStructures;
+
 impl<'pool> Lazy<'pool> {
   /// Sounds like a rough time.
   ///
@@ -188,4 +191,12 @@ impl<'pool> Lazy<'pool> {
 
     path
   }
+}
+
+impl lang::Compiler for LazyStructures {
+  type Store<'a> = Lazy<'a>;
+  type Module = Module;
+  type ModuleReference = ModuleReference;
+  type Tokens = Vec<crate::tokenize::token::TokenSpan>;
+  type TokensReference = TokensId;
 }

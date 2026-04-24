@@ -2,14 +2,11 @@ use super::*;
 
 use std::cmp::Ordering;
 
-use crate::lang::reference::ModuleReference;
-use ::lang::intrinsic::Intrinsic;
-
 pub use ::lang::span::Position;
-pub type Span = ::lang::span::ModuleSpan<ModuleReference>;
 pub use ::lang::special::*;
 pub use ::lang::{CharKind, StringKind, Token};
 
+pub type Span = ::lang::span::Span<crate::lazy::LazyStructures>;
 pub type TokenSpan = (Token, Span);
 
 #[derive(Debug)]

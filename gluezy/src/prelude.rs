@@ -3,6 +3,7 @@ use std::path::PathBuf;
 pub use crate::LazyError;
 
 pub use ::lang::token::Token;
+pub type Tokens = ::lang::token::Tokens<crate::LazyStructures>;
 pub type TokenSpan = ::lang::token::TokenSpan<crate::LazyStructures>;
 pub use ::lang::span::Position;
 pub type Span = ::lang::span::Span<crate::LazyStructures>;

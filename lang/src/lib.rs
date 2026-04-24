@@ -11,6 +11,8 @@ pub mod reference;
 
 pub mod expr;
 
+mod store;
+
 use std::{fmt::Debug, hash::Hash};
 
 use string_pool::StringPool;
@@ -23,9 +25,38 @@ impl<T: Debug + Clone + Copy + PartialEq + Eq> CompilerReference for T {}
 pub trait CompilerPoolStore<C: Compiler>:
   reference::Store<C::ModuleReference, Out = module::Module<C>> +
   reference::Store<C::FunctionReference, Out = function::Function<C>> +
-  reference::Store<C::TokensReference, Out = C::Tokens>
+  reference::Store<C::TokensReference, Out = token::Tokens<C>>
 {
   fn pool(&self) -> &StringPool;
+
+  fn describe_module(&self, module_reference: C::ModuleReference) -> String {
+    let module = self.rget(module_reference);
+    let name = self.pool().get(module.name);
+
+    match &module.parent {
+      ModuleParent::Path(ModulePath { /* path, */ .. }) => {
+        // let mut path = path.as_path();
+
+        // if
+        //   let Some(parent) = self.settings.input_path.parent() &&
+        //   let Ok(stripped) = path.strip_prefix(parent)
+        // {
+        //   path = stripped;
+        // };
+
+        // format!(
+        //   "[{}:{}]",
+        //   name,
+        //   path.to_string_lossy(),
+        // )
+        name
+      },
+      ModuleParent::Module(parent) => {
+        let parent_desc = self.describe_module(*parent);
+        format!("{parent_desc}::{name}")
+      },
+    }
+  }
 
   fn get_root_module(&self, mut module: C::ModuleReference) -> C::ModuleReference {
     // traverse parents until we get the root module with a
@@ -58,7 +89,7 @@ pub trait CompilerPoolStore<C: Compiler>:
   }
 }
 
-pub trait Compiler: Debug + Sized
+pub trait Compiler: Debug + Sized + Clone + Copy + PartialEq + Eq
   where for<'a> Self::Store<'a>: CompilerPoolStore<Self>
 {
   type Store<'a>;
@@ -66,7 +97,6 @@ pub trait Compiler: Debug + Sized
   type ModuleReference: CompilerReference + Hash;
   type FunctionReference: CompilerReference + Hash;
 
-  type Tokens: Debug;
   type TokensReference: CompilerReference;
 
   type OverwriteTypeReference: Debug + Clone;

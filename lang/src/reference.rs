@@ -41,7 +41,7 @@ pub enum VariableReference<C: Compiler> {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct TypePartReference<C: Compiler>(pub(crate) C::ModuleReference, pub(crate) TypePartId);
+pub struct TypePartReference<C: Compiler>(pub C::ModuleReference, pub TypePartId);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TypePartId(pub(crate) usize);

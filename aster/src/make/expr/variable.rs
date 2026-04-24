@@ -1,23 +1,24 @@
+use lang::Compiler;
 use ::lang::token::Operator;
 use ::lang::span::GetSpan;
-use crate::aster::make::{make_name, ty};
+use crate::make::{make_name, ty};
 
 use super::*;
 
 type Value = (lang::expr::Variable, Option<lang::ExpressionReference>);
 
-pub fn make_assignment<'pool, const N: usize, T: Read>(
-  lazy: &mut crate::Lazy<'pool>,
+pub fn make_assignment<'pool, C: Compiler, const N: usize, T: Read>(
+  store: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::ModuleReference,
   block: lang::BlockReference,
-) -> Result<Option<Value>, Error> {
+) -> Result<Option<Value>, Error<C>> {
   let ret_mark = stream.mark();
 
-  let Some(ty) = ty::make_type(lazy, stream, module)? else {
+  let Some(ty) = ty::make_type(store, stream, module)? else {
     return Ok(None);
   };
-  let mut span = ty.get_span(lazy);
+  let mut span = ty.get_span(store);
 
   stream.skip_whitespace_and_comments()?;
 
@@ -34,11 +35,11 @@ pub fn make_assignment<'pool, const N: usize, T: Read>(
       stream.seek();
       stream.skip_whitespace_and_comments()?;
 
-      let Some(expr) = make_expr(lazy, stream, module, block)? else {
+      let Some(expr) = make_expr(store, stream, module, block)? else {
         return stream.expected_here(line_dbg!("an expression"));
       };
 
-      span.extend(expr.rget_from(lazy).get_span(lazy));
+      span.extend(expr.rget_from(store).get_span(store));
 
       Some(expr)
     } else {

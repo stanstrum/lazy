@@ -5,8 +5,7 @@ mod structure;
 
 use std::io::Read;
 
-use crate::lang;
-use crate::lang::{Reference, Store, Span, Token, TokenSpan};
+use lang::reference::{Reference, Store, Span, Token, TokenSpan};
 use crate::aster::Rereader;
 
 use super::Error;

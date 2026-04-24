@@ -38,6 +38,18 @@ impl<'pool> Store<FunctionReference> for Lazy<'pool> {
   }
 }
 
+impl<'pool> Store<TokensId> for Lazy<'pool> {
+  type Out = Vec<crate::lang::TokenSpan>;
+
+  fn rget(&self, TokensId(index): TokensId) -> &Self::Out {
+    self.tokens.get(index).unwrap()
+  }
+
+  fn rget_mut(&mut self, TokensId(index): TokensId) -> &mut Self::Out {
+    self.tokens.get_mut(index).unwrap()
+  }
+}
+
 impl FunctionReference {
   pub fn body(&self) -> BlockReference {
     BlockReference(*self, BlockId::body_id())

@@ -1,16 +1,17 @@
-use crate::aster::make::expr::make_literal;
+use lang::module::AddTypePart;
+use lazy_macros::line_dbg;
+
+use lang::Compiler;
 use ::lang::span::GetSpan;
 use ::lang::token::{GroupingKind, GroupingType, Keyword, NumericValue, Operator};
-use crate::lang::expr::{Expression, LiteralKind};
-use crate::lang::ModuleReference;
-use crate::line_dbg;
+use ::lang::expr::{Expression, LiteralKind};
 
 use super::*;
 
-pub(super) fn make_qualified<'pool, const N: usize, T: Read>(
-  stream: &mut Rereader<'pool, N, T>,
-  module: ModuleReference,
-) -> Result<Option<lang::ty::Qualified>, Error> {
+pub(super) fn make_qualified<'pool, C: Compiler, const N: usize, T: Read>(
+  stream: &mut Rereader<'pool, C, N, T>,
+  module: C::ModuleReference,
+) -> Result<Option<lang::ty::Qualified<C>>, Error<C>> {
   let ret_mark = stream.mark();
 
   let start = stream.here()?;
@@ -72,11 +73,11 @@ pub(super) fn make_qualified<'pool, const N: usize, T: Read>(
   }))
 }
 
-fn make_reference_to<'pool, const N: usize, T: Read>(
-  lazy: &mut crate::Lazy<'pool>,
-  stream: &mut Rereader<'pool, N, T>,
-  module: lang::ModuleReference,
-) -> Result<Option<lang::ty::Type>, Error> {
+fn make_reference_to<'pool, C: Compiler, const N: usize, T: Read>(
+  store: &mut C::Store<'pool>,
+  stream: &mut Rereader<'pool, C, N, T>,
+  module: C::ModuleReference,
+) -> Result<Option<lang::ty::Type<C>>, Error<C>> {
   let Some((Token::Operator(Operator::SingleAnd), mut span)) = stream.peek()? else {
     return Ok(None);
   };
@@ -91,22 +92,22 @@ fn make_reference_to<'pool, const N: usize, T: Read>(
 
   stream.skip_whitespace_and_comments()?;
 
-  let Some(ty) = make_type(lazy, stream, module)? else {
+  let Some(ty) = make_type(store, stream, module)? else {
     return Ok(None);
   };
 
-  let ty = module.add_type_part(ty, lazy);
+  let ty = module.add_type_part(ty, store);
 
-  span.extend(ty.get_span(lazy));
+  span.extend(ty.get_span(store));
 
   Ok(Some(lang::ty::Type::ReferenceTo { ty, r#mut, span, }))
 }
 
-fn make_array_of<'pool, const N: usize, T: Read>(
-  lazy: &mut crate::Lazy<'pool>,
-  stream: &mut Rereader<'pool, N, T>,
-  module: lang::ModuleReference,
-) -> Result<Option<lang::ty::Type>, Error> {
+fn make_array_of<'pool, C: Compiler, const N: usize, T: Read>(
+  store: &mut C::Store<'pool>,
+  stream: &mut Rereader<'pool, C, N, T>,
+  module: C::ModuleReference,
+) -> Result<Option<lang::ty::Type<C>>, Error<C>> {
   let Some((Token::Grouping(GroupingType::Open(GroupingKind::Bracket)), start)) = stream.peek()? else {
     return Ok(None);
   };
@@ -114,7 +115,7 @@ fn make_array_of<'pool, const N: usize, T: Read>(
 
   stream.skip_whitespace_and_comments()?;
 
-  let size = if let Some(expr) = make_literal(lazy, stream)? {
+  let size = if let Some(expr) = expr::make_literal(store, stream)? {
     let expr_start = stream.here()?;
     let Expression::Literal { value, span: lit_span, .. } = expr else {
       let end = stream.here()?;
@@ -146,14 +147,14 @@ fn make_array_of<'pool, const N: usize, T: Read>(
 
   stream.skip_whitespace_and_comments()?;
 
-  let Some(ty) = make_type(lazy, stream, module)? else {
+  let Some(ty) = make_type(store, stream, module)? else {
     return stream.expected_here(line_dbg!("a type"));
   };
 
-  let ty = module.add_type_part(ty, lazy);
+  let ty = module.add_type_part(ty, store);
 
   let mut span = start;
-  span.extend(ty.get_span(lazy));
+  span.extend(ty.get_span(store));
 
   Ok(Some(match size {
     Some(size) => lang::ty::Type::SizedArrayOf { ty, size, span },
@@ -161,11 +162,11 @@ fn make_array_of<'pool, const N: usize, T: Read>(
   }))
 }
 
-pub(super) fn make_type<'pool, const N: usize, T: Read>(
-  lazy: &mut crate::Lazy<'pool>,
-  stream: &mut Rereader<'pool, N, T>,
+pub(super) fn make_type<'pool, C: Compiler, const N: usize, T: Read>(
+  lazy: &mut C::Store<'pool>,
+  stream: &mut Rereader<'pool, C, N, T>,
   module: lang::ModuleReference,
-) -> Result<Option<lang::ty::Type>, Error> {
+) -> Result<Option<lang::ty::Type<C>>, Error<C>> {
   if let Some(qualified) = make_qualified(stream, module)? {
     return Ok(Some(lang::ty::Type::Unresolved { module, qualified }));
   };

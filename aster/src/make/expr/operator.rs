@@ -1,12 +1,13 @@
-use crate::print_once_per_thread;
-use ::lang::token::{GroupingKind, GroupingType, Keyword, Operator};
-use crate::lang::expr::operator::{BinaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
+use lazy_macros::print_once_per_thread;
+
+use lang::token::{GroupingKind, GroupingType, Keyword, Operator};
+use lang::expr::operator::{BinaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 
 use super::*;
 
-pub(super) fn make_unary_prefix<'pool, const N: usize, T: Read>(
+pub(super) fn make_unary_prefix<'pool, C: Compiler, const N: usize, T: Read>(
   stream: &mut Rereader<'pool, N, T>,
-) -> Result<Option<(UnaryPrefixOperator, Span)>, Error> {
+) -> Result<Option<(UnaryPrefixOperator, Span<C>)>, Error<C>> {
   let Some((Token::Operator(token), mut span)) = stream.peek()? else {
     return Ok(None);
   };

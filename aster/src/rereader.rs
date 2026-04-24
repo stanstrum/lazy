@@ -1,8 +1,10 @@
 use std::io::Read;
 use std::collections::VecDeque;
 
+use lang::Compiler;
+
 use crate::tokenize::Tokenizer;
-use crate::lang::{ModuleReference, Token, TokenSpan};
+use lang::token::{Token, TokenSpan};
 
 use super::Error;
 
@@ -10,15 +12,15 @@ use super::Error;
 pub struct Mark(usize);
 
 #[derive(Debug)]
-pub struct Rereader<'pool, const N: usize, T: Read> {
-  pub module: ModuleReference,
-  pub queue: VecDeque<TokenSpan>,
+pub struct Rereader<'pool, C: Compiler, const N: usize, T: Read> {
+  pub module: C::ModuleReference,
+  pub queue: VecDeque<TokenSpan<C>>,
   index: usize,
-  stream: Tokenizer<'pool, N, T>,
+  stream: Tokenizer<'pool, C, N, T>,
 }
 
-impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
-  pub fn new(stream: Tokenizer<'pool, N, T>, module: ModuleReference) -> Self {
+impl<'pool, C: Compiler, const N: usize, T: Read> Rereader<'pool, C, N, T> {
+  pub fn new(stream: Tokenizer<'pool, C, N, T>, module: C::ModuleReference) -> Self {
     Self {
       module,
       queue: VecDeque::new(),
@@ -27,7 +29,7 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
     }
   }
 
-  fn validate_index(&mut self) -> Result<Option<usize>, Error> {
+  fn validate_index(&mut self) -> Result<Option<usize>, Error<C>> {
     let index = self.index;
 
     while self.queue.len() <= index {
@@ -100,7 +102,7 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
     self.index = index;
   }
 
-  pub(super) fn peek(&mut self) -> Result<Option<TokenSpan>, Error> {
+  pub(super) fn peek(&mut self) -> Result<Option<TokenSpan<C>>, Error<C>> {
     let Some(index) = self.validate_index()? else {
       return Ok(None);
     };
@@ -114,7 +116,7 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
     // eprintln!("{}: {}", line_dbg!("seek"), self.index)
   }
 
-  pub(super) fn ok_next(&mut self) -> Result<Option<TokenSpan>, Error> {
+  pub(super) fn ok_next(&mut self) -> Result<Option<TokenSpan<C>>, Error<C>> {
     match self.next() {
       Some(Ok(token)) => Ok(Some(token)),
       Some(Err(err)) => Err(err),
@@ -122,13 +124,13 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
     }
   }
 
-  pub(super) fn examine_tokens(self) -> VecDeque<TokenSpan> {
+  pub(super) fn examine_tokens(self) -> VecDeque<TokenSpan<C>> {
     self.queue
   }
 }
 
-impl<'pool, const N: usize, T: Read> Iterator for Rereader<'pool, N, T> {
-  type Item = Result<TokenSpan, Error>;
+impl<'pool, C: Compiler, const N: usize, T: Read> Iterator for Rereader<'pool, C, N, T> {
+  type Item = Result<TokenSpan<C>, Error<C>>;
 
   fn next(&mut self) -> Option<Self::Item> {
     match self.validate_index() {

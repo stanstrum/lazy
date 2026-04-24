@@ -9,7 +9,7 @@ use lang::Compiler;
 use log::Level;
 use string_pool::StringPool;
 
-use lang::token::TokenSpan;
+use lang::token::{TokenSpan, Tokens};
 use lang::function::{Function, FunctionHeader};
 use lang::module::{Module, ModuleParent, ModulePath};
 use lang::reference::{Store};
@@ -44,7 +44,7 @@ pub struct Lazy<'pool> {
   pub(crate) std: Option<ModuleReference>,
   pub(crate) modules: Vec<Module<C>>,
   pub(crate) functions: Vec<Function<C>>,
-  pub(crate) tokens: Vec<Vec<TokenSpan<C>>>,
+  pub(crate) tokens: Vec<Tokens>,
 }
 
 impl<'pool> Lazy<'pool> {
@@ -199,35 +199,6 @@ impl<'pool> Lazy<'pool> {
 
     function_reference
   }
-
-  pub fn describe_module(&self, ModuleReference(id): ModuleReference) -> String {
-    let module = self.modules.get(id).unwrap();
-    let name = self.pool.get(module.name);
-
-    match &module.parent {
-      ModuleParent::Path(ModulePath { /* path, */ .. }) => {
-        // let mut path = path.as_path();
-
-        // if
-        //   let Some(parent) = self.settings.input_path.parent() &&
-        //   let Ok(stripped) = path.strip_prefix(parent)
-        // {
-        //   path = stripped;
-        // };
-
-        // format!(
-        //   "[{}:{}]",
-        //   name,
-        //   path.to_string_lossy(),
-        // )
-        name
-      },
-      ModuleParent::Module(parent) => {
-        let parent_desc = self.describe_module(*parent);
-        format!("{parent_desc}::{name}")
-      },
-    }
-  }
 }
 
 impl lang::Compiler for LazyStructures {
@@ -236,8 +207,17 @@ impl lang::Compiler for LazyStructures {
   type ModuleReference = ModuleReference;
   type FunctionReference = FunctionReference;
 
-  type Tokens = Vec<TokenSpan>;
   type TokensReference = TokensId;
 
   type OverwriteTypeReference = ::resolve::tasks::OverwriteTypeReference;
+}
+
+// SPONGE: move this to gluezy
+impl<C: Compiler> From<LazyError> for Error<C> {
+  fn from(value: LazyError) -> Self {
+    match value {
+      value @ LazyError::NotExist(_) => Self::Lazy(Box::new(value)),
+      LazyError::Aster(error) => error,
+    }
+  }
 }

@@ -1,86 +1,71 @@
+use crate::Compiler;
+use crate::expr::Expression;
+use crate::reference::{AliasReference, BlockReference, ExpressionReference, Store, StructReference, TypePartId, TypePartReference, TypeReference, VariableReference};
 
-use crate::Lazy;
-use crate::lang::{AliasReference, BlockReference, ExpressionReference, FunctionReference, ModuleReference, StructReference, TypePartReference, TypeReference, VariableReference};
-use crate::lang::module::{TokensId, TypePartId};
-use crate::lang::expr::Expression;
-use lang::reference::Store;
+impl<'pool, C: Compiler> Store<AliasReference<C>> for C::Store<'pool> {
+  type Out = crate::module::TypeAlias<C>;
 
-impl<'pool> Store<AliasReference> for Lazy<'pool> {
-  type Out = crate::lang::module::TypeAlias;
-
-  fn rget(&self, AliasReference(module, index): AliasReference) -> &Self::Out {
+  fn rget(&self, AliasReference(module, index): AliasReference<C>) -> &Self::Out {
     self.rget(module).aliases.get(index).unwrap()
   }
 
-  fn rget_mut(&mut self, AliasReference(module, index): AliasReference) -> &mut Self::Out {
+  fn rget_mut(&mut self, AliasReference(module, index): AliasReference<C>) -> &mut Self::Out {
     self.rget_mut(module).aliases.get_mut(index).unwrap()
   }
 }
 
-impl<'pool> Store<StructReference> for Lazy<'pool> {
-  type Out = crate::lang::module::struc::Struct;
+impl<'pool, C: Compiler> Store<StructReference<C>> for C::Store<'pool> {
+  type Out = crate::module::Struct<C>;
 
-  fn rget(&self, StructReference(module, index): StructReference) -> &Self::Out {
+  fn rget(&self, StructReference(module, index): StructReference<C>) -> &Self::Out {
     self.rget(module).structs.get(index).unwrap()
   }
 
-  fn rget_mut(&mut self, StructReference(module, index): StructReference) -> &mut Self::Out {
+  fn rget_mut(&mut self, StructReference(module, index): StructReference<C>) -> &mut Self::Out {
     self.rget_mut(module).structs.get_mut(index).unwrap()
   }
 }
 
-impl<'pool> Store<BlockReference> for Lazy<'pool> {
-  type Out = crate::lang::expr::BlockExpression;
+impl<'pool, C: Compiler> Store<BlockReference<C>> for C::Store<'pool> {
+  type Out = crate::expr::BlockExpression<C>;
 
-  fn rget(&self, BlockReference(function, id): BlockReference) -> &Self::Out {
+  fn rget(&self, BlockReference(function, id): BlockReference<C>) -> &Self::Out {
     &self.rget(function)[id]
   }
 
-  fn rget_mut(&mut self, BlockReference(function, id): BlockReference) -> &mut Self::Out {
+  fn rget_mut(&mut self, BlockReference(function, id): BlockReference<C>) -> &mut Self::Out {
     &mut self.rget_mut(function)[id]
   }
 }
 
-impl<'pool> Store<ExpressionReference> for Lazy<'pool> {
-  type Out = crate::lang::expr::Expression;
+impl<'pool, C: Compiler> Store<ExpressionReference<C>> for C::Store<'pool> {
+  type Out = crate::expr::Expression<C>;
 
-  fn rget(&self, ExpressionReference(BlockReference(function, _), id): ExpressionReference) -> &Self::Out {
+  fn rget(&self, ExpressionReference(BlockReference(function, _), id): ExpressionReference<C>) -> &Self::Out {
     &self.rget(function)[id]
   }
 
-  fn rget_mut(&mut self, ExpressionReference(BlockReference(function, _), id): ExpressionReference) -> &mut Self::Out {
+  fn rget_mut(&mut self, ExpressionReference(BlockReference(function, _), id): ExpressionReference<C>) -> &mut Self::Out {
     &mut self.rget_mut(function)[id]
   }
 }
 
-impl<'pool> Store<TokensId> for Lazy<'pool> {
-  type Out = Vec<crate::lang::TokenSpan>;
+impl<'pool, C: Compiler> Store<TypePartReference<C>> for C::Store<'pool> {
+  type Out = crate::ty::Type<C>;
 
-  fn rget(&self, TokensId(index): TokensId) -> &Self::Out {
-    self.tokens.get(index).unwrap()
-  }
-
-  fn rget_mut(&mut self, TokensId(index): TokensId) -> &mut Self::Out {
-    self.tokens.get_mut(index).unwrap()
-  }
-}
-
-impl<'pool> Store<TypePartReference> for Lazy<'pool> {
-  type Out = crate::lang::ty::Type;
-
-  fn rget(&self, TypePartReference(module, TypePartId(index)): TypePartReference) -> &Self::Out {
+  fn rget(&self, TypePartReference(module, TypePartId(index)): TypePartReference<C>) -> &Self::Out {
     self.rget(module).type_parts.get(index).unwrap()
   }
 
-  fn rget_mut(&mut self, TypePartReference(module, TypePartId(index)): TypePartReference) -> &mut Self::Out {
+  fn rget_mut(&mut self, TypePartReference(module, TypePartId(index)): TypePartReference<C>) -> &mut Self::Out {
     self.rget_mut(module).type_parts.get_mut(index).unwrap()
   }
 }
 
-impl<'pool> Store<crate::lang::TypeReference> for Lazy<'pool> {
-  type Out = crate::lang::ty::Type;
+impl<'pool, C: Compiler> Store<TypeReference<C>> for C::Store<'pool> {
+  type Out = crate::ty::Type<C>;
 
-  fn rget(&self, reference: TypeReference) -> &Self::Out {
+  fn rget(&self, reference: TypeReference<C>) -> &Self::Out {
     match reference {
       TypeReference::Part(part) => self.rget(part),
       TypeReference::ReturnTypeOf(function) => {
@@ -114,7 +99,7 @@ impl<'pool> Store<crate::lang::TypeReference> for Lazy<'pool> {
     }
   }
 
-  fn rget_mut(&mut self, reference: TypeReference) -> &mut Self::Out {
+  fn rget_mut(&mut self, reference: TypeReference<C>) -> &mut Self::Out {
     match reference {
       TypeReference::Part(part) => self.rget_mut(part),
       TypeReference::ReturnTypeOf(function) => {
@@ -164,10 +149,10 @@ impl<'pool> Store<crate::lang::TypeReference> for Lazy<'pool> {
   }
 }
 
-impl<'pool> Store<VariableReference> for Lazy<'pool> {
-  type Out = crate::lang::expr::Variable;
+impl<'pool, C: Compiler> Store<VariableReference<C>> for C::Store<'pool> {
+  type Out = crate::expr::Variable<C>;
 
-  fn rget(&self, key: VariableReference) -> &Self::Out {
+  fn rget(&self, key: VariableReference<C>) -> &Self::Out {
     match key {
       VariableReference::Block(block, index) => {
         self.rget(block).variables.get(index).unwrap()
@@ -178,7 +163,7 @@ impl<'pool> Store<VariableReference> for Lazy<'pool> {
     }
   }
 
-  fn rget_mut(&mut self, key: VariableReference) -> &mut Self::Out {
+  fn rget_mut(&mut self, key: VariableReference<C>) -> &mut Self::Out {
     match key {
       VariableReference::Block(block, index) => {
         self.rget_mut(block).variables.get_mut(index).unwrap()

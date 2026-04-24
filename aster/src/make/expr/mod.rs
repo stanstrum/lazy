@@ -6,24 +6,25 @@ mod initializer;
 
 use std::io::Read;
 
-use crate::lang::Span;
+use lang::{Compiler, CompilerPoolStore};
+use lang::span::Span;
 
-use crate::aster::make::ty;
-use crate::aster::Rereader;
-use crate::{lang, line_dbg};
-use crate::lang::expr::LiteralKind;
-use crate::lang::Reference;
+use crate::make::ty;
+use crate::Rereader;
+use lazy_macros::line_dbg;
+use lang::expr::LiteralKind;
+use lang::reference::{BlockReference, ExpressionReference, Reference};
 use ::lang::token::Token;
 
 use super::Error;
 
-fn new_weak_string(
-  lazy: &crate::Lazy,
+fn new_weak_string<C: Compiler>(
+  store: &C::Store<'_>,
   kind: ::lang::token::StringKind,
   value: string_pool::StringId,
-  span: Span,
-) -> lang::ty::Type {
-  let length = unsafe { lazy.pool.get_string(value).len() };
+  span: Span<C>,
+) -> lang::ty::Type<C> {
+  let length = unsafe { store.pool().get_string(value).len() };
 
   let characters = match kind {
     ::lang::token::StringKind::C => length + 1,
@@ -38,10 +39,10 @@ fn new_weak_string(
   }
 }
 
-pub(super) fn make_literal<'pool, const N: usize, T: Read>(
-  lazy: &mut crate::Lazy<'pool>,
+pub(super) fn make_literal<'pool, C: Compiler, const N: usize, T: Read>(
+  store: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-) -> Result<Option<lang::expr::Expression>, Error> {
+) -> Result<Option<lang::expr::Expression<C>>, Error<C>> {
   if let Some((Token::Numeric(value), span)) = stream.peek()? {
     stream.seek();
 
@@ -58,7 +59,7 @@ pub(super) fn make_literal<'pool, const N: usize, T: Read>(
   if let Some((Token::String(kind, value), span)) = stream.peek()? {
     stream.seek();
 
-    let out = new_weak_string(lazy, kind, value, span);
+    let out = new_weak_string(store, kind, value, span);
     let value = LiteralKind::String { kind, value };
 
     return Ok(Some(lang::expr::Expression::Literal { value, span, out }));
@@ -67,24 +68,24 @@ pub(super) fn make_literal<'pool, const N: usize, T: Read>(
   Ok(None)
 }
 
-fn make_expr_part<'pool, const N: usize, T: Read>(
-  lazy: &mut crate::Lazy<'pool>,
+fn make_expr_part<'pool, C: Compiler, const N: usize, T: Read>(
+  store: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  module: lang::ModuleReference,
-  block: lang::BlockReference,
-) -> Result<Option<lang::ExpressionReference>, Error> {
+  module: C::ModuleReference,
+  block: BlockReference<C>,
+) -> Result<Option<ExpressionReference<C>>, Error<C>> {
   let function = block.0;
 
   let expr = 'expr: {
-    if let Some(initializer) = initializer::make_struct_initializer(lazy, stream, module, block)? {
+    if let Some(initializer) = initializer::make_struct_initializer(store, stream, module, block)? {
       break 'expr initializer;
     };
 
-    if let Some(block) = block::make_block(lazy, stream, module, function, Some(block))? {
+    if let Some(block) = block::make_block(store, stream, module, function, Some(block))? {
       break 'expr lang::expr::Expression::Block(block);
     };
 
-    if let Some(literal) = make_literal(lazy, stream)? {
+    if let Some(literal) = make_literal(store, stream)? {
       break 'expr literal;
     };
 
@@ -95,27 +96,27 @@ fn make_expr_part<'pool, const N: usize, T: Read>(
     return Ok(None);
   };
 
-  let id = function.rget_from_mut(lazy).add_expr(expr);
-  let reference = lang::ExpressionReference(block, id);
+  let id = function.rget_from_mut(store).add_expr(expr);
+  let reference = ExpressionReference(block, id);
 
   Ok(Some(reference))
 }
 
 #[derive(Debug)]
-enum ExpressionPart {
-  UnaryPrefix((crate::lang::expr::operator::UnaryPrefixOperator, Span)),
-  UnarySuffix((crate::lang::expr::operator::UnarySuffixOperator, Span)),
-  Binary((lang::expr::operator::BinaryOperator, Span)),
-  Expression(lang::ExpressionReference),
+enum ExpressionPart<C: Compiler> {
+  UnaryPrefix((lang::expr::operator::UnaryPrefixOperator, Span<C>)),
+  UnarySuffix((lang::expr::operator::UnarySuffixOperator<C>, Span<C>)),
+  Binary((lang::expr::operator::BinaryOperator, Span<C>)),
+  Expression(ExpressionReference<C>),
 }
 
-pub(super) fn make_expr<'pool, const N: usize, T: Read>(
-  lazy: &mut crate::Lazy<'pool>,
+pub(super) fn make_expr<'pool, C: Compiler, const N: usize, T: Read>(
+  store: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  module: lang::ModuleReference,
-  block: lang::BlockReference,
-) -> Result<Option<lang::ExpressionReference>, Error> {
-  let mut parts: Vec<ExpressionPart> = vec![];
+  module: C::ModuleReference,
+  block: BlockReference<C>,
+) -> Result<Option<ExpressionReference<C>>, Error<C>> {
+  let mut parts: Vec<ExpressionPart<C>> = vec![];
   let mut expect = false;
 
   let function = block.0;
@@ -129,7 +130,7 @@ pub(super) fn make_expr<'pool, const N: usize, T: Read>(
       stream.skip_whitespace_and_comments()?;
     };
 
-    let Some(expr) = make_expr_part(lazy, stream, module, block)? else {
+    let Some(expr) = make_expr_part(store, stream, module, block)? else {
       if expect {
         return stream.expected_here(line_dbg!("an expression part"));
       } else {
@@ -143,13 +144,13 @@ pub(super) fn make_expr<'pool, const N: usize, T: Read>(
     let mut suffix_mark = stream.mark();
     stream.skip_whitespace_and_comments()?;
 
-    while let Some(suffix) = operator::make_unary_suffix(lazy, stream, module, block)? {
+    while let Some(suffix) = operator::make_unary_suffix(store, stream, module, block)? {
       parts.push(ExpressionPart::UnarySuffix(suffix));
       suffix_mark = stream.mark();
       stream.skip_whitespace_and_comments()?;
     };
 
-    let Some(binary) = operator::make_binary_op(lazy, stream, module, function)? else {
+    let Some(binary) = operator::make_binary_op(store, stream, module, function)? else {
       stream.take_mark(suffix_mark);
       break;
     };
@@ -162,7 +163,7 @@ pub(super) fn make_expr<'pool, const N: usize, T: Read>(
   // stream.take_mark(ret_mark);
   // return Ok(None);
 
-  let reference = pemdas::melt(lazy, parts)?;
+  let reference = pemdas::melt(store, parts)?;
 
   Ok(Some(reference))
 }

@@ -1,15 +1,16 @@
+use lang::Compiler;
 use ::lang::span::GetSpan;
-use crate::aster::make::make_name;
 use ::lang::token::{GroupingKind, GroupingType, Operator};
+use crate::make::make_name;
 
 use super::*;
 
-pub(super) fn make_struct_initializer<'pool, const N: usize, T: Read>(
-  lazy: &mut crate::Lazy<'pool>,
+pub(super) fn make_struct_initializer<'pool, C: Compiler, const N: usize, T: Read>(
+  store: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   module: lang::ModuleReference,
   block: lang::BlockReference,
-) -> Result<Option<lang::expr::Expression>, Error> {
+) -> Result<Option<lang::expr::Expression>, Error<C>> {
   let ret_mark = stream.mark();
 
   // Take care of the indentation; I have picked a very sketchy way of managing
@@ -33,10 +34,10 @@ pub(super) fn make_struct_initializer<'pool, const N: usize, T: Read>(
   //
   //   obj.baz
 
-  let Some(ty) = ty::make_type(lazy, stream, module)? else {
+  let Some(ty) = ty::make_type(store, stream, module)? else {
     return Ok(None);
   };
-  let start = ty.get_span(lazy);
+  let start = ty.get_span(store);
 
   stream.skip_whitespace_and_comments()?;
 
@@ -110,7 +111,7 @@ pub(super) fn make_struct_initializer<'pool, const N: usize, T: Read>(
     };
     stream.seek();
 
-    let Some(value) = make_expr(lazy, stream, module, block)? else {
+    let Some(value) = make_expr(store, stream, module, block)? else {
       return stream.expected_here(line_dbg!("an expression"));
     };
 

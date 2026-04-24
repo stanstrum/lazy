@@ -251,24 +251,10 @@ impl lang::Compiler for LazyStructures {
   type Store<'a> = Lazy<'a>;
 
   type ModuleReference = ModuleReference;
+  type FunctionReference = FunctionReference;
 
   type Tokens = Vec<TokenSpan>;
   type TokensReference = TokensId;
 
-  type Struct = ::lang::module::struc::Struct;
-  type StructReference = ::lang::StructReference;
-
-  type TypeAlias = ::lang::module::TypeAlias;
-  type TypeAliasReference = ::lang::AliasReference;
-
-  type Function = ::lang::function::Function;
-  type FunctionReference = ::lang::FunctionReference;
-
   type OverwriteTypeReference = ::resolve::tasks::OverwriteTypeReference;
-
-  type VariableReference = ::lang::VariableReference;
-
-  type BlockReference = ::lang::BlockReference;
-  type ExpressionReference = ::lang::ExpressionReference;
 }
-

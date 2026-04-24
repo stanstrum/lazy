@@ -19,32 +19,16 @@ impl<T: Debug + Clone + Copy + PartialEq + Eq> CompilerReference for T {}
 pub trait Compiler: Debug + Sized
   where for<'a> Self::Store<'a>:
     reference::Store<Self::ModuleReference, Out = module::Module<Self>> +
+    reference::Store<Self::FunctionReference, Out = function::Function<Self>> +
     reference::Store<Self::TokensReference, Out = Self::Tokens> +
-    //
-    reference::Store<Self::StructReference, Out = Self::Struct> +
-    //
-    reference::Store<Self::ExpressionReference, Out = expr::Expression<Self>> +
-    reference::Store<Self::BlockReference, Out = expr::BlockExpression<Self>> +
 {
   type Store<'a>;
 
   type ModuleReference: CompilerReference + Hash;
+  type FunctionReference: CompilerReference + Hash;
 
   type Tokens: Debug;
   type TokensReference: CompilerReference;
 
-  type Struct: Debug;
-  type StructReference: CompilerReference;
-
-  type Function: Debug;
-  type FunctionReference: CompilerReference;
-
-  type TypeAlias: Debug;
-  type TypeAliasReference: CompilerReference;
-
   type OverwriteTypeReference: Debug + Clone;
-
-  type VariableReference: CompilerReference;
-  type BlockReference: CompilerReference;
-  type ExpressionReference: CompilerReference;
 }

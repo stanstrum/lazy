@@ -5,7 +5,7 @@ use string_pool::PoolId;
 
 use crate::Compiler;
 use crate::expr::Variable;
-use crate::reference::{Reference, Store, TypePartId, TypePartReference};
+use crate::reference::{Store, TypePartId, TypePartReference};
 use crate::ty::{Qualified, QualifiedSearchSpace, Type};
 use crate::span::Span;
 
@@ -41,8 +41,8 @@ pub struct Module<C: Compiler> {
   pub modules: Vec<C::ModuleReference>,
   pub functions: Vec<C::FunctionReference>,
   pub parent: ModuleParent<C>,
-  pub aliases: Vec<C::TypeAlias>,
-  pub structs: Vec<C::Struct>,
+  pub aliases: Vec<TypeAlias<C>>,
+  pub structs: Vec<Struct<C>>,
   pub type_parts: Vec<Type<C>>,
 }
 

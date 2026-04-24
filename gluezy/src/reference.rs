@@ -24,11 +24,7 @@ pub struct ExpressionReference(pub BlockReference, pub ExprId);
 pub type TypePartReference = ::lang::reference::TypePartReference<crate::lazy::LazyStructures>;
 pub type TypeReference = ::lang::reference::TypeReference<crate::lazy::LazyStructures>;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum VariableReference {
-  Block(BlockReference, usize),
-  Argument(FunctionReference, usize),
-}
+pub type VariableReference = ::lang::reference::VariableReference<crate::lazy::LazyStructures>;
 
 impl FunctionReference {
   pub fn body(&self) -> BlockReference {

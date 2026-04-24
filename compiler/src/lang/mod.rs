@@ -4,4 +4,4 @@ mod prelude;
 
 pub use prelude::*;
 
-pub use lang::reference::{Store, Reference};
+pub use ::lang::reference::{Store, Reference};

@@ -1,4 +1,4 @@
-use crate::Compiler;
+use crate::{Compiler, reference::ExpressionReference};
 
 #[derive(Debug, Clone, Copy)]
 pub enum BinaryOperator {
@@ -65,7 +65,7 @@ pub enum UnaryPrefixOperator {
 #[derive(Debug, Clone)]
 pub enum UnarySuffixOperator<C: Compiler> {
   Try,
-  Call(Vec<C::ExpressionReference>),
+  Call(Vec<ExpressionReference<C>>),
   PostDecrement,
   PostIncrement,
 }

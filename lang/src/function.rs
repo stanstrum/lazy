@@ -1,6 +1,6 @@
 use std::ops::{Index, IndexMut};
 
-use crate::{Compiler, expr::{BlockExpression, Expression, Variable}, module::Name, span::Span, ty::Type};
+use crate::{Compiler, expr::{BlockExpression, Expression, Variable}, module::Name, reference::BlockReference, span::Span, ty::Type};
 
 #[derive(Debug)]
 pub struct FunctionHeader<C: Compiler> {
@@ -14,7 +14,7 @@ pub struct FunctionHeader<C: Compiler> {
 pub struct Function<C: Compiler> {
   pub parent: C::ModuleReference,
   pub header: FunctionHeader<C>,
-  pub body: C::BlockReference,
+  pub body: BlockReference<C>,
   pub blocks: Vec<BlockExpression<C>>,
   pub exprs: Vec<Expression<C>>,
   pub span: Span<C>,
@@ -35,7 +35,7 @@ impl BlockId {
 }
 
 impl<C: Compiler> Function<C> {
-  pub fn new(body: C::BlockReference, parent: C::ModuleReference, header: FunctionHeader<C>) -> Self {
+  pub fn new(body: BlockReference<C>, parent: C::ModuleReference, header: FunctionHeader<C>) -> Self {
     let temp_span = header.span;
     let blocks = vec![BlockExpression::new_dirty(None, temp_span)];
 

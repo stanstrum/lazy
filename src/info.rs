@@ -1,4 +1,6 @@
-pub(super) fn version() {
+use std::process::ExitCode;
+
+pub(super) fn version() -> ExitCode {
   const LICENSE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/LICENSE"));
   let copyright = LICENSE.split('\n').next().unwrap();
 
@@ -6,9 +8,12 @@ pub(super) fn version() {
   eprintln!();
   eprintln!("{copyright}");
   eprintln!("Available under BSD 3-Clause \"New\" or \"Revised\" license.");
+
+  // TODO: should this be a fail like `help` or maybe not?
+  ExitCode::FAILURE
 }
 
-pub(super) fn help(executable: &str) {
+pub(super) fn help(executable: &str) -> ExitCode {
   eprintln!("\x1b[92mUsage: \x1b[94m{executable} [VERB] INPUT [OPTIONS]...\x1b[0m");
   eprintln!();
   eprintln!("\x1b[92mVerbs:\x1b[0m");
@@ -22,4 +27,6 @@ pub(super) fn help(executable: &str) {
   eprintln!("  \x1b[94m--log-level=<LEVEL>\x1b[0m     sets the log level, options are one of:");
   eprintln!("  \x1b[94m--log, -l=<LEVEL>\x1b[0m       debug, error, warn, info");
   eprintln!();
+
+  ExitCode::FAILURE
 }

@@ -1,5 +1,4 @@
 mod lang;
-mod tokenize;
 mod aster;
 mod resolve;
 mod generate;
@@ -21,6 +20,11 @@ use crate::settings::Settings;
 use crate::lang::{ModuleReference, TokenSpan};
 use crate::lang::module::Module;
 use crate::lang::function::Function;
+
+pub mod tokenize {
+  pub type Error = ::tokenizer::Error<crate::lazy::LazyStructures>;
+  pub type Tokenizer<'pool, const N: usize, T> = ::tokenizer::Tokenizer<'pool, crate::lazy::LazyStructures, N, T>;
+}
 
 #[derive(Debug)]
 pub struct Lazy<'pool> {

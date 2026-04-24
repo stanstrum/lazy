@@ -66,7 +66,7 @@ pub trait Compiler: Debug
   type StructReference: CompilerReference;
 
   type Type: Debug;
-  type OverwriteTypeReference;
+  type OverwriteTypeReference: Debug + Clone;
 
   // type Variable;
   // type VariableReference;

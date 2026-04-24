@@ -1,23 +1,10 @@
 use crate::tokenize::token::{Span, StringKind};
 use ::lang::intrinsic::Intrinsic;
 use ::lang::span::GetSpan;
-use crate::lang::module::Name;
 use crate::lang::reference::{ModuleReference, Reference, StructReference, TypePartReference, TypeReference};
 
 pub type QualifiedSearchSpace = ::lang::ty::QualifiedSearchSpace<crate::lazy::LazyStructures>;
-
-#[derive(Debug, Clone)]
-pub struct Qualified {
-  pub implicit: QualifiedSearchSpace,
-  pub parts: Vec<Name>,
-  pub span: Span,
-}
-
-impl Qualified {
-  pub fn is_implicit(&self) -> bool {
-    matches!(&self.implicit, QualifiedSearchSpace::Implicit)
-  }
-}
+pub type Qualified = ::lang::ty::Qualified<crate::lazy::LazyStructures>;
 
 #[derive(Debug, Clone)]
 pub enum Type {

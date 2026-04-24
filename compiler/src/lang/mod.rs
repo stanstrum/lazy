@@ -1,8 +1,9 @@
 pub mod reference;
 pub mod module;
 pub mod function;
-pub mod ty;
 pub mod expr;
+
+mod get_span;
 
 use std::path::PathBuf;
 
@@ -12,17 +13,9 @@ pub enum LazyError {
   Aster(crate::aster::Error),
 }
 
-impl ::lang::span::GetSpan<crate::lazy::LazyStructures> for crate::lang::expr::Expression {
-  fn get_span(&self, lazy: &crate::Lazy) -> crate::tokenize::token::Span {
-    match self {
-      Self::Block(id) => id.get_span(lazy),
-      | Self::Literal { span, .. }
-      | Self::Variable { span, .. }
-      | Self::Binary { span, .. }
-      | Self::Unary { span, .. }
-      | Self::StructInitializer { span, .. }
-        => *span,
-      Self::Unknown { qualified, .. } => qualified.span,
-    }
-  }
+pub mod ty {
+  pub type QualifiedSearchSpace = ::lang::ty::QualifiedSearchSpace<crate::lazy::LazyStructures>;
+  pub type Qualified = ::lang::ty::Qualified<crate::lazy::LazyStructures>;
+
+  pub type Type = ::lang::ty::Type<crate::lazy::LazyStructures>;
 }

@@ -44,16 +44,30 @@ impl From<StringKind> for intrinsic::Intrinsic {
   }
 }
 
+pub trait CompilerReference: Debug + Clone + Copy + PartialEq + Eq {}
+impl<T: Debug + Clone + Copy + PartialEq + Eq> CompilerReference for T {}
+
 pub trait Compiler: Debug
   where for<'a> Self::Store<'a>:
     reference::Store<Self::ModuleReference, Out = Self::Module> +
     reference::Store<Self::TokensReference, Out = Self::Tokens> +
+    reference::Store<Self::StructReference, Out = Self::Struct> +
+    reference::Store<Self::OverwriteTypeReference, Out = Self::Type> +
 {
   type Store<'a>;
+
   type Module: Debug;
-  type ModuleReference: Debug + Clone + Copy + PartialEq + Eq;
+  type ModuleReference: CompilerReference;
+
   type Tokens: Debug;
-  type TokensReference: Debug + Clone + Copy + PartialEq + Eq;
+  type TokensReference: CompilerReference;
+
+  type Struct: Debug;
+  type StructReference: CompilerReference;
+
+  type Type: Debug;
+  type OverwriteTypeReference;
+
   // type Variable;
   // type VariableReference;
 }

@@ -3,19 +3,8 @@ use ::lang::intrinsic::Intrinsic;
 use ::lang::span::GetSpan;
 use crate::lang::module::Name;
 use crate::lang::reference::{ModuleReference, Reference, StructReference, TypePartReference, TypeReference};
-use crate::resolve::tasks::OverwriteTypeReference;
 
-#[derive(Debug, Clone)]
-pub enum QualifiedSearchSpace {
-  Implicit,
-  Struct(StructReference),
-  Type(OverwriteTypeReference),
-  Intrinsic {
-    kind: Intrinsic,
-    span: Span,
-  },
-  Module(ModuleReference),
-}
+pub type QualifiedSearchSpace = ::lang::ty::QualifiedSearchSpace<crate::lazy::LazyStructures>;
 
 #[derive(Debug, Clone)]
 pub struct Qualified {

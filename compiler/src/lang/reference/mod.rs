@@ -11,14 +11,13 @@ pub use ::lang::reference::{Store, Reference};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FunctionReference(pub usize);
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AliasReference(pub ModuleReference, pub usize);
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StructReference(pub ModuleReference, pub usize);
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-#[derive(Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ModuleReference(pub usize);
 
 #[derive(Debug, Clone, Copy, PartialEq)]

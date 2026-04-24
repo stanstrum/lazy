@@ -199,4 +199,8 @@ impl lang::Compiler for LazyStructures {
   type ModuleReference = ModuleReference;
   type Tokens = Vec<crate::tokenize::token::TokenSpan>;
   type TokensReference = TokensId;
+  type Struct = crate::lang::module::struc::Struct;
+  type StructReference = crate::lang::reference::StructReference;
+  type Type = crate::lang::ty::Type;
+  type OverwriteTypeReference = crate::resolve::tasks::OverwriteTypeReference;
 }

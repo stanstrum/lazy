@@ -3,8 +3,8 @@ use super::*;
 pub(super) fn make_mod<'pool, const N: usize, T: Read>(
   lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  parent: lang::reference::ModuleReference,
-) -> Result<Option<lang::reference::ModuleReference>, Error> {
+  parent: lang::ModuleReference,
+) -> Result<Option<lang::ModuleReference>, Error> {
   let Some((Token::Keyword(Keyword::Mod), _)) = stream.peek()? else {
     return Ok(None);
   };

@@ -4,13 +4,13 @@ use crate::aster::make::{make_name, ty};
 
 use super::*;
 
-type Value = (lang::expr::Variable, Option<lang::reference::ExpressionReference>);
+type Value = (lang::expr::Variable, Option<lang::ExpressionReference>);
 
 pub fn make_assignment<'pool, const N: usize, T: Read>(
   lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  module: lang::reference::ModuleReference,
-  block: lang::reference::BlockReference,
+  module: lang::ModuleReference,
+  block: lang::BlockReference,
 ) -> Result<Option<Value>, Error> {
   let ret_mark = stream.mark();
 

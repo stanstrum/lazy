@@ -1,6 +1,6 @@
 use crate::aster::make::expr::make_literal;
 use crate::lang::expr::{Expression, LiteralKind};
-use crate::lang::reference::ModuleReference;
+use crate::lang::ModuleReference;
 use ::lang::span::GetSpan;
 use crate::line_dbg;
 use crate::tokenize::token::{GroupingKind, GroupingType, Keyword, NumericValue, Operator};
@@ -75,7 +75,7 @@ pub(super) fn make_qualified<'pool, const N: usize, T: Read>(
 fn make_reference_to<'pool, const N: usize, T: Read>(
   lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  module: lang::reference::ModuleReference,
+  module: lang::ModuleReference,
 ) -> Result<Option<lang::ty::Type>, Error> {
   let Some((Token::Operator(Operator::SingleAnd), mut span)) = stream.peek()? else {
     return Ok(None);
@@ -105,7 +105,7 @@ fn make_reference_to<'pool, const N: usize, T: Read>(
 fn make_array_of<'pool, const N: usize, T: Read>(
   lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  module: lang::reference::ModuleReference,
+  module: lang::ModuleReference,
 ) -> Result<Option<lang::ty::Type>, Error> {
   let Some((Token::Grouping(GroupingType::Open(GroupingKind::Bracket)), start)) = stream.peek()? else {
     return Ok(None);
@@ -164,7 +164,7 @@ fn make_array_of<'pool, const N: usize, T: Read>(
 pub(super) fn make_type<'pool, const N: usize, T: Read>(
   lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  module: lang::reference::ModuleReference,
+  module: lang::ModuleReference,
 ) -> Result<Option<lang::ty::Type>, Error> {
   if let Some(qualified) = make_qualified(stream, module)? {
     return Ok(Some(lang::ty::Type::Unresolved { module, qualified }));

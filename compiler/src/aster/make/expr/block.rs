@@ -3,7 +3,7 @@ use crate::{Lazy, print_message};
 use std::cmp::Ordering;
 
 use crate::aster::make::Indenter;
-use crate::lang::reference::{BlockReference, ExpressionReference, Store};
+use crate::lang::{BlockReference, ExpressionReference, Store};
 use ::lang::span::GetSpan;
 use ::lang::token::{GroupingKind, GroupingType, Operator};
 use ::lang::span::Span;
@@ -30,9 +30,9 @@ pub fn make_block_statement<'pool, const N: usize, T: Read>(
   lazy: &mut Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   _indenter: &Indenter,
-  module: lang::reference::ModuleReference,
-  function: lang::reference::FunctionReference,
-  block: lang::reference::BlockReference,
+  module: lang::ModuleReference,
+  function: lang::FunctionReference,
+  block: lang::BlockReference,
 ) -> Result<Option<BlockStatement>, Error> {
   if let Some((Token::Indent(indent), _)) = stream.peek()? {
     match indent.cmp(&0) {
@@ -95,10 +95,10 @@ pub fn make_block_statement<'pool, const N: usize, T: Read>(
     expr.map(|b| {
       let span = b.rget_from(lazy).get_span(lazy);
 
-      let variable_reference = lang::reference::VariableReference::Block(block, var_id);
+      let variable_reference = lang::VariableReference::Block(block, var_id);
 
       let a = function.rget_from_mut(lazy).add_expr(lang::expr::Expression::Variable { reference: variable_reference, span: variable_span });
-      let a = lang::reference::ExpressionReference(block, a);
+      let a = lang::ExpressionReference(block, a);
 
       let assignment = lang::expr::Expression::Binary {
         a,
@@ -109,7 +109,7 @@ pub fn make_block_statement<'pool, const N: usize, T: Read>(
       };
 
       let id = function.rget_from_mut(lazy).add_expr(assignment);
-      lang::reference::ExpressionReference(block, id)
+      lang::ExpressionReference(block, id)
     })
   } else if let Some(expr) = make_expr(lazy, stream, module, block)? {
     Some(expr)
@@ -166,10 +166,10 @@ pub fn make_block_statement<'pool, const N: usize, T: Read>(
 pub(super) fn make_block<'pool, const N: usize, T: Read>(
   lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  module: lang::reference::ModuleReference,
-  function: lang::reference::FunctionReference,
+  module: lang::ModuleReference,
+  function: lang::FunctionReference,
   parent: Option<BlockReference>,
-) -> Result<Option<lang::reference::BlockReference>, Error> {
+) -> Result<Option<lang::BlockReference>, Error> {
   let indenter = stream.indenter_here()?;
 
   let Some((Token::Grouping(GroupingType::Open(GroupingKind::Brace)), start)) = stream.peek()? else {
@@ -187,7 +187,7 @@ pub(super) fn make_block<'pool, const N: usize, T: Read>(
     let empty_block = lang::expr::BlockExpression::new_dirty(parent, span);
     let id = lazy.rget_mut(function).add_block(empty_block);
 
-    return Ok(Some(lang::reference::BlockReference(function, id)));
+    return Ok(Some(lang::BlockReference(function, id)));
   };
 
   let Some((Token::Indent(0..), _)) = indenter.peek(stream)? else {
@@ -197,7 +197,7 @@ pub(super) fn make_block<'pool, const N: usize, T: Read>(
 
   let block = lang::expr::BlockExpression::new_dirty(parent, start);
   let block = lazy.rget_mut(function).add_block(block);
-  let block = lang::reference::BlockReference(function, block);
+  let block = lang::BlockReference(function, block);
 
   let mut non_return_last = None;
   loop {
@@ -235,7 +235,7 @@ pub(super) fn make_block<'pool, const N: usize, T: Read>(
     let reference = ExpressionReference(block, index);
 
     lang::ty::Type::Reference(
-      lang::reference::TypeReference::Expression(reference)
+      lang::TypeReference::Expression(reference)
     )
   } else {
     lang::ty::Type::Intrinsic {

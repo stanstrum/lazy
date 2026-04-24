@@ -7,8 +7,8 @@ use super::*;
 pub(super) fn make_struct_initializer<'pool, const N: usize, T: Read>(
   lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  module: lang::reference::ModuleReference,
-  block: lang::reference::BlockReference,
+  module: lang::ModuleReference,
+  block: lang::BlockReference,
 ) -> Result<Option<lang::expr::Expression>, Error> {
   let ret_mark = stream.mark();
 

@@ -5,19 +5,19 @@ use crate::generate::types::make_type;
 use super::*;
 
 struct FunctionScope<'ctx> {
-  block: lang::reference::BlockReference,
+  block: lang::BlockReference,
   variables: Vec<inkwell::values::PointerValue<'ctx>>,
 }
 
 struct FunctionScopes<'ctx> {
-  reference: lang::reference::FunctionReference,
+  reference: lang::FunctionReference,
   value: inkwell::values::FunctionValue<'ctx>,
   scopes: Vec<FunctionScope<'ctx>>,
 }
 
 impl<'ctx> FunctionScopes<'ctx> {
   fn new(
-    reference: lang::reference::FunctionReference,
+    reference: lang::FunctionReference,
     value: inkwell::values::FunctionValue<'ctx>,
   ) -> Self {
     Self {
@@ -27,7 +27,7 @@ impl<'ctx> FunctionScopes<'ctx> {
     }
   }
 
-  fn push(&mut self, comp: &mut Compilation<'_, '_, 'ctx>, block: lang::reference::BlockReference) -> Result {
+  fn push(&mut self, comp: &mut Compilation<'_, '_, 'ctx>, block: lang::BlockReference) -> Result {
     let borrow = comp.lazy.rget(block);
 
     let variables = borrow.variables.iter()
@@ -56,7 +56,7 @@ impl<'ctx> FunctionScopes<'ctx> {
   }
 }
 
-fn compile_function(comp: &mut Compilation, function_reference: lang::reference::FunctionReference) -> Result {
+fn compile_function(comp: &mut Compilation, function_reference: lang::FunctionReference) -> Result {
   let borrow = comp.lazy.rget(function_reference);
   let body = borrow.body;
 
@@ -80,7 +80,7 @@ fn compile_function(comp: &mut Compilation, function_reference: lang::reference:
   Ok(())
 }
 
-pub(super) fn compile_module(comp: &mut Compilation, module: lang::reference::ModuleReference) -> Result {
+pub(super) fn compile_module(comp: &mut Compilation, module: lang::ModuleReference) -> Result {
   for &module in comp.lazy.rget(module).modules.iter() {
     compile_module(comp, module)?;
   };

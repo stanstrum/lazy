@@ -3,7 +3,7 @@ use std::process::Command;
 use crate::print_message;
 
 use crate::aster::pprint::Pretty;
-use crate::lang::reference::{ModuleReference, Reference};
+use crate::lang::{ModuleReference, Reference};
 use crate::Lazy;
 use crate::generate::{ProgramCompilation, ProgramObjectFile};
 

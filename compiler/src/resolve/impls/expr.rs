@@ -1,6 +1,6 @@
 use crate::lang::expr::Expression;
 use crate::lang::expr::operator::BinaryOperator;
-use crate::lang::reference::{BlockReference, ExpressionReference, TypeReference, VariableReference};
+use crate::lang::{BlockReference, ExpressionReference, TypeReference, VariableReference};
 use crate::lang::ty::Type;
 use ::lang::intrinsic::Intrinsic;
 use crate::print_once_per_thread;

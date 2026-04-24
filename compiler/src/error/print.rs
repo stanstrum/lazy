@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 
 use crate::lang::module::ModulePath;
-use crate::lang::reference::Store;
+use crate::lang::Store;
 use crate::tokenize::token::{Position, Token, TokenSpan};
 
 use super::*;

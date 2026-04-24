@@ -18,7 +18,7 @@ mod steps;
 pub use string_pool::StringPool;
 use crate::settings::Settings;
 
-use crate::lang::reference::ModuleReference;
+use crate::lang::ModuleReference;
 use crate::lang::module::Module;
 use crate::lang::function::Function;
 use crate::tokenize::token;

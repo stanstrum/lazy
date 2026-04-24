@@ -5,7 +5,7 @@ use std::process::ExitCode;
 use std::os::unix::fs::PermissionsExt;
 
 use crate::{print_message, error};
-use crate::lang::reference::ModuleReference;
+use crate::lang::ModuleReference;
 
 impl<'pool> crate::Lazy<'pool> {
   pub fn check(&mut self) -> Result<ModuleReference, error::PrintableMessage> {

@@ -10,7 +10,7 @@ use crate::tokenize::token::Span;
 use ::lang::intrinsic::Intrinsic;
 use ::lang::span::GetSpan;
 use crate::lang::ty::Type;
-use crate::lang::reference::{FunctionReference, ModuleReference, Reference, Store, TypeReference};
+use crate::lang::{FunctionReference, ModuleReference, Reference, Store, TypeReference};
 use crate::lang::LazyError;
 use crate::resolve::tasks::OverwriteTypeReference;
 

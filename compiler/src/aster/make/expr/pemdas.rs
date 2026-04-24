@@ -45,7 +45,7 @@ fn find_right_expr(cursor: usize, parts: &[ExpressionPart]) -> Option<usize> {
     .map(|offset| cursor + offset)
 }
 
-fn melt_left(lazy: &mut crate::Lazy, cursor: &mut usize, parts: &mut Vec<ExpressionPart>) -> Result<lang::reference::ExpressionReference, Error> {
+fn melt_left(lazy: &mut crate::Lazy, cursor: &mut usize, parts: &mut Vec<ExpressionPart>) -> Result<lang::ExpressionReference, Error> {
   let left = find_left_expr(*cursor, parts).unwrap();
   let melt_start = left + 1;
   let melt_end = (*cursor).min(parts.len());
@@ -77,7 +77,7 @@ fn melt_left(lazy: &mut crate::Lazy, cursor: &mut usize, parts: &mut Vec<Express
       out: lang::ty::Type::Weak { span },
     };
     let new_id = function.rget_from_mut(lazy).add_expr(new_expr);
-    expr = lang::reference::ExpressionReference(block, new_id);
+    expr = lang::ExpressionReference(block, new_id);
   };
 
   *parts.get_mut(left).unwrap() = ExpressionPart::Expression(expr);
@@ -86,7 +86,7 @@ fn melt_left(lazy: &mut crate::Lazy, cursor: &mut usize, parts: &mut Vec<Express
   Ok(expr)
 }
 
-fn melt_right(lazy: &mut crate::Lazy, cursor: usize, parts: &mut Vec<ExpressionPart>) -> Result<lang::reference::ExpressionReference, Error> {
+fn melt_right(lazy: &mut crate::Lazy, cursor: usize, parts: &mut Vec<ExpressionPart>) -> Result<lang::ExpressionReference, Error> {
   let right = find_right_expr(cursor, parts).unwrap();
   let melt_start = cursor;
   let melt_end = right;
@@ -118,7 +118,7 @@ fn melt_right(lazy: &mut crate::Lazy, cursor: usize, parts: &mut Vec<ExpressionP
       out: lang::ty::Type::Weak { span },
     };
     let new_id = function.rget_from_mut(lazy).add_expr(new_expr);
-    expr = lang::reference::ExpressionReference(block, new_id);
+    expr = lang::ExpressionReference(block, new_id);
   };
 
   *parts.get_mut(cursor).unwrap() = ExpressionPart::Expression(expr);
@@ -126,7 +126,7 @@ fn melt_right(lazy: &mut crate::Lazy, cursor: usize, parts: &mut Vec<ExpressionP
   Ok(expr)
 }
 
-pub(crate) fn melt(lazy: &mut crate::Lazy, mut parts: Vec<ExpressionPart>) -> Result<lang::reference::ExpressionReference, Error> {
+pub(crate) fn melt(lazy: &mut crate::Lazy, mut parts: Vec<ExpressionPart>) -> Result<lang::ExpressionReference, Error> {
   for step in Pemdas::iter() {
     let mut i = 0;
 
@@ -231,7 +231,7 @@ pub(crate) fn melt(lazy: &mut crate::Lazy, mut parts: Vec<ExpressionPart>) -> Re
             out: lang::ty::Type::Weak { span },
           };
           let id = function.rget_from_mut(lazy).add_expr(expr);
-          let reference = lang::reference::ExpressionReference(block, id);
+          let reference = lang::ExpressionReference(block, id);
 
           parts.drain(i - 1 ..= i + 1);
           i -= 1;

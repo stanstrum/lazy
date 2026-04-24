@@ -1,77 +1,104 @@
-pub mod reference;
-
 mod get_span;
+mod store;
+mod prelude;
 
-use std::path::PathBuf;
+pub use prelude::*;
 
-#[derive(Debug)]
-pub enum LazyError {
-  NotExist(PathBuf),
-  Aster(crate::aster::Error),
+use crate::Lazy;
+use crate::lang::expr::BlockExpression;
+use lang::function::{BlockId, ExprId};
+use crate::lang::module::TypePartId;
+
+pub use lang::reference::{Store, Reference};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct FunctionReference(pub usize);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct AliasReference(pub ModuleReference, pub usize);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StructReference(pub ModuleReference, pub usize);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ModuleReference(pub usize);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct BlockReference(pub FunctionReference, pub BlockId);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ExpressionReference(pub BlockReference, pub ExprId);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TypePartReference(pub ModuleReference, pub TypePartId);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TypeReference {
+  Alias(AliasReference),
+  Part(TypePartReference),
+  Expression(ExpressionReference),
+  Block(BlockReference),
+  ReturnTypeOf(FunctionReference),
+  Variable(VariableReference),
+  StructMember(StructReference, usize),
 }
 
-pub mod ty {
-  pub type QualifiedSearchSpace = ::lang::ty::QualifiedSearchSpace<crate::lazy::LazyStructures>;
-  pub type Qualified = ::lang::ty::Qualified<crate::lazy::LazyStructures>;
-
-  pub type Type = ::lang::ty::Type<crate::lazy::LazyStructures>;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum VariableReference {
+  Block(BlockReference, usize),
+  Argument(FunctionReference, usize),
 }
 
-pub mod expr {
-  pub mod operator {
-    pub use ::lang::expr::operator::*;
-    pub type UnarySuffixOperator = ::lang::expr::operator::UnarySuffixOperator<crate::lazy::LazyStructures>;
+impl FunctionReference {
+  pub fn body(&self) -> BlockReference {
+    BlockReference(*self, BlockId::body_id())
   }
 
-  pub type Variable = ::lang::expr::Variable<crate::lazy::LazyStructures>;
-  pub type BlockExpression = ::lang::expr::BlockExpression<crate::lazy::LazyStructures>;
-  pub type LiteralKind = ::lang::expr::LiteralKind;
-  pub type Expression = ::lang::expr::Expression<crate::lazy::LazyStructures>;
+  // pub fn get_body<'a>(&self, lazy: &'a Lazy) -> &'a BlockExpression {
+  //   self.body(lazy).rget_from(lazy)
+  // }
+
+  pub fn get_body_mut<'a>(&self, lazy: &'a mut Lazy) -> &'a mut BlockExpression {
+    self.body().rget_from_mut(lazy)
+  }
+
+  // pub fn last_expr(&self, lazy: &Lazy) -> Option<ExpressionReference> {
+  //   let function = self.rget_from(lazy);
+  //   let body = function.body.rget_from(lazy);
+
+  //   body.returns_last.then(|| {
+  //     let id = body.children.last().unwrap();
+  //     ExpressionReference(*self, *id)
+  //   })
+  // }
 }
 
-pub mod module {
-  use crate::Lazy;
-  use crate::lang::reference::{ModuleReference, Reference, TypePartReference};
-  use crate::lang::ty::Type;
-
-  pub mod struc {
-    pub type Struct = ::lang::module::Struct<crate::lazy::LazyStructures>;
-  }
-
-  pub mod import {
-    pub type ImportGroup = ::lang::import::ImportGroup<crate::lazy::LazyStructures>;
-    pub type ImportQualify = ::lang::import::ImportQualify<crate::lazy::LazyStructures>;
-    pub type ImportPart = ::lang::import::ImportPart<crate::lazy::LazyStructures>;
-    pub type Import = ::lang::import::Import<crate::lazy::LazyStructures>;
-  }
-
-  #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-  pub struct TokensId(pub usize);
-
-  pub type ModulePath = ::lang::module::ModulePath<crate::lazy::LazyStructures>;
-  pub type ModuleParent = ::lang::module::ModuleParent<crate::lazy::LazyStructures>;
-  // pub type ModuleTransports = ::lang::module::ModuleTransports<crate::lazy::LazyStructures>;
-
-  #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-  pub struct TypePartId(pub usize);
-
-  pub type Module = ::lang::module::Module<crate::lazy::LazyStructures>;
-  pub type TypeAlias = ::lang::module::TypeAlias<crate::lazy::LazyStructures>;
-  pub type Name = ::lang::module::Name<crate::lazy::LazyStructures>;
-
-  impl ModuleReference {
-    pub fn add_type_part(&self, part: Type, lazy: &mut Lazy) -> TypePartReference {
-      let module_ref = self.rget_from_mut(lazy);
-
-      let id = TypePartId(module_ref.type_parts.len());
-      module_ref.type_parts.push(part);
-
-      TypePartReference(*self, id)
+impl TypeReference {
+  pub fn parent_module(&self, lazy: &Lazy) -> ModuleReference {
+    match self {
+      &TypeReference::Alias(AliasReference(module_reference, _))
+        => module_reference,
+      &TypeReference::Part(TypePartReference(module_reference, _))
+        => module_reference,
+      | TypeReference::Expression(ExpressionReference(BlockReference(function_reference, _), _))
+      | TypeReference::ReturnTypeOf(function_reference) => {
+      let function = function_reference.rget_from(lazy);
+        function.parent
+      },
+      TypeReference::Variable(v) => lazy.rget(v.parent()).parent,
+      TypeReference::Block(BlockReference(function, _)) => {
+        function.rget_from(lazy).parent
+      },
+      &TypeReference::StructMember(StructReference(parent, _), _) => parent,
     }
   }
 }
 
-pub mod function {
-  pub type FunctionHeader = ::lang::function::FunctionHeader<crate::lazy::LazyStructures>;
-  pub type Function = ::lang::function::Function<crate::lazy::LazyStructures>;
+impl VariableReference {
+  pub fn parent(&self) -> FunctionReference {
+    match self {
+      VariableReference::Block(block_reference, _) => block_reference.0,
+      VariableReference::Argument(function_reference, _) => *function_reference,
+    }
+  }
 }

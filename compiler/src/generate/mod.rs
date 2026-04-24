@@ -9,7 +9,7 @@ use std::path::Path;
 
 use crate::{lang, line_dbg, print_message};
 use ::lang::span::GetSpan;
-use crate::lang::reference::{Reference, Store};
+use crate::lang::{Reference, Store};
 use crate::resolve::TypeOf;
 use crate::tokenize::token;
 
@@ -43,14 +43,14 @@ struct Compilation<'lazy, 'pool, 'llvm> {
   lazy: &'lazy crate::Lazy<'pool>,
   llvm: LLVMContext<'llvm>,
   functions: HashMap<
-    lang::reference::FunctionReference,
+    lang::FunctionReference,
     inkwell::values::FunctionValue<'llvm>,
   >,
 }
 
 pub(super) struct Program {
   context: inkwell::context::Context,
-  global: lang::reference::ModuleReference,
+  global: lang::ModuleReference,
   cli_args: CliArgs,
 }
 
@@ -74,7 +74,7 @@ impl<'lazy, 'pool, 'llvm> Compilation<'lazy, 'pool, 'llvm> {
   }
 
   fn get_or_declare_function(&mut self,
-    function: lang::reference::FunctionReference,
+    function: lang::FunctionReference,
   ) -> Result<inkwell::values::FunctionValue<'llvm>> {
     // return it if we have it already
     if let Some(value) = self.functions.get(&function) {
@@ -107,7 +107,7 @@ impl<'lazy, 'pool, 'llvm> Compilation<'lazy, 'pool, 'llvm> {
 }
 
 impl Program {
-  pub(super) fn new(global: lang::reference::ModuleReference, cli_args: CliArgs) -> Self {
+  pub(super) fn new(global: lang::ModuleReference, cli_args: CliArgs) -> Self {
     Self {
       context: inkwell::context::Context::create(),
       global,

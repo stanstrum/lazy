@@ -9,7 +9,7 @@ use crate::line_dbg;
 
 use crate::aster::pprint::*;
 use ::lang::span::GetSpan;
-use crate::lang::reference::{Reference, Store};
+use crate::lang::{Reference, Store};
 use crate::resolve::{Coerce, Resolve, TypeOf};
 
 use super::{Lazy, Result, ErrorBase, Tasks};

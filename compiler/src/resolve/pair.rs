@@ -1,5 +1,5 @@
 use crate::lang::ty::Type;
-use crate::lang::reference::TypeReference;
+use crate::lang::TypeReference;
 use crate::resolve::tasks::OverwriteTypeReference;
 
 #[derive(Debug, Clone, Copy)]

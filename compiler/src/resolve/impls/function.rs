@@ -1,7 +1,7 @@
 use crate::{print_message, print_once_per_thread};
 
 use crate::resolve::TypePair;
-use crate::lang::reference::{FunctionReference, TypeReference, VariableReference};
+use crate::lang::{FunctionReference, TypeReference, VariableReference};
 
 use super::*;
 

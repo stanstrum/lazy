@@ -124,7 +124,7 @@ fn make_selector<'pool, const N: usize, T: Read>(
 
 pub(super) fn make_import<'pool, const N: usize, T: Read>(
   lazy: &mut crate::Lazy<'pool>,
-  module: lang::reference::ModuleReference,
+  module: lang::ModuleReference,
   stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<lang::module::import::Import>, Error> {
   let Some((Token::Keyword(Keyword::Import), start)) = stream.peek()? else {

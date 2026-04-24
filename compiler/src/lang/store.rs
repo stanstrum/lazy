@@ -1,11 +1,12 @@
-use crate::lang::module::struc::Struct;
-use crate::lang::expr::Variable;
-use crate::lang::ty::Type;
 
-use super::*;
+use crate::Lazy;
+use crate::lang::{AliasReference, BlockReference, ExpressionReference, FunctionReference, ModuleReference, StructReference, TypePartReference, TypeReference, VariableReference};
+use crate::lang::module::{TokensId, TypePartId};
+use crate::lang::expr::Expression;
+use lang::reference::Store;
 
-impl<'a> Store<ModuleReference> for Lazy<'a> {
-  type Out = Module;
+impl<'pool> Store<ModuleReference> for Lazy<'pool> {
+  type Out = crate::lang::module::Module;
 
   fn rget(&self, ModuleReference(index): ModuleReference) -> &Self::Out {
     self.modules.get(index).unwrap()
@@ -16,8 +17,8 @@ impl<'a> Store<ModuleReference> for Lazy<'a> {
   }
 }
 
-impl<'a> Store<AliasReference> for Lazy<'a> {
-  type Out = TypeAlias;
+impl<'pool> Store<AliasReference> for Lazy<'pool> {
+  type Out = crate::lang::module::TypeAlias;
 
   fn rget(&self, AliasReference(module, index): AliasReference) -> &Self::Out {
     self.rget(module).aliases.get(index).unwrap()
@@ -28,8 +29,8 @@ impl<'a> Store<AliasReference> for Lazy<'a> {
   }
 }
 
-impl<'a> Store<StructReference> for Lazy<'a> {
-  type Out = Struct;
+impl<'pool> Store<StructReference> for Lazy<'pool> {
+  type Out = crate::lang::module::struc::Struct;
 
   fn rget(&self, StructReference(module, index): StructReference) -> &Self::Out {
     self.rget(module).structs.get(index).unwrap()
@@ -40,8 +41,8 @@ impl<'a> Store<StructReference> for Lazy<'a> {
   }
 }
 
-impl<'a> Store<FunctionReference> for Lazy<'a> {
-  type Out = Function;
+impl<'pool> Store<FunctionReference> for Lazy<'pool> {
+  type Out = crate::lang::function::Function;
 
   fn rget(&self, FunctionReference(index): FunctionReference) -> &Self::Out {
     self.functions.get(index).unwrap()
@@ -52,8 +53,8 @@ impl<'a> Store<FunctionReference> for Lazy<'a> {
   }
 }
 
-impl<'a> Store<BlockReference> for Lazy<'a> {
-  type Out = BlockExpression;
+impl<'pool> Store<BlockReference> for Lazy<'pool> {
+  type Out = crate::lang::expr::BlockExpression;
 
   fn rget(&self, BlockReference(function, id): BlockReference) -> &Self::Out {
     &self.rget(function)[id]
@@ -64,8 +65,8 @@ impl<'a> Store<BlockReference> for Lazy<'a> {
   }
 }
 
-impl<'a> Store<ExpressionReference> for Lazy<'a> {
-  type Out = Expression;
+impl<'pool> Store<ExpressionReference> for Lazy<'pool> {
+  type Out = crate::lang::expr::Expression;
 
   fn rget(&self, ExpressionReference(BlockReference(function, _), id): ExpressionReference) -> &Self::Out {
     &self.rget(function)[id]
@@ -76,8 +77,8 @@ impl<'a> Store<ExpressionReference> for Lazy<'a> {
   }
 }
 
-impl<'a> Store<TokensId> for Lazy<'a> {
-  type Out = Vec<TokenSpan>;
+impl<'pool> Store<TokensId> for Lazy<'pool> {
+  type Out = Vec<crate::tokenize::token::TokenSpan>;
 
   fn rget(&self, TokensId(index): TokensId) -> &Self::Out {
     self.tokens.get(index).unwrap()
@@ -88,8 +89,8 @@ impl<'a> Store<TokensId> for Lazy<'a> {
   }
 }
 
-impl<'a> Store<TypePartReference> for Lazy<'a> {
-  type Out = Type;
+impl<'pool> Store<TypePartReference> for Lazy<'pool> {
+  type Out = crate::lang::ty::Type;
 
   fn rget(&self, TypePartReference(module, TypePartId(index)): TypePartReference) -> &Self::Out {
     self.rget(module).type_parts.get(index).unwrap()
@@ -100,8 +101,8 @@ impl<'a> Store<TypePartReference> for Lazy<'a> {
   }
 }
 
-impl<'a> Store<TypeReference> for Lazy<'a> {
-  type Out = Type;
+impl<'pool> Store<crate::lang::TypeReference> for Lazy<'pool> {
+  type Out = crate::lang::ty::Type;
 
   fn rget(&self, reference: TypeReference) -> &Self::Out {
     match reference {
@@ -187,8 +188,8 @@ impl<'a> Store<TypeReference> for Lazy<'a> {
   }
 }
 
-impl<'a> Store<VariableReference> for Lazy<'a> {
-  type Out = Variable;
+impl<'pool> Store<VariableReference> for Lazy<'pool> {
+  type Out = crate::lang::expr::Variable;
 
   fn rget(&self, key: VariableReference) -> &Self::Out {
     match key {

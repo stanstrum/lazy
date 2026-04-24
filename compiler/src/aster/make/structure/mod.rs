@@ -5,25 +5,25 @@ mod traverser;
 use crate::{line_dbg, print_message};
 
 use ::lang::span::GetSpan;
-use crate::lang::reference::AliasReference;
+use crate::lang::AliasReference;
 use crate::tokenize::token::{Keyword, Operator};
 
 use super::*;
 
 #[derive(Debug)]
 pub enum Structure {
-  Module(lang::reference::ModuleReference),
-  Function(lang::reference::FunctionReference),
-  TypeAlias(lang::reference::AliasReference),
-  Struct(lang::reference::StructReference),
+  Module(lang::ModuleReference),
+  Function(lang::FunctionReference),
+  TypeAlias(lang::AliasReference),
+  Struct(lang::StructReference),
   ImportFrom(()),
 }
 
 fn make_type_alias<'pool, const N: usize, T: Read>(
   lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  parent: lang::reference::ModuleReference,
-) -> Result<Option<lang::reference::AliasReference>, Error> {
+  parent: lang::ModuleReference,
+) -> Result<Option<lang::AliasReference>, Error> {
   let Some((Token::Keyword(Keyword::Type), start_span)) = stream.peek()? else {
     return Ok(None);
   };
@@ -74,7 +74,7 @@ fn make_type_alias<'pool, const N: usize, T: Read>(
 ///       u32 width
 fn make_struct<'pool, const N: usize, T: Read>(
   lazy: &mut crate::Lazy<'pool>,
-  parent: lang::reference::ModuleReference,
+  parent: lang::ModuleReference,
   stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<lang::module::struc::Struct>, Error> {
   let Some((Token::Keyword(Keyword::Struct), start)) = stream.peek()? else {
@@ -160,7 +160,7 @@ fn make_struct<'pool, const N: usize, T: Read>(
 /// traversing imports.
 pub(super) fn make_structure<'pool, const N: usize, T: Read>(
   lazy: &mut crate::Lazy<'pool>,
-  parent: lang::reference::ModuleReference,
+  parent: lang::ModuleReference,
   stream: &mut Rereader<'pool, N, T>,
 ) -> Result<Option<Structure>, Error> {
   let here = stream.here()?;
@@ -244,7 +244,7 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
     // TODO: This is far too clumsy to keep this way forever
     let parent_borrow = lazy.rget_mut(parent);
     let id = parent_borrow.structs.len();
-    let struct_reference = lang::reference::StructReference(parent, id);
+    let struct_reference = lang::StructReference(parent, id);
     parent_borrow.structs.push(struc);
     return Ok(Some(Structure::Struct(struct_reference)))
   };

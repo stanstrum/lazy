@@ -7,7 +7,7 @@ use std::fs::File;
 
 use crate::{colorize, line_dbg};
 use crate::Lazy;
-use crate::lang::reference::ModuleReference;
+use crate::lang::ModuleReference;
 use crate::tokenize::token::Span;
 
 pub use print::print_message;

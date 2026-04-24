@@ -11,7 +11,7 @@ use crate::aster::make::ty;
 use crate::aster::Rereader;
 use crate::{lang, line_dbg};
 use crate::lang::expr::LiteralKind;
-use crate::lang::reference::Reference;
+use crate::lang::Reference;
 
 use super::Error;
 
@@ -68,9 +68,9 @@ pub(super) fn make_literal<'pool, const N: usize, T: Read>(
 fn make_expr_part<'pool, const N: usize, T: Read>(
   lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  module: lang::reference::ModuleReference,
-  block: lang::reference::BlockReference,
-) -> Result<Option<lang::reference::ExpressionReference>, Error> {
+  module: lang::ModuleReference,
+  block: lang::BlockReference,
+) -> Result<Option<lang::ExpressionReference>, Error> {
   let function = block.0;
 
   let expr = 'expr: {
@@ -94,7 +94,7 @@ fn make_expr_part<'pool, const N: usize, T: Read>(
   };
 
   let id = function.rget_from_mut(lazy).add_expr(expr);
-  let reference = lang::reference::ExpressionReference(block, id);
+  let reference = lang::ExpressionReference(block, id);
 
   Ok(Some(reference))
 }
@@ -104,15 +104,15 @@ enum ExpressionPart {
   UnaryPrefix((crate::lang::expr::operator::UnaryPrefixOperator, Span)),
   UnarySuffix((crate::lang::expr::operator::UnarySuffixOperator, Span)),
   Binary((lang::expr::operator::BinaryOperator, Span)),
-  Expression(lang::reference::ExpressionReference),
+  Expression(lang::ExpressionReference),
 }
 
 pub(super) fn make_expr<'pool, const N: usize, T: Read>(
   lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  module: lang::reference::ModuleReference,
-  block: lang::reference::BlockReference,
-) -> Result<Option<lang::reference::ExpressionReference>, Error> {
+  module: lang::ModuleReference,
+  block: lang::BlockReference,
+) -> Result<Option<lang::ExpressionReference>, Error> {
   let mut parts: Vec<ExpressionPart> = vec![];
   let mut expect = false;
 

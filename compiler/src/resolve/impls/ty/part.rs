@@ -1,4 +1,4 @@
-use crate::lang::reference::TypePartReference;
+use crate::lang::TypePartReference;
 
 use super::*;
 

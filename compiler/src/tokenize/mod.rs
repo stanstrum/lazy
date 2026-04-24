@@ -5,7 +5,7 @@ mod state;
 use std::collections::VecDeque;
 use std::io::Read;
 
-use crate::lang::reference::ModuleReference;
+use crate::lang::ModuleReference;
 use crate::aster::bufreader::BufferedUtf8MetadataReader;
 use string_pool::StringPool;
 

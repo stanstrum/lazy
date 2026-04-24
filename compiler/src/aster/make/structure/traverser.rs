@@ -6,7 +6,7 @@ use super::*;
 
 pub(super) fn traverse_import(
   lazy: &mut crate::Lazy,
-  module: lang::reference::ModuleReference,
+  module: lang::ModuleReference,
   import: &lang::module::import::Import,
 ) -> Result<(), Error> {
   let mut stack = vec![];
@@ -30,8 +30,8 @@ pub(super) fn traverse_import(
 
 fn traverse_group(
   lazy: &mut crate::Lazy,
-  module: &lang::reference::ModuleReference,
-  source: &lang::reference::ModuleReference,
+  module: &lang::ModuleReference,
+  source: &lang::ModuleReference,
   group: &lang::module::import::ImportGroup,
   stack: &mut Vec<lang::module::Name>,
 ) -> Result<usize, Error> {
@@ -46,7 +46,7 @@ fn traverse_group(
 
 fn insert_to_import_map(
   lazy: &mut crate::Lazy,
-  module: &lang::reference::ModuleReference,
+  module: &lang::ModuleReference,
   key: string_pool::PoolId,
   value: lang::ty::Qualified,
 ) -> Result<(), Error> {
@@ -73,8 +73,8 @@ fn insert_to_import_map(
 ///   contexutualized/represented with an [`lang::ty::Qualified`].
 fn traverse_part(
   lazy: &mut crate::Lazy,
-  module: &lang::reference::ModuleReference,
-  source: &lang::reference::ModuleReference,
+  module: &lang::ModuleReference,
+  source: &lang::ModuleReference,
   part: &lang::module::import::ImportPart,
   stack: &mut Vec<lang::module::Name>,
 )  -> Result<usize, Error> {

@@ -2,7 +2,7 @@
 use crate::lang::LazyError;
 use crate::lang::function::{Function, FunctionHeader};
 use crate::lang::module::{Module, ModuleParent, ModulePath, TokensId};
-use crate::lang::reference::{FunctionReference, ModuleReference, Store};
+use crate::lang::{FunctionReference, ModuleReference, Store};
 use crate::{Lazy, line_dbg, print_message};
 
 use std::path::{Path, PathBuf};
@@ -203,20 +203,20 @@ impl lang::Compiler for LazyStructures {
   type TokensReference = TokensId;
 
   type Struct = crate::lang::module::struc::Struct;
-  type StructReference = crate::lang::reference::StructReference;
+  type StructReference = crate::lang::StructReference;
 
   type TypeAlias = crate::lang::module::TypeAlias;
-  type TypeAliasReference = crate::lang::reference::AliasReference;
+  type TypeAliasReference = crate::lang::AliasReference;
 
   type Function = crate::lang::function::Function;
-  type FunctionReference = crate::lang::reference::FunctionReference;
+  type FunctionReference = crate::lang::FunctionReference;
 
-  type TypeReference = crate::lang::reference::TypeReference;
-  type TypePartReference = crate::lang::reference::TypePartReference;
+  type TypeReference = crate::lang::TypeReference;
+  type TypePartReference = crate::lang::TypePartReference;
   type OverwriteTypeReference = crate::resolve::tasks::OverwriteTypeReference;
 
-  type VariableReference = crate::lang::reference::VariableReference;
+  type VariableReference = crate::lang::VariableReference;
 
-  type BlockReference = crate::lang::reference::BlockReference;
-  type ExpressionReference = crate::lang::reference::ExpressionReference;
+  type BlockReference = crate::lang::BlockReference;
+  type ExpressionReference = crate::lang::ExpressionReference;
 }

@@ -1,5 +1,5 @@
 use crate::lang::ty::Type;
-use crate::lang::reference::{AliasReference, ExpressionReference, FunctionReference, ModuleReference, StructReference, TypeReference, VariableReference};
+use crate::lang::{AliasReference, ExpressionReference, FunctionReference, ModuleReference, StructReference, TypeReference, VariableReference};
 use crate::resolve::TypePair;
 use crate::resolve::impls::ty::verify_typeof;
 

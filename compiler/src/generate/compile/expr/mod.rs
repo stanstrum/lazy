@@ -9,7 +9,7 @@ use super::*;
 fn compile_expr<'ctx>(
   comp: &mut Compilation<'_, '_, 'ctx>,
   function: inkwell::values::FunctionValue<'ctx>,
-  expr: lang::reference::ExpressionReference,
+  expr: lang::ExpressionReference,
   scopes: &mut FunctionScopes<'ctx>,
 ) -> Result<LazyValue<'ctx>> {
   // for efficiency, we assume we are already positioned after the preceding
@@ -77,7 +77,7 @@ fn compile_expr<'ctx>(
 pub(super) fn compile_block<'ctx>(
   comp: &mut Compilation<'_, '_, 'ctx>,
   function: inkwell::values::FunctionValue<'ctx>,
-  block: lang::reference::BlockReference,
+  block: lang::BlockReference,
   scopes: &mut FunctionScopes<'ctx>,
 ) -> Result<LazyValue<'ctx>> {
   // Note where we came from -- will need to jmp from that block to this one
@@ -108,7 +108,7 @@ pub(super) fn compile_block<'ctx>(
   let borrow = comp.lazy.rget(block);
 
   for &id in borrow.children.iter() {
-    let expr = lang::reference::ExpressionReference(block, id);
+    let expr = lang::ExpressionReference(block, id);
     let value = compile_expr(comp, function, expr, scopes)?;
 
     last_value = value;

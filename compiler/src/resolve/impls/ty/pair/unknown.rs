@@ -4,7 +4,7 @@ use crate::lang::module::ModuleParent;
 use crate::{print_message, print_once_per_thread};
 
 use crate::lang::ty::{Qualified, QualifiedSearchSpace};
-use crate::lang::reference::{AliasReference, ModuleReference, StructReference};
+use crate::lang::{AliasReference, ModuleReference, StructReference};
 
 pub(crate) fn resolve_qualified_to_space(
   lazy: &Lazy,

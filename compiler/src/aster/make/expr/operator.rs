@@ -81,8 +81,8 @@ pub(super) fn make_unary_prefix<'pool, const N: usize, T: Read>(
 pub(super) fn make_unary_suffix<'pool, const N: usize, T: Read>(
   lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  module: lang::reference::ModuleReference,
-  block: lang::reference::BlockReference,
+  module: lang::ModuleReference,
+  block: lang::BlockReference,
 ) -> Result<Option<(UnarySuffixOperator, Span)>, Error> {
   if let Some((Token::Operator(Operator::DoublePlus), span)) = stream.peek()? {
     stream.seek();
@@ -153,8 +153,8 @@ pub(super) fn make_unary_suffix<'pool, const N: usize, T: Read>(
 // pub(super) fn make_unary_op<'pool, const N: usize, T: Read>(
 //   lazy: &mut crate::Lazy<'pool>,
 //   stream: &mut Rereader<'pool, N, T>,
-//   module: lang::reference::ModuleReference,
-//   function: lang::reference::FunctionReference,
+//   module: lang::ModuleReference,
+//   function: lang::FunctionReference,
 // ) -> Result<Option<(UnaryOperator, Span)>, Error> {
 //   if let Some(prefix) = make_unary_prefix(lazy, stream, module, function)? {
 //     return Ok(Some(UnaryOperator::Prefix(prefix)));
@@ -170,8 +170,8 @@ pub(super) fn make_unary_suffix<'pool, const N: usize, T: Read>(
 pub(super) fn make_binary_op<'pool, const N: usize, T: Read>(
   _lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
-  _module: lang::reference::ModuleReference,
-  _function: lang::reference::FunctionReference,
+  _module: lang::ModuleReference,
+  _function: lang::FunctionReference,
 ) -> Result<Option<(BinaryOperator, Span)>, Error> {
   let Some((Token::Operator(token), mut span)) = stream.peek()? else {
     return Ok(None);

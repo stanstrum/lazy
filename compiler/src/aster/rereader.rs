@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 
 use crate::tokenize::Tokenizer;
 use crate::tokenize::token::{Token, TokenSpan};
-use crate::lang::reference::ModuleReference;
+use crate::lang::ModuleReference;
 
 use super::Error;
 

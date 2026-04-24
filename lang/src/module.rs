@@ -5,6 +5,7 @@ use string_pool::PoolId;
 
 use crate::Compiler;
 use crate::expr::Variable;
+use crate::reference::{Reference, Store, TypePartId, TypePartReference};
 use crate::ty::{Qualified, QualifiedSearchSpace, Type};
 use crate::span::Span;
 
@@ -85,5 +86,20 @@ impl<C: Compiler> Module<C> {
       structs: vec![],
       type_parts: vec![],
     }
+  }
+}
+
+pub trait AddTypePart<C: Compiler>: Sized where for<'a> C::Store<'a>: Store<Self, Out = crate::module::Module<C>> {
+  fn add_type_part(&self, part: crate::ty::Type<C>, store: &mut C::Store<'_>) -> TypePartReference<C>;
+}
+
+impl<C: Compiler> AddTypePart<C> for C::ModuleReference {
+  fn add_type_part(&self, part: crate::ty::Type<C>, store: &mut <C as Compiler>::Store<'_>) -> TypePartReference<C> {
+    let module_ref = store.rget_mut(*self);
+
+    let id = TypePartId(module_ref.type_parts.len());
+    module_ref.type_parts.push(part);
+
+    TypePartReference::<C>(*self, id)
   }
 }

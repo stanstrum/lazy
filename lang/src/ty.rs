@@ -1,4 +1,8 @@
-use crate::{Compiler, token::StringKind, intrinsic::Intrinsic, span::Span};
+use crate::Compiler;
+use crate::token::StringKind;
+use crate::span::Span;
+use crate::intrinsic::Intrinsic;
+use crate::reference::{Store, TypePartReference, TypeReference};
 
 #[derive(Debug, Clone)]
 pub enum QualifiedSearchSpace<C: Compiler> {
@@ -27,9 +31,9 @@ impl<C: Compiler> Qualified<C> {
 
 #[derive(Debug, Clone)]
 pub enum Type<C: Compiler> {
-  Reference(C::TypeReference),
+  Reference(crate::reference::TypeReference<C>),
   Resolved {
-    part: C::TypePartReference,
+    part: TypePartReference<C>,
     span: Span<C>,
   },
   Unresolved {
@@ -76,4 +80,34 @@ pub enum Type<C: Compiler> {
   Struct {
     prototype: C::StructReference,
   },
+}
+
+impl<C: Compiler> TypeReference<C> {
+  pub fn parent_module(&self, store: &C::Store<'_>) -> C::ModuleReference {
+    match self {
+      &TypeReference::Alias(AliasReference(module_reference, _))
+        => module_reference,
+      &TypeReference::Part(TypePartReference(module_reference, _))
+        => module_reference,
+      | TypeReference::Expression(ExpressionReference(BlockReference(function_reference, _), _))
+      | TypeReference::ReturnTypeOf(function_reference) => {
+      let function = function_reference.rget_from(store);
+        function.parent
+      },
+      TypeReference::Variable(v) => store.rget(v.parent()).parent,
+      TypeReference::Block(BlockReference(function, _)) => {
+        function.rget_from(store).parent
+      },
+      &TypeReference::StructMember(StructReference(parent, _), _) => parent,
+    }
+  }
+}
+
+impl<C: Compiler> VariableReference<C> {
+  pub fn parent(&self) -> FunctionReference {
+    match self {
+      VariableReference::Block(block_reference, _) => block_reference.0,
+      VariableReference::Argument(function_reference, _) => *function_reference,
+    }
+  }
 }

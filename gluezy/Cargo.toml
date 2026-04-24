@@ -1,0 +1,9 @@
+[package]
+name = "gluezy"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+lang = { version = "0.1.0", path = "../lang" }
+log = { version = "0.1.0", path = "../log" }
+string_pool = { version = "0.1.0", path = "../string_pool" }

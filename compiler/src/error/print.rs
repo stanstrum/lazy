@@ -6,13 +6,6 @@ use crate::lang::{Position, Token, TokenSpan};
 
 use super::*;
 
-#[macro_export]
-macro_rules! colorize {
-  ($color:expr) => {
-    concat!("\x1b[", stringify!($color), "m")
-  };
-}
-
 struct LineYielder {
   reader: BufReader<File>,
   line: usize,

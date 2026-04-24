@@ -9,6 +9,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f202df86484c868dbad7eaa557ef785d5c66295e41b460ef922eca0723b842c"
 
 [[package]]
+name = "aster"
+version = "0.1.0"
+dependencies = [
+ "gluezy",
+ "lang",
+ "tokenize",
+]
+
+[[package]]
 name = "bitflags"
 version = "2.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -35,6 +44,7 @@ name = "compiler"
 version = "0.1.0"
 dependencies = [
  "cc",
+ "gluezy",
  "inkwell",
  "lang",
  "string_pool",
@@ -89,6 +99,15 @@ dependencies = [
  "r-efi",
  "wasip2",
  "wasip3",
+]
+
+[[package]]
+name = "gluezy"
+version = "0.1.0"
+dependencies = [
+ "lang",
+ "log 0.1.0",
+ "string_pool",
 ]
 
 [[package]]
@@ -171,8 +190,13 @@ dependencies = [
 name = "lazy"
 version = "0.1.0"
 dependencies = [
+ "aster",
  "compiler",
 ]
+
+[[package]]
+name = "lazy_macros"
+version = "0.1.0"
 
 [[package]]
 name = "lazy_static"
@@ -210,6 +234,14 @@ dependencies = [
  "libc",
  "regex-lite",
  "semver",
+]
+
+[[package]]
+name = "log"
+version = "0.1.0"
+dependencies = [
+ "lang",
+ "lazy_macros",
 ]
 
 [[package]]
@@ -556,7 +588,7 @@ dependencies = [
  "anyhow",
  "bitflags",
  "indexmap",
- "log",
+ "log 0.4.29",
  "serde",
  "serde_derive",
  "serde_json",
@@ -575,7 +607,7 @@ dependencies = [
  "anyhow",
  "id-arena",
  "indexmap",
- "log",
+ "log 0.4.29",
  "semver",
  "serde",
  "serde_derive",

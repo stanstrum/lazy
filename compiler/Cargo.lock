@@ -38,10 +38,11 @@ dependencies = [
  "inkwell",
  "lang",
  "string_pool",
+ "structure",
  "strum",
  "strum_macros",
  "tempfile",
- "tokenizer",
+ "tokenize",
 ]
 
 [[package]]
@@ -335,6 +336,10 @@ name = "string_pool"
 version = "0.1.0"
 
 [[package]]
+name = "structure"
+version = "0.1.0"
+
+[[package]]
 name = "strum"
 version = "0.27.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -397,8 +402,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "tokenizer"
+name = "tokenize"
 version = "0.1.0"
+dependencies = [
+ "lang",
+ "string_pool",
+]
 
 [[package]]
 name = "unicode-ident"

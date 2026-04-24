@@ -11,7 +11,7 @@ pub mod reference;
 
 pub mod expr;
 
-use std::fmt::Debug;
+use std::{fmt::Debug, hash::Hash};
 
 pub trait CompilerReference: Debug + Clone + Copy + PartialEq + Eq {}
 impl<T: Debug + Clone + Copy + PartialEq + Eq> CompilerReference for T {}
@@ -22,18 +22,13 @@ pub trait Compiler: Debug + Sized
     reference::Store<Self::TokensReference, Out = Self::Tokens> +
     //
     reference::Store<Self::StructReference, Out = Self::Struct> +
-    reference::Store<Self::TypeReference, Out = ty::Type<Self>> +
-    //
-    reference::Store<Self::TypeReference, Out = ty::Type<Self>> +
-    reference::Store<Self::TypePartReference, Out = ty::Type<Self>> +
-    reference::Store<Self::OverwriteTypeReference, Out = ty::Type<Self>> +
     //
     reference::Store<Self::ExpressionReference, Out = expr::Expression<Self>> +
     reference::Store<Self::BlockReference, Out = expr::BlockExpression<Self>> +
 {
   type Store<'a>;
 
-  type ModuleReference: CompilerReference;
+  type ModuleReference: CompilerReference + Hash;
 
   type Tokens: Debug;
   type TokensReference: CompilerReference;
@@ -47,8 +42,6 @@ pub trait Compiler: Debug + Sized
   type TypeAlias: Debug;
   type TypeAliasReference: CompilerReference;
 
-  type TypeReference: CompilerReference;
-  type TypePartReference: CompilerReference;
   type OverwriteTypeReference: Debug + Clone;
 
   type VariableReference: CompilerReference;

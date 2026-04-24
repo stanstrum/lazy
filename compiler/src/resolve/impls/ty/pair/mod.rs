@@ -357,9 +357,3 @@ pub(in crate::resolve::impls) fn default_types_of_type_pair(lazy: &mut Lazy, pai
     },
   }
 }
-
-impl GetSpan<crate::lazy::LazyStructures> for TypePair {
-  fn get_span(&self, store: &crate::Lazy<'_>) -> crate::tokenize::token::Span {
-    self.overwrite.get_span(store)
-  }
-}

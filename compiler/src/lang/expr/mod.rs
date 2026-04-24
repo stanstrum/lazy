@@ -3,7 +3,6 @@ pub mod operator;
 use string_pool::StringId;
 
 use crate::tokenize::token::{NumericValue, Span, StringKind};
-use ::lang::span::GetSpan;
 use crate::lang::expr::operator::{BinaryOperator, UnaryOperator};
 use crate::lang::module::Name;
 use crate::lang::reference::{BlockReference, ExpressionReference, VariableReference};
@@ -107,14 +106,3 @@ impl BlockExpression {
   }
 }
 
-impl GetSpan<crate::lazy::LazyStructures> for BlockExpression {
-  fn get_span(&self, _lazy: &crate::Lazy) -> Span {
-    self.span
-  }
-}
-
-impl GetSpan<crate::lazy::LazyStructures> for Variable {
-  fn get_span(&self, _store: &crate::Lazy<'_>) -> Span {
-    self.span
-  }
-}

@@ -2,8 +2,6 @@ pub mod import;
 pub mod struc;
 
 use crate::Lazy;
-use crate::tokenize::token::Span;
-use ::lang::span::GetSpan;
 use crate::lang::reference::{ModuleReference, Reference, TypePartReference};
 use crate::lang::ty::Type;
 
@@ -29,11 +27,5 @@ impl ModuleReference {
     module_ref.type_parts.push(part);
 
     TypePartReference(*self, id)
-  }
-}
-
-impl GetSpan<crate::lazy::LazyStructures> for Name {
-  fn get_span(&self, _store: &Lazy) -> Span {
-    self.span
   }
 }

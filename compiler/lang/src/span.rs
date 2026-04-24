@@ -1,4 +1,22 @@
+use crate::reference::{Reference, Store};
 use crate::Compiler;
+
+pub trait GetSpan<C: Compiler> {
+  fn get_span(&self, store: &C::Store<'_>) -> Span<C>;
+}
+
+impl<
+  C: Compiler,
+  R: for<'a> Reference<C::Store<'a>>,
+> GetSpan<C> for R
+  where
+    for<'a> C::Store<'a>: Store<R>,
+    for<'a> <C::Store<'a> as Store<R>>::Out: GetSpan<C>,
+{
+  fn get_span(&self, store: &C::Store<'_>) -> Span<C> {
+    self.rget_from(store).get_span(store)
+  }
+}
 
 /// Contains only the start position of a Span
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

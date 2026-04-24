@@ -1,4 +1,4 @@
-use crate::lang::span::GetSpan;
+use ::lang::span::GetSpan;
 use crate::aster::make::make_name;
 use crate::tokenize::token::{GroupingKind, GroupingType, Operator};
 

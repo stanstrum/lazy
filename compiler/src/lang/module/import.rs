@@ -1,6 +1,6 @@
 use crate::tokenize::token::Span;
 use crate::Lazy;
-use crate::lang::span::GetSpan;
+use ::lang::span::GetSpan;
 use crate::lang::module::Name;
 use crate::lang::reference::ModuleReference;
 
@@ -45,7 +45,7 @@ impl ImportQualify {
   }
 }
 
-impl GetSpan for ImportPart {
+impl GetSpan<crate::lazy::LazyStructures> for ImportPart {
   fn get_span(&self, _lazy: &Lazy) -> Span {
     match self {
       ImportPart::Star(span) => *span,

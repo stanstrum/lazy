@@ -1,15 +1,15 @@
-use crate::lang::expr::operator::{UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
-use crate::lang::expr::{BlockExpression, Expression, LiteralKind};
-use crate::lang::reference::{BlockReference, ExpressionReference, FunctionReference, Reference, Store, TypePartReference, TypeReference, VariableReference};
-use crate::lang::span::GetSpan;
-use crate::resolve::{TypeOf, TypePair, TypePairModifier};
 use string_pool::PoolId;
 
 use crate::Lazy;
+use crate::tokenize::token::{NumericValue, Span, StringKind};
+use ::lang::span::GetSpan;
+use crate::lang::expr::operator::{UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
+use crate::lang::expr::{BlockExpression, Expression, LiteralKind};
+use crate::lang::reference::{BlockReference, ExpressionReference, FunctionReference, Reference, Store, TypePartReference, TypeReference, VariableReference};
 use crate::lang::ty::{Qualified, QualifiedSearchSpace, Type};
 use crate::lang::module::{Module, Name};
 use crate::lang::function::Function;
-use crate::tokenize::token::{NumericValue, Span, StringKind};
+use crate::resolve::{TypeOf, TypePair, TypePairModifier};
 
 pub trait Pretty {
   type Out;

@@ -4,14 +4,14 @@ pub mod pair;
 
 use crate::{print_message, line_dbg};
 
+use crate::Lazy;
 use crate::aster::pprint::Pretty;
 use crate::tokenize::token::Span;
-use crate::Lazy;
-use crate::lang::LazyError;
 use ::lang::intrinsic::Intrinsic;
+use ::lang::span::GetSpan;
 use crate::lang::ty::Type;
-use crate::lang::span::GetSpan;
 use crate::lang::reference::{FunctionReference, ModuleReference, Reference, Store, TypeReference};
+use crate::lang::LazyError;
 use crate::resolve::tasks::OverwriteTypeReference;
 
 use tasks::Tasks;

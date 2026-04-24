@@ -1,9 +1,9 @@
 use crate::tokenize::token::{Span, StringKind};
-use crate::lang::span::GetSpan;
+use ::lang::intrinsic::Intrinsic;
+use ::lang::span::GetSpan;
 use crate::lang::module::Name;
 use crate::lang::reference::{ModuleReference, Reference, StructReference, TypePartReference, TypeReference};
 use crate::resolve::tasks::OverwriteTypeReference;
-use ::lang::intrinsic::Intrinsic;
 
 #[derive(Debug, Clone)]
 pub enum QualifiedSearchSpace {
@@ -83,7 +83,7 @@ pub enum Type {
   },
 }
 
-impl GetSpan for Type {
+impl GetSpan<crate::lazy::LazyStructures> for Type {
   fn get_span(&self, lazy: &crate::Lazy) -> Span {
     match self {
       Type::Unresolved { qualified, .. } => qualified.span,

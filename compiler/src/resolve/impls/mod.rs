@@ -8,7 +8,7 @@ mod tasks;
 use crate::line_dbg;
 
 use crate::aster::pprint::*;
-use crate::lang::span::GetSpan;
+use ::lang::span::GetSpan;
 use crate::lang::reference::{Reference, Store};
 use crate::resolve::{Coerce, Resolve, TypeOf};
 

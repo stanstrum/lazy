@@ -1,11 +1,10 @@
 mod impls;
 
 use crate::Lazy;
+use crate::tokenize::token::TokenSpan;
 use crate::lang::expr::{BlockExpression, Expression};
 use crate::lang::function::{BlockId, ExprId, Function};
 use crate::lang::module::{Module, TokensId, TypeAlias, TypePartId};
-use crate::lang::span::GetSpan;
-use crate::tokenize::token::TokenSpan;
 
 pub use ::lang::reference::{Store, Reference};
 

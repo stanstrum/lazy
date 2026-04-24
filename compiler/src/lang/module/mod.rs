@@ -3,14 +3,14 @@ pub mod struc;
 
 use std::collections::HashMap;
 
-use crate::lang::module::struc::Struct;
-use crate::lang::span::GetSpan;
-use lang::reference::Store;
 use string_pool::PoolId;
+
 use crate::Lazy;
+use crate::tokenize::token::Span;
+use ::lang::span::GetSpan;
+use crate::lang::module::struc::Struct;
 use crate::lang::reference::{FunctionReference, ModuleReference, Reference, TypePartReference};
 use crate::lang::ty::{Qualified, QualifiedSearchSpace, Type};
-use crate::tokenize::token::Span;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TokensId(pub usize);
@@ -77,14 +77,8 @@ impl ModuleReference {
   }
 }
 
-impl GetSpan for Name {
+impl GetSpan<crate::lazy::LazyStructures> for Name {
   fn get_span(&self, _store: &Lazy) -> Span {
     self.span
   }
 }
-
-// impl<S> GetSpan<S> for Name {
-//   fn get_span(&self, store: &S) -> Span {
-//     self.span
-//   }
-// }

@@ -3,7 +3,7 @@ use crate::print_message;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-use crate::lang::span::GetSpan;
+use ::lang::span::GetSpan;
 use crate::lang::expr::operator::{BinaryOperator, UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 
 use super::*;
@@ -32,7 +32,7 @@ fn debug_gspan(lazy: &crate::Lazy, part: &ExpressionPart) -> Span {
     | &ExpressionPart::UnarySuffix((_, span))
     | &ExpressionPart::Binary((_, span))
       => span,
-    ExpressionPart::Expression(expr) => lang::span::GetSpan::get_span(expr.rget_from(lazy), lazy),
+    ExpressionPart::Expression(expr) => expr.get_span(lazy),
   }
 }
 

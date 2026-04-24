@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use crate::{lang, line_dbg, print_message};
-use crate::lang::span::GetSpan;
+use ::lang::span::GetSpan;
 use crate::lang::reference::{Reference, Store};
 use crate::resolve::TypeOf;
 use crate::tokenize::token;

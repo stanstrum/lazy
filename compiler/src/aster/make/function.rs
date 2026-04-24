@@ -1,5 +1,5 @@
 use crate::lang::reference::{ExpressionReference, Reference};
-use crate::lang::span::GetSpan;
+use ::lang::span::GetSpan;
 use crate::line_dbg;
 
 use crate::tokenize::token::Operator;

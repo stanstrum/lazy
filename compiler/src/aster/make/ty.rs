@@ -1,7 +1,7 @@
 use crate::aster::make::expr::make_literal;
 use crate::lang::expr::{Expression, LiteralKind};
 use crate::lang::reference::ModuleReference;
-use crate::lang::span::GetSpan;
+use ::lang::span::GetSpan;
 use crate::line_dbg;
 use crate::tokenize::token::{GroupingKind, GroupingType, Keyword, NumericValue, Operator};
 

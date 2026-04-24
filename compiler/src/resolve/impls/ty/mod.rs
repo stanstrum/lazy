@@ -168,7 +168,7 @@ impl Coerce for TypeReference {
 
 pub(super) fn verify_typeof(
   lazy: &Lazy,
-  ty: &(impl TypeOf + GetSpan + Pretty<Out = String>),
+  ty: &(impl TypeOf + GetSpan<crate::lazy::LazyStructures> + Pretty<Out = String>),
   tasks: &mut Tasks,
 ) -> Result<()> {
   let description = format!(line_dbg!("Verify type via TypeOf: {}"), ty.print(lazy));

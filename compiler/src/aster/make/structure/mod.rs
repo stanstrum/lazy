@@ -4,8 +4,8 @@ mod traverser;
 
 use crate::{line_dbg, print_message};
 
+use ::lang::span::GetSpan;
 use crate::lang::reference::AliasReference;
-use crate::lang::span::GetSpan;
 use crate::tokenize::token::{Keyword, Operator};
 
 use super::*;

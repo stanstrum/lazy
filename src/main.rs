@@ -1,6 +1,9 @@
 mod parse;
+mod info;
 
 use std::process::ExitCode;
+
+use parse::Error;
 
 fn main() -> ExitCode {
   let args = std::env::args();
@@ -8,7 +11,7 @@ fn main() -> ExitCode {
 }
 
 fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
-  let (settings, verb) = match parse::parse_and_display(args) {
+  let (settings, verb) = match parse_and_display(args) {
     Ok(settings) => settings,
     Err(exit_code) => return exit_code,
   };
@@ -21,6 +24,49 @@ fn run_with(args: impl Iterator<Item = String>) -> ExitCode {
     Err(message) => {
       compiler::error::print_message(&lazy, message);
       ExitCode::FAILURE
+    },
+  }
+}
+
+fn parse_and_display(mut argv: impl Iterator<Item = String>) -> Result<
+  (compiler::settings::Settings, parse::Verb), ExitCode
+> {
+  let Some(executable) = argv.next() else {
+    eprintln!("\x1b[31merror\x1b[0m: argv is empty.  no process name was passed along.");
+    info::help("{executable}");
+
+    return Err(ExitCode::FAILURE);
+  };
+
+  let mut our_copy = vec![executable.clone()];
+
+  let argv = argv.inspect(|argv| {
+    our_copy.push(argv.to_owned());
+  });
+
+  match parse::digest(&executable, argv) {
+    Ok(settings) => Ok(settings),
+    Err(Error::Version) => {
+      info::version();
+      Err(ExitCode::FAILURE)
+    },
+    Err(Error::Help | Error::Verbless) => {
+      info::help(&executable);
+      Err(ExitCode::FAILURE)
+    },
+    Err(Error::Invalid { what, position }) => {
+      eprint!("\x1b[31merror\x1b[0m: invalid {what} at position #{position}:\n       ");
+      compiler::format::show_error_position(our_copy, position);
+      eprintln!();
+      info::help(&executable);
+      Err(ExitCode::FAILURE)
+    },
+    Err(Error::Missing { what, position }) => {
+      eprint!("\x1b[31merror\x1b[0m: missing {what} at position #{position}:\n       ");
+      compiler::format::show_error_position(our_copy, position);
+      eprintln!();
+      info::help(&executable);
+      Err(ExitCode::FAILURE)
     },
   }
 }

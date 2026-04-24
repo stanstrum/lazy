@@ -1,6 +1,3 @@
-mod info;
-
-use std::process::ExitCode;
 use std::path::PathBuf;
 
 use compiler::error::Level;
@@ -28,47 +25,6 @@ pub enum Error {
   Help,
 }
 
-pub(super) fn parse_and_display(mut argv: impl Iterator<Item = String>) -> Result<(Settings, Verb), ExitCode> {
-  let Some(executable) = argv.next() else {
-    eprintln!("\x1b[31merror\x1b[0m: argv is empty.  no process name was passed along.");
-    info::help("{executable}");
-
-    return Err(ExitCode::FAILURE);
-  };
-
-  let mut our_copy = vec![executable.clone()];
-
-  let argv = argv.inspect(|argv| {
-    our_copy.push(argv.to_owned());
-  });
-
-  match digest(&executable, argv) {
-    Ok(settings) => Ok(settings),
-    Err(Error::Version) => {
-      info::version();
-      Err(ExitCode::FAILURE)
-    },
-    Err(Error::Help | Error::Verbless) => {
-      info::help(&executable);
-      Err(ExitCode::FAILURE)
-    },
-    Err(Error::Invalid { what, position }) => {
-      eprint!("\x1b[31merror\x1b[0m: invalid {what} at position #{position}:\n       ");
-      compiler::format::show_error_position(our_copy, position);
-      eprintln!();
-      info::help(&executable);
-      Err(ExitCode::FAILURE)
-    },
-    Err(Error::Missing { what, position }) => {
-      eprint!("\x1b[31merror\x1b[0m: missing {what} at position #{position}:\n       ");
-      compiler::format::show_error_position(our_copy, position);
-      eprintln!();
-      info::help(&executable);
-      Err(ExitCode::FAILURE)
-    },
-  }
-}
-
 fn parse_log_level(level: String) -> Option<Level> {
   match level.to_lowercase().as_str() {
     "debug" | "dbg" | "d" => Some(Level::Debug),
@@ -79,7 +35,7 @@ fn parse_log_level(level: String) -> Option<Level> {
   }
 }
 
-fn digest(executable: &str, argv: impl Iterator<Item = String>) -> Result<(Settings, Verb), Error> {
+pub(super) fn digest(executable: &str, argv: impl Iterator<Item = String>) -> Result<(Settings, Verb), Error> {
   let mut input_path = None;
   let mut log_level = None;
   let mut output_path = None;

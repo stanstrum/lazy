@@ -24,7 +24,7 @@ pub struct ModuleTransports {
   pub import_stars: Vec<(QualifiedSearchSpace, Span)>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TypePartId(pub usize);
 
 #[derive(Debug)]

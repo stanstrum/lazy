@@ -1,63 +1,11 @@
-use crate::tokenize::token::{Span, StringKind};
-use ::lang::intrinsic::Intrinsic;
+use crate::tokenize::token::Span;
 use ::lang::span::GetSpan;
-use crate::lang::reference::{ModuleReference, Reference, StructReference, TypePartReference, TypeReference};
+use crate::lang::reference::Reference;
 
 pub type QualifiedSearchSpace = ::lang::ty::QualifiedSearchSpace<crate::lazy::LazyStructures>;
 pub type Qualified = ::lang::ty::Qualified<crate::lazy::LazyStructures>;
 
-#[derive(Debug, Clone)]
-pub enum Type {
-  Reference(TypeReference),
-  Resolved {
-    part: TypePartReference,
-    span: Span,
-  },
-  Unresolved {
-    module: ModuleReference,
-    qualified: Qualified,
-  },
-  Intrinsic {
-    kind: Intrinsic,
-    span: Span,
-  },
-  // Resolved {
-  //   original: Box<Type>,
-  //   reference: TypeReference,
-  // },
-  WeakInteger {
-    span: Span,
-  },
-  WeakFloat {
-    span: Span,
-  },
-  WeakString {
-    kind: StringKind,
-    characters: usize,
-    span: Span,
-    dereferenced: bool,
-  },
-  Weak {
-    span: Span,
-  },
-  ReferenceTo {
-    ty: TypePartReference,
-    r#mut: bool,
-    span: Span,
-  },
-  UnsizedArrayOf {
-    ty: TypePartReference,
-    span: Span,
-  },
-  SizedArrayOf {
-    ty: TypePartReference,
-    size: usize,
-    span: Span,
-  },
-  Struct {
-    prototype: StructReference,
-  },
-}
+pub type Type = ::lang::ty::Type<crate::lazy::LazyStructures>;
 
 impl GetSpan<crate::lazy::LazyStructures> for Type {
   fn get_span(&self, lazy: &crate::Lazy) -> Span {

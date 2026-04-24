@@ -52,6 +52,8 @@ pub trait Compiler: Debug
     reference::Store<Self::ModuleReference, Out = Self::Module> +
     reference::Store<Self::TokensReference, Out = Self::Tokens> +
     reference::Store<Self::StructReference, Out = Self::Struct> +
+    reference::Store<Self::TypeReference, Out = Self::Type> +
+    reference::Store<Self::TypePartReference, Out = Self::Type> +
     reference::Store<Self::OverwriteTypeReference, Out = Self::Type> +
 {
   type Store<'a>;
@@ -66,6 +68,8 @@ pub trait Compiler: Debug
   type StructReference: CompilerReference;
 
   type Type: Debug;
+  type TypeReference: CompilerReference;
+  type TypePartReference: CompilerReference;
   type OverwriteTypeReference: Debug + Clone;
 
   // type Variable;

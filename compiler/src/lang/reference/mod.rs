@@ -20,16 +20,16 @@ pub struct StructReference(pub ModuleReference, pub usize);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ModuleReference(pub usize);
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct BlockReference(pub FunctionReference, pub BlockId);
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ExpressionReference(pub BlockReference, pub ExprId);
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TypePartReference(pub ModuleReference, pub TypePartId);
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TypeReference {
   Alias(AliasReference),
   Part(TypePartReference),
@@ -40,7 +40,7 @@ pub enum TypeReference {
   StructMember(StructReference, usize),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VariableReference {
   Block(BlockReference, usize),
   Argument(FunctionReference, usize),

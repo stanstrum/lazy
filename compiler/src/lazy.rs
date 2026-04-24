@@ -202,5 +202,7 @@ impl lang::Compiler for LazyStructures {
   type Struct = crate::lang::module::struc::Struct;
   type StructReference = crate::lang::reference::StructReference;
   type Type = crate::lang::ty::Type;
+  type TypeReference = crate::lang::reference::TypeReference;
+  type TypePartReference = crate::lang::reference::TypePartReference;
   type OverwriteTypeReference = crate::resolve::tasks::OverwriteTypeReference;
 }

@@ -14,18 +14,8 @@ use crate::tokenize::token::Span;
 #[derive(Debug, Clone, Copy)]
 pub struct TokensId(pub usize);
 
-#[derive(Debug)]
-pub struct ModulePath {
-  pub path: PathBuf,
-  pub tokens: TokensId,
-  pub module: ModuleReference,
-}
-
-#[derive(Debug)]
-pub enum ModuleParent {
-  Path(ModulePath),
-  Module(ModuleReference),
-}
+pub type ModulePath = ::lang::module::ModulePath<TokensId, ModuleReference>;
+pub type ModuleParent = ::lang::module::ModuleParent<TokensId, ModuleReference>;
 
 #[derive(Debug)]
 pub struct ModuleTransports {
@@ -55,11 +45,7 @@ pub struct TypeAlias {
   pub span: Span,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct Name {
-  pub id: PoolId,
-  pub span: Span,
-}
+pub type Name = ::lang::module::Name<ModuleReference>;
 
 impl Module {
   pub fn new(name: PoolId, parent: ModuleParent) -> Self {

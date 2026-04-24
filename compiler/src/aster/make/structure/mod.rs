@@ -1,10 +1,8 @@
-use crate::print_message;
-
 mod module;
 mod import;
 mod traverser;
 
-use crate::line_dbg;
+use crate::{line_dbg, print_message};
 
 use crate::lang::reference::AliasReference;
 use crate::lang::span::GetSpan;

@@ -4,6 +4,8 @@ pub mod span;
 pub mod special;
 pub mod intrinsic;
 pub mod ty;
+pub mod module;
+pub mod reference;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Token {
@@ -38,4 +40,8 @@ impl From<StringKind> for intrinsic::Intrinsic {
       StringKind::Byte | StringKind::C => Self::U8,
     }
   }
+}
+
+trait Compiler {
+  type Module;
 }

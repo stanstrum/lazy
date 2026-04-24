@@ -31,10 +31,7 @@ pub struct ResolveAsTask<R: Resolve> {
 
 impl From<TypePair> for OverwriteTypeReference {
   fn from(value: TypePair) -> Self {
-    Self {
-      reference: value.reference,
-      modifiers: value.modifiers,
-    }
+    value.overwrite.clone()
   }
 }
 
@@ -45,8 +42,7 @@ impl Pretty for OverwriteTypeReference {
     let ty = self.reference.rget_from(lazy);
 
     TypePair {
-      reference: self.reference,
-      modifiers: self.modifiers.clone(),
+      overwrite: self.reference.into(),
       ty: ty.clone(),
     }.print(lazy)
   }

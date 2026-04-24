@@ -40,11 +40,7 @@ impl<T: TypeOf> DereferenceType for T {
 
         reference.modifiers.push(TypePairModifier::Dereference);
 
-        Some(TypePair {
-          reference: reference.reference,
-          modifiers: reference.modifiers,
-          ty,
-        })
+        Some(TypePair { overwrite: reference, ty, })
       }),
       Type::Weak { .. } => Ok(None),
       Type::ReferenceTo { ty, r#mut: reference_mut, .. } => Ok({
@@ -54,8 +50,7 @@ impl<T: TypeOf> DereferenceType for T {
           reference.modifiers.push(TypePairModifier::Dereference);
 
           TypePair {
-            reference: reference.reference,
-            modifiers: reference.modifiers,
+            overwrite: reference,
             ty: Type::Reference(TypeReference::Part(ty)),
           }
         })

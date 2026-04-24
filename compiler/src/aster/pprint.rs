@@ -29,11 +29,11 @@ impl Pretty for TypePair {
   type Out = String;
 
   fn print(&self, lazy: &Lazy) -> Self::Out {
-    let reference = self.reference.print(lazy);
+    let reference = self.overwrite.print(lazy);
 
-    let mut out = format!("/* {{pair}} */ {reference}");
+    let mut out = format!("/* {{pair := {}}} */ {reference}", self.ty.print(lazy));
 
-    for modifier in self.modifiers.iter() {
+    for modifier in self.overwrite.modifiers.iter() {
       match modifier {
         TypePairModifier::Dereference => out = format!("Dereference<{out}>"),
       };

@@ -38,8 +38,7 @@ impl Coerce for OverwriteTypeReference {
     };
 
     TypePair {
-      reference: self.reference,
-      modifiers: self.modifiers.clone(),
+      overwrite: self.clone(),
       ty,
     }.coerce(lazy, other, tasks)
   }

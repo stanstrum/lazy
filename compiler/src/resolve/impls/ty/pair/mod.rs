@@ -31,7 +31,7 @@ impl TypeOf for TypePair {
 impl Resolve for TypePair {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
     let description = format!(line_dbg!("Resolve TypePair:\n- Ref.: {}\n- Type: {}"),
-      self.reference.print(lazy),
+      self.overwrite.print(lazy),
       self.ty.print(lazy),
     );
 
@@ -45,7 +45,7 @@ impl Resolve for TypePair {
                 src: ty,
               }),
               after: Box::new(tasks::ResolveAsTask::<TypeReference> {
-                reference: self.reference,
+                reference: self.overwrite.reference,
               }),
             }, line_dbg!("here"));
           };
@@ -84,12 +84,12 @@ impl Resolve for TypePair {
 
 impl Coerce for TypePair {
   fn coerce(&self, lazy: &Lazy, other_ref: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
-    let a = self.reference.print(lazy);
+    let a = self.overwrite.print(lazy);
     let b = self.ty.print(lazy);
     let c = other_ref.type_of(lazy)
       .map(|x| x.print(lazy))
       .unwrap_or_else(|| "{none}".into());
-    let d = format!("{:?}", &self.modifiers);
+    let d = format!("{:?}", &self.overwrite.modifiers);
 
     let description = format!(
       line_dbg!("Coerce TypePair\n- Reference: {}\n- Modifiers: {}\n- Type:      {}\n- Coerce w/: {}"),
@@ -159,10 +159,7 @@ impl Coerce for TypePair {
         },
         (Type::Weak { .. }, _) => {
           tasks.push(tasks::OverwriteType {
-            dest: OverwriteTypeReference {
-              reference: self.reference,
-              modifiers: self.modifiers.clone(),
-            },
+            dest: self.overwrite.clone(),
             src: other,
           }, line_dbg!("here"));
 
@@ -192,7 +189,7 @@ impl Coerce for TypePair {
               src,
             }),
             after: Box::new(tasks::ResolveAsTask {
-              reference: self.reference,
+              reference: self.overwrite.reference,
             }),
           };
 
@@ -319,7 +316,7 @@ pub(in crate::resolve::impls) fn default_types_of_type_pair(lazy: &mut Lazy, pai
       };
 
       let src = {
-        let parent_module = pair.reference.parent_module(lazy);
+        let parent_module = pair.overwrite.reference.parent_module(lazy);
 
         let element_intrinsic = kind.into();
         let element_part = Type::Intrinsic { kind: element_intrinsic, span };

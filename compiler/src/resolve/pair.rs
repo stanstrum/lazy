@@ -1,5 +1,6 @@
 use crate::lang::ty::Type;
 use crate::lang::reference::TypeReference;
+use crate::resolve::tasks::OverwriteTypeReference;
 
 #[derive(Debug, Clone, Copy)]
 pub enum TypePairModifier {
@@ -8,17 +9,15 @@ pub enum TypePairModifier {
 
 #[derive(Debug, Clone)]
 pub struct TypePair {
-  pub reference: TypeReference,
+  pub overwrite: OverwriteTypeReference,
   pub ty: Type,
-  pub modifiers: Vec<TypePairModifier>,
 }
 
 impl TypePair {
   pub fn new(reference: TypeReference, ty: Type) -> Self {
     Self {
-      reference,
+      overwrite: reference.into(),
       ty,
-      modifiers: vec![],
     }
   }
 }

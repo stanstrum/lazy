@@ -110,7 +110,7 @@ pub fn make_block_statement<'pool, C: Compiler, const N: usize, T: Read>(
       };
 
       let id = function.rget_from_mut(store).add_expr(assignment);
-      lang::expr::ExpressionReference(block, id)
+      ExpressionReference(block, id)
     })
   } else if let Some(expr) = make_expr(store, stream, module, block)? {
     Some(expr)
@@ -188,7 +188,7 @@ pub(super) fn make_block<'pool, C: Compiler, const N: usize, T: Read>(
     let empty_block = lang::expr::BlockExpression::new_dirty(parent, span);
     let id = store.rget_mut(function).add_block(empty_block);
 
-    return Ok(Some(lang::BlockReference(function, id)));
+    return Ok(Some(lang::reference::BlockReference(function, id)));
   };
 
   let Some((Token::Indent(0..), _)) = indenter.peek(stream)? else {
@@ -236,7 +236,7 @@ pub(super) fn make_block<'pool, C: Compiler, const N: usize, T: Read>(
     let reference = ExpressionReference(block, index);
 
     lang::ty::Type::Reference(
-      lang::TypeReference::Expression(reference)
+      lang::reference::TypeReference::Expression(reference)
     )
   } else {
     lang::ty::Type::Intrinsic {

@@ -1,4 +1,4 @@
-use crate::lang::{ExpressionReference, Reference};
+use lang::reference::{ExpressionReference, Reference};
 use ::lang::span::GetSpan;
 use crate::line_dbg;
 
@@ -6,11 +6,11 @@ use ::lang::token::Operator;
 
 use super::*;
 
-pub(super) fn make_function_argument<'pool, const N: usize, T: Read>(
-  lazy: &mut crate::Lazy<'pool>,
-  stream: &mut Rereader<'pool, N, T>,
-  parent: lang::ModuleReference,
-) -> Result<Option<lang::expr::Variable>, Error> {
+pub(super) fn make_function_argument<'pool, C: Compiler, const N: usize, T: Read>(
+  lazy: &mut C::Store<'pool>,
+  stream: &mut Rereader<'pool, C, N, T>,
+  parent: C::ModuleReference,
+) -> Result<Option<lang::expr::Variable<C>>, Error<C>> {
   let Some(ty) = ty::make_type(lazy, stream, parent)? else {
     return Ok(None);
   };
@@ -33,11 +33,11 @@ pub(super) fn make_function_argument<'pool, const N: usize, T: Read>(
   }))
 }
 
-fn make_function_header<'pool, const N: usize, T: Read>(
-  lazy: &mut crate::Lazy<'pool>,
-  stream: &mut Rereader<'pool, N, T>,
-  parent: lang::ModuleReference,
-) -> Result<Option<lang::function::FunctionHeader>, Error> {
+fn make_function_header<'pool, C: Compiler, const N: usize, T: Read>(
+  lazy: &mut C::Store<'pool>,
+  stream: &mut Rereader<'pool, C, N, T>,
+  parent: C::ModuleReference,
+) -> Result<Option<lang::function::FunctionHeader<C>>, Error<C>> {
   let Some(name) = make_name(stream)? else {
     return Ok(None);
   };
@@ -103,11 +103,11 @@ fn make_function_header<'pool, const N: usize, T: Read>(
   }))
 }
 
-pub(super) fn make_function<'pool, const N: usize, T: Read>(
-  lazy: &mut crate::Lazy<'pool>,
-  stream: &mut Rereader<'pool, N, T>,
-  module: lang::ModuleReference,
-) -> Result<Option<lang::FunctionReference>, Error> {
+pub(super) fn make_function<'pool, C: Compiler, const N: usize, T: Read>(
+  lazy: &mut C::Store<'pool>,
+  stream: &mut Rereader<'pool, C, N, T>,
+  module: C::ModuleReference,
+) -> Result<Option<C::FunctionReference>, Error<C>> {
   let Some(header) = make_function_header(lazy, stream, module)? else {
     return Ok(None);
   };
@@ -146,7 +146,7 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
     );
 
     let expr_reference = ExpressionReference(body, last);
-    body_ref.out = lang::ty::Type::Reference(lang::TypeReference::Expression(expr_reference));
+    body_ref.out = lang::ty::Type::Reference(lang::reference::TypeReference::Expression(expr_reference));
   };
 
   function.rget_from_mut(lazy).span.end = stream.here()?.start;

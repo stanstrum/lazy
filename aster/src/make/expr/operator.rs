@@ -6,7 +6,7 @@ use lang::expr::operator::{BinaryOperator, UnaryPrefixOperator, UnarySuffixOpera
 use super::*;
 
 pub(super) fn make_unary_prefix<'pool, C: Compiler, const N: usize, T: Read>(
-  stream: &mut Rereader<'pool, N, T>,
+  stream: &mut Rereader<'pool, C, N, T>,
 ) -> Result<Option<(UnaryPrefixOperator, Span<C>)>, Error<C>> {
   let Some((Token::Operator(token), mut span)) = stream.peek()? else {
     return Ok(None);
@@ -79,12 +79,12 @@ pub(super) fn make_unary_prefix<'pool, C: Compiler, const N: usize, T: Read>(
   Ok(Some((op, span)))
 }
 
-pub(super) fn make_unary_suffix<'pool, const N: usize, T: Read>(
-  lazy: &mut crate::Lazy<'pool>,
-  stream: &mut Rereader<'pool, N, T>,
-  module: lang::ModuleReference,
-  block: lang::BlockReference,
-) -> Result<Option<(UnarySuffixOperator, Span)>, Error> {
+pub(super) fn make_unary_suffix<'pool, C: Compiler, const N: usize, T: Read>(
+  lazy: &mut C::Store<'pool>,
+  stream: &mut Rereader<'pool, C, N, T>,
+  module: C::ModuleReference,
+  block: BlockReference<C>,
+) -> Result<Option<(UnarySuffixOperator<C>, Span<C>)>, Error<C>> {
   if let Some((Token::Operator(Operator::DoublePlus), span)) = stream.peek()? {
     stream.seek();
     return Ok(Some((UnarySuffixOperator::PostIncrement, span)));
@@ -168,12 +168,12 @@ pub(super) fn make_unary_suffix<'pool, const N: usize, T: Read>(
 //   Ok(None)
 // }
 
-pub(super) fn make_binary_op<'pool, const N: usize, T: Read>(
-  _lazy: &mut crate::Lazy<'pool>,
-  stream: &mut Rereader<'pool, N, T>,
-  _module: lang::ModuleReference,
-  _function: lang::FunctionReference,
-) -> Result<Option<(BinaryOperator, Span)>, Error> {
+pub(super) fn make_binary_op<'pool, C: Compiler, const N: usize, T: Read>(
+  _lazy: &mut C::Store<'pool>,
+  stream: &mut Rereader<'pool, C, N, T>,
+  _module: C::ModuleReference,
+  _function: C::FunctionReference,
+) -> Result<Option<(BinaryOperator, Span<C>)>, Error<C>> {
   let Some((Token::Operator(token), mut span)) = stream.peek()? else {
     return Ok(None);
   };

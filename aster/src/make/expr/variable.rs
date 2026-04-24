@@ -5,14 +5,14 @@ use crate::make::{make_name, ty};
 
 use super::*;
 
-type Value = (lang::expr::Variable, Option<lang::ExpressionReference>);
+type Value<C> = (lang::expr::Variable<C>, Option<lang::reference::ExpressionReference<C>>);
 
 pub fn make_assignment<'pool, C: Compiler, const N: usize, T: Read>(
   store: &mut C::Store<'pool>,
-  stream: &mut Rereader<'pool, N, T>,
-  module: lang::ModuleReference,
-  block: lang::BlockReference,
-) -> Result<Option<Value>, Error<C>> {
+  stream: &mut Rereader<'pool, C, N, T>,
+  module: C::ModuleReference,
+  block: BlockReference<C>,
+) -> Result<Option<Value<C>>, Error<C>> {
   let ret_mark = stream.mark();
 
   let Some(ty) = ty::make_type(store, stream, module)? else {

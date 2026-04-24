@@ -1,10 +1,10 @@
-use crate::print_message;
+use lazy_macros::print_message;
 
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
 use ::lang::span::GetSpan;
-use crate::lang::expr::operator::{BinaryOperator, UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
+use ::lang::expr::operator::{BinaryOperator, UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 
 use super::*;
 
@@ -26,7 +26,7 @@ enum Pemdas {
   Assign,
 }
 
-fn debug_gspan(lazy: &crate::Lazy, part: &ExpressionPart) -> Span {
+fn debug_gspan<C: Compiler>(lazy: &C::Store<'_>, part: &ExpressionPart<C>) -> Span<C> {
   match part {
     | &ExpressionPart::UnaryPrefix((_, span))
     | &ExpressionPart::UnarySuffix((_, span))
@@ -36,16 +36,16 @@ fn debug_gspan(lazy: &crate::Lazy, part: &ExpressionPart) -> Span {
   }
 }
 
-fn find_left_expr(cursor: usize, parts: &[ExpressionPart]) -> Option<usize> {
+fn find_left_expr<C: Compiler>(cursor: usize, parts: &[ExpressionPart<C>]) -> Option<usize> {
   parts[..cursor].iter().rposition(|part| matches!(part, ExpressionPart::Expression(_)))
 }
 
-fn find_right_expr(cursor: usize, parts: &[ExpressionPart]) -> Option<usize> {
+fn find_right_expr<C: Compiler>(cursor: usize, parts: &[ExpressionPart<C>]) -> Option<usize> {
   parts[cursor..].iter().position(|part| matches!(part, ExpressionPart::Expression(_)))
     .map(|offset| cursor + offset)
 }
 
-fn melt_left(lazy: &mut crate::Lazy, cursor: &mut usize, parts: &mut Vec<ExpressionPart>) -> Result<lang::ExpressionReference, Error> {
+fn melt_left<C: Compiler>(lazy: &mut C::Store<'_>, cursor: &mut usize, parts: &mut Vec<ExpressionPart<C>>) -> Result<ExpressionReference<C>, Error<C>> {
   let left = find_left_expr(*cursor, parts).unwrap();
   let melt_start = left + 1;
   let melt_end = (*cursor).min(parts.len());
@@ -77,7 +77,7 @@ fn melt_left(lazy: &mut crate::Lazy, cursor: &mut usize, parts: &mut Vec<Express
       out: lang::ty::Type::Weak { span },
     };
     let new_id = function.rget_from_mut(lazy).add_expr(new_expr);
-    expr = lang::ExpressionReference(block, new_id);
+    expr = ExpressionReference(block, new_id);
   };
 
   *parts.get_mut(left).unwrap() = ExpressionPart::Expression(expr);
@@ -86,7 +86,7 @@ fn melt_left(lazy: &mut crate::Lazy, cursor: &mut usize, parts: &mut Vec<Express
   Ok(expr)
 }
 
-fn melt_right(lazy: &mut crate::Lazy, cursor: usize, parts: &mut Vec<ExpressionPart>) -> Result<lang::ExpressionReference, Error> {
+fn melt_right<C: Compiler>(lazy: &mut C::Store<'_>, cursor: usize, parts: &mut Vec<ExpressionPart<C>>) -> Result<ExpressionReference<C>, Error<C>> {
   let right = find_right_expr(cursor, parts).unwrap();
   let melt_start = cursor;
   let melt_end = right;
@@ -118,7 +118,7 @@ fn melt_right(lazy: &mut crate::Lazy, cursor: usize, parts: &mut Vec<ExpressionP
       out: lang::ty::Type::Weak { span },
     };
     let new_id = function.rget_from_mut(lazy).add_expr(new_expr);
-    expr = lang::ExpressionReference(block, new_id);
+    expr = ExpressionReference(block, new_id);
   };
 
   *parts.get_mut(cursor).unwrap() = ExpressionPart::Expression(expr);
@@ -126,7 +126,7 @@ fn melt_right(lazy: &mut crate::Lazy, cursor: usize, parts: &mut Vec<ExpressionP
   Ok(expr)
 }
 
-pub(crate) fn melt(lazy: &mut crate::Lazy, mut parts: Vec<ExpressionPart>) -> Result<lang::ExpressionReference, Error> {
+pub(crate) fn melt<C: Compiler>(lazy: &mut C::Store<'_>, mut parts: Vec<ExpressionPart<C>>) -> Result<ExpressionReference<C>, Error<C>> {
   for step in Pemdas::iter() {
     let mut i = 0;
 
@@ -231,7 +231,7 @@ pub(crate) fn melt(lazy: &mut crate::Lazy, mut parts: Vec<ExpressionPart>) -> Re
             out: lang::ty::Type::Weak { span },
           };
           let id = function.rget_from_mut(lazy).add_expr(expr);
-          let reference = lang::ExpressionReference(block, id);
+          let reference = ExpressionReference(block, id);
 
           parts.drain(i - 1 ..= i + 1);
           i -= 1;

@@ -7,10 +7,10 @@ use super::*;
 
 pub(super) fn make_struct_initializer<'pool, C: Compiler, const N: usize, T: Read>(
   store: &mut C::Store<'pool>,
-  stream: &mut Rereader<'pool, N, T>,
-  module: lang::ModuleReference,
-  block: lang::BlockReference,
-) -> Result<Option<lang::expr::Expression>, Error<C>> {
+  stream: &mut Rereader<'pool, C, N, T>,
+  module: C::ModuleReference,
+  block: BlockReference<C>,
+) -> Result<Option<lang::expr::Expression<C>>, Error<C>> {
   let ret_mark = stream.mark();
 
   // Take care of the indentation; I have picked a very sketchy way of managing

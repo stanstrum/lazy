@@ -41,7 +41,7 @@ fn new_weak_string<C: Compiler>(
 
 pub(super) fn make_literal<'pool, C: Compiler, const N: usize, T: Read>(
   store: &mut C::Store<'pool>,
-  stream: &mut Rereader<'pool, N, T>,
+  stream: &mut Rereader<'pool, C, N, T>,
 ) -> Result<Option<lang::expr::Expression<C>>, Error<C>> {
   if let Some((Token::Numeric(value), span)) = stream.peek()? {
     stream.seek();
@@ -70,7 +70,7 @@ pub(super) fn make_literal<'pool, C: Compiler, const N: usize, T: Read>(
 
 fn make_expr_part<'pool, C: Compiler, const N: usize, T: Read>(
   store: &mut C::Store<'pool>,
-  stream: &mut Rereader<'pool, N, T>,
+  stream: &mut Rereader<'pool, C, N, T>,
   module: C::ModuleReference,
   block: BlockReference<C>,
 ) -> Result<Option<ExpressionReference<C>>, Error<C>> {
@@ -112,7 +112,7 @@ enum ExpressionPart<C: Compiler> {
 
 pub(super) fn make_expr<'pool, C: Compiler, const N: usize, T: Read>(
   store: &mut C::Store<'pool>,
-  stream: &mut Rereader<'pool, N, T>,
+  stream: &mut Rereader<'pool, C, N, T>,
   module: C::ModuleReference,
   block: BlockReference<C>,
 ) -> Result<Option<ExpressionReference<C>>, Error<C>> {

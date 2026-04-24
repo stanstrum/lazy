@@ -28,13 +28,13 @@ pub(super) fn traverse_import(
   Ok(())
 }
 
-fn traverse_group(
-  lazy: &mut crate::Lazy,
-  module: &lang::ModuleReference,
-  source: &lang::ModuleReference,
-  group: &lang::module::import::ImportGroup,
-  stack: &mut Vec<lang::module::Name>,
-) -> Result<usize, Error> {
+fn traverse_group<C: Compiler>(
+  lazy: &mut C::Store<'_>,
+  module: &C::ModuleReference,
+  source: &C::ModuleReference,
+  group: &lang::import::ImportGroup<C>,
+  stack: &mut Vec<lang::module::Name<C>>,
+) -> Result<usize, Error<C>> {
   let mut count = 0;
 
   for part in group.selectors.iter() {
@@ -44,16 +44,16 @@ fn traverse_group(
   Ok(count)
 }
 
-fn insert_to_import_map(
-  lazy: &mut crate::Lazy,
-  module: &lang::ModuleReference,
+fn insert_to_import_map<C: Compiler>(
+  lazy: &mut C::Store<'_>,
+  module: &C::ModuleReference,
   key: string_pool::PoolId,
-  value: lang::ty::Qualified,
-) -> Result<(), Error> {
+  value: lang::ty::Qualified<C>,
+) -> Result<(), Error<C>> {
   let map = &mut module.rget_from_mut(lazy).transports.import_map;
 
   if map.contains_key(&key) {
-    let id_text = lazy.pool.get(key);
+    let id_text = lazy.pool().get(key);
 
     panic!("id {key:?} already exists: {id_text}");
   };

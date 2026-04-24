@@ -5,8 +5,11 @@ mod structure;
 
 use std::io::Read;
 
-use lang::reference::{Reference, Store, Span, Token, TokenSpan};
-use crate::aster::Rereader;
+use lang::{Compiler, CompilerPoolStore};
+use lang::reference::{Reference, Store};
+use lang::span::{Span};
+use lang::token::{Token, TokenSpan};
+use crate::rereader::Rereader;
 
 use super::Error;
 
@@ -25,9 +28,9 @@ macro_rules! line_dbg {
 struct Indenter(pub usize);
 
 impl Indenter {
-  fn peek<'pool, const N: usize, T: Read>(
-    &self, stream: &mut Rereader<'pool, N, T>
-  ) -> Result<Option<TokenSpan>, Error> {
+  fn peek<'pool, C: Compiler, const N: usize, T: Read>(
+    &self, stream: &mut Rereader<'pool, C, N, T>
+  ) -> Result<Option<TokenSpan<C>>, Error<C>> {
     let Some(peek @ (_, span)) = stream.peek()? else {
       return Ok(None);
     };
@@ -52,17 +55,17 @@ impl Indenter {
   // }
 }
 
-impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
-  fn indenter_here(&mut self) -> Result<Indenter, Error> {
+impl<'pool, C: Compiler, const N: usize, T: Read> Rereader<'pool, C, N, T> {
+  fn indenter_here(&mut self) -> Result<Indenter, Error<C>> {
     let (_, peek_span) = self.peek()?.expect("there to be another token");
     Ok(Indenter(peek_span.start.indentation))
   }
 
-  fn is_done(&mut self) -> Result<bool, Error> {
+  fn is_done(&mut self) -> Result<bool, Error<C>> {
     Ok(self.peek()?.is_none())
   }
 
-  fn skip_whitespace_and_comments(&mut self) -> Result<bool, Error> {
+  fn skip_whitespace_and_comments(&mut self) -> Result<bool, Error<C>> {
     let mut did_skip = false;
 
     loop {
@@ -77,7 +80,7 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
     Ok(did_skip)
   }
 
-  fn here(&mut self) -> Result<Span, Error> {
+  fn here(&mut self) -> Result<Span<C>, Error<C>> {
     if let Some((_, span)) = self.peek()? {
       return Ok(span);
     };
@@ -93,7 +96,7 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
     })
   }
 
-  fn expected_here<V>(&mut self, what: &'static str) -> Result<V, Error> {
+  fn expected_here<V>(&mut self, what: &'static str) -> Result<V, Error<C>> {
     Err(Error::Expected {
       what,
       at: self.here()?,
@@ -101,9 +104,9 @@ impl<'pool, const N: usize, T: Read> Rereader<'pool, N, T> {
   }
 }
 
-fn make_name<'pool, const N: usize, T: Read>(
-  stream: &mut Rereader<'pool, N, T>
-) -> Result<Option<lang::module::Name>, Error> {
+fn make_name<'pool, C: Compiler, const N: usize, T: Read>(
+  stream: &mut Rereader<'pool, C, N, T>
+) -> Result<Option<lang::module::Name<C>>, Error<C>> {
   let Some((Token::Identifier(id), span)) = stream.peek()? else {
     return Ok(None);
   };
@@ -112,10 +115,10 @@ fn make_name<'pool, const N: usize, T: Read>(
   Ok(Some(lang::module::Name { id, span }))
 }
 
-pub(super) fn make<'pool, const N: usize, T: Read>(
-  lazy: &mut crate::Lazy<'pool>,
-  stream: &mut Rereader<'pool, N, T>
-) -> Result<(), Error> {
+pub(super) fn make<'pool, C: Compiler, const N: usize, T: Read>(
+  lazy: &mut C::Store<'pool>,
+  stream: &mut Rereader<'pool, C, N, T>
+) -> Result<(), Error<C>> {
   loop {
     stream.skip_whitespace_and_comments()?;
 

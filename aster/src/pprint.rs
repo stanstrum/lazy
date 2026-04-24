@@ -1,3 +1,4 @@
+use lang::{Compiler, CompilerPoolStore};
 use string_pool::PoolId;
 
 use ::lang::token::{NumericValue, StringKind};
@@ -10,27 +11,27 @@ use ::lang::module::{Module, Name};
 use ::lang::function::Function;
 use ::resolve::{TypeOf, TypePair, TypePairModifier};
 
-pub trait Pretty {
+pub trait Pretty<C: Compiler> {
   type Out;
 
-  fn print(&self, lazy: &Lazy) -> Self::Out;
+  fn print(&self, store: &C::Store<'_>) -> Self::Out;
 }
 
-impl Pretty for PoolId {
+impl<C: Compiler> Pretty<C> for PoolId {
   type Out = String;
 
-  fn print(&self, lazy: &Lazy) -> Self::Out {
-    lazy.pool.get(*self)
+  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+    store.pool().get(*self)
   }
 }
 
-impl Pretty for TypePair {
+impl<C: Compiler> Pretty<C> for TypePair {
   type Out = String;
 
-  fn print(&self, lazy: &Lazy) -> Self::Out {
-    let reference = self.overwrite.print(lazy);
+  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+    let reference = self.overwrite.print(store);
 
-    let mut out = format!("/* {{pair := {}}} */ {reference}", self.ty.print(lazy));
+    let mut out = format!("/* {{pair := {}}} */ {reference}", self.ty.print(store));
 
     for modifier in self.overwrite.modifiers.iter() {
       match modifier {
@@ -42,30 +43,30 @@ impl Pretty for TypePair {
   }
 }
 
-impl Pretty for TypePartReference {
+impl<C: Compiler> Pretty<C> for TypePartReference<C> {
   type Out = String;
 
-  fn print(&self, lazy: &Lazy) -> Self::Out {
-    self.rget_from(lazy).print(lazy)
+  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+    self.rget_from(store).print(store)
   }
 }
 
-impl Pretty for Qualified {
+impl<C: Compiler> Pretty<C> for Qualified<C> {
   type Out = String;
 
-  fn print(&self, lazy: &Lazy) -> Self::Out {
+  fn print(&self, store: &C::Store<'_>) -> Self::Out {
     let mut out = String::new();
 
     match &self.implicit {
       QualifiedSearchSpace::Implicit => {},
       &QualifiedSearchSpace::Module(module_reference) => {
-        out += &lazy.describe_module(module_reference);
+        out += &store.describe_module(module_reference);
       },
       QualifiedSearchSpace::Intrinsic { kind, .. } => {
         out += &kind.to_string();
       }
       QualifiedSearchSpace::Type(type_reference) => {
-        out += &type_reference.print(lazy);
+        out += &type_reference.print(store);
       },
       QualifiedSearchSpace::Struct(_) => todo!(),
     };
@@ -77,78 +78,78 @@ impl Pretty for Qualified {
         out += "::";
       };
 
-      out += part.id.print(lazy).as_str();
+      out += part.id.print(store).as_str();
     };
 
     out
   }
 }
 
-impl Pretty for FunctionReference {
+impl<C: Compiler> Pretty<C> for C::FunctionReference {
   type Out = String;
 
-  fn print(&self, lazy: &Lazy) -> Self::Out {
-    let function = self.rget_from(lazy);
-    let path = lazy.describe_module(function.parent);
-    let name = function.header.name.print(lazy);
+  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+    let function = self.rget_from(store);
+    let path = store.describe_module(function.parent);
+    let name = function.header.name.print(store);
 
     format!("{path}::{name}")
   }
 }
 
-impl Pretty for ExpressionReference {
+impl<C: Compiler> Pretty<C> for ExpressionReference<C> {
   type Out = String;
 
-  fn print(&self, lazy: &Lazy) -> Self::Out {
-    let Span { start, end, .. } = self.rget_from(lazy).get_span(lazy);
+  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+    let Span { start, end, .. } = self.rget_from(store).get_span(store);
 
     format!("expr {}:{} - {}:{}", start.line, start.column, end.line, end.column)
   }
 }
 
-impl Pretty for BlockReference {
+impl<C: Compiler> Pretty<C> for BlockReference<C> {
   type Out = String;
 
-  fn print(&self, lazy: &Lazy) -> Self::Out {
-    let Span { start, end, .. } = self.rget_from(lazy).span;
+  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+    let Span { start, end, .. } = self.rget_from(store).span;
     format!("block {}:{} - {}:{}", start.line, start.column, end.line, end.column)
   }
 }
 
-impl Pretty for TypeReference {
+impl<C: Compiler> Pretty<C> for TypeReference<C> {
   type Out = String;
 
-  fn print(&self, lazy: &Lazy) -> Self::Out {
+  fn print(&self, store: &C::Store<'_>) -> Self::Out {
     match self {
-      TypeReference::Part(part) => part.rget_from(lazy).print(lazy),
+      TypeReference::Part(part) => part.rget_from(store).print(store),
       TypeReference::ReturnTypeOf(function) => {
-        format!("ReturnType<{}>", function.print(lazy))
+        format!("ReturnType<{}>", function.print(store))
       },
       TypeReference::Alias(alias ) => {
-        let path = lazy.describe_module(alias.0);
-        let name = alias.rget_from(lazy).name.print(lazy);
+        let path = store.describe_module(alias.0);
+        let name = alias.rget_from(store).name.print(store);
         format!("{path}::{name}")
       },
       TypeReference::Variable(VariableReference::Argument(parent, index)) => {
-        format!("ArgumentOf<{}>[{index}]", parent.print(lazy))
+        format!("ArgumentOf<{}>[{index}]", parent.print(store))
       },
       TypeReference::Variable(v @ VariableReference::Block(block, _)) => {
-        let name = v.rget_from(lazy).name;
+        let name = v.rget_from(store).name;
 
-        format!("typeof {{{} {}}}::{}", v.parent().print(lazy), block.print(lazy), name.print(lazy))
+        format!("typeof {{{} {}}}::{}", v.parent().print(store), block.print(store), name.print(store))
       },
       TypeReference::Expression(expression) => {
-        let type_print = expression.type_of(lazy).map(|s| format!(" /* {} */", s.print(lazy)));
+        let type_print = expression.type_of(store).map(|s| format!(" /* {} */", s.print(store)));
         let type_print = type_print.as_deref().unwrap_or_default();
 
-        format!("typeof {{{}}}{type_print}", expression.print(lazy))
+        format!("typeof {{{}}}{type_print}", expression.print(store))
       },
-      TypeReference::Block(block) => format!("typeof {{{}}}", block.print(lazy)),
+      TypeReference::Block(block) => format!("typeof {{{}}}", block.print(store)),
       TypeReference::StructMember(struct_reference, id) => {
-        let struct_borrow = struct_reference.rget_from(lazy);
+        let struct_borrow = struct_reference.rget_from(store);
         let member = struct_borrow.members.get(*id).unwrap();
-        let member_name = member.name.print(lazy);
-        let parent_name = lazy.describe_module(struct_reference.0);
+        let member_name = member.name.print(store);
+        let parent_name = store.describe_module(struct_reference.0);
 
         format!("{parent_name}::{member_name}")
       },
@@ -156,18 +157,18 @@ impl Pretty for TypeReference {
   }
 }
 
-impl Pretty for Type {
+impl<C: Compiler> Pretty<C> for Type<C> {
   type Out = String;
 
-  fn print(&self, lazy: &Lazy) -> Self::Out {
+  fn print(&self, store: &C::Store<'_>) -> Self::Out {
     match self {
-      // Type::Reference(reference) => reference.print(lazy),
-      Type::Unresolved { qualified, .. } => format!("{{unknown}} {}", qualified.print(lazy)),
+      // Type::Reference(reference) => reference.print(store),
+      Type::Unresolved { qualified, .. } => format!("{{unknown}} {}", qualified.print(store)),
       Type::Intrinsic { kind, .. } => kind.to_string(),
       // Type::Resolved { original, reference } => {
       //   format!("/* {deferred} */ {original}",
-      //     deferred = reference.print(lazy),
-      //     original = original.print(lazy),
+      //     deferred = reference.print(store),
+      //     original = original.print(store),
       //   )
       // },
       Type::WeakFloat { .. } => "{weak float}".into(),
@@ -175,21 +176,21 @@ impl Pretty for Type {
       Type::WeakString { .. } => "{weak string}".into(),
       Type::ReferenceTo { ty, r#mut, .. } => format!("&{mutable}{ty}",
         mutable = if *r#mut { "mut " } else { "" },
-        ty = ty.print(lazy),
+        ty = ty.print(store),
       ),
-      Type::SizedArrayOf { ty, size, .. } => format!("[{size}]{}", ty.print(lazy)),
-      Type::UnsizedArrayOf { ty, .. } => format!("[]{}", ty.print(lazy)),
+      Type::SizedArrayOf { ty, size, .. } => format!("[{size}]{}", ty.print(store)),
+      Type::UnsizedArrayOf { ty, .. } => format!("[]{}", ty.print(store)),
       // Type::Expression(expression) => {
-      //   let fname = lazy[expression.function].header.name.print(lazy);
+      //   let fname = store[expression.function].header.name.print(store);
       //   let index = expression.index;
       //   format!("/* typeof {fname}:{index:?} */")
       // },
-      Type::Resolved { part, .. } => format!("|{}|", part.print(lazy)),
-      Type::Reference(reference) => format!("|{}|", reference.print(lazy)),
+      Type::Resolved { part, .. } => format!("|{}|", part.print(store)),
+      Type::Reference(reference) => format!("|{}|", reference.print(store)),
       Type::Weak { .. } => "{weak}".into(),
       Type::Struct { prototype } => {
-        let parent_name = lazy.describe_module(prototype.0);
-        let name = prototype.rget_from(lazy).name.print(lazy);
+        let parent_name = store.describe_module(prototype.0);
+        let name = prototype.rget_from(store).name.print(store);
 
         format!("{{struct}} {parent_name}::{name}")
       },
@@ -198,29 +199,29 @@ impl Pretty for Type {
   }
 }
 
-type FunctionAnd<'a, T> = (&'a Function, &'a T);
+type FunctionAnd<'a, C, T> = (&'a Function<C>, &'a T);
 
-pub trait PrettyFunction<'a>: Sized where FunctionAnd<'a, Self>: Pretty + 'a {
-  fn print_with(&'a self, function: &'a Function, lazy: &Lazy) -> <FunctionAnd<'a, Self> as Pretty>::Out;
+pub trait PrettyFunction<'a, C: Compiler>: Sized where FunctionAnd<'a, C, Self>: Pretty<C> + 'a {
+  fn print_with(&'a self, function: &'a Function<C>, store: &C::Store<'a>) -> <FunctionAnd<'a, C, Self> as Pretty<C>>::Out;
 }
 
-impl<'a, T: 'a> PrettyFunction<'a> for T where FunctionAnd<'a, T>: Pretty {
-  fn print_with(&'a self, function: &'a Function, lazy: &Lazy) -> <FunctionAnd<'a, Self> as Pretty>::Out {
-    (function, self).print(lazy)
+impl<'a, C: Compiler, T: 'a> PrettyFunction<'a, C> for T where FunctionAnd<'a, C, T>: Pretty<C> + 'a {
+  fn print_with(&'a self, function: &'a Function<C>, store: &C::Store<'a>) -> <FunctionAnd<'a, C, Self> as Pretty<C>>::Out {
+    (function, self).print(store)
   }
 }
 
-impl Pretty for FunctionAnd<'_, Expression> {
+impl<C: Compiler> Pretty<C> for FunctionAnd<'_, C, Expression<C>> {
   type Out = std::vec::IntoIter<String>;
 
-  fn print(&self, lazy: &Lazy) -> Self::Out {
+  fn print(&self, store: &C::Store<'_>) -> Self::Out {
     let (function, expression) = self;
     match expression {
       Expression::Block(block_id) => {
-        block_id.rget_from(lazy).print_with(function, lazy)
+        block_id.rget_from(store).print_with(function, store)
       },
       Expression::Literal { value, out, .. } => {
-        let ty = out.print(lazy);
+        let ty = out.print(store);
         vec![match value {
           LiteralKind::Numeric(NumericValue::F64(value)) => {
             format!("{value} {{{ty}}}")
@@ -237,19 +238,19 @@ impl Pretty for FunctionAnd<'_, Expression> {
 
             format!(
               "{prefix}{value:?} {{{ty}}}",
-              value = unsafe { lazy.pool.get_string(*value) },
+              value = unsafe { store.pool().get_string(*value) },
             )
           },
         }].into_iter()
       },
       Expression::Variable { reference, .. } => vec![
-        reference.rget_from(lazy).name.print(lazy)
+        reference.rget_from(store).name.print(store)
       ].into_iter(),
       Expression::Unknown { qualified, .. } => vec![
-        format!("{{?}} {}", qualified.print(lazy))
+        format!("{{?}} {}", qualified.print(store))
       ].into_iter(),
       Expression::Unary { expr, op, .. } => {
-        let expr = expr.rget_from(lazy).print_with(function, lazy).collect::<String>();
+        let expr = expr.rget_from(store).print_with(function, store).collect::<String>();
 
         vec![match &op.0 {
           UnaryOperator::Prefix(prefix) => match prefix {
@@ -268,8 +269,8 @@ impl Pretty for FunctionAnd<'_, Expression> {
             UnarySuffixOperator::Try => format!("{{ {expr}? }}"),
             UnarySuffixOperator::Call(exprs) => {
               let exprs = exprs.iter().map(|expr| {
-                expr.rget_from(lazy)
-                  .print_with(function, lazy)
+                expr.rget_from(store)
+                  .print_with(function, store)
                   .collect::<Vec<String>>()
                   .join("\n    ")
               });
@@ -284,20 +285,20 @@ impl Pretty for FunctionAnd<'_, Expression> {
         }].into_iter()
       }
       Expression::Binary { a, b, op, .. } => {
-        let a = a.rget_from(lazy).print_with(function, lazy).collect::<Vec<String>>().join("\n    ");
-        let b = b.rget_from(lazy).print_with(function, lazy).collect::<Vec<String>>().join("\n    ");
+        let a = a.rget_from(store).print_with(function, store).collect::<Vec<String>>().join("\n    ");
+        let b = b.rget_from(store).print_with(function, store).collect::<Vec<String>>().join("\n    ");
         let op = &op.0;
 
         vec![format!("{{ {a} {op} {b} }}")].into_iter()
       },
       Expression::StructInitializer { ty, members, .. } => {
         let mut lines = vec![
-          format!("{} {{", ty.print(lazy)),
+          format!("{} {{", ty.print(store)),
         ];
 
         for (name, value) in members.iter() {
-          let name = name.print(lazy);
-          let mut expr_line_iter = value.rget_from(lazy).print_with(function, lazy);
+          let name = name.print(store);
+          let mut expr_line_iter = value.rget_from(store).print_with(function, store);
 
           let first_line = expr_line_iter.next().unwrap();
 
@@ -320,16 +321,16 @@ impl Pretty for FunctionAnd<'_, Expression> {
   }
 }
 
-impl Pretty for FunctionAnd<'_, BlockExpression> {
+impl<C: Compiler> Pretty<C> for FunctionAnd<'_, C, BlockExpression<C>> {
   type Out = std::vec::IntoIter<String>;
 
-  fn print(&self, lazy: &Lazy) -> Self::Out {
+  fn print(&self, store: &C::Store<'_>) -> Self::Out {
     let (function, block) = self;
     let mut lines = vec!["{".into()];
 
     for variable in block.variables.iter() {
-      let ty = variable.ty.print(lazy);
-      let name = variable.name.print(lazy);
+      let ty = variable.ty.print(store);
+      let name = variable.name.print(store);
 
       lines.push(format!("  {ty} {name}"));
     };
@@ -339,7 +340,7 @@ impl Pretty for FunctionAnd<'_, BlockExpression> {
     };
 
     for &child in block.children.iter() {
-      for line in function[child].print_with(function, lazy) {
+      for line in function[child].print_with(function, store) {
         lines.push(format!("  {line}"));
       };
     };
@@ -358,38 +359,38 @@ impl Pretty for FunctionAnd<'_, BlockExpression> {
   }
 }
 
-impl Pretty for Name {
+impl<C: Compiler> Pretty<C> for Name<C> {
   type Out = String;
 
-  fn print(&self, lazy: &Lazy) -> Self::Out {
-    self.id.print(lazy)
+  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+    self.id.print(store)
   }
 }
 
-impl Pretty for Function {
+impl<C: Compiler> Pretty<C> for Function<C> {
   type Out = std::vec::IntoIter<String>;
 
-  fn print(&self, lazy: &Lazy) -> Self::Out {
+  fn print(&self, store: &C::Store<'_>) -> Self::Out {
     let mut lines = vec![];
-    let mut first: String = self.header.name.print(lazy);
+    let mut first: String = self.header.name.print(store);
 
-    let ret_ty = self.header.ret_ty.print(lazy);
+    let ret_ty = self.header.ret_ty.print(store);
     first.push_str(format!(" -> {ret_ty}").as_str());
 
     lines.push(first);
 
     for argument in self.header.arguments.iter() {
-      let ty = argument.ty.print(lazy);
-      let name = argument.name.print(lazy);
+      let ty = argument.ty.print(store);
+      let name = argument.name.print(store);
       lines.push(format!("  {ty} {name}"));
     };
 
     lines.push("".into());
-    let block = lazy.rget(self.body);
+    let block = store.rget(self.body);
 
     for variable in block.variables.iter() {
-      let ty = variable.ty.print(lazy);
-      let name = variable.name.print(lazy);
+      let ty = variable.ty.print(store);
+      let name = variable.name.print(store);
 
       lines.push(format!("  {ty} {name} // decl"));
     };
@@ -400,7 +401,7 @@ impl Pretty for Function {
 
     if !block.children.is_empty() {
       for &child in block.children.iter() {
-        for line in self[child].print_with(self, lazy) {
+        for line in self[child].print_with(self, store) {
           lines.push(format!("  {line}"));
         };
       };
@@ -416,25 +417,25 @@ impl Pretty for Function {
   }
 }
 
-impl Pretty for QualifiedSearchSpace {
+impl<C: Compiler> Pretty<C> for QualifiedSearchSpace<C> {
   type Out = String;
 
-  fn print(&self, lazy: &Lazy) -> Self::Out {
+  fn print(&self, store: &C::Store<'_>) -> Self::Out {
     match self {
       QualifiedSearchSpace::Implicit => "::".into(),
-      QualifiedSearchSpace::Type(overwrite_type_reference) => overwrite_type_reference.print(lazy),
+      QualifiedSearchSpace::Type(overwrite_type_reference) => overwrite_type_reference.print(store),
       QualifiedSearchSpace::Intrinsic { kind, .. } => kind.to_string(),
-      QualifiedSearchSpace::Module(module_reference) => lazy.describe_module(*module_reference),
+      QualifiedSearchSpace::Module(module_reference) => store.describe_module(*module_reference),
       QualifiedSearchSpace::Struct(_) => todo!(),
     }
   }
 }
 
-impl Pretty for Module {
+impl<C: Compiler> Pretty<C> for Module<C> {
   type Out = std::vec::IntoIter<String>;
 
-  fn print(&self, lazy: &Lazy) -> Self::Out {
-    let name = self.name.print(lazy);
+  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+    let name = self.name.print(store);
     let mut lines = vec![
       format!("mod {name}")
     ];
@@ -446,8 +447,8 @@ impl Pretty for Module {
         lines.push("".into());
       };
 
-      lines.push(format!("  import from {:?}", value.implicit.print(lazy)));
-      lines.push(format!("    {} // {}", key.print(lazy), value.print(lazy)));
+      lines.push(format!("  import from {:?}", value.implicit.print(store)));
+      lines.push(format!("    {} // {}", key.print(store), value.print(store)));
 
       needs_empty = true;
     };
@@ -457,7 +458,7 @@ impl Pretty for Module {
         lines.push("".into());
       };
 
-      lines.push(format!("  import from {}", space.print(lazy)));
+      lines.push(format!("  import from {}", space.print(store)));
       lines.push("    *".into());
 
       needs_empty = true;
@@ -469,8 +470,8 @@ impl Pretty for Module {
     };
 
     for alias in self.aliases.iter() {
-      let name = alias.name.print(lazy);
-      let ty = alias.ty.print(lazy);
+      let name = alias.name.print(store);
+      let ty = alias.ty.print(store);
       lines.push(format!("  type {name} := {ty}"));
 
       needs_empty = true;
@@ -481,26 +482,26 @@ impl Pretty for Module {
         lines.push("".into());
       };
 
-      let name = struc.name.print(lazy);
+      let name = struc.name.print(store);
 
       lines.push(format!("  struct {name}"));
 
       for member in struc.members.iter() {
-        lines.push(format!("    {} {}", member.ty.print(lazy), member.name.print(lazy)));
+        lines.push(format!("    {} {}", member.ty.print(store), member.name.print(store)));
       };
 
       needs_empty = true;
     };
 
     for &module in self.modules.iter() {
-      let module_borrow = lazy.rget(module);
+      let module_borrow = store.rget(module);
 
       if needs_empty {
         lines.push("".into());
       };
 
-      lines.push(format!("  // {}", lazy.describe_module(module)));
-      for line in module_borrow.print(lazy) {
+      lines.push(format!("  // {}", store.describe_module(module)));
+      for line in module_borrow.print(store) {
         lines.push(format!("  {line}"));
       };
 
@@ -508,13 +509,13 @@ impl Pretty for Module {
     };
 
     for function in self.functions.iter() {
-      let function_borrow = function.rget_from(lazy);
+      let function_borrow = function.rget_from(store);
 
       if needs_empty {
         lines.push("".into());
       };
 
-      for line in function_borrow.print(lazy) {
+      for line in function_borrow.print(store) {
         lines.push(format!("  {line}"));
       };
 

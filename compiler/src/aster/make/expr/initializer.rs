@@ -1,6 +1,6 @@
 use ::lang::span::GetSpan;
 use crate::aster::make::make_name;
-use crate::tokenize::token::{GroupingKind, GroupingType, Operator};
+use ::lang::token::{GroupingKind, GroupingType, Operator};
 
 use super::*;
 

@@ -124,13 +124,14 @@ impl<'pool> Lazy<'pool> {
   }
 
   pub fn create_function(&mut self, module: ModuleReference, header: FunctionHeader) -> FunctionReference {
-    let function_id = FunctionReference(self.functions.len());
-    let function = Function::new(function_id, module, header);
+    let function_reference = FunctionReference(self.functions.len());
+    let body = function_reference.body();
+    let function = Function::new(body, module, header);
 
     self.functions.push(function);
-    self.rget_mut(module).functions.push(function_id);
+    self.rget_mut(module).functions.push(function_reference);
 
-    function_id
+    function_reference
   }
 
   pub fn describe_module(&self, ModuleReference(id): ModuleReference) -> String {
@@ -196,7 +197,6 @@ impl<'pool> Lazy<'pool> {
 impl lang::Compiler for LazyStructures {
   type Store<'a> = Lazy<'a>;
 
-  type Module = Module;
   type ModuleReference = ModuleReference;
 
   type Tokens = Vec<crate::tokenize::token::TokenSpan>;
@@ -211,8 +211,12 @@ impl lang::Compiler for LazyStructures {
   type Function = crate::lang::function::Function;
   type FunctionReference = crate::lang::reference::FunctionReference;
 
-  type Type = crate::lang::ty::Type;
   type TypeReference = crate::lang::reference::TypeReference;
   type TypePartReference = crate::lang::reference::TypePartReference;
   type OverwriteTypeReference = crate::resolve::tasks::OverwriteTypeReference;
+
+  type VariableReference = crate::lang::reference::VariableReference;
+
+  type BlockReference = crate::lang::reference::BlockReference;
+  type ExpressionReference = crate::lang::reference::ExpressionReference;
 }

@@ -5,7 +5,8 @@ use std::cmp::Ordering;
 use crate::aster::make::Indenter;
 use crate::lang::reference::{BlockReference, ExpressionReference, Store};
 use ::lang::span::GetSpan;
-use crate::tokenize::token::{GroupingKind, GroupingType, Operator, Span};
+use ::lang::token::{GroupingKind, GroupingType, Operator};
+use ::lang::span::Span;
 
 use super::*;
 

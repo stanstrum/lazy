@@ -113,7 +113,8 @@ pub(super) fn make_function<'pool, const N: usize, T: Read>(
   };
 
   let function = lazy.create_function(module, header);
-  let body = lazy.rget(function).body;
+  let body = function.body();
+
   let mut non_return_last = None;
 
   let indenter = stream.indenter_here()?;

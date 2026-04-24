@@ -44,8 +44,8 @@ pub(super) fn make_literal<'pool, const N: usize, T: Read>(
     stream.seek();
 
     let out = match value {
-      ::lang::special::NumericValue::U64(_) => lang::ty::Type::WeakInteger { span },
-      ::lang::special::NumericValue::F64(_) => lang::ty::Type::WeakFloat { span },
+      ::lang::token::NumericValue::U64(_) => lang::ty::Type::WeakInteger { span },
+      ::lang::token::NumericValue::F64(_) => lang::ty::Type::WeakFloat { span },
     };
 
     let value = lang::expr::LiteralKind::Numeric(value);
@@ -101,8 +101,8 @@ fn make_expr_part<'pool, const N: usize, T: Read>(
 
 #[derive(Debug)]
 enum ExpressionPart {
-  UnaryPrefix((lang::expr::operator::UnaryPrefixOperator, Span)),
-  UnarySuffix((lang::expr::operator::UnarySuffixOperator, Span)),
+  UnaryPrefix((crate::lang::expr::operator::UnaryPrefixOperator, Span)),
+  UnarySuffix((crate::lang::expr::operator::UnarySuffixOperator, Span)),
   Binary((lang::expr::operator::BinaryOperator, Span)),
   Expression(lang::reference::ExpressionReference),
 }

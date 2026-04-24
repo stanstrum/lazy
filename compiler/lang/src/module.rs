@@ -41,7 +41,7 @@ pub struct Module<C: Compiler> {
   pub parent: ModuleParent<C>,
   pub aliases: Vec<C::TypeAlias>,
   pub structs: Vec<C::Struct>,
-  pub type_parts: Vec<C::Type>,
+  pub type_parts: Vec<Type<C>>,
 }
 
 #[derive(Debug)]

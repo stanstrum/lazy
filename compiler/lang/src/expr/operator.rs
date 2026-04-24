@@ -1,4 +1,4 @@
-use super::*;
+use crate::Compiler;
 
 #[derive(Debug, Clone, Copy)]
 pub enum BinaryOperator {
@@ -63,17 +63,17 @@ pub enum UnaryPrefixOperator {
 }
 
 #[derive(Debug, Clone)]
-pub enum UnarySuffixOperator {
+pub enum UnarySuffixOperator<C: Compiler> {
   Try,
-  Call(Vec<ExpressionReference>),
+  Call(Vec<C::ExpressionReference>),
   PostDecrement,
   PostIncrement,
 }
 
 #[derive(Debug, Clone)]
-pub enum UnaryOperator {
+pub enum UnaryOperator<C: Compiler> {
   Prefix(UnaryPrefixOperator),
-  Suffix(UnarySuffixOperator),
+  Suffix(UnarySuffixOperator<C>),
 }
 
 impl std::fmt::Display for BinaryOperator {

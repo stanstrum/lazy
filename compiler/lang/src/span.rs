@@ -38,27 +38,25 @@ impl Position {
   }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq)]
 pub struct Span<C: Compiler> {
   pub start: Position,
   pub end: Position,
   pub module: C::ModuleReference,
 }
 
-impl<C: Compiler + Copy> Copy for Span<C>
-where C::ModuleReference: Copy
+impl<C: Compiler> Clone for Span<C>
 {
-}
-
-impl<C: Compiler + PartialEq> PartialEq for Span<C>
-  where C::ModuleReference: PartialEq
-{
-  fn eq(&self, other: &Self) -> bool {
-    self.start == other.start && self.end == other.end && self.module == other.module
+  fn clone(&self) -> Self {
+    Self {
+      start: self.start,
+      end: self.end,
+      module: self.module,
+    }
   }
 }
 
-impl<C: Compiler + Eq> Eq for Span<C> where C::ModuleReference: Eq {}
+impl<C: Compiler> Copy for Span<C> {}
 
 impl<C: Compiler> Span<C> {
   pub fn from_pair(start: Self, end: Self) -> Self {

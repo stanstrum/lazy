@@ -3,7 +3,8 @@ mod impls;
 use crate::Lazy;
 use crate::tokenize::token::TokenSpan;
 use crate::lang::expr::{BlockExpression, Expression};
-use crate::lang::function::{BlockId, ExprId, Function};
+use ::lang::function::{BlockId, ExprId};
+use crate::lang::function::Function;
 use crate::lang::module::{Module, TokensId, TypeAlias, TypePartId};
 
 pub use ::lang::reference::{Store, Reference};
@@ -47,8 +48,8 @@ pub enum VariableReference {
 }
 
 impl FunctionReference {
-  pub fn body(&self, lazy: &Lazy) -> BlockReference {
-    self.rget_from(lazy).body
+  pub fn body(&self) -> BlockReference {
+    BlockReference(*self, BlockId::body_id())
   }
 
   // pub fn get_body<'a>(&self, lazy: &'a Lazy) -> &'a BlockExpression {
@@ -56,7 +57,7 @@ impl FunctionReference {
   // }
 
   pub fn get_body_mut<'a>(&self, lazy: &'a mut Lazy) -> &'a mut BlockExpression {
-    self.body(lazy).rget_from_mut(lazy)
+    self.body().rget_from_mut(lazy)
   }
 
   // pub fn last_expr(&self, lazy: &Lazy) -> Option<ExpressionReference> {

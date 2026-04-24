@@ -3,7 +3,7 @@ use super::*;
 use std::cmp::Ordering;
 
 pub use ::lang::span::Position;
-pub use ::lang::special::*;
+pub use ::lang::token::*;
 pub use ::lang::{CharKind, StringKind, Token};
 
 pub type Span = ::lang::span::Span<crate::lazy::LazyStructures>;

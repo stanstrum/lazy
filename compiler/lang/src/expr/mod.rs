@@ -1,0 +1,103 @@
+pub mod operator;
+
+use string_pool::StringId;
+
+use crate::{Compiler, StringKind, function::ExprId, module::Name, span::Span, token::NumericValue, ty::{Qualified, Type}};
+
+#[derive(Debug)]
+pub struct Variable<C: Compiler> {
+  pub name: Name<C>,
+  pub ty: Type<C>,
+  pub span: Span<C>,
+}
+
+#[derive(Debug)]
+pub struct BlockExpression<C: Compiler> {
+  pub parent: Option<C::BlockReference>,
+  pub children: Vec<ExprId>,
+  pub span: Span<C>,
+  pub returns_last: bool,
+  pub out: Type<C>,
+  pub variables: Vec<Variable<C>>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum LiteralKind {
+  Numeric(NumericValue),
+  String {
+    value: StringId,
+    kind: StringKind,
+  },
+}
+
+#[derive(Debug)]
+pub enum Expression<C: Compiler> {
+  Block(C::BlockReference),
+  Literal {
+    value: LiteralKind,
+    span: Span<C>,
+    out: Type<C>,
+  },
+  Variable {
+    reference: C::VariableReference,
+    span: Span<C>,
+  },
+  Unknown {
+    qualified: Qualified<C>,
+    out: Type<C>,
+  },
+  Unary {
+    expr: C::ExpressionReference,
+    op: (operator::UnaryOperator<C>, Span<C>),
+    span: Span<C>,
+    out: Type<C>,
+  },
+  Binary {
+    a: C::ExpressionReference,
+    b: C::ExpressionReference,
+    op: (operator::BinaryOperator, Span<C>),
+    span: Span<C>,
+    out: Type<C>,
+  },
+  StructInitializer {
+    ty: Type<C>,
+    members: Vec<(Name<C>, C::ExpressionReference)>,
+    span: Span<C>,
+  },
+}
+
+impl<C: Compiler> Expression<C> {
+  pub fn new_unknown(qualified: Qualified<C>) -> Self {
+    let span = qualified.span;
+
+    Self::Unknown {
+      qualified,
+      out: Type::Weak { span },
+    }
+  }
+}
+
+impl<C: Compiler> BlockExpression<C> {
+  pub fn new_dirty(parent: Option<C::BlockReference>, temp_span: Span<C>) -> Self {
+    Self::new(
+      parent,
+      temp_span,
+      Type::Intrinsic {
+        kind: crate::intrinsic::Intrinsic::Void,
+        span: temp_span,
+      },
+    )
+  }
+
+  pub fn new(parent: Option<C::BlockReference>, span: Span<C>, out: Type<C>) -> Self {
+    Self {
+      parent,
+      children: vec![],
+      span,
+      returns_last: false,
+      out,
+      variables: vec![],
+    }
+  }
+}
+

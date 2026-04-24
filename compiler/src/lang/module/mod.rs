@@ -1,70 +1,25 @@
 pub mod import;
 pub mod struc;
 
-use std::collections::HashMap;
-
-use string_pool::PoolId;
-
 use crate::Lazy;
 use crate::tokenize::token::Span;
 use ::lang::span::GetSpan;
-use crate::lang::module::struc::Struct;
-use crate::lang::reference::{FunctionReference, ModuleReference, Reference, TypePartReference};
-use crate::lang::ty::{Qualified, QualifiedSearchSpace, Type};
+use crate::lang::reference::{ModuleReference, Reference, TypePartReference};
+use crate::lang::ty::Type;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TokensId(pub usize);
 
 pub type ModulePath = ::lang::module::ModulePath<crate::lazy::LazyStructures>;
 pub type ModuleParent = ::lang::module::ModuleParent<crate::lazy::LazyStructures>;
-
-#[derive(Debug)]
-pub struct ModuleTransports {
-  pub import_map: HashMap<PoolId, Qualified>,
-  pub import_stars: Vec<(QualifiedSearchSpace, Span)>,
-}
+// pub type ModuleTransports = ::lang::module::ModuleTransports<crate::lazy::LazyStructures>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TypePartId(pub usize);
 
-#[derive(Debug)]
-pub struct Module {
-  pub name: PoolId,
-  pub transports: ModuleTransports,
-  pub modules: Vec<ModuleReference>,
-  pub functions: Vec<FunctionReference>,
-  pub parent: ModuleParent,
-  pub aliases: Vec<TypeAlias>,
-  pub structs: Vec<Struct>,
-  pub type_parts: Vec<Type>,
-}
-
-#[derive(Debug)]
-pub struct TypeAlias {
-  pub name: Name,
-  pub ty: Type,
-  pub span: Span,
-}
-
+pub type Module = ::lang::module::Module<crate::lazy::LazyStructures>;
+pub type TypeAlias = ::lang::module::TypeAlias<crate::lazy::LazyStructures>;
 pub type Name = ::lang::module::Name<crate::lazy::LazyStructures>;
-
-impl Module {
-  pub fn new(name: PoolId, parent: ModuleParent) -> Self {
-    Self {
-      name,
-      parent,
-      transports: ModuleTransports {
-        import_map: HashMap::new(),
-        import_stars: Vec::new(),
-      },
-      modules: vec![],
-      functions: vec![],
-      aliases: vec![],
-      structs: vec![],
-      type_parts: vec![],
-    }
-  }
-}
 
 impl ModuleReference {
   pub fn add_type_part(&self, part: Type, lazy: &mut Lazy) -> TypePartReference {

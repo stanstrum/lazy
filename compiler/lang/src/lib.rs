@@ -67,6 +67,12 @@ pub trait Compiler: Debug
   type Struct: Debug;
   type StructReference: CompilerReference;
 
+  type Function: Debug;
+  type FunctionReference: CompilerReference;
+
+  type TypeAlias: Debug;
+  type TypeAliasReference: CompilerReference;
+
   type Type: Debug;
   type TypeReference: CompilerReference;
   type TypePartReference: CompilerReference;

@@ -195,12 +195,22 @@ impl<'pool> Lazy<'pool> {
 
 impl lang::Compiler for LazyStructures {
   type Store<'a> = Lazy<'a>;
+
   type Module = Module;
   type ModuleReference = ModuleReference;
+
   type Tokens = Vec<crate::tokenize::token::TokenSpan>;
   type TokensReference = TokensId;
+
   type Struct = crate::lang::module::struc::Struct;
   type StructReference = crate::lang::reference::StructReference;
+
+  type TypeAlias = crate::lang::module::TypeAlias;
+  type TypeAliasReference = crate::lang::reference::AliasReference;
+
+  type Function = crate::lang::function::Function;
+  type FunctionReference = crate::lang::reference::FunctionReference;
+
   type Type = crate::lang::ty::Type;
   type TypeReference = crate::lang::reference::TypeReference;
   type TypePartReference = crate::lang::reference::TypePartReference;

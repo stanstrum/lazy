@@ -6,17 +6,9 @@ version = 4
 name = "aster"
 version = "0.1.0"
 dependencies = [
- "gluezy",
  "lang",
+ "lazy_macros",
  "tokenize",
-]
-
-[[package]]
-name = "gluezy"
-version = "0.1.0"
-dependencies = [
- "lang",
- "string_pool",
 ]
 
 [[package]]
@@ -25,6 +17,10 @@ version = "0.1.0"
 dependencies = [
  "string_pool",
 ]
+
+[[package]]
+name = "lazy_macros"
+version = "0.1.0"
 
 [[package]]
 name = "string_pool"

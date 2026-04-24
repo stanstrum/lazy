@@ -1,22 +1,23 @@
-use crate::{Lazy, print_message};
+use lang::Compiler;
+use lazy_macros::print_message;
 
 use std::cmp::Ordering;
 
-use crate::aster::make::Indenter;
-use crate::lang::{BlockReference, ExpressionReference, Store};
+use crate::make::Indenter;
+use lang::reference::{BlockReference, ExpressionReference, Store};
 use ::lang::span::GetSpan;
 use ::lang::token::{GroupingKind, GroupingType, Operator};
 use ::lang::span::Span;
 
 use super::*;
 
-pub struct BlockStatement {
+pub struct BlockStatement<C: Compiler> {
   pub end: bool,
   pub non_return_last: bool,
-  pub expr: Option<ExpressionReference>,
+  pub expr: Option<ExpressionReference<C>>,
 }
 
-impl BlockStatement {
+impl<C: Compiler> BlockStatement<C> {
   fn empty() -> Self {
     Self {
       end: false,
@@ -26,14 +27,14 @@ impl BlockStatement {
   }
 }
 
-pub fn make_block_statement<'pool, const N: usize, T: Read>(
-  lazy: &mut Lazy<'pool>,
-  stream: &mut Rereader<'pool, N, T>,
+pub fn make_block_statement<C: Compiler, const N: usize, T: Read>(
+  store: &mut C,
+  stream: &mut Rereader<'_, N, T>,
   _indenter: &Indenter,
   module: lang::ModuleReference,
   function: lang::FunctionReference,
   block: lang::BlockReference,
-) -> Result<Option<BlockStatement>, Error> {
+) -> Result<Option<BlockStatement<C>>, Error<C>> {
   if let Some((Token::Indent(indent), _)) = stream.peek()? {
     match indent.cmp(&0) {
       Ordering::Less => {
@@ -56,9 +57,9 @@ pub fn make_block_statement<'pool, const N: usize, T: Read>(
     };
   };
 
-  let expr = if let Some((variable, expr)) = variable::make_assignment(lazy, stream, module, block)? {
-    let function_ref = lazy.rget(function);
-    let block_ref = lazy.rget(block);
+  let expr = if let Some((variable, expr)) = variable::make_assignment(store, stream, module, block)? {
+    let function_ref = store.rget(function);
+    let block_ref = store.rget(block);
 
     let variable_names = block_ref.variables.iter().map(|x: &lang::expr::Variable| &x.name);
     let argument_names = function_ref.header.arguments.iter().map(|x| &x.name);
@@ -88,16 +89,16 @@ pub fn make_block_statement<'pool, const N: usize, T: Read>(
     };
 
     let variable_span = variable.span;
-    let var_id = block.rget_from(lazy).variables.len();
+    let var_id = block.rget_from(store).variables.len();
 
-    lazy.rget_mut(block).variables.push(variable);
+    store.rget_mut(block).variables.push(variable);
 
     expr.map(|b| {
-      let span = b.rget_from(lazy).get_span(lazy);
+      let span = b.rget_from(store).get_span(store);
 
       let variable_reference = lang::VariableReference::Block(block, var_id);
 
-      let a = function.rget_from_mut(lazy).add_expr(lang::expr::Expression::Variable { reference: variable_reference, span: variable_span });
+      let a = function.rget_from_mut(store).add_expr(lang::expr::Expression::Variable { reference: variable_reference, span: variable_span });
       let a = lang::ExpressionReference(block, a);
 
       let assignment = lang::expr::Expression::Binary {
@@ -108,10 +109,10 @@ pub fn make_block_statement<'pool, const N: usize, T: Read>(
         out: lang::ty::Type::Weak { span },
       };
 
-      let id = function.rget_from_mut(lazy).add_expr(assignment);
+      let id = function.rget_from_mut(store).add_expr(assignment);
       lang::ExpressionReference(block, id)
     })
-  } else if let Some(expr) = make_expr(lazy, stream, module, block)? {
+  } else if let Some(expr) = make_expr(store, stream, module, block)? {
     Some(expr)
   } else {
     return stream.expected_here(line_dbg!("an expression"));
@@ -119,7 +120,7 @@ pub fn make_block_statement<'pool, const N: usize, T: Read>(
 
   if let Some(ExpressionReference(here, id)) = expr {
     assert!(function == here.0);
-    block.rget_from_mut(lazy).children.push(id);
+    block.rget_from_mut(store).children.push(id);
   };
 
   stream.skip_whitespace_and_comments()?;

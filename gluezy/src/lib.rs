@@ -1,13 +1,18 @@
+pub mod prelude;
 mod reference;
+pub mod keys;
+pub mod format;
 
 use std::path::{Path, PathBuf};
 
+use lang::Compiler;
 use log::Level;
 use string_pool::StringPool;
 
-use ::lang::function::{Function, FunctionHeader};
-use ::lang::module::{Module, ModuleParent, ModulePath};
-use ::lang::reference::{Store};
+use lang::token::TokenSpan;
+use lang::function::{Function, FunctionHeader};
+use lang::module::{Module, ModuleParent, ModulePath};
+use lang::reference::{Store};
 
 pub use reference::*;
 
@@ -23,15 +28,23 @@ pub struct Settings {
   pub argv: Vec<String>,
 }
 
+pub type C = LazyStructures;
+
+#[derive(Debug)]
+pub enum LazyError<C: Compiler = LazyStructures> {
+  NotExist(PathBuf),
+  Aster(aster::Error<C>),
+}
+
 #[derive(Debug)]
 pub struct Lazy<'pool> {
   pub(crate) pool: &'pool StringPool,
   pub(crate) pool_keys: keys::PoolKeys,
   pub(crate) settings: Settings,
   pub(crate) std: Option<ModuleReference>,
-  pub(crate) modules: Vec<Module>,
-  pub(crate) functions: Vec<Function>,
-  pub(crate) tokens: Vec<Vec<TokenSpan>>,
+  pub(crate) modules: Vec<Module<C>>,
+  pub(crate) functions: Vec<Function<C>>,
+  pub(crate) tokens: Vec<Vec<TokenSpan<C>>>,
 }
 
 impl<'pool> Lazy<'pool> {
@@ -214,36 +227,6 @@ impl<'pool> Lazy<'pool> {
         format!("{parent_desc}::{name}")
       },
     }
-  }
-
-  pub fn get_root_module(&self, mut module: ModuleReference) -> ModuleReference {
-    // traverse parents until we get the root module with a
-    // PathBuf
-    loop {
-      match &self.rget(module).parent {
-        ModuleParent::Path { .. } => break,
-        &ModuleParent::Module(next_id) => module = next_id,
-      };
-    };
-
-    // store and mark the file handle as read
-    let ModuleParent::Path(_) = &self.rget(module).parent else {
-      unreachable!();
-    };
-
-    module
-  }
-
-  pub fn get_path(&self, module: ModuleReference) -> &ModulePath {
-    let root = self.get_root_module(module);
-    let root = self.rget(root);
-
-    // store and mark the file handle as read
-    let ModuleParent::Path(path) = &root.parent else {
-      unreachable!();
-    };
-
-    path
   }
 }
 

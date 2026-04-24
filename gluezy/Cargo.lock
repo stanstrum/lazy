@@ -3,9 +3,18 @@
 version = 4
 
 [[package]]
+name = "aster"
+version = "0.1.0"
+dependencies = [
+ "lang",
+ "tokenize",
+]
+
+[[package]]
 name = "gluezy"
 version = "0.1.0"
 dependencies = [
+ "aster",
  "lang",
  "log",
  "string_pool",
@@ -19,9 +28,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "lazy_macros"
+version = "0.1.0"
+
+[[package]]
 name = "log"
 version = "0.1.0"
+dependencies = [
+ "lang",
+ "lazy_macros",
+]
 
 [[package]]
 name = "string_pool"
 version = "0.1.0"
+
+[[package]]
+name = "tokenize"
+version = "0.1.0"
+dependencies = [
+ "lang",
+ "string_pool",
+]

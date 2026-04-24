@@ -45,6 +45,7 @@ pub fn asterize<C: Compiler>(store: &mut C::Store<'_>, module: C::ModuleReferenc
   result
 }
 
+// SPONGE: move this to gluezy
 impl From<crate::lang::LazyError> for Error {
   fn from(value: crate::lang::LazyError) -> Self {
     match value {

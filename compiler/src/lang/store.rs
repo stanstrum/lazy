@@ -5,18 +5,6 @@ use crate::lang::module::{TokensId, TypePartId};
 use crate::lang::expr::Expression;
 use lang::reference::Store;
 
-impl<'pool> Store<ModuleReference> for Lazy<'pool> {
-  type Out = crate::lang::module::Module;
-
-  fn rget(&self, ModuleReference(index): ModuleReference) -> &Self::Out {
-    self.modules.get(index).unwrap()
-  }
-
-  fn rget_mut(&mut self, ModuleReference(index): ModuleReference) -> &mut Self::Out {
-    self.modules.get_mut(index).unwrap()
-  }
-}
-
 impl<'pool> Store<AliasReference> for Lazy<'pool> {
   type Out = crate::lang::module::TypeAlias;
 
@@ -38,18 +26,6 @@ impl<'pool> Store<StructReference> for Lazy<'pool> {
 
   fn rget_mut(&mut self, StructReference(module, index): StructReference) -> &mut Self::Out {
     self.rget_mut(module).structs.get_mut(index).unwrap()
-  }
-}
-
-impl<'pool> Store<FunctionReference> for Lazy<'pool> {
-  type Out = crate::lang::function::Function;
-
-  fn rget(&self, FunctionReference(index): FunctionReference) -> &Self::Out {
-    self.functions.get(index).unwrap()
-  }
-
-  fn rget_mut(&mut self, FunctionReference(index): FunctionReference) -> &mut Self::Out {
-    self.functions.get_mut(index).unwrap()
   }
 }
 

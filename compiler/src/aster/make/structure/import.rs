@@ -9,7 +9,7 @@ fn make_group<'pool, const N: usize, T: Read>(
   lazy: &mut crate::Lazy<'pool>,
   stream: &mut Rereader<'pool, N, T>,
   indenter: &Indenter,
-) -> Result<Option<lang::module::import::ImportGroup>, Error> {
+) -> Result<Option<crate::lang::module::import::ImportGroup>, Error> {
   let Some((Token::Indent(indent), mut span)) = indenter.peek(stream)? else {
     return Ok(None);
   };

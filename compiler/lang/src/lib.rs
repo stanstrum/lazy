@@ -4,6 +4,7 @@ pub mod intrinsic;
 
 pub mod module;
 pub mod function;
+pub mod import;
 
 pub mod ty;
 pub mod reference;

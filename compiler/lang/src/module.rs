@@ -4,10 +4,11 @@ use std::collections::HashMap;
 use string_pool::PoolId;
 
 use crate::Compiler;
+use crate::expr::Variable;
 use crate::ty::{Qualified, QualifiedSearchSpace, Type};
 use crate::span::Span;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub struct Name<C: Compiler> {
   pub id: PoolId,
   pub span: Span<C>,
@@ -50,6 +51,24 @@ pub struct TypeAlias<C: Compiler> {
   pub ty: Type<C>,
   pub span: Span<C>,
 }
+
+#[derive(Debug)]
+pub struct Struct<C: Compiler> {
+  pub name: Name<C>,
+  pub members: Vec<Variable<C>>,
+  pub span: Span<C>,
+}
+
+impl<C: Compiler> Clone for Name<C> {
+  fn clone(&self) -> Self {
+    Self {
+      id: self.id.clone(),
+      span: self.span.clone(),
+    }
+  }
+}
+
+impl<C: Compiler> Copy for Name<C> {}
 
 impl<C: Compiler> Module<C> {
   pub fn new(name: PoolId, parent: ModuleParent<C>) -> Self {

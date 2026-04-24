@@ -4,10 +4,8 @@ use std::cmp::Ordering;
 
 pub use ::lang::span::Position;
 pub use ::lang::token::*;
-pub use ::lang::{CharKind, StringKind, Token};
 
-pub type Span = ::lang::span::Span<crate::lazy::LazyStructures>;
-pub type TokenSpan = (Token, Span);
+pub type TokenSpan<C> = (Token, Span<C>);
 
 #[derive(Debug)]
 pub struct StringState {
@@ -60,7 +58,7 @@ impl EscapeReturn {
   }
 }
 
-pub fn parse_escape(value: &str) -> Result<EscapeValue, Error> {
+pub fn parse_escape<C: Compiler>(value: &str) -> Result<EscapeValue, Error<C>> {
   match value {
     "0" => return Ok(EscapeValue::Char('\0')),
     "a" => return Ok(EscapeValue::Char('\x07')),

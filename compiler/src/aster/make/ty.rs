@@ -1,9 +1,9 @@
 use crate::aster::make::expr::make_literal;
+use ::lang::span::GetSpan;
+use ::lang::token::{GroupingKind, GroupingType, Keyword, NumericValue, Operator};
 use crate::lang::expr::{Expression, LiteralKind};
 use crate::lang::ModuleReference;
-use ::lang::span::GetSpan;
 use crate::line_dbg;
-use crate::tokenize::token::{GroupingKind, GroupingType, Keyword, NumericValue, Operator};
 
 use super::*;
 

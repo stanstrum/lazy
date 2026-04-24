@@ -1,3 +1,35 @@
+use string_pool::{PoolId, StringId};
+
+use crate::span::Span;
+
+pub type TokenSpan<C> = (Token, Span<C>);
+
+#[derive(Debug, Clone, Copy)]
+pub enum Token {
+  Identifier(PoolId),
+  Keyword(Keyword),
+  Operator(Operator),
+  Grouping(GroupingType),
+  Whitespace,
+  Indent(isize),
+  Comment(StringId),
+  Numeric(NumericValue),
+  String(StringKind, StringId)
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum StringKind {
+  Wide,
+  Byte,
+  C,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum CharKind {
+  Wide,
+  Byte,
+}
+
 macro_rules! string_enum {
   ($name:ident { $($entries:ident => $values:expr,)* }) => {
   #[derive(Debug, Clone, Copy)]
@@ -145,4 +177,13 @@ pub enum Operator {
 
   DoublePlus,
   DoubleMinus,
+}
+
+impl From<StringKind> for crate::intrinsic::Intrinsic {
+  fn from(value: StringKind) -> Self {
+    match value {
+      StringKind::Wide => Self::U32,
+      StringKind::Byte | StringKind::C => Self::U8,
+    }
+  }
 }

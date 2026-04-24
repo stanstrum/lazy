@@ -41,6 +41,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "tempfile",
+ "tokenizer",
 ]
 
 [[package]]
@@ -400,6 +401,14 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "tokenizer"
+version = "0.1.0"
+dependencies = [
+ "lang",
+ "string_pool",
 ]
 
 [[package]]

@@ -86,7 +86,7 @@ pub(super) fn compile_block<'ctx>(
 
   // TODO: could the names be more imaginative here?
   //       perhaps programmatically named for clarity
-  let span: token::Span = block.get_span(comp.lazy);
+  let span: Span = block.get_span(comp.lazy);
   let name = format!("at_{}_{}_to_{}_{}",
     span.start.line,
     span.start.column,

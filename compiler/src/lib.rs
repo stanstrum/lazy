@@ -18,10 +18,9 @@ mod steps;
 pub use string_pool::StringPool;
 use crate::settings::Settings;
 
-use crate::lang::ModuleReference;
+use crate::lang::{ModuleReference, TokenSpan};
 use crate::lang::module::Module;
 use crate::lang::function::Function;
-use crate::tokenize::token;
 
 #[derive(Debug)]
 pub struct Lazy<'pool> {
@@ -31,7 +30,7 @@ pub struct Lazy<'pool> {
   pub(crate) std: Option<ModuleReference>,
   pub(crate) modules: Vec<Module>,
   pub(crate) functions: Vec<Function>,
-  pub(crate) tokens: Vec<Vec<token::TokenSpan>>,
+  pub(crate) tokens: Vec<Vec<TokenSpan>>,
 }
 
 impl<'pool> Lazy<'pool> {

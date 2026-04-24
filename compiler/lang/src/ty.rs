@@ -1,4 +1,4 @@
-use crate::{Compiler, StringKind, intrinsic::Intrinsic, span::Span};
+use crate::{Compiler, token::StringKind, intrinsic::Intrinsic, span::Span};
 
 #[derive(Debug, Clone)]
 pub enum QualifiedSearchSpace<C: Compiler> {

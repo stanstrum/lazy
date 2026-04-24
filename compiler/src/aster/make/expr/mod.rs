@@ -6,25 +6,27 @@ mod initializer;
 
 use std::io::Read;
 
-use crate::tokenize::token::{self, Token, Span};
+use crate::lang::Span;
+
 use crate::aster::make::ty;
 use crate::aster::Rereader;
 use crate::{lang, line_dbg};
 use crate::lang::expr::LiteralKind;
 use crate::lang::Reference;
+use ::lang::token::Token;
 
 use super::Error;
 
 fn new_weak_string(
   lazy: &crate::Lazy,
-  kind: token::StringKind,
+  kind: ::lang::token::StringKind,
   value: string_pool::StringId,
-  span: token::Span,
+  span: Span,
 ) -> lang::ty::Type {
   let length = unsafe { lazy.pool.get_string(value).len() };
 
   let characters = match kind {
-    token::StringKind::C => length + 1,
+    ::lang::token::StringKind::C => length + 1,
     _ => length,
   };
 

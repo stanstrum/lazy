@@ -6,8 +6,7 @@ mod structure;
 use std::io::Read;
 
 use crate::lang;
-use crate::lang::{Reference, Store};
-use crate::tokenize::token::{Span, Token, TokenSpan};
+use crate::lang::{Reference, Store, Span, Token, TokenSpan};
 use crate::aster::Rereader;
 
 use super::Error;

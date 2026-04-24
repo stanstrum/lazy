@@ -1,16 +1,15 @@
 mod make;
-pub mod bufreader;
 pub mod rereader;
 pub mod pprint;
 
 use std::fs::File;
 
-use bufreader::BufferedUtf8MetadataReader;
+use tokenizer::bufreader::BufferedUtf8MetadataReader;
 use crate::aster::rereader::Rereader;
 use crate::lang::{ModuleReference, Store};
 
-use crate::tokenize::Tokenizer;
-use crate::tokenize::{self, token::Span};
+use crate::tokenize::{Tokenizer, self};
+use crate::lang::Span;
 use crate::Lazy;
 
 #[derive(Debug)]

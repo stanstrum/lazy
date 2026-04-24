@@ -3,7 +3,7 @@ pub mod unknown;
 use ::lang::intrinsic::Intrinsic;
 use crate::lang::ty::{QualifiedSearchSpace};
 use crate::resolve::TypePair;
-use crate::tokenize::token::StringKind;
+use ::lang::token::StringKind;
 
 use super::*;
 

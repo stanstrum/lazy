@@ -11,3 +11,4 @@ strum = "0.27.2"
 strum_macros = "0.27.2"
 tempfile = "3.27.0"
 lang = { version = "0.1.0", path = "lang" }
+tokenizer = { version = "0.1.0", path = "tokenizer" }

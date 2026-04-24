@@ -9,9 +9,8 @@ use std::path::Path;
 
 use crate::{lang, line_dbg, print_message};
 use ::lang::span::GetSpan;
-use crate::lang::{Reference, Store};
+use crate::lang::{Reference, Span, Store};
 use crate::resolve::TypeOf;
-use crate::tokenize::token;
 
 use {args::*, context::*};
 
@@ -21,7 +20,7 @@ pub enum Error {
   StillUnresolved {
     what: String,
     note: String,
-    span: token::Span,
+    span: Span,
   },
 }
 

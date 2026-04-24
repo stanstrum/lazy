@@ -1,6 +1,9 @@
 use std::io::Read;
 
-use crate::tokenize::token::{
+use lang::Compiler;
+use lang::span::Span;
+
+use crate::token::{
   CharState,
   EscapeReturn,
   EscapeValue,
@@ -10,7 +13,6 @@ use crate::tokenize::token::{
   NumericKind,
   Operator,
   Position,
-  Span,
   StringKind,
   StringState,
   Token,
@@ -64,8 +66,8 @@ pub(super) enum State {
   },
 }
 
-impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
-  pub(super) fn do_state(&mut self) -> Option<Result<TokenSpan, Error>> {
+impl<'pool, C: Compiler, const N: usize, T: Read> Tokenizer<'pool, C, N, T> {
+  pub(super) fn do_state(&mut self) -> Option<Result<TokenSpan<C>, Error<C>>> {
     loop {
       if let Some(tok) = self.toks.pop_front() {
         return Some(Ok(tok));

@@ -1,7 +1,8 @@
 use string_pool::PoolId;
 
 use crate::Lazy;
-use crate::tokenize::token::{NumericValue, Span, StringKind};
+use ::lang::token::{NumericValue, StringKind};
+use crate::lang::Span;
 use ::lang::span::GetSpan;
 use crate::lang::expr::operator::{UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 use crate::lang::expr::{BlockExpression, Expression, LiteralKind};

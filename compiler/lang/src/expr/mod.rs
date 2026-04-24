@@ -2,7 +2,12 @@ pub mod operator;
 
 use string_pool::StringId;
 
-use crate::{Compiler, StringKind, function::ExprId, module::Name, span::Span, token::NumericValue, ty::{Qualified, Type}};
+use crate::Compiler;
+use crate::ty::{Qualified, Type};
+use crate::token::{NumericValue, StringKind};
+use crate::span::Span;
+use crate::module::Name;
+use crate::function::ExprId;
 
 #[derive(Debug)]
 pub struct Variable<C: Compiler> {

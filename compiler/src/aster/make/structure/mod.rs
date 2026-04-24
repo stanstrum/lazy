@@ -6,7 +6,7 @@ use crate::{line_dbg, print_message};
 
 use ::lang::span::GetSpan;
 use crate::lang::AliasReference;
-use crate::tokenize::token::{Keyword, Operator};
+use ::lang::token::{Keyword, Operator};
 
 use super::*;
 

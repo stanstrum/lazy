@@ -6,6 +6,11 @@ pub enum LazyError {
   Aster(crate::aster::Error),
 }
 
+pub use ::lang::token::Token;
+pub type TokenSpan = ::lang::token::TokenSpan<crate::lazy::LazyStructures>;
+pub use ::lang::span::Position;
+pub type Span = ::lang::span::Span<crate::lazy::LazyStructures>;
+
 pub mod ty {
   pub type QualifiedSearchSpace = ::lang::ty::QualifiedSearchSpace<crate::lazy::LazyStructures>;
   pub type Qualified = ::lang::ty::Qualified<crate::lazy::LazyStructures>;

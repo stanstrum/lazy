@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use crate::print_once_per_thread;
-use crate::tokenize::token::StringKind;
+use ::lang::token::StringKind;
 
 use super::*;
 

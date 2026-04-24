@@ -6,7 +6,7 @@ use ::lang::intrinsic::Intrinsic;
 use crate::print_once_per_thread;
 use crate::resolve::TypePair;
 use crate::resolve::tasks::OverwriteTypeReference;
-use crate::tokenize::token::Span;
+use crate::lang::Span;
 
 use super::*;
 

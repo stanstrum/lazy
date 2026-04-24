@@ -1,5 +1,5 @@
 
-use crate::lang::LazyError;
+use crate::lang::{LazyError, TokenSpan};
 use crate::lang::function::{Function, FunctionHeader};
 use crate::lang::module::{Module, ModuleParent, ModulePath, TokensId};
 use crate::lang::{FunctionReference, ModuleReference, Store};
@@ -199,7 +199,7 @@ impl lang::Compiler for LazyStructures {
 
   type ModuleReference = ModuleReference;
 
-  type Tokens = Vec<crate::tokenize::token::TokenSpan>;
+  type Tokens = Vec<TokenSpan>;
   type TokensReference = TokensId;
 
   type Struct = crate::lang::module::struc::Struct;

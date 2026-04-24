@@ -78,7 +78,7 @@ impl<'pool> Store<ExpressionReference> for Lazy<'pool> {
 }
 
 impl<'pool> Store<TokensId> for Lazy<'pool> {
-  type Out = Vec<crate::tokenize::token::TokenSpan>;
+  type Out = Vec<crate::lang::TokenSpan>;
 
   fn rget(&self, TokensId(index): TokensId) -> &Self::Out {
     self.tokens.get(index).unwrap()

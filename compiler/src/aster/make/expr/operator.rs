@@ -1,5 +1,5 @@
 use crate::print_once_per_thread;
-use crate::tokenize::token::{GroupingKind, GroupingType, Keyword, Operator};
+use ::lang::token::{GroupingKind, GroupingType, Keyword, Operator};
 use crate::lang::expr::operator::{BinaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 
 use super::*;

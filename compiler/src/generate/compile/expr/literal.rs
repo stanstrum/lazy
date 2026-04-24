@@ -1,6 +1,7 @@
 use inkwell::values::BasicValue;
+use ::lang::token;
 
-use crate::tokenize::token::Span;
+use crate::lang::Span;
 use crate::generate::types::make_type;
 
 use super::*;

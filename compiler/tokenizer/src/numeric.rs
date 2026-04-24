@@ -1,10 +1,13 @@
 use std::io::Read;
 
-use super::{Tokenizer, Error};
-use crate::tokenize::token::{NumericKind, NumericValue, Span, Token};
+use lang::Compiler;
 
-impl<'pool, const N: usize, T: Read> Tokenizer<'pool, N, T> {
-  pub(super) fn parse_and_push(&self, span: Span, kind: Option<NumericKind>, content: &str) -> Result<Token, Error> {
+use super::{Tokenizer, Error};
+use crate::token::{NumericKind, NumericValue, Token};
+use lang::span::Span;
+
+impl<'pool, C: Compiler, const N: usize, T: Read> Tokenizer<'pool, C, N, T> {
+  pub(super) fn parse_and_push(&self, span: Span<C>, kind: Option<NumericKind>, content: &str) -> Result<Token, Error<C>> {
     let kind = kind.unwrap_or(NumericKind::Decimal);
 
     let radix = match kind {

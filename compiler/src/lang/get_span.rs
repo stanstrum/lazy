@@ -3,7 +3,7 @@ use lang::reference::Reference;
 
 use crate::Lazy;
 use crate::lazy::LazyStructures;
-use crate::tokenize::token::Span;
+use crate::lang::Span;
 
 impl GetSpan<LazyStructures> for crate::lang::module::Name {
   fn get_span(&self, _store: &Lazy) -> Span {

@@ -6,7 +6,7 @@ use crate::{print_message, line_dbg};
 
 use crate::Lazy;
 use crate::aster::pprint::Pretty;
-use crate::tokenize::token::Span;
+use crate::lang::Span;
 use ::lang::intrinsic::Intrinsic;
 use ::lang::span::GetSpan;
 use crate::lang::ty::Type;

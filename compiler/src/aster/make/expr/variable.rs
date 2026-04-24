@@ -1,4 +1,4 @@
-use crate::tokenize::token::Operator;
+use ::lang::token::Operator;
 use ::lang::span::GetSpan;
 use crate::aster::make::{make_name, ty};
 

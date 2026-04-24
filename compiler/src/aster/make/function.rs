@@ -2,7 +2,7 @@ use crate::lang::{ExpressionReference, Reference};
 use ::lang::span::GetSpan;
 use crate::line_dbg;
 
-use crate::tokenize::token::Operator;
+use ::lang::token::Operator;
 
 use super::*;
 

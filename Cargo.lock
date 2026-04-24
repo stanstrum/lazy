@@ -41,7 +41,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "tempfile",
- "tokenizer",
+ "tokenize",
 ]
 
 [[package]]
@@ -404,7 +404,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tokenizer"
+name = "tokenize"
 version = "0.1.0"
 dependencies = [
  "lang",

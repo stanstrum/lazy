@@ -5,10 +5,10 @@ edition = "2024"
 
 [dependencies]
 cc = "1.2.58"
-string_pool = { version = "0.1.0", path = "string_pool" }
+string_pool = { version = "0.1.0", path = "../string_pool" }
 inkwell = { version = "0.8.0", features = ["llvm18-1"] }
 strum = "0.27.2"
 strum_macros = "0.27.2"
 tempfile = "3.27.0"
-lang = { version = "0.1.0", path = "lang" }
-tokenizer = { version = "0.1.0", path = "tokenizer" }
+lang = { version = "0.1.0", path = "../lang" }
+tokenize = { version = "0.1.0", path = "../tokenize" }

@@ -4,7 +4,7 @@ pub mod pprint;
 
 use std::fs::File;
 
-use tokenizer::bufreader::BufferedUtf8MetadataReader;
+use ::tokenize::bufreader::BufferedUtf8MetadataReader;
 use crate::aster::rereader::Rereader;
 use crate::lang::{ModuleReference, Store};
 

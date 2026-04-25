@@ -66,14 +66,44 @@ impl<C: Compiler> GetSpan<C> for crate::expr::Variable<C> {
   }
 }
 
+impl<C: Compiler> GetSpan<C> for crate::reference::BlockReference<C> {
+  fn get_span(&self, _store: &<C as Compiler>::Store<'_>) -> Span<C> {
+    todo!()
+  }
+}
+
 impl<C: Compiler> GetSpan<C> for crate::reference::ExpressionReference<C> {
   fn get_span(&self, store: &<C as Compiler>::Store<'_>) -> Span<C> {
     self.rget_from(store).get_span(store)
   }
 }
 
+impl<C: Compiler> GetSpan<C> for crate::reference::VariableReference<C> {
+  fn get_span(&self, _store: &<C as Compiler>::Store<'_>) -> Span<C> {
+    todo!()
+  }
+}
+
+impl<C: Compiler> GetSpan<C> for crate::reference::TypeReference<C> {
+  fn get_span(&self, _store: &<C as Compiler>::Store<'_>) -> Span<C> {
+    todo!()
+  }
+}
+
 impl<C: Compiler> GetSpan<C> for crate::reference::TypePartReference<C> {
   fn get_span(&self, store: &<C as Compiler>::Store<'_>) -> Span<C> {
     self.rget_from(store).get_span(store)
+  }
+}
+
+impl<C: Compiler> GetSpan<C> for crate::ty::TypePair<C> {
+  fn get_span(&self, store: &C::Store<'_>) -> Span<C> {
+    self.overwrite.get_span(store)
+  }
+}
+
+impl<C: Compiler> GetSpan<C> for crate::ty::OverwriteTypeReference<C> {
+  fn get_span(&self, store: &C::Store<'_>) -> Span<C> {
+    self.reference.get_span(store)
   }
 }

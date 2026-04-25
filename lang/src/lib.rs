@@ -13,6 +13,7 @@ pub mod expr;
 
 mod store;
 mod get_span;
+mod type_of;
 
 use std::{fmt::Debug, hash::Hash, path::{Path, PathBuf}};
 
@@ -107,12 +108,12 @@ pub trait CompilerPoolStore<'a, C: Compiler>:
 
     path
   }
+
+  fn create_module(&mut self, name: &str, parent: impl FnOnce(C::TokensReference, C::ModuleReference) -> ModuleParent<C>) -> C::ModuleReference;
 }
 
-pub trait Compiler: Debug + Sized + Clone + Copy + PartialEq + Eq
-  where for<'a> Self::Store<'a>: CompilerPoolStore<'a, Self>
-{
-  type Store<'a>;
+pub trait Compiler: Debug + Sized + Clone + Copy + PartialEq + Eq {
+  type Store<'a>: CompilerPoolStore<'a, Self>;
 
   type ModuleReference: CompilerReference + Hash;
   type FunctionReference: CompilerReference + Hash;

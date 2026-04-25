@@ -8,16 +8,16 @@ pub trait Store<Item> {
 }
 
 pub trait Reference<S: Store<Self>>: Sized {
-  fn rget_from<'a>(&self, store: &'a S) -> &'a S::Out;
-  fn rget_from_mut<'a>(&self, store: &'a mut S) -> &'a mut S::Out;
+  fn rget_from<'store>(&self, store: &'store S) -> &'store S::Out;
+  fn rget_from_mut<'store>(&self, store: &'store mut S) -> &'store mut S::Out;
 }
 
 impl<R: Copy, S: Store<R>> Reference<S> for R {
-  fn rget_from<'a>(&self, store: &'a S) -> &'a S::Out {
+  fn rget_from<'store>(&self, store: &'store S) -> &'store S::Out {
     store.rget(*self)
   }
 
-  fn rget_from_mut<'a>(&self, store: &'a mut S) -> &'a mut S::Out {
+  fn rget_from_mut<'store>(&self, store: &'store mut S) -> &'store mut S::Out {
     store.rget_mut(*self)
   }
 }

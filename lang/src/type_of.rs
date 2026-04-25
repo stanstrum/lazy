@@ -1,10 +1,10 @@
 use crate::Compiler;
-use crate::reference::{ExpressionReference, TypeReference};
+use crate::reference::{BlockReference, ExpressionReference, Reference, TypePartReference, TypeReference, VariableReference};
 use crate::expr::Expression;
-use crate::ty::{OverwriteTypeReference, Type, TypeOf, TypePair};
+use crate::ty::{OverwriteTypeReference, Type, TypeOf, TypePair, TypePairModifier};
 
 impl<C: Compiler> TypeOf<C> for Type<C> {
-  fn type_of(&self, store: &C::Store<'_>) -> Option<Type> {
+  fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {
     match self {
       | Type::Intrinsic { .. }
       | Type::WeakInteger { .. }
@@ -20,12 +20,12 @@ impl<C: Compiler> TypeOf<C> for Type<C> {
       // SPONGE
       | Type::Unresolved { .. }
         => None,
-      Type::Resolved { part, .. } => part.type_of(lazy),
-      Type::Reference(reference) => reference.type_of(lazy),
+      Type::Resolved { part, .. } => part.type_of(store),
+      Type::Reference(reference) => reference.type_of(store),
     }
   }
 
-  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference> {
+  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference<C>> {
     match dbg!(self) {
       &Type::Reference(type_reference) => Some(type_reference.into()),
       &Type::Resolved { part, .. } => Some(TypeReference::Part(part).into()),
@@ -43,12 +43,22 @@ impl<C: Compiler> TypeOf<C> for Type<C> {
   }
 }
 
-impl<C: Compiler> TypeOf<C> for TypeReference<C> {
-  fn type_of(&self, store: &C::Store<'_>) -> Option<Type> {
-    self.rget_from(lazy).type_of(lazy)
+impl<C: Compiler> TypeOf<C> for TypePartReference<C> {
+  fn type_of(&self, store: &<C as Compiler>::Store<'_>) -> Option<Type<C>> {
+    todo!()
   }
 
-  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference> {
+  fn reference(&self, store: &<C as Compiler>::Store<'_>) -> Option<OverwriteTypeReference<C>> {
+    todo!()
+  }
+}
+
+impl<C: Compiler> TypeOf<C> for TypeReference<C> {
+  fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {
+    self.rget_from(store).type_of(store)
+  }
+
+  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference<C>> {
     Some((*self).into())
   }
 }
@@ -79,19 +89,19 @@ impl<C: Compiler> TypeOf<C> for ExpressionReference<C> {
   }
 }
 
-impl<C: Compiler> TypeOf for TypePair<C> {
-  fn type_of(&self, store: &C::Store<'_>) -> Option<Type> {
-    self.ty.type_of(lazy)
+impl<C: Compiler> TypeOf<C> for TypePair<C> {
+  fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {
+    self.ty.type_of(store)
   }
 
-  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference> {
+  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference<C>> {
     Some(self.clone().into())
   }
 }
 
 impl<C: Compiler> TypeOf<C> for OverwriteTypeReference<C> {
-  fn type_of(&self, store: &C::Store<'_>) -> Option<Type> {
-    let ty = self.reference.rget_from(lazy).to_owned();
+  fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {
+    let ty = self.reference.rget_from(store).to_owned();
 
     for modifier in self.modifiers.iter() {
       match modifier {
@@ -115,33 +125,33 @@ impl<C: Compiler> TypeOf<C> for OverwriteTypeReference<C> {
     Some(ty)
   }
 
-  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference> {
+  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference<C>> {
     todo!()
   }
 }
 
 impl<C: Compiler> TypeOf<C> for VariableReference<C> {
-  fn type_of(&self, store: &C::Store<'_>) -> Option<Type> {
-    TypeReference::Variable(*self).type_of(lazy)
+  fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {
+    TypeReference::Variable(*self).type_of(store)
   }
 
-  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference> {
+  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference<C>> {
     Some(TypeReference::Variable(*self).into())
   }
 }
 
 impl<C: Compiler> TypeOf<C> for BlockReference<C> {
-  fn type_of(&self, store: &C::Store<'_>) -> Option<Type> {
+  fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {
     // TODO: is this correct? should I try to match the expr type directly,
     //       maybe in addition to this?  Coerce in TypeOf? what could go
     //       wrong ???
     let reference = TypeReference::Block(*self);
-    let ty = &self.rget_from(lazy).out;
+    let ty = &self.rget_from(store).out;
 
-    OverwriteTypeReference::from(TypePair::new(reference, ty.clone())).type_of(lazy)
+    OverwriteTypeReference::from(TypePair::new(reference, ty.clone())).type_of(store)
   }
 
-  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference> {
+  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference<C>> {
     Some(TypeReference::Block(*self).into())
   }
 }

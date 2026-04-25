@@ -1,3 +1,4 @@
+use lang::ty::OverwriteTypeReference;
 use lang::{Compiler, CompilerPoolStore};
 use string_pool::PoolId;
 
@@ -14,21 +15,26 @@ use ::lang::ty::{TypeOf, TypePair, TypePairModifier};
 pub trait Pretty<C: Compiler> {
   type Out;
 
-  fn print(&self, store: &C::Store<'_>) -> Self::Out;
+  fn print<'local, 'store, 'pool>(&'local self, store: &'store C::Store<'pool>) -> Self::Out;
 }
 
-impl<C: Compiler> Pretty<C> for PoolId {
+impl<C: Compiler> Pretty<C> for OverwriteTypeReference<C> {
   type Out = String;
 
-  fn print(&self, store: &C::Store<'_>) -> Self::Out {
-    store.pool().get(*self)
+  fn print<'local, 'store, 'pool>(&'local self, store: &'store C::Store<'pool>) -> Self::Out {
+    let ty = self.reference.rget_from(store);
+
+    TypePair {
+      overwrite: self.reference.into(),
+      ty: ty.clone(),
+    }.print(store)
   }
 }
 
 impl<C: Compiler> Pretty<C> for TypePair<C> {
   type Out = String;
 
-  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+  fn print<'local, 'store, 'pool>(&'local self, store: &'store C::Store<'pool>) -> Self::Out {
     let reference = self.overwrite.print(store);
 
     let mut out = format!("/* {{pair := {}}} */ {reference}", self.ty.print(store));
@@ -46,7 +52,7 @@ impl<C: Compiler> Pretty<C> for TypePair<C> {
 impl<C: Compiler> Pretty<C> for TypePartReference<C> {
   type Out = String;
 
-  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+  fn print<'local, 'store, 'pool>(&self, store: &'store C::Store<'pool>) -> Self::Out {
     self.rget_from(store).print(store)
   }
 }
@@ -54,7 +60,7 @@ impl<C: Compiler> Pretty<C> for TypePartReference<C> {
 impl<C: Compiler> Pretty<C> for Qualified<C> {
   type Out = String;
 
-  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+  fn print<'local, 'store, 'pool>(&self, store: &'store C::Store<'pool>) -> Self::Out {
     let mut out = String::new();
 
     match &self.implicit {
@@ -78,29 +84,24 @@ impl<C: Compiler> Pretty<C> for Qualified<C> {
         out += "::";
       };
 
-      out += part.id.print(store).as_str();
+      out += store.pool().get(part.id).as_str();
     };
 
     out
   }
 }
 
-impl<C: Compiler> Pretty<C> for C::FunctionReference {
-  type Out = String;
-
-  fn print(&self, store: &C::Store<'_>) -> Self::Out {
-    let function = self.rget_from(store);
-    let path = store.describe_module(function.parent);
-    let name = function.header.name.print(store);
-
-    format!("{path}::{name}")
-  }
+fn print_function_reference<'local, 'store, 'pool, C: Compiler>(function_reference: &'local C::FunctionReference, store: &'store C::Store<'pool>) -> String {
+  let function = function_reference.rget_from(store);
+  let path = store.describe_module(function.parent);
+  let name = function.header.name.print(store);
+  format!("{path}::{name}")
 }
 
 impl<C: Compiler> Pretty<C> for ExpressionReference<C> {
   type Out = String;
 
-  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+  fn print<'local, 'store, 'pool>(&self, store: &'store C::Store<'pool>) -> Self::Out {
     let Span { start, end, .. } = self.rget_from(store).get_span(store);
 
     format!("expr {}:{} - {}:{}", start.line, start.column, end.line, end.column)
@@ -110,7 +111,7 @@ impl<C: Compiler> Pretty<C> for ExpressionReference<C> {
 impl<C: Compiler> Pretty<C> for BlockReference<C> {
   type Out = String;
 
-  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+  fn print<'local, 'store, 'pool>(&self, store: &'store C::Store<'pool>) -> Self::Out {
     let Span { start, end, .. } = self.rget_from(store).span;
     format!("block {}:{} - {}:{}", start.line, start.column, end.line, end.column)
   }
@@ -119,11 +120,11 @@ impl<C: Compiler> Pretty<C> for BlockReference<C> {
 impl<C: Compiler> Pretty<C> for TypeReference<C> {
   type Out = String;
 
-  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+  fn print<'local, 'store, 'pool>(&self, store: &'store C::Store<'pool>) -> Self::Out {
     match self {
       TypeReference::Part(part) => part.rget_from(store).print(store),
       TypeReference::ReturnTypeOf(function) => {
-        format!("ReturnType<{}>", function.print(store))
+        format!("ReturnType<{}>", print_function_reference::<C>(function, store))
       },
       TypeReference::Alias(alias ) => {
         let path = store.describe_module(alias.0);
@@ -131,12 +132,12 @@ impl<C: Compiler> Pretty<C> for TypeReference<C> {
         format!("{path}::{name}")
       },
       TypeReference::Variable(VariableReference::Argument(parent, index)) => {
-        format!("ArgumentOf<{}>[{index}]", parent.print(store))
+        format!("ArgumentOf<{}>[{index}]", print_function_reference::<C>(parent, store))
       },
       TypeReference::Variable(v @ VariableReference::Block(block, _)) => {
         let name = v.rget_from(store).name;
 
-        format!("typeof {{{} {}}}::{}", v.parent().print(store), block.print(store), name.print(store))
+        format!("typeof {{{} {}}}::{}", print_function_reference::<C>(&v.parent(), store), block.print(store), name.print(store))
       },
       TypeReference::Expression(expression) => {
         let type_print = expression.type_of(store).map(|s| format!(" /* {} */", s.print(store)));
@@ -160,7 +161,7 @@ impl<C: Compiler> Pretty<C> for TypeReference<C> {
 impl<C: Compiler> Pretty<C> for Type<C> {
   type Out = String;
 
-  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+  fn print<'local, 'store, 'pool>(&self, store: &'store C::Store<'pool>) -> Self::Out {
     match self {
       // Type::Reference(reference) => reference.print(store),
       Type::Unresolved { qualified, .. } => format!("{{unknown}} {}", qualified.print(store)),
@@ -199,22 +200,22 @@ impl<C: Compiler> Pretty<C> for Type<C> {
   }
 }
 
-type FunctionAnd<'a, C, T> = (&'a Function<C>, &'a T);
+type FunctionAnd<'store, C, T> = (&'store Function<C>, &'store T);
 
-pub trait PrettyFunction<'a, C: Compiler>: Sized where FunctionAnd<'a, C, Self>: Pretty<C> + 'a {
-  fn print_with(&'a self, function: &'a Function<C>, store: &C::Store<'a>) -> <FunctionAnd<'a, C, Self> as Pretty<C>>::Out;
+pub trait PrettyFunction<'store, C: Compiler + 'store>: Sized + 'store where FunctionAnd<'store, C, Self>: Pretty<C> {
+  fn print_with<'local, 'pool>(&'local self, function: &'store Function<C>, store: &'store C::Store<'pool>) -> <FunctionAnd<'store, C, Self> as Pretty<C>>::Out where 'local: 'store;
 }
 
-impl<'a, C: Compiler, T: 'a> PrettyFunction<'a, C> for T where FunctionAnd<'a, C, T>: Pretty<C> + 'a {
-  fn print_with(&'a self, function: &'a Function<C>, store: &C::Store<'a>) -> <FunctionAnd<'a, C, Self> as Pretty<C>>::Out {
+impl<'store, C: Compiler + 'store, T: 'store> PrettyFunction<'store, C> for T where FunctionAnd<'store, C, T>: Pretty<C> {
+  fn print_with<'local, 'pool>(&'local self, function: &'store Function<C>, store: &'store C::Store<'pool>) -> <FunctionAnd<'store, C, Self> as Pretty<C>>::Out where 'local: 'store {
     (function, self).print(store)
   }
 }
 
-impl<C: Compiler> Pretty<C> for FunctionAnd<'_, C, Expression<C>> {
+impl<'store_a, C: Compiler> Pretty<C> for FunctionAnd<'store_a, C, Expression<C>> {
   type Out = std::vec::IntoIter<String>;
 
-  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+  fn print<'local, 'store, 'pool>(&'local self, store: &'store C::Store<'pool>) -> Self::Out {
     let (function, expression) = self;
     match expression {
       Expression::Block(block_id) => {
@@ -324,7 +325,7 @@ impl<C: Compiler> Pretty<C> for FunctionAnd<'_, C, Expression<C>> {
 impl<C: Compiler> Pretty<C> for FunctionAnd<'_, C, BlockExpression<C>> {
   type Out = std::vec::IntoIter<String>;
 
-  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+  fn print<'local, 'store, 'pool>(&'local self, store: &'store C::Store<'pool>) -> Self::Out {
     let (function, block) = self;
     let mut lines = vec!["{".into()];
 
@@ -362,15 +363,15 @@ impl<C: Compiler> Pretty<C> for FunctionAnd<'_, C, BlockExpression<C>> {
 impl<C: Compiler> Pretty<C> for Name<C> {
   type Out = String;
 
-  fn print(&self, store: &C::Store<'_>) -> Self::Out {
-    self.id.print(store)
+  fn print<'local, 'store, 'pool>(&'local self, store: &'store C::Store<'pool>) -> Self::Out {
+    store.pool().get(self.id)
   }
 }
 
 impl<C: Compiler> Pretty<C> for Function<C> {
   type Out = std::vec::IntoIter<String>;
 
-  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+  fn print<'local, 'store, 'pool>(&'local self, store: &'store C::Store<'pool>) -> Self::Out {
     let mut lines = vec![];
     let mut first: String = self.header.name.print(store);
 
@@ -420,7 +421,7 @@ impl<C: Compiler> Pretty<C> for Function<C> {
 impl<C: Compiler> Pretty<C> for QualifiedSearchSpace<C> {
   type Out = String;
 
-  fn print(&self, store: &C::Store<'_>) -> Self::Out {
+  fn print<'local, 'store, 'pool>(&'local self, store: &'store C::Store<'pool>) -> Self::Out {
     match self {
       QualifiedSearchSpace::Implicit => "::".into(),
       QualifiedSearchSpace::Type(overwrite_type_reference) => overwrite_type_reference.print(store),
@@ -434,8 +435,8 @@ impl<C: Compiler> Pretty<C> for QualifiedSearchSpace<C> {
 impl<C: Compiler> Pretty<C> for Module<C> {
   type Out = std::vec::IntoIter<String>;
 
-  fn print(&self, store: &C::Store<'_>) -> Self::Out {
-    let name = self.name.print(store);
+  fn print<'local, 'store, 'pool>(&self, store: &'store C::Store<'pool>) -> Self::Out {
+    let name = store.pool().get(self.name);
     let mut lines = vec![
       format!("mod {name}")
     ];
@@ -448,7 +449,7 @@ impl<C: Compiler> Pretty<C> for Module<C> {
       };
 
       lines.push(format!("  import from {:?}", value.implicit.print(store)));
-      lines.push(format!("    {} // {}", key.print(store), value.print(store)));
+      lines.push(format!("    {} // {}", store.pool().get(*key), value.print(store)));
 
       needs_empty = true;
     };

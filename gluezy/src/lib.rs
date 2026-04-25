@@ -94,22 +94,6 @@ impl<'pool> Lazy<'pool> {
 
     Ok(*self.std.insert(std_reference))
   }
-
-  pub fn create_module(&mut self, name: &str, parent: impl FnOnce(TokensId, ModuleReference) -> ModuleParent<LazyStructures>) -> ModuleReference {
-    // Make the references for this file
-    let module = ModuleReference(self.modules.len());
-    let tokens = TokensId(self.tokens.len());
-
-    // Initialize the module struct
-    let name = self.pool.insert(name);
-    let to_insert = Module::new(name, parent(tokens, module));
-
-    // Store the module's entries
-    self.modules.push(to_insert);
-    self.tokens.push(vec![]);
-
-    module
-  }
 }
 
 impl lang::CompilerPoolStore<LazyStructures> for Lazy<'_> {
@@ -195,6 +179,22 @@ impl lang::CompilerPoolStore<LazyStructures> for Lazy<'_> {
     self.rget_mut(module).functions.push(function_reference);
 
     function_reference
+  }
+
+  fn create_module(&mut self, name: &str, parent: impl FnOnce(TokensId, ModuleReference) -> ModuleParent<LazyStructures>) -> ModuleReference {
+    // Make the references for this file
+    let module = ModuleReference(self.modules.len());
+    let tokens = TokensId(self.tokens.len());
+
+    // Initialize the module struct
+    let name = self.pool.insert(name);
+    let to_insert = Module::new(name, parent(tokens, module));
+
+    // Store the module's entries
+    self.modules.push(to_insert);
+    self.tokens.push(vec![]);
+
+    module
   }
 }
 

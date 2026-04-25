@@ -119,7 +119,7 @@ pub(crate) fn resolve_qualified_to_space(
           if
             let QualifiedSearchSpace::Module(wildscare_space_module) = wildcard_space &&
             let QualifiedSearchSpace::Module(space_module) = &space &&
-            wildscare_space_module == space_module
+            &wildscare_space_module == space_module
           {
             let module_name = lazy.describe_module(*wildscare_space_module);
             let description = format!(line_dbg!("BUGBGUG: Module {} contains itself as an import star selector ... this will cause crashes."), module_name);

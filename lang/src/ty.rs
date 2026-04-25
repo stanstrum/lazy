@@ -27,7 +27,7 @@ pub struct TypePair<C: Compiler> {
 }
 
 impl<C: Compiler> TypePair<C> {
-  pub fn new(reference: TypeReference<C>, ty: Type<C>) -> Self where OverwriteTypeReference<C>: From<TypeReference<C>> {
+  pub fn new(reference: TypeReference<C>, ty: Type<C>) -> Self {
     Self {
       overwrite: reference.into(),
       ty,
@@ -139,6 +139,21 @@ impl<C: Compiler> VariableReference<C> {
     match self {
       VariableReference::Block(block_reference, _) => block_reference.0,
       VariableReference::Argument(function_reference, _) => *function_reference,
+    }
+  }
+}
+
+impl<C: Compiler> From<TypePair<C>> for OverwriteTypeReference<C> {
+  fn from(value: TypePair<C>) -> Self {
+    value.overwrite.clone()
+  }
+}
+
+impl<C: Compiler> From<TypeReference<C>> for OverwriteTypeReference<C> {
+  fn from(dest: TypeReference<C>) -> Self {
+    Self {
+      reference: dest,
+      modifiers: vec![],
     }
   }
 }

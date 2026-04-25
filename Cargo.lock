@@ -203,6 +203,7 @@ dependencies = [
  "aster",
  "compiler",
  "gluezy",
+ "lang",
  "log 0.1.0",
 ]
 

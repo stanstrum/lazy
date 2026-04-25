@@ -7,4 +7,5 @@ edition = "2024"
 aster = { version = "0.1.0", path = "aster" }
 compiler = { version = "0.1.0", path = "compiler" }
 gluezy = { version = "0.1.0", path = "gluezy" }
+lang = { version = "0.1.0", path = "lang" }
 log = { version = "0.1.0", path = "log" }

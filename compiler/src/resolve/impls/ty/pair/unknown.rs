@@ -8,7 +8,7 @@ use crate::lang::ty::{Qualified, QualifiedSearchSpace};
 use gluezy::ModuleReference;
 use ::lang::reference::{AliasReference, StructReference};
 
-pub(crate) fn resolve_qualified_to_space(
+pub fn resolve_qualified_to_space(
   lazy: &Lazy,
   module: ModuleReference,
   qualified: &Qualified,

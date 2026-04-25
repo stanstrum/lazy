@@ -39,6 +39,8 @@ pub trait CompilerPoolStore<'pool, C: Compiler>:
 {
   type Error: Debug;
 
+  fn hack_specifier(&self) -> C;
+
   fn pool(&self) -> &'pool StringPool;
 
   /// Sounds like a rough time.
@@ -55,7 +57,7 @@ pub trait CompilerPoolStore<'pool, C: Compiler>:
   /// The path will be validated and then the source code will be parsed for
   /// tokens and AST.  If successful, the corresponding [`ModuleReference`] will
   /// be returned.
-  fn add_file(&mut self, name: &str, path: PathBuf, relative_to: Option<&Path>) -> Result<C::ModuleReference, Self::Error>;
+  fn add_file(&mut self, name: &str, path: PathBuf, relative_to: Option<&Path>) -> Result<C::ModuleReference, LazyError<C>>;
 
   fn create_function(&mut self, module: C::ModuleReference, header: FunctionHeader<C>) -> C::FunctionReference;
 
@@ -134,5 +136,5 @@ pub trait Compiler: Debug + Sized + Clone + Copy + PartialEq + Eq {
     module: Self::ModuleReference,
     qualified: &Qualified<Self>,
     option: &Option<&mut tasks::Tasks<Self>>,
-  ) -> Result<Option<QualifiedSearchSpace<Self>>, error::ResolveError<Self>>;
+  ) -> Result<Option<QualifiedSearchSpace<Self>>, Box<error::ResolveError<Self>>>;
 }

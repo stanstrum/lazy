@@ -1,5 +1,5 @@
 mod part;
-mod pair;
+pub mod pair;
 mod overwrite;
 
 use crate::lang::ty::{Qualified, Type};

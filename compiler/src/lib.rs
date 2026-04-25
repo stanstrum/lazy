@@ -3,6 +3,8 @@ mod lang {
   pub use ::lang::reference::{Store, Reference};
 }
 
+pub use resolve::impls::ty::pair::unknown::resolve_qualified_to_space;
+
 mod resolve;
 mod generate;
 

@@ -21,8 +21,36 @@ pub use reference::*;
 
 use crate::prelude::module::TokensId;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct LazyStructures;
+pub struct LazyStructures {
+  pub resolve_qualified_to_space: &'static dyn Fn(
+    &<Self as Compiler>::Store<'_>,
+    <Self as Compiler>::ModuleReference,
+    &lang::ty::Qualified<Self>,
+    &Option<&mut lang::tasks::Tasks<Self>>,
+  ) -> Result<Option<lang::ty::QualifiedSearchSpace<Self>>, Box<lang::error::ResolveError<Self>>>,
+}
+
+impl std::fmt::Debug for LazyStructures {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    f.debug_struct("LazyStructures").field("hack", &"(some static pointer)").finish()
+  }
+}
+
+impl Clone for LazyStructures {
+  fn clone(&self) -> Self {
+    Self { resolve_qualified_to_space: self.resolve_qualified_to_space.clone() }
+  }
+}
+
+impl Copy for LazyStructures {}
+
+impl PartialEq for LazyStructures {
+  fn eq(&self, other: &Self) -> bool {
+    unimplemented!()
+  }
+}
+
+impl Eq for LazyStructures {}
 
 #[derive(Debug)]
 pub struct Settings {
@@ -34,8 +62,8 @@ pub struct Settings {
 }
 
 #[derive(Debug)]
-pub struct Lazy<'pool, C: Compiler = LazyStructures> {
-  pub pool: &'pool StringPool,
+pub struct Lazy<'pool, C: Compiler = LazyStructures> { pub pool: &'pool StringPool,
+  pub specifier: C,
   pub pool_keys: keys::PoolKeys,
   pub settings: Settings,
   pub std: Option<C::ModuleReference>,
@@ -45,8 +73,9 @@ pub struct Lazy<'pool, C: Compiler = LazyStructures> {
 }
 
 impl<'pool> Lazy<'pool> {
-  pub fn new(pool: &'pool StringPool, settings: Settings) -> Self {
+  pub fn new(pool: &'pool StringPool, settings: Settings, specifier: LazyStructures) -> Self {
     let lazy = Self {
+      specifier,
       pool,
       settings,
       std: None,
@@ -78,6 +107,10 @@ impl<'pool> lang::CompilerPoolStore<'pool, LazyStructures> for Lazy<'pool> {
 
   fn pool(&self) -> &'pool StringPool {
     self.pool
+  }
+
+  fn hack_specifier(&self) -> LazyStructures {
+    self.specifier
   }
 
   fn get_std(&mut self) -> Result<<LazyStructures as Compiler>::ModuleReference, LazyError<LazyStructures>> {
@@ -197,6 +230,16 @@ impl<'pool> lang::CompilerPoolStore<'pool, LazyStructures> for Lazy<'pool> {
   }
 }
 
+pub trait ResolveQualifiedToSpace<C: Compiler> {
+  fn resolve_qualified_to_space<'a>(
+    store: &mut C::Store<'a>,
+    module: C::ModuleReference,
+    qualified: &lang::ty::Qualified<C>,
+    option: &Option<&mut lang::tasks::Tasks<C>>,
+  ) -> Result<Option<lang::ty::QualifiedSearchSpace<C>>, ResolveError<C>>;
+
+}
+
 impl lang::Compiler for LazyStructures {
   type Store<'a> = Lazy<'a>;
 
@@ -210,7 +253,13 @@ impl lang::Compiler for LazyStructures {
     module: Self::ModuleReference,
     qualified: &lang::ty::Qualified<Self>,
     option: &Option<&mut lang::tasks::Tasks<Self>>,
-  ) -> Result<Option<lang::ty::QualifiedSearchSpace<Self>>, ResolveError<Self>> {
-    todo!()
+  ) -> Result<Option<lang::ty::QualifiedSearchSpace<Self>>, Box<lang::error::ResolveError<Self>>> {
+    let mut p = store.hack_specifier();
+
+    let m = &mut p.resolve_qualified_to_space;
+
+    let r = m(store, module, qualified, option);
+
+    r
   }
 }

@@ -22,12 +22,12 @@ use std::{fmt::Debug, hash::Hash, path::{Path, PathBuf}};
 
 use string_pool::StringPool;
 
-use crate::{function::FunctionHeader, module::{ModuleParent, ModulePath}, reference::{BlockReference, TypePartReference, TypeReference}, ty::{OverwriteTypeReference, Qualified, QualifiedSearchSpace}};
+use crate::{error::LazyError, function::FunctionHeader, module::{ModuleParent, ModulePath}, reference::{BlockReference, TypePartReference, TypeReference}, ty::{OverwriteTypeReference, Qualified, QualifiedSearchSpace}};
 
 pub trait CompilerReference: Debug + Clone + Copy + PartialEq + Eq {}
 impl<T: Debug + Clone + Copy + PartialEq + Eq> CompilerReference for T {}
 
-pub trait CompilerPoolStore<'a, C: Compiler>:
+pub trait CompilerPoolStore<'pool, C: Compiler>:
   reference::Store<C::ModuleReference, Out = module::Module<C>> +
   reference::Store<C::FunctionReference, Out = function::Function<C>> +
   reference::Store<C::TokensReference, Out = token::Tokens<C>> +
@@ -39,7 +39,13 @@ pub trait CompilerPoolStore<'a, C: Compiler>:
 {
   type Error: Debug;
 
-  fn pool(&self) -> &'a StringPool;
+  fn pool(&self) -> &'pool StringPool;
+
+  /// Sounds like a rough time.
+  ///
+  /// Returns a [`ModuleReference`] to the standard library, tokenizing those
+  /// structures if necessary
+  fn get_std(&mut self) -> Result<C::ModuleReference, LazyError<C>>;
 
   /// Creates a module with the provided values.  This module's
   /// [`ModuleParent`] will be [`ModuleParent::Path`] (from `path`) and this

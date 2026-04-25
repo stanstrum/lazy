@@ -1,17 +1,19 @@
-use crate::aster::pprint::Pretty;
-use crate::lang::expr::Expression;
-use crate::lang::{ExpressionReference, TypeReference};
+use lang::Compiler;
+use ::pprint::Pretty;
+use ::lang::expr::Expression;
+use ::gluezy::{TypeReference};
+use ::lang::reference::ExpressionReference;
 
 use super::*;
 
-pub struct Subjugate {
-  pub prerequisite: Box<dyn Task>,
-  pub after: Box<dyn Task>,
+pub struct Subjugate<C: Compiler> {
+  pub prerequisite: Box<dyn Task<C>>,
+  pub after: Box<dyn Task<C>>,
 }
 
-pub struct OverwriteExpression {
-  pub dest: ExpressionReference,
-  pub src: Expression,
+pub struct OverwriteExpression<C: Compiler> {
+  pub dest: ExpressionReference<C>,
+  pub src: Expression<C>,
 }
 
 pub type OverwriteTypeReference = ::lang::ty::OverwriteTypeReference<crate::LazyStructures>;

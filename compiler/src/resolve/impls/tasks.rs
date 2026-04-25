@@ -3,7 +3,7 @@ use crate::lang::ty::Type;
 
 use super::*;
 
-impl Task for Subjugate {
+impl Task<LazyStructures> for Subjugate<LazyStructures> {
   fn explain(&self, lazy: &Lazy) -> String {
     let Subjugate { prerequisite, after: original } = self;
 
@@ -28,7 +28,7 @@ impl Task for Subjugate {
     )
   }
 
-  fn execute(self: Box<Self>, lazy: &mut Lazy, tasks: &mut Tasks) -> Result<TaskResponse> {
+  fn execute(self: Box<Self>, lazy: &mut Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<TaskResponse> {
     let Self { prerequisite, after } = *self;
     let description = format!(line_dbg!("{}"), prerequisite.explain(lazy));
 
@@ -48,7 +48,7 @@ impl Task for Subjugate {
   }
 }
 
-impl Task for OverwriteType {
+impl Task<LazyStructures> for OverwriteType {
   fn explain(&self, lazy: &Lazy) -> String {
     let parent = self.dest.reference.parent_module(lazy);
 
@@ -60,7 +60,7 @@ impl Task for OverwriteType {
     )
   }
 
-  fn execute(self: Box<Self>, lazy: &mut Lazy, _tasks: &mut Tasks) -> Result<TaskResponse> {
+  fn execute(self: Box<Self>, lazy: &mut Lazy, _tasks: &mut Tasks<LazyStructures>) -> Result<TaskResponse> {
     let old_span = self.dest.type_of(lazy)
       .expect("a type to exist here")
       .get_span(lazy);
@@ -79,7 +79,7 @@ impl Task for OverwriteType {
   }
 }
 
-impl Task for OverwriteExpression {
+impl Task<LazyStructures> for OverwriteExpression<LazyStructures> {
   fn explain(&self, lazy: &Lazy) -> String {
     let parent = self.dest.0.0.rget_from(lazy).parent;
 
@@ -92,19 +92,19 @@ impl Task for OverwriteExpression {
     )
   }
 
-  fn execute(self: Box<Self>, lazy: &mut Lazy, _tasks: &mut Tasks) -> Result<TaskResponse> {
+  fn execute(self: Box<Self>, lazy: &mut Lazy, _tasks: &mut Tasks<LazyStructures>) -> Result<TaskResponse> {
     *lazy.rget_mut(self.dest) = self.src;
 
     Ok(TaskResponse::Pop)
   }
 }
 
-impl<R: Resolve + Pretty<Out = String>> Task for ResolveAsTask<R> {
+impl<R: Resolve + Pretty<LazyStructures, Out = String>> Task<LazyStructures> for ResolveAsTask<R> {
   fn explain(&self, lazy: &Lazy) -> String {
     format!(line_dbg!("ResolveAsTask {}"), self.reference.print(lazy))
   }
 
-  fn execute(self: Box<Self>, lazy: &mut Lazy, tasks: &mut Tasks) -> Result<TaskResponse> {
+  fn execute(self: Box<Self>, lazy: &mut Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<TaskResponse> {
     self.reference.resolve(lazy, tasks)?;
 
     Ok(TaskResponse::Pop)

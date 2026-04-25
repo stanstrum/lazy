@@ -14,6 +14,8 @@ version = "0.1.0"
 dependencies = [
  "lang",
  "lazy_macros",
+ "log 0.1.0",
+ "pprint",
  "string_pool",
  "strum",
  "strum_macros",
@@ -50,6 +52,9 @@ dependencies = [
  "gluezy",
  "inkwell",
  "lang",
+ "lazy_macros",
+ "log 0.1.0",
+ "pprint",
  "string_pool",
  "tempfile",
  "tokenize",
@@ -108,7 +113,9 @@ version = "0.1.0"
 dependencies = [
  "aster",
  "lang",
+ "lazy_macros",
  "log 0.1.0",
+ "resolve",
  "string_pool",
 ]
 
@@ -185,6 +192,7 @@ checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 name = "lang"
 version = "0.1.0"
 dependencies = [
+ "lazy_macros",
  "string_pool",
 ]
 
@@ -257,6 +265,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 
 [[package]]
+name = "pprint"
+version = "0.1.0"
+dependencies = [
+ "lang",
+]
+
+[[package]]
 name = "prettyplease"
 version = "0.2.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -295,6 +310,13 @@ name = "regex-lite"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cab834c73d247e67f4fae452806d17d3c7501756d98c8808d7c9c7aa7d18f973"
+
+[[package]]
+name = "resolve"
+version = "0.1.0"
+dependencies = [
+ "lang",
+]
 
 [[package]]
 name = "rustix"

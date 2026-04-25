@@ -77,7 +77,7 @@ fn compile_expr<'ctx>(
 pub(super) fn compile_block<'ctx>(
   comp: &mut Compilation<'_, '_, 'ctx>,
   function: inkwell::values::FunctionValue<'ctx>,
-  block: lang::BlockReference,
+  block: lang::reference::BlockReference<LazyStructures>,
   scopes: &mut FunctionScopes<'ctx>,
 ) -> Result<LazyValue<'ctx>> {
   // Note where we came from -- will need to jmp from that block to this one

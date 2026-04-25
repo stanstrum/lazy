@@ -9,6 +9,7 @@ dependencies = [
  "lang",
  "lazy_macros",
  "log",
+ "pprint",
  "string_pool",
  "strum",
  "strum_macros",
@@ -25,6 +26,7 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 name = "lang"
 version = "0.1.0"
 dependencies = [
+ "lazy_macros",
  "string_pool",
 ]
 
@@ -39,6 +41,10 @@ dependencies = [
  "lang",
  "lazy_macros",
 ]
+
+[[package]]
+name = "pprint"
+version = "0.1.0"
 
 [[package]]
 name = "proc-macro2"

@@ -4,16 +4,16 @@ use lazy_macros::{print_message, print_once_per_thread};
 
 use super::*;
 
-pub(super) fn traverse_import<C: Compiler>(
-  lazy: &mut C::Store<'_>,
+pub(super) fn traverse_import<'pool, C: Compiler>(
+  store: &mut C::Store<'pool>,
   module: C::ModuleReference,
   import: &lang::import::Import<C>,
 ) -> Result<(), Error<C>> {
   let mut stack = vec![];
 
-  let count = traverse_group(lazy, &module, &import.source, &import.group, &mut stack)?;
+  let count = traverse_group(store, &module, &import.source, &import.group, &mut stack)?;
 
-  print_message!(lazy, {
+  print_message!(store, {
     level: Debug,
     force: false,
     description: format!(line_dbg!("parsed {} import entry(s)"), count),

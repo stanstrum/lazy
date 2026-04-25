@@ -5,7 +5,7 @@ use crate::generate::types::make_type;
 use super::*;
 
 struct FunctionScope<'ctx> {
-  block: lang::BlockReference,
+  block: lang::reference::BlockReference<LazyStructures>,
   variables: Vec<inkwell::values::PointerValue<'ctx>>,
 }
 
@@ -27,7 +27,7 @@ impl<'ctx> FunctionScopes<'ctx> {
     }
   }
 
-  fn push(&mut self, comp: &mut Compilation<'_, '_, 'ctx>, block: lang::BlockReference) -> Result {
+  fn push(&mut self, comp: &mut Compilation<'_, '_, 'ctx>, block: lang::reference::BlockReference<LazyStructures>) -> Result {
     let borrow = comp.lazy.rget(block);
 
     let variables = borrow.variables.iter()

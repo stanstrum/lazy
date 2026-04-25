@@ -106,7 +106,7 @@ fn make_name<'pool, C: Compiler, const N: usize, T: Read>(
 }
 
 pub(super) fn make<'pool, C: Compiler, const N: usize, T: Read>(
-  lazy: &mut C::Store<'pool>,
+  store: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, C, N, T>
 ) -> Result<(), Error<C>> {
   loop {
@@ -121,7 +121,7 @@ pub(super) fn make<'pool, C: Compiler, const N: usize, T: Read>(
       continue;
     };
 
-    let Some(_) = structure::make_structure(lazy, stream.module, stream)? else {
+    let Some(_) = structure::make_structure(store, stream.module, stream)? else {
       return stream.expected_here(line_dbg!("a top-level structure"));
     };
   };

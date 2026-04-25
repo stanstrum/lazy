@@ -14,13 +14,12 @@ mod steps;
 #[cfg(test)] mod test;
 
 pub use string_pool::StringPool;
-use crate::settings::Settings;
+use gluezy::Settings;
 
-use crate::lang::{ModuleReference, TokenSpan};
+use crate::lang::{TokenSpan};
 use crate::lang::module::Module;
 use crate::lang::function::Function;
 
-pub use ::structure::*;
 pub use steps::*;
 
 pub mod tokenize {

@@ -1,9 +1,11 @@
 use crate::lang::expr::Expression;
 use crate::lang::expr::operator::BinaryOperator;
-use crate::lang::{BlockReference, ExpressionReference, TypeReference, VariableReference};
+use gluezy::{LazyStructures, TypeReference, VariableReference};
+use ::lang::reference::{BlockReference, ExpressionReference};
+use pprint::Pretty;
 use crate::lang::ty::Type;
 use ::lang::intrinsic::Intrinsic;
-use crate::print_once_per_thread;
+use lazy_macros::print_once_per_thread;
 use crate::resolve::TypePair;
 use crate::resolve::tasks::OverwriteTypeReference;
 use crate::lang::Span;
@@ -11,9 +13,9 @@ use crate::lang::Span;
 use super::*;
 
 impl Resolve for VariableReference {
-  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
+  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
     let description = {
-      let (function, print): (_, &dyn Pretty<Out = String>) = match self {
+      let (function, print): (_, &dyn Pretty<LazyStructures, Out = String>) = match self {
         VariableReference::Block(block_reference, _) => (block_reference.0, block_reference),
         VariableReference::Argument(function_reference, _) => (*function_reference, function_reference),
       };
@@ -32,12 +34,12 @@ impl Resolve for VariableReference {
 }
 
 impl Coerce for VariableReference {
-  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
+  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
     TypeReference::Variable(*self).coerce(lazy, other, tasks)
   }
 }
 
-fn verify_variable(lazy: &Lazy, variable: VariableReference, tasks: &mut Tasks) -> Result<()> {
+fn verify_variable(lazy: &Lazy, variable: VariableReference, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
   let description = {
     let (function, print): (_, &dyn Pretty<Out = String>) = match &variable {
       VariableReference::Block(block_reference, _) => (block_reference.0, block_reference),
@@ -60,8 +62,8 @@ fn verify_variable(lazy: &Lazy, variable: VariableReference, tasks: &mut Tasks) 
   })
 }
 
-impl Coerce for ExpressionReference {
-  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
+impl Coerce for ExpressionReference<LazyStructures> {
+  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
     let a = self.print(lazy);
     let b = other.type_of(lazy).map(|x| x.print(lazy)).unwrap_or_else(|| "{none}".into());
 
@@ -82,8 +84,8 @@ impl Coerce for ExpressionReference {
   }
 }
 
-impl Resolve for BlockReference {
-  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
+impl Resolve for BlockReference<LazyStructures> {
+  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
     let description = format!(line_dbg!("Resolve BlockReference: {}"), self.print(lazy));
 
     tasks.work(description, |tasks| {
@@ -102,7 +104,7 @@ impl Resolve for BlockReference {
   }
 }
 
-pub(super) fn default_types_in_block_expr(lazy: &mut Lazy, block: &BlockReference, tasks: &mut Tasks) -> Result<()> {
+pub(super) fn default_types_in_block_expr(lazy: &mut Lazy, block: &BlockReference<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
   let description = {
     let Span { start, end, .. } = block.get_span(lazy);
 
@@ -123,7 +125,7 @@ pub(super) fn default_types_in_block_expr(lazy: &mut Lazy, block: &BlockReferenc
   })
 }
 
-pub(super) fn verify_block(lazy: &Lazy, block: &BlockReference, ret_ty: Option<&TypePair>, tasks: &mut Tasks) -> Result<()> {
+pub(super) fn verify_block(lazy: &Lazy, block: &BlockReference<LazyStructures>, ret_ty: Option<&TypePair<LazyStructures>>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
   let block_borrow = block.rget_from(lazy);
 
   let description = {
@@ -168,8 +170,8 @@ pub(super) fn verify_block(lazy: &Lazy, block: &BlockReference, ret_ty: Option<&
   })
 }
 
-impl Resolve for ExpressionReference {
-  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
+impl Resolve for ExpressionReference<LazyStructures> {
+  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
     let description = {
       format!(line_dbg!("Resolve ExpressionReference: {} in {}"),
         self.print(lazy),
@@ -323,7 +325,7 @@ impl Resolve for ExpressionReference {
   }
 }
 
-fn default_types_in_expr(lazy: &mut Lazy, expr: &ExpressionReference, tasks: &mut Tasks) -> Result<()> {
+fn default_types_in_expr(lazy: &mut Lazy, expr: &ExpressionReference<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
   let Span { start, end , .. } = expr.get_span(lazy);
 
   let description = format!(line_dbg!("Make default ambiguous types for expr {}:{} - {}:{}"),
@@ -366,7 +368,7 @@ fn default_types_in_expr(lazy: &mut Lazy, expr: &ExpressionReference, tasks: &mu
   })
 }
 
-fn verify_expr(lazy: &Lazy, expr: ExpressionReference, ret_ty: Option<&TypePair>, tasks: &mut Tasks) -> Result<()> {
+fn verify_expr(lazy: &Lazy, expr: ExpressionReference<LazyStructures>, ret_ty: Option<&TypePair<LazyStructures>>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
   let Span { start, end , .. } = lazy.rget(expr).get_span(lazy);
 
   let description = format!(line_dbg!("Verify expr {}:{} - {}:{}"),

@@ -1,16 +1,15 @@
 use lang::ty::OverwriteTypeReference;
 use lang::{Compiler, CompilerPoolStore};
-use string_pool::PoolId;
 
-use ::lang::token::{NumericValue, StringKind};
-use ::lang::span::{Span, GetSpan};
-use ::lang::expr::operator::{UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
-use ::lang::expr::{BlockExpression, Expression, LiteralKind};
-use ::lang::reference::{BlockReference, ExpressionReference, Reference, Store, TypePartReference, TypeReference, VariableReference};
-use ::lang::ty::{Qualified, QualifiedSearchSpace, Type};
-use ::lang::module::{Module, Name};
-use ::lang::function::Function;
-use ::lang::ty::{TypeOf, TypePair, TypePairModifier};
+use lang::token::{NumericValue, StringKind};
+use lang::span::{Span, GetSpan};
+use lang::expr::operator::{UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
+use lang::expr::{BlockExpression, Expression, LiteralKind};
+use lang::reference::{BlockReference, ExpressionReference, Reference, Store, TypePartReference, TypeReference, VariableReference};
+use lang::ty::{Qualified, QualifiedSearchSpace, Type};
+use lang::module::{Module, Name};
+use lang::function::Function;
+use lang::ty::{TypeOf, TypePair, TypePairModifier};
 
 pub trait Pretty<C: Compiler> {
   type Out;

@@ -1,17 +1,22 @@
 pub mod impls;
 pub mod tasks;
-pub mod pair;
 
-use crate::{print_message, line_dbg};
+pub mod pair {
+  pub use ::lang::ty::TypePairModifier;
+  pub use ::lang::ty::TypePair;
+}
 
-use crate::Lazy;
-use crate::aster::pprint::Pretty;
+use lang::Compiler;
+use lazy_macros::{print_message, line_dbg};
+
+use ::pprint::Pretty;
 use crate::lang::Span;
 use ::lang::intrinsic::Intrinsic;
 use ::lang::span::GetSpan;
 use crate::lang::ty::Type;
-use crate::lang::{FunctionReference, ModuleReference, Reference, Store, TypeReference};
-use crate::lang::LazyError;
+use gluezy::{FunctionReference, LazyStructures, ModuleReference, TypeReference};
+use crate::lang::{Reference, Store};
+use ::lang::error::LazyError;
 use crate::resolve::tasks::OverwriteTypeReference;
 
 use tasks::Tasks;
@@ -23,19 +28,19 @@ pub use pair::*;
 pub type Error = ::resolve::Error<crate::LazyStructures>;
 pub type ErrorBase = ::resolve::ErrorBase<crate::LazyStructures>;
 
-struct Resolver<'lazy, 'pool> {
+struct Resolver<'lazy, 'pool, C: Compiler = LazyStructures> {
   lazy: &'lazy mut Lazy<'pool>,
-  tasks: Tasks,
-  global: ModuleReference,
-  std: ModuleReference,
+  tasks: Tasks<C>,
+  global: C::ModuleReference,
+  std: C::ModuleReference,
 }
 
 pub trait Resolve {
-  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()>;
+  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()>;
 }
 
 pub trait Coerce {
-  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()>;
+  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks<LazyStructures>) -> Result<()>;
 }
 
 // impl<R: Copy> TypeOf for R
@@ -87,7 +92,7 @@ impl<'lazy, 'pool> Resolver<'lazy, 'pool> {
   }
 }
 
-fn find_main(lazy: &Lazy, module: ModuleReference, tasks: &mut Tasks) -> Result<FunctionReference> {
+fn find_main(lazy: &Lazy, module: ModuleReference, tasks: &mut Tasks<LazyStructures>) -> Result<FunctionReference> {
   let main_search = {
     let main_id = lazy.pool.insert("main");
 

@@ -35,10 +35,10 @@ pub struct Settings {
 
 #[derive(Debug)]
 pub struct Lazy<'pool, C: Compiler = LazyStructures> {
-  pub(crate) pool: &'pool StringPool,
+  pub pool: &'pool StringPool,
   pub(crate) pool_keys: keys::PoolKeys,
   pub(crate) settings: Settings,
-  pub(crate) std: Option<C::ModuleReference>,
+  pub std: Option<C::ModuleReference>,
   pub(crate) modules: Vec<Module<C>>,
   pub(crate) functions: Vec<Function<C>>,
   pub(crate) tokens: Vec<Tokens<C>>,
@@ -73,12 +73,14 @@ impl<'pool> Lazy<'pool> {
 }
 
 // TODO: find a nicer spot for this stuff
-impl<'pool, C: Compiler> Lazy<'pool, C> {
-  /// Sounds like a rough time.
-  ///
-  /// Returns a [`ModuleReference`] to the standard library, tokenizing those
-  /// structures if necessary
-  fn get_std(&mut self) -> Result<C::ModuleReference, LazyError<C>> {
+impl<'pool> lang::CompilerPoolStore<'pool, LazyStructures> for Lazy<'pool> {
+  type Error = LazyError<LazyStructures>;
+
+  fn pool(&self) -> &'pool StringPool {
+    self.pool
+  }
+
+  fn get_std(&mut self) -> Result<<LazyStructures as Compiler>::ModuleReference, LazyError<LazyStructures>> {
     if let Some(std) = self.std {
       return Ok(std);
     };
@@ -87,20 +89,15 @@ impl<'pool, C: Compiler> Lazy<'pool, C> {
       level: Stub,
       force: false,
       description: line_dbg!("@std can only be imported from cwd").into(),
-      contents: MessageContents::None::<C>,
+      contents: MessageContents::None::<LazyStructures>,
     });
 
-    let std_reference = self.add_file("@std", "std".into(), None)?;
+    let std_reference = match CompilerPoolStore::add_file(self, "@std", "std".into(), None) {
+      Ok(x) => x,
+      Err(err) => todo!("{err:?}"),
+    };
 
     Ok(*self.std.insert(std_reference))
-  }
-}
-
-impl<'pool> lang::CompilerPoolStore<'pool, LazyStructures> for Lazy<'pool> {
-  type Error = LazyError<LazyStructures>;
-
-  fn pool(&self) -> &'pool StringPool {
-    self.pool
   }
 
   fn add_file(&mut self, name: &str, mut path: PathBuf, relative_to: Option<&Path>) -> Result<ModuleReference, LazyError<LazyStructures>> {
@@ -153,7 +150,7 @@ impl<'pool> lang::CompilerPoolStore<'pool, LazyStructures> for Lazy<'pool> {
       level: Debug,
       force: false,
       description: format!("Adding module {name:?} from {path:?}"),
-      contents: MessageContents::None,
+      contents: MessageContents::None::<LazyStructures>,
     });
 
     // Check if our file is actually there
@@ -165,7 +162,9 @@ impl<'pool> lang::CompilerPoolStore<'pool, LazyStructures> for Lazy<'pool> {
     let module = self.create_module(name, parent);
 
     // Tokenize, asterize (parse AST)
-    ::aster::asterize(self, module)?;
+    if let Err(err) = ::aster::asterize::<LazyStructures>(self, module) {
+      return Err(LazyError::Aster(err));
+    };
 
     Ok(module)
   }

@@ -165,7 +165,8 @@ pub(super) fn make_structure<'pool, C: Compiler, const N: usize, T: Read>(
 ) -> Result<Option<Structure<C>>, Error<C>> {
   let here = stream.here()?;
 
-  if let Some(module) = module::make_mod(store, stream, parent)? {
+  let module = module::make_mod(store, stream, parent)?;
+  if let Some(module) = module {
     store.rget_mut(parent).modules.push(module);
 
     let module_name = store.describe_module(module);

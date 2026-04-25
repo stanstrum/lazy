@@ -11,3 +11,4 @@ tokenize = { version = "0.1.0", path = "../tokenize" }
 strum = "0.28.0"
 strum_macros = "0.28.0"
 log = { version = "0.1.0", path = "../log" }
+pprint = { version = "0.1.0", path = "../pprint" }

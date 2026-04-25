@@ -1,16 +1,17 @@
 use super::*;
 
 use crate::lang::module::ModuleParent;
-use crate::{print_message, print_once_per_thread};
+use lazy_macros::{print_message, print_once_per_thread};
 
 use crate::lang::ty::{Qualified, QualifiedSearchSpace};
-use crate::lang::{AliasReference, ModuleReference, StructReference};
+use gluezy::ModuleReference;
+use ::lang::reference::{AliasReference, StructReference};
 
 pub(crate) fn resolve_qualified_to_space(
   lazy: &Lazy,
   module: ModuleReference,
   qualified: &Qualified,
-  tasks: &Option<&mut Tasks>,
+  tasks: &Option<&mut Tasks<LazyStructures>>,
 ) -> Result<Option<QualifiedSearchSpace>> {
   let mut space = qualified.implicit.to_owned();
 
@@ -197,7 +198,7 @@ pub(super) fn resolve_qualified_to_type(
   lazy: &Lazy,
   module: ModuleReference,
   qualified: &Qualified,
-  tasks: &mut Tasks,
+  tasks: &mut Tasks<LazyStructures>,
 ) -> Result<Option<Type>> {
   Ok(match resolve_qualified_to_space(lazy, module, qualified, &Some(tasks))? {
     Some(QualifiedSearchSpace::Type(ty)) => ty.type_of(lazy),

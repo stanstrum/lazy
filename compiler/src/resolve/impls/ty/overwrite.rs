@@ -1,7 +1,7 @@
 use super::*;
 
 impl Coerce for OverwriteTypeReference {
-  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
+  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
     let Some(ty) = self.type_of(lazy) else {
       return Ok(());
     };

@@ -5,11 +5,12 @@ mod expr;
 
 mod tasks;
 
-use crate::line_dbg;
+use lazy_macros::line_dbg;
 
-use crate::aster::pprint::*;
+use ::pprint::*;
 use ::lang::span::GetSpan;
 use crate::lang::{Reference, Store};
-use crate::resolve::{Coerce, Resolve, TypeOf};
+use crate::resolve::{Coerce, Resolve};
+use ::lang::ty::TypeOf;
 
-use super::{Lazy, Result, ErrorBase, Tasks};
+use super::{Result, ErrorBase, Tasks};

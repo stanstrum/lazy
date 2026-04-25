@@ -7,10 +7,10 @@ mod types;
 use std::collections::HashMap;
 use std::path::Path;
 
-use crate::{lang, line_dbg, print_message};
+use lazy_macros::{line_dbg, print_message};
 use ::lang::span::GetSpan;
 use crate::lang::{Reference, Span, Store};
-use crate::resolve::TypeOf;
+use ::lang::ty::TypeOf;
 
 use {args::*, context::*};
 

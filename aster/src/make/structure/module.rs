@@ -1,7 +1,7 @@
 use super::*;
 
 pub(super) fn make_mod<'pool, C: Compiler, const N: usize, T: Read>(
-  lazy: &mut C::Store<'pool>,
+  store: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, C, N, T>,
   parent: C::ModuleReference,
 ) -> Result<Option<C::ModuleReference>, Error<C>> {
@@ -21,8 +21,8 @@ pub(super) fn make_mod<'pool, C: Compiler, const N: usize, T: Read>(
   };
 
   // set up the module, even if it'll be empty
-  let name_value = lazy.pool().get(name.id);
-  let module = lazy.create_module(&name_value, |_, _| lang::module::ModuleParent::Module(parent));
+  let name_value = store.pool().get(name.id);
+  let module = store.create_module(&name_value, |_, _| lang::module::ModuleParent::Module(parent));
 
   stream.skip_whitespace_and_comments()?;
 
@@ -62,7 +62,7 @@ pub(super) fn make_mod<'pool, C: Compiler, const N: usize, T: Read>(
     };
 
     // build a structure inside of `module`, not `parent`
-    let Some(_) = structure::make_structure(lazy, module, stream)? else {
+    let Some(_) = structure::make_structure(store, module, stream)? else {
       return stream.expected_here(line_dbg!("a structure"));
     };
   };

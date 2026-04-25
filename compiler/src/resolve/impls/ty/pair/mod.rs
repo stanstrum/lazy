@@ -18,8 +18,8 @@ use super::*;
 //   }
 // }
 
-impl Resolve for TypePair {
-  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
+impl Resolve for TypePair<LazyStructures> {
+  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
     let description = format!(line_dbg!("Resolve TypePair:\n- Ref.: {}\n- Type: {}"),
       self.overwrite.print(lazy),
       self.ty.print(lazy),
@@ -72,8 +72,8 @@ impl Resolve for TypePair {
   }
 }
 
-impl Coerce for TypePair {
-  fn coerce(&self, lazy: &Lazy, other_ref: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
+impl Coerce for TypePair<LazyStructures> {
+  fn coerce(&self, lazy: &Lazy, other_ref: &impl TypeOf<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
     let a = self.overwrite.print(lazy);
     let b = self.ty.print(lazy);
     let c = other_ref.type_of(lazy)
@@ -276,7 +276,7 @@ impl Coerce for TypePair {
   }
 }
 
-pub(in crate::resolve::impls) fn default_types_of_type_pair(lazy: &mut Lazy, pair: &TypePair, tasks: &mut Tasks) -> Result<()> {
+pub(in crate::resolve::impls) fn default_types_of_type_pair(lazy: &mut Lazy, pair: &TypePair<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
   match &pair.ty {
     Type::Reference(ty) => default_types_of_type(lazy, ty, tasks),
     Type::Resolved { part, .. } => default_types_of_type(

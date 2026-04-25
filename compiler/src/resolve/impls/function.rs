@@ -1,11 +1,11 @@
-use crate::{print_message, print_once_per_thread};
+use lazy_macros::{print_message, print_once_per_thread};
 
 use crate::resolve::TypePair;
-use crate::lang::{FunctionReference, TypeReference, VariableReference};
+use gluezy::{FunctionReference, TypeReference, VariableReference};
 
 use super::*;
 
-pub(super) fn default_types_in_function(lazy: &mut Lazy, function: &FunctionReference, tasks: &mut Tasks) -> Result<()> {
+pub(super) fn default_types_in_function(lazy: &mut Lazy, function: &FunctionReference, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
   let header_arguments;
   let body;
 
@@ -43,7 +43,7 @@ pub(super) fn default_types_in_function(lazy: &mut Lazy, function: &FunctionRefe
   )
 }
 
-pub(in crate::resolve) fn verify_function(lazy: &Lazy, function: &FunctionReference, tasks: &mut Tasks) -> Result<()> {
+pub(in crate::resolve) fn verify_function(lazy: &Lazy, function: &FunctionReference, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
   // get main function
   let borrow = function.rget_from(lazy);
 

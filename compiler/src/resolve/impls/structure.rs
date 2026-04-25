@@ -1,12 +1,13 @@
 use crate::lang::ty::Type;
-use crate::lang::{AliasReference, ExpressionReference, FunctionReference, ModuleReference, StructReference, TypeReference, VariableReference};
+use ::lang::reference::{AliasReference, ExpressionReference, StructReference};
+use gluezy::{FunctionReference, ModuleReference, TypeReference, VariableReference};
 use crate::resolve::TypePair;
 use crate::resolve::impls::ty::verify_typeof;
 
 use super::*;
 
 impl Resolve for ModuleReference {
-  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
+  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
     let module = self.rget_from(lazy);
 
     for module in module.modules.iter() {
@@ -29,14 +30,14 @@ impl Resolve for ModuleReference {
   }
 }
 
-impl Resolve for AliasReference {
-  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
+impl Resolve for AliasReference<LazyStructures> {
+  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
     TypeReference::Alias(*self).resolve(lazy, tasks)
   }
 }
 
-impl Resolve for StructReference {
-  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
+impl Resolve for StructReference<LazyStructures> {
+  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
     let struct_borrow = self.rget_from(lazy);
 
     for index in 0..struct_borrow.members.len() {
@@ -47,7 +48,7 @@ impl Resolve for StructReference {
   }
 }
 
-pub(super) fn verify_struct(lazy: &Lazy, struct_reference: &StructReference, tasks: &mut Tasks) -> Result<()> {
+pub(super) fn verify_struct(lazy: &Lazy, struct_reference: &StructReference<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
   let struct_borrow = struct_reference.rget_from(lazy);
 
   let module_name = lazy.describe_module(struct_reference.0);
@@ -64,7 +65,7 @@ pub(super) fn verify_struct(lazy: &Lazy, struct_reference: &StructReference, tas
 }
 
 impl Resolve for FunctionReference {
-  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
+  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
     let description = format!(line_dbg!("Resolve FunctionReference: {}"), self.print(lazy));
 
     tasks.work(description, |tasks|{
@@ -99,12 +100,12 @@ impl Resolve for FunctionReference {
   }
 }
 
-fn verify_alias(lazy: &Lazy, alias: &AliasReference, tasks: &mut Tasks) -> Result<()> {
+fn verify_alias(lazy: &Lazy, alias: &AliasReference<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
   let ty = Type::Reference(TypeReference::Alias(*alias));
   verify_typeof(lazy, &ty, tasks)
 }
 
-pub(in crate::resolve) fn default_types_in_module(lazy: &mut Lazy, module: &ModuleReference, tasks: &mut Tasks) -> Result<()> {
+pub(in crate::resolve) fn default_types_in_module(lazy: &mut Lazy, module: &ModuleReference, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
   // let description = {
   let borrow = module.rget_from(lazy);
 
@@ -127,7 +128,7 @@ pub(in crate::resolve) fn default_types_in_module(lazy: &mut Lazy, module: &Modu
   Ok(())
 }
 
-pub(in crate::resolve) fn verify_module(lazy: &Lazy, module: &ModuleReference, tasks: &mut Tasks) -> Result<()> {
+pub(in crate::resolve) fn verify_module(lazy: &Lazy, module: &ModuleReference, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
   let borrow = module.rget_from(lazy);
 
   for id in 0..borrow.aliases.len() {

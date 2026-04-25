@@ -1,4 +1,5 @@
-use crate::aster::pprint::Pretty;
+use gluezy::LazyStructures;
+use ::pprint::Pretty;
 
 use super::*;
 
@@ -66,7 +67,7 @@ pub(super) fn make_function_type<'ctx>(
   Ok(function_type)
 }
 
-pub(super) fn make_type<'ctx>(comp: &Compilation<'_, '_, 'ctx>, t: &impl TypeOf) -> Result<LazyType<'ctx>> {
+pub(super) fn make_type<'ctx>(comp: &Compilation<'_, '_, 'ctx>, t: &impl TypeOf<LazyStructures>) -> Result<LazyType<'ctx>> {
   let ty = t.type_of(comp.lazy)
     .expect("type of to be Some()");
 

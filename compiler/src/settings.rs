@@ -1,5 +1,5 @@
 use std::path::PathBuf;
 
-use crate::error::Level;
+use ::log::Level;
 
 use ::gluezy::Settings;

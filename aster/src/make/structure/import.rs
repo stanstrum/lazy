@@ -179,8 +179,7 @@ pub(super) fn make_import<'pool, C: Compiler, const N: usize, T: Read>(
     .expect("source to have a parent directory")
     .to_owned();
 
-  let m = <<C as Compiler>::Store<'pool> as lang::CompilerPoolStore<'pool, C>>::add_file;
-  let v = m(store, &name, path, Some(&relative_to));
+  let m = <<C as Compiler>::Store<'pool> as lang::CompilerPoolStore<'pool, C>>::add_file(store, &name, path, Some(&relative_to));
   let source = todo!("v?");
 
   Ok(Some(lang::import::Import {

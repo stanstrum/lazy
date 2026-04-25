@@ -7,8 +7,11 @@ mod types;
 use std::collections::HashMap;
 use std::path::Path;
 
+use gluezy::LazyStructures;
+use lang::Compiler;
 use lazy_macros::{line_dbg, print_message};
 use ::lang::span::GetSpan;
+use log::{Level, MessageContents, MessageSection, WithinSource};
 use crate::lang::{Reference, Span, Store};
 use ::lang::ty::TypeOf;
 
@@ -39,17 +42,17 @@ impl From<inkwell::builder::BuilderError> for Error {
 }
 
 struct Compilation<'lazy, 'pool, 'llvm> {
-  lazy: &'lazy crate::Lazy<'pool>,
+  lazy: &'lazy gluezy::Lazy<'pool>,
   llvm: LLVMContext<'llvm>,
   functions: HashMap<
-    lang::FunctionReference,
+    gluezy::FunctionReference,
     inkwell::values::FunctionValue<'llvm>,
   >,
 }
 
 pub(super) struct Program {
   context: inkwell::context::Context,
-  global: lang::ModuleReference,
+  global: gluezy::ModuleReference,
   cli_args: CliArgs,
 }
 
@@ -64,7 +67,7 @@ pub(super) struct ProgramObjectFile {
 }
 
 impl<'lazy, 'pool, 'llvm> Compilation<'lazy, 'pool, 'llvm> {
-  fn new(lazy: &'lazy crate::Lazy<'pool>, context: LLVMContext<'llvm>) -> Self {
+  fn new(lazy: &'lazy gluezy::Lazy<'pool>, context: LLVMContext<'llvm>) -> Self {
     Self {
       lazy,
       llvm: context,
@@ -73,7 +76,7 @@ impl<'lazy, 'pool, 'llvm> Compilation<'lazy, 'pool, 'llvm> {
   }
 
   fn get_or_declare_function(&mut self,
-    function: lang::FunctionReference,
+    function: gluezy::FunctionReference,
   ) -> Result<inkwell::values::FunctionValue<'llvm>> {
     // return it if we have it already
     if let Some(value) = self.functions.get(&function) {
@@ -106,7 +109,7 @@ impl<'lazy, 'pool, 'llvm> Compilation<'lazy, 'pool, 'llvm> {
 }
 
 impl Program {
-  pub(super) fn new(global: lang::ModuleReference, cli_args: CliArgs) -> Self {
+  pub(super) fn new(global: gluezy::ModuleReference, cli_args: CliArgs) -> Self {
     Self {
       context: inkwell::context::Context::create(),
       global,
@@ -115,7 +118,7 @@ impl Program {
     }
   }
 
-  pub(super) fn compile<'ctx>(&'ctx self, lazy: &crate::Lazy) -> Result<ProgramCompilation<'ctx>> {
+  pub(super) fn compile<'ctx>(&'ctx self, lazy: &gluezy::Lazy) -> Result<ProgramCompilation<'ctx>> {
     let llvm_ctx = LLVMContext::new(&self.context, &self.cli_args);
     let mut comp = Compilation::new(lazy, llvm_ctx);
 
@@ -165,12 +168,12 @@ impl<'ctx> ProgramCompilation<'ctx> {
     self.llvm.dump_module()
   }
 
-  pub(super) fn optimize(&self, lazy: &crate::Lazy) -> Result {
+  pub(super) fn optimize(&self, lazy: &gluezy::Lazy) -> Result {
     print_message!(lazy, {
       level: Info,
       force: false,
       description: line_dbg!("Optimizing LLVM code").into(),
-      contents: MessageContents::None,
+      contents: MessageContents::None::<LazyStructures>,
     });
 
     self.llvm.run_passes(&self.program.cli_args.passes)
@@ -232,5 +235,29 @@ impl ProgramObjectFile {
     path.close().expect("to close temp file");
 
     Ok(out_path)
+  }
+}
+
+impl From<crate::generate::Error> for log::PrintableMessage<LazyStructures> {
+  fn from(value: crate::generate::Error) -> Self {
+    match value {
+      crate::generate::Error::StillUnresolved { what, note, span } => Self {
+        level: Level::Error,
+        force: true,
+        description: format!("unresolved in generation: {what}"),
+        contents: MessageContents::WithinSource(WithinSource::new(
+          vec![MessageSection {
+            text: note,
+            span,
+          }],
+        )),
+      },
+      crate::generate::Error::LLVMError(description) => Self {
+        level: Level::Error,
+        force: true,
+        description,
+        contents: MessageContents::None,
+      },
+    }
   }
 }

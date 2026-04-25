@@ -1,5 +1,7 @@
 use std::cmp::Ordering;
 
+use lang::CompilerPoolStore;
+
 use crate::lang::module::ModulePath;
 use crate::lang::Store;
 use crate::lang::{Position, Token, TokenSpan};

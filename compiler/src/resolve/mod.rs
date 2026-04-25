@@ -161,7 +161,7 @@ pub fn resolve_and_verify(lazy: &mut Lazy, global: ModuleReference) -> Result<()
         level: Stub,
         force: false,
         description: line_dbg!("verify rest of program, apart from main").into(),
-        contents: MessageContents::File(global),
+        contents: MessageContents::File::<LazyStructures>(global),
       });
 
       Ok(())
@@ -174,7 +174,7 @@ pub fn resolve_and_verify(lazy: &mut Lazy, global: ModuleReference) -> Result<()
       // get main and error if it's not present
       let main = find_main(resolver.lazy, global, tasks)?;
 
-      let borrow = resolver.lazy.rget(main);
+      let borrow = <Lazy as Store<FunctionReference>>::rget(resolver.lazy, main);
       let ret_ty_reference = TypeReference::ReturnTypeOf(main);
 
       // set up some perfunctory data to coerce return type to i32
@@ -212,7 +212,7 @@ pub fn resolve_and_verify(lazy: &mut Lazy, global: ModuleReference) -> Result<()
     level: Info,
     force: false,
     description: line_dbg!("No further work should be done.").into(),
-    contents: MessageContents::None,
+    contents: MessageContents::None::<LazyStructures>,
   });
   assert!(
     !resolver.tasks.execute_pass(lazy)?,

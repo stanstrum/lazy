@@ -2,16 +2,6 @@ use gluezy::{Lazy, LazyStructures, TypePartReference};
 
 use super::*;
 
-impl TypeOf<LazyStructures> for TypePartReference {
-  fn type_of(&self, lazy: &Lazy) -> Option<Type> {
-    self.rget_from(lazy).type_of(lazy)
-  }
-
-  fn reference(&self, _lazy: &Lazy) -> Option<OverwriteTypeReference> {
-    Some(TypeReference::Part(*self).into())
-  }
-}
-
 impl Resolve for TypePartReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
     // let description = format!(line_dbg!("Resolve TypePartReference: {}"), self.print(lazy));

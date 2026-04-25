@@ -67,7 +67,7 @@ pub(super) fn verify_struct(lazy: &Lazy, struct_reference: &StructReference<Lazy
 
 impl Resolve for FunctionReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
-    let description = format!(line_dbg!("Resolve FunctionReference: {}"), pprint::print_function_reference(self, lazy));
+    let description = format!(line_dbg!("Resolve FunctionReference: {}"), pprint::print_function_reference::<LazyStructures>(self, lazy));
 
     tasks.work(description, |tasks|{
       let function = self.rget_from(lazy);

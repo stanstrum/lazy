@@ -3,7 +3,7 @@ mod info;
 
 use std::process::ExitCode;
 
-use compiler::settings::Settings;
+use gluezy::Settings;
 use crate::parse::{Verb, Error};
 
 /// The entry point for the command-line interface to the LaZY compiler.
@@ -37,7 +37,7 @@ fn main() -> ExitCode {
     Err(Error::Invalid { what, position }) => {
       eprint!("\x1b[31merror\x1b[0m: invalid {what} at position #{position}:\n       ");
 
-      compiler::format::show_error_position(our_copy_of_argv, position);
+      gluezy::format::show_error_position(our_copy_of_argv, position);
       eprintln!();
 
       return info::help(&executable);
@@ -45,7 +45,7 @@ fn main() -> ExitCode {
     Err(Error::Missing { what, position }) => {
       eprint!("\x1b[31merror\x1b[0m: missing {what} at position #{position}:\n       ");
 
-      compiler::format::show_error_position(our_copy_of_argv, position);
+      gluezy::format::show_error_position(our_copy_of_argv, position);
       eprintln!();
 
       return info::help(&executable);
@@ -61,7 +61,7 @@ fn main() -> ExitCode {
 /// This is the function called by the CLI after parsing arguments from argv.
 pub fn lazy(settings: Settings, verb: Verb) -> ExitCode {
   let pool = compiler::StringPool::new();
-  let ref mut lazy = compiler::Lazy::new(&pool, settings);
+  let ref mut lazy = gluezy::Lazy::new(&pool, settings);
 
   let result = match verb {
     parse::Verb::Check => compiler::check(lazy).and(Ok(ExitCode::SUCCESS)),

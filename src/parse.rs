@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
-use compiler::error::Level;
-use compiler::settings::Settings;
+use log::Level;
+use gluezy::Settings;
 
 #[derive(Debug)]
 pub enum Verb {

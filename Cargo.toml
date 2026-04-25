@@ -6,3 +6,5 @@ edition = "2024"
 [dependencies]
 aster = { version = "0.1.0", path = "aster" }
 compiler = { version = "0.1.0", path = "compiler" }
+gluezy = { version = "0.1.0", path = "gluezy" }
+log = { version = "0.1.0", path = "log" }

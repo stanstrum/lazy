@@ -67,8 +67,8 @@ impl<C: Compiler> GetSpan<C> for crate::expr::Variable<C> {
 }
 
 impl<C: Compiler> GetSpan<C> for crate::reference::BlockReference<C> {
-  fn get_span(&self, _store: &<C as Compiler>::Store<'_>) -> Span<C> {
-    todo!()
+  fn get_span(&self, store: &<C as Compiler>::Store<'_>) -> Span<C> {
+    self.rget_from(store).span
   }
 }
 

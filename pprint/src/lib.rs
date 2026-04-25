@@ -34,7 +34,7 @@ impl<C: Compiler> Pretty<C> for TypePair<C> {
   type Out = String;
 
   fn print<'local, 'store, 'pool>(&'local self, store: &'store C::Store<'pool>) -> Self::Out {
-    let reference = self.overwrite.print(store);
+    let reference = self.overwrite.reference.print(store);
 
     let mut out = format!("/* {{pair := {}}} */ {reference}", self.ty.print(store));
 

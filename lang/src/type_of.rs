@@ -45,11 +45,11 @@ impl<C: Compiler> TypeOf<C> for Type<C> {
 
 impl<C: Compiler> TypeOf<C> for TypePartReference<C> {
   fn type_of(&self, store: &<C as Compiler>::Store<'_>) -> Option<Type<C>> {
-    todo!()
+    self.rget_from(store).type_of(store)
   }
 
   fn reference(&self, store: &<C as Compiler>::Store<'_>) -> Option<OverwriteTypeReference<C>> {
-    todo!()
+    self.rget_from(store).reference(store)
   }
 }
 

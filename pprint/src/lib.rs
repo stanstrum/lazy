@@ -90,7 +90,7 @@ impl<C: Compiler> Pretty<C> for Qualified<C> {
   }
 }
 
-fn print_function_reference<'local, 'store, 'pool, C: Compiler>(function_reference: &'local C::FunctionReference, store: &'store C::Store<'pool>) -> String {
+pub fn print_function_reference<'local, 'store, 'pool, C: Compiler>(function_reference: &'local C::FunctionReference, store: &'store C::Store<'pool>) -> String {
   let function = function_reference.rget_from(store);
   let path = store.describe_module(function.parent);
   let name = function.header.name.print(store);

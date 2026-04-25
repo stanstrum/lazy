@@ -1,4 +1,4 @@
-use gluezy::TypePartReference;
+use gluezy::{Lazy, LazyStructures, TypePartReference};
 
 use super::*;
 

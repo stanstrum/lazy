@@ -36,8 +36,8 @@ pub struct Settings {
 #[derive(Debug)]
 pub struct Lazy<'pool, C: Compiler = LazyStructures> {
   pub pool: &'pool StringPool,
-  pub(crate) pool_keys: keys::PoolKeys,
-  pub(crate) settings: Settings,
+  pub pool_keys: keys::PoolKeys,
+  pub settings: Settings,
   pub std: Option<C::ModuleReference>,
   pub(crate) modules: Vec<Module<C>>,
   pub(crate) functions: Vec<Function<C>>,

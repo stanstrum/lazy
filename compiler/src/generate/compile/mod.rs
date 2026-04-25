@@ -1,5 +1,7 @@
 mod expr;
 
+use gluezy::LazyStructures;
+
 use crate::generate::types::make_type;
 
 use super::*;
@@ -10,14 +12,14 @@ struct FunctionScope<'ctx> {
 }
 
 struct FunctionScopes<'ctx> {
-  reference: lang::FunctionReference,
+  reference: gluezy::FunctionReference,
   value: inkwell::values::FunctionValue<'ctx>,
   scopes: Vec<FunctionScope<'ctx>>,
 }
 
 impl<'ctx> FunctionScopes<'ctx> {
   fn new(
-    reference: lang::FunctionReference,
+    reference: gluezy::FunctionReference,
     value: inkwell::values::FunctionValue<'ctx>,
   ) -> Self {
     Self {
@@ -56,7 +58,7 @@ impl<'ctx> FunctionScopes<'ctx> {
   }
 }
 
-fn compile_function(comp: &mut Compilation, function_reference: lang::FunctionReference) -> Result {
+fn compile_function(comp: &mut Compilation, function_reference: gluezy::FunctionReference) -> Result {
   let borrow = comp.lazy.rget(function_reference);
   let body = borrow.body;
 
@@ -80,7 +82,7 @@ fn compile_function(comp: &mut Compilation, function_reference: lang::FunctionRe
   Ok(())
 }
 
-pub(super) fn compile_module(comp: &mut Compilation, module: lang::ModuleReference) -> Result {
+pub(super) fn compile_module(comp: &mut Compilation, module: gluezy::ModuleReference) -> Result {
   for &module in comp.lazy.rget(module).modules.iter() {
     compile_module(comp, module)?;
   };

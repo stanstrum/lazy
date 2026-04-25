@@ -1,3 +1,6 @@
+use gluezy::{Lazy, LazyStructures};
+use lang::{CompilerPoolStore, module::AddTypePart};
+
 pub use crate::resolve::tasks::*;
 use crate::lang::ty::Type;
 

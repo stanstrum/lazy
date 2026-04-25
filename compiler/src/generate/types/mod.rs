@@ -37,7 +37,7 @@ fn make_intrinsic_type<'ctx>(comp: &Compilation<'_, '_, 'ctx>, intrinsic: ::lang
 
 fn make_param_types<'ctx>(
   comp: &mut Compilation<'_, '_, 'ctx>,
-  function: lang::FunctionReference,
+  function: gluezy::FunctionReference,
 ) -> Result<Vec<inkwell::types::BasicMetadataTypeEnum<'ctx>>> {
   let borrow = comp.lazy.rget(function);
 
@@ -52,7 +52,7 @@ fn make_param_types<'ctx>(
 
 pub(super) fn make_function_type<'ctx>(
   comp: &mut Compilation<'_, '_, 'ctx>,
-  function: lang::FunctionReference,
+  function: gluezy::FunctionReference,
 ) -> Result<inkwell::types::FunctionType<'ctx>> {
   let borrow = comp.lazy.rget(function);
 

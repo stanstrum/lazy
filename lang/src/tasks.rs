@@ -5,7 +5,7 @@ use crate::{Compiler, error::{ResolveError, ResolveErrorBase}};
 
 pub trait Task<C: Compiler> {
   fn explain(&self, store: &C::Store<'_>) -> String;
-  fn execute(self: Box<Self>, store: &mut C::Store<'_>, tasks: &mut Tasks<C>) -> Result<TaskResponse<C>, ResolveError<C>>;
+  fn execute(self: Box<Self>, store: &mut C::Store<'_>, tasks: &mut Tasks<C>) -> Result<TaskResponse<C>, Box<ResolveError<C>>>;
 }
 
 impl<C: Compiler> Task<C> for Box<dyn Task<C>> {
@@ -13,7 +13,7 @@ impl<C: Compiler> Task<C> for Box<dyn Task<C>> {
     self.as_ref().explain(store)
   }
 
-  fn execute(self: Box<Self>, store: &mut C::Store<'_>, tasks: &mut Tasks<C>) -> Result<TaskResponse<C>, ResolveError<C>> {
+  fn execute(self: Box<Self>, store: &mut C::Store<'_>, tasks: &mut Tasks<C>) -> Result<TaskResponse<C>, Box<ResolveError<C>>> {
     (*self).execute(store, tasks)
   }
 }
@@ -40,7 +40,7 @@ impl<C: Compiler + 'static> Tasks<C> {
   }
 
   /// Returns a boolean corresponding to whether any tasks were executed
-  pub fn execute_pass(&mut self, store: &mut C::Store<'_>) -> Result<bool, ResolveError<C>> {
+  pub fn execute_pass(&mut self, store: &mut C::Store<'_>) -> Result<bool, Box<ResolveError<C>>> {
     // #[cfg(debug_assertions)]
     // println!(line_dbg!("execute_pass start"));
 

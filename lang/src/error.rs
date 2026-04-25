@@ -79,3 +79,9 @@ impl<C: Compiler> From<LazyError<C>> for AsterError<C> {
     }
   }
 }
+
+impl<C: Compiler> From<AsterError<C>> for LazyError<C> {
+  fn from(value: AsterError<C>) -> Self {
+    Self::Aster(value)
+  }
+}

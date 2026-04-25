@@ -16,7 +16,7 @@ pub struct OverwriteExpression<C: Compiler> {
   pub src: Expression<C>,
 }
 
-pub type OverwriteTypeReference = ::lang::ty::OverwriteTypeReference<crate::LazyStructures>;
+pub type OverwriteTypeReference = ::lang::ty::OverwriteTypeReference<gluezy::LazyStructures>;
 pub struct OverwriteType {
   pub dest: OverwriteTypeReference,
   pub src: Type,

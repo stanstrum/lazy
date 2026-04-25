@@ -8,7 +8,7 @@ pub use impls::*;
 
 use super::*;
 
-pub type TaskResponse = ::lang::tasks::TaskResponse<crate::LazyStructures>;
+pub type TaskResponse = ::lang::tasks::TaskResponse<gluezy::LazyStructures>;
 pub use ::lang::tasks::{Task, Tasks};
 
 pub struct TaskStatus {

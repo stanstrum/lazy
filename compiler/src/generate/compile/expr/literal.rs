@@ -1,3 +1,4 @@
+use gluezy::LazyStructures;
 use inkwell::values::BasicValue;
 use ::lang::token;
 

@@ -6,18 +6,13 @@ use std::io::{BufRead, BufReader, Write};
 use std::fs::File;
 
 use lazy_macros::{colorize, line_dbg};
-use gluezy::{Lazy, ModuleReference};
+use gluezy::{Lazy, LazyStructures, ModuleReference};
+use log::{Level, MessageContents, MessageSection, PrintableMessage, WithinSource};
 use crate::lang::Span;
 
 pub use print::print_message;
 
-impl From<crate::aster::Error> for crate::lang::LazyError {
-  fn from(value: crate::aster::Error) -> Self {
-    Self::Aster(value)
-  }
-}
-
-impl From<crate::tokenize::Error> for PrintableMessage {
+impl From<crate::tokenize::Error> for PrintableMessage<LazyStructures> {
   fn from(value: crate::tokenize::Error) -> Self {
     match value {
       crate::tokenize::Error::IO { name, module } => Self {
@@ -42,11 +37,11 @@ impl From<crate::tokenize::Error> for PrintableMessage {
   }
 }
 
-impl From<crate::aster::Error> for PrintableMessage {
-  fn from(value: crate::aster::Error) -> Self {
+impl From<::lang::error::AsterError<LazyStructures>> for PrintableMessage<LazyStructures> {
+  fn from(value: ::lang::error::AsterError<LazyStructures>) -> Self {
     match value {
-      crate::aster::Error::Token(error) => error.into(),
-      crate::aster::Error::Expected { what, at } => Self {
+      ::lang::error::AsterError::Token(error) => error.into(),
+      ::lang::error::AsterError::Expected { what, at } => Self {
         level: Level::Error,
         force: true,
         description: format!(line_dbg!("expected {}"), what),
@@ -58,7 +53,7 @@ impl From<crate::aster::Error> for PrintableMessage {
           }],
         }]),
       },
-      crate::aster::Error::Invalid { what, at } => Self {
+      ::lang::error::AsterError::Invalid { what, at } => Self {
         level: Level::Error,
         force: true,
         description: format!(line_dbg!("invalid {}"), what),
@@ -70,7 +65,7 @@ impl From<crate::aster::Error> for PrintableMessage {
           }],
         }]),
       },
-      crate::aster::Error::Lazy(lazy) => (*lazy).into(),
+      ::lang::error::AsterError::Lazy(lazy) => (*lazy).into(),
     }
   }
 }

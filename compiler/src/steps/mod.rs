@@ -4,10 +4,11 @@ use std::path::Path;
 use std::process::ExitCode;
 use std::os::unix::fs::PermissionsExt;
 
-use crate::{print_message, error};
-use crate::lang::ModuleReference;
+use lang::CompilerPoolStore;
+use lazy_macros::print_message;
+use gluezy::{Lazy, LazyStructures, ModuleReference};
 
-pub fn check(lazy: &mut crate::Lazy) -> Result<ModuleReference, error::PrintableMessage> {
+pub fn check(lazy: &mut Lazy<LazyStructures>) -> Result<ModuleReference, log::PrintableMessage<LazyStructures>> {
   // Instantiate the global scope
   let path = lazy.settings.input_path.to_owned();
   let global = lazy.add_file("@global", path, None)?;
@@ -22,7 +23,7 @@ pub fn check(lazy: &mut crate::Lazy) -> Result<ModuleReference, error::Printable
   Ok(global)
 }
 
-pub fn build<'a>(lazy: &'a mut crate::Lazy) -> Result<&'a Path, error::PrintableMessage> {
+pub fn build<'a>(lazy: &'a mut gluezy::Lazy) -> Result<&'a Path, log::PrintableMessage<LazyStructures>> {
   let global = check(lazy)?;
 
   // Otherwise, let's go build the module
@@ -65,7 +66,7 @@ pub fn build<'a>(lazy: &'a mut crate::Lazy) -> Result<&'a Path, error::Printable
   Ok(executable)
 }
 
-pub fn run(lazy: &mut crate::Lazy) -> Result<ExitCode, error::PrintableMessage> {
+pub fn run(lazy: &mut gluezy::Lazy) -> Result<ExitCode, log::PrintableMessage<LazyStructures>> {
   let executable = build(lazy)?;
 
   // Otherwise, go run the child program
@@ -84,17 +85,17 @@ pub fn run(lazy: &mut crate::Lazy) -> Result<ExitCode, error::PrintableMessage> 
   // Print that info and set our own exit code accordingly
   let (exit_code, level, message) = if exit_status.success() {
     (
-      ExitCode::SUCCESS, error::Level::Info,
+      ExitCode::SUCCESS, log::Level::Info,
       "Program exited successfully.".into(),
     )
   } else if let Some(code) = exit_status.code() {
     (
-      ExitCode::FAILURE, error::Level::Error,
+      ExitCode::FAILURE, log::Level::Error,
       format!("Program exited with status code {code}."),
     )
   } else {
     (
-      ExitCode::FAILURE, error::Level::Error,
+      ExitCode::FAILURE, log::Level::Error,
       "Program exited unsuccessfully.".into(),
     )
   };
@@ -103,7 +104,7 @@ pub fn run(lazy: &mut crate::Lazy) -> Result<ExitCode, error::PrintableMessage> 
     level,
     force: false,
     description: message,
-    contents: MessageContents::None,
+    contents: MessageContents::None::<LazyStructures>,
   });
 
   Ok(exit_code)

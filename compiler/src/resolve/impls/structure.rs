@@ -1,6 +1,7 @@
 use crate::lang::ty::Type;
+use lang::CompilerPoolStore;
 use ::lang::reference::{AliasReference, ExpressionReference, StructReference};
-use gluezy::{FunctionReference, ModuleReference, TypeReference, VariableReference};
+use gluezy::{FunctionReference, Lazy, LazyStructures, ModuleReference, TypeReference, VariableReference};
 use crate::resolve::TypePair;
 use crate::resolve::impls::ty::verify_typeof;
 
@@ -66,7 +67,7 @@ pub(super) fn verify_struct(lazy: &Lazy, struct_reference: &StructReference<Lazy
 
 impl Resolve for FunctionReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
-    let description = format!(line_dbg!("Resolve FunctionReference: {}"), self.print(lazy));
+    let description = format!(line_dbg!("Resolve FunctionReference: {}"), pprint::print_function_reference(self, lazy));
 
     tasks.work(description, |tasks|{
       let function = self.rget_from(lazy);
@@ -88,7 +89,7 @@ impl Resolve for FunctionReference {
         let typed_reference = Type::Reference(reference);
 
         let last_expression = TypePair::new(reference, typed_reference);
-        let return_type: TypePair = TypePair::new(ret_ty, ty);
+        let return_type: TypePair<LazyStructures> = TypePair::new(ret_ty, ty);
 
         last_expression.coerce(lazy, &return_type, tasks)?;
       };

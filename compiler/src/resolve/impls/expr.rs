@@ -1,6 +1,7 @@
 use crate::lang::expr::Expression;
 use crate::lang::expr::operator::BinaryOperator;
-use gluezy::{LazyStructures, TypeReference, VariableReference};
+use gluezy::{Lazy, LazyStructures, TypeReference, VariableReference};
+use lang::CompilerPoolStore;
 use ::lang::reference::{BlockReference, ExpressionReference};
 use pprint::Pretty;
 use crate::lang::ty::Type;
@@ -15,15 +16,15 @@ use super::*;
 impl Resolve for VariableReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
     let description = {
-      let (function, print): (_, &dyn Pretty<LazyStructures, Out = String>) = match self {
-        VariableReference::Block(block_reference, _) => (block_reference.0, block_reference),
-        VariableReference::Argument(function_reference, _) => (*function_reference, function_reference),
+      let (function, print): (_, String) = match self {
+        VariableReference::Block(block_reference, _) => (block_reference.0, block_reference.print(lazy)),
+        VariableReference::Argument(function_reference, _) => (*function_reference, pprint::print_function_reference::<LazyStructures>(function_reference, lazy)),
       };
 
       format!(
         line_dbg!("Resolve VariableReference: {} in {}"),
-        function.print(lazy),
-        print.print(lazy),
+        pprint::print_function_reference::<LazyStructures>(&function, lazy),
+        print,
       )
     };
 
@@ -41,9 +42,9 @@ impl Coerce for VariableReference {
 
 fn verify_variable(lazy: &Lazy, variable: VariableReference, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
   let description = {
-    let (function, print): (_, &dyn Pretty<Out = String>) = match &variable {
-      VariableReference::Block(block_reference, _) => (block_reference.0, block_reference),
-      VariableReference::Argument(function_reference, _) => (*function_reference, function_reference),
+    let (function, print): (_, String) = match &variable {
+      VariableReference::Block(block_reference, _) => (block_reference.0, block_reference.print(lazy)),
+      VariableReference::Argument(function_reference, _) => (*function_reference, pprint::print_function_reference::<LazyStructures>(function_reference, lazy)),
     };
 
     let function_borrow = lazy.rget(function);
@@ -53,7 +54,7 @@ fn verify_variable(lazy: &Lazy, variable: VariableReference, tasks: &mut Tasks<L
       line_dbg!("Verify variable: {}::{} in {}"),
       lazy.describe_module(parent),
       function_borrow.header.name.print(lazy),
-      print.print(lazy),
+      print,
     )
   };
 
@@ -291,7 +292,7 @@ impl Resolve for ExpressionReference<LazyStructures> {
                 members.iter().map(|(name, expr)| {
                   let span = Span::from_pair(name.span, expr.get_span(lazy));
 
-                  crate::error::MessageSection {
+                  log::MessageSection {
                     text: "here".into(),
                     span,
                   }
@@ -399,7 +400,7 @@ fn verify_expr(lazy: &Lazy, expr: ExpressionReference<LazyStructures>, ret_ty: O
       ..
     } => {
       let ty_reference = TypeReference::Expression(expr);
-      let out_pair: TypePair = TypePair::new(ty_reference, out.clone());
+      let out_pair: TypePair<LazyStructures> = TypePair::new(ty_reference, out.clone());
 
       verify_expr(lazy, *a, None, tasks)?;
       verify_expr(lazy, *b, None, tasks)?;

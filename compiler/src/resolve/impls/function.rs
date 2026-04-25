@@ -1,7 +1,8 @@
+use lang::CompilerPoolStore;
 use lazy_macros::{print_message, print_once_per_thread};
 
 use crate::resolve::TypePair;
-use gluezy::{FunctionReference, TypeReference, VariableReference};
+use gluezy::{FunctionReference, Lazy, LazyStructures, TypeReference, VariableReference};
 
 use super::*;
 
@@ -57,7 +58,7 @@ pub(in crate::resolve) fn verify_function(lazy: &Lazy, function: &FunctionRefere
 
     // verify return type
     let ret_ty_pair = tasks.work(line_dbg!("verify return type").into(),
-    |tasks| -> Result<TypePair> {
+    |tasks| -> Result<TypePair<LazyStructures>> {
         let ret_ty = &borrow.header.ret_ty;
         ty::verify_type(lazy, ret_ty, tasks)?;
 
@@ -80,7 +81,7 @@ pub(in crate::resolve) fn verify_function(lazy: &Lazy, function: &FunctionRefere
         level: Stub,
         force: false,
         description: line_dbg!("verify that main arguments match expected function signature").into(),
-        contents: MessageContents::File(root),
+        contents: MessageContents::File::<LazyStructures>(root),
       });
     };
 

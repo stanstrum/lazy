@@ -1,6 +1,8 @@
 pub mod unknown;
 
+use gluezy::{Lazy, LazyStructures};
 use ::lang::intrinsic::Intrinsic;
+use lang::module::AddTypePart;
 use crate::lang::ty::{QualifiedSearchSpace};
 use crate::resolve::TypePair;
 use ::lang::token::StringKind;
@@ -34,7 +36,7 @@ impl Resolve for TypePair<LazyStructures> {
                 dest: self.clone().into(),
                 src: ty,
               }),
-              after: Box::new(tasks::ResolveAsTask::<TypeReference> {
+              after: Box::new(tasks::ResolveAsTask::<TypeReference<LazyStructures>> {
                 reference: self.overwrite.reference,
               }),
             }, line_dbg!("here"));

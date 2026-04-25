@@ -1,10 +1,11 @@
 use std::process::Command;
 
-use crate::print_message;
+use gluezy::{Lazy, LazyStructures};
+use lazy_macros::print_message;
 
-use crate::aster::pprint::Pretty;
-use crate::lang::{ModuleReference, Reference};
-use crate::Lazy;
+use ::pprint::Pretty;
+use ::gluezy::ModuleReference;
+use crate::lang::{Reference};
 use crate::generate::{ProgramCompilation, ProgramObjectFile};
 
 const ERROR_PAD_LEN: usize = "error ".len();
@@ -34,7 +35,7 @@ pub(super) fn source(lazy: &Lazy, global: &ModuleReference) {
     level: Debug,
     force: false,
     description,
-    contents: MessageContents::None,
+    contents: MessageContents::None::<LazyStructures>,
   });
 }
 
@@ -43,7 +44,7 @@ pub(super) fn string_pool(lazy: &Lazy) {
     level: Debug,
     force: false,
     description: format!("{:?}", lazy.pool),
-    contents: MessageContents::None,
+    contents: MessageContents::None::<LazyStructures>,
   });
 }
 
@@ -57,7 +58,7 @@ pub(super) fn llvm_source(lazy: &Lazy, compilation: &ProgramCompilation) {
     level: Debug,
     force: false,
     description,
-    contents: MessageContents::None,
+    contents: MessageContents::None::<LazyStructures>,
   });
 }
 
@@ -96,7 +97,7 @@ pub(super) fn object_file(lazy: &Lazy, object_file: &ProgramObjectFile) {
       level: Error,
       force: false,
       description,
-      contents: MessageContents::None,
+      contents: MessageContents::None::<LazyStructures>,
     });
   };
 
@@ -114,7 +115,7 @@ pub(super) fn object_file(lazy: &Lazy, object_file: &ProgramObjectFile) {
     level: Debug,
     force: false,
     description,
-    contents: MessageContents::None,
+    contents: MessageContents::None::<LazyStructures>,
   });
 }
 
@@ -126,6 +127,6 @@ pub(super) fn subprocess_command(lazy: &Lazy, command: &Command) {
     level: Info,
     force: false,
     description,
-    contents: MessageContents::None,
+    contents: MessageContents::None::<LazyStructures>,
   });
 }

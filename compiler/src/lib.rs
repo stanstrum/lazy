@@ -23,6 +23,6 @@ use crate::lang::function::Function;
 pub use steps::*;
 
 pub mod tokenize {
-  pub type Error = ::tokenize::Error<crate::lazy::LazyStructures>;
-  pub type Tokenizer<'pool, const N: usize, T> = ::tokenize::Tokenizer<'pool, crate::lazy::LazyStructures, N, T>;
+  pub type Error = ::tokenize::Error<gluezy::LazyStructures>;
+  pub type Tokenizer<'pool, const N: usize, T> = ::tokenize::Tokenizer<'pool, gluezy::LazyStructures, N, T>;
 }

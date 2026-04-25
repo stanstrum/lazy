@@ -56,7 +56,7 @@ impl Iterator for LineYielder {
   }
 }
 
-pub fn print_message(lazy: &Lazy, message: PrintableMessage) {
+pub fn print_message(lazy: &Lazy, message: PrintableMessage<LazyStructures>) {
   // TODO: Add settings (incl. log level) to `Lazy`
 
   // If this message isn't being force-printed, check if we
@@ -187,7 +187,7 @@ fn print_full_section_header(out: &mut Vec<u8>, lazy: &Lazy, span: Span) {
   print_section_header(out, lazy, span.module, Some(span.start))
 }
 
-fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec<MessageSection>) {
+fn print_sections(out: &mut Vec<u8>, lazy: &Lazy, range: Span, mut sections: Vec<MessageSection<LazyStructures>>) {
   // Open and create a reader for this module's source file
   let ModulePath { path, tokens, .. } = lazy.get_path(range.module);
   let file = File::open(path).unwrap();

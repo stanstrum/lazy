@@ -6,7 +6,7 @@ pub mod pair {
   pub use ::lang::ty::TypePair;
 }
 
-use lang::Compiler;
+use lang::{Compiler, CompilerPoolStore, ty::TypeOf};
 use lazy_macros::{print_message, line_dbg};
 
 use ::pprint::Pretty;
@@ -14,7 +14,7 @@ use crate::lang::Span;
 use ::lang::intrinsic::Intrinsic;
 use ::lang::span::GetSpan;
 use crate::lang::ty::Type;
-use gluezy::{FunctionReference, LazyStructures, ModuleReference, TypeReference};
+use gluezy::{FunctionReference, Lazy, LazyStructures, ModuleReference, TypeReference};
 use crate::lang::{Reference, Store};
 use ::lang::error::LazyError;
 use crate::resolve::tasks::OverwriteTypeReference;
@@ -25,8 +25,8 @@ type Result<T> = std::result::Result<T, Box<Error>>;
 
 pub use pair::*;
 
-pub type Error = ::resolve::Error<crate::LazyStructures>;
-pub type ErrorBase = ::resolve::ErrorBase<crate::LazyStructures>;
+pub type Error = ::lang::error::ResolveError<LazyStructures>;
+pub type ErrorBase = ::lang::error::ResolveErrorBase<LazyStructures>;
 
 struct Resolver<'lazy, 'pool, C: Compiler = LazyStructures> {
   lazy: &'lazy mut Lazy<'pool>,
@@ -40,7 +40,7 @@ pub trait Resolve {
 }
 
 pub trait Coerce {
-  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks<LazyStructures>) -> Result<()>;
+  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()>;
 }
 
 // impl<R: Copy> TypeOf for R

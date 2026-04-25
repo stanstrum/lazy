@@ -1,6 +1,7 @@
 use super::*;
 
 use crate::lang::module::ModuleParent;
+use lang::CompilerPoolStore;
 use lazy_macros::{print_message, print_once_per_thread};
 
 use crate::lang::ty::{Qualified, QualifiedSearchSpace};
@@ -105,7 +106,7 @@ pub(crate) fn resolve_qualified_to_space(
               level: Stub,
               force: false,
               description: line_dbg!("disregarding failed resolution of qualified").into(),
-              contents: MessageContents::None,
+              contents: MessageContents::None::<LazyStructures>,
             });
 
             return Ok(None);
@@ -120,7 +121,7 @@ pub(crate) fn resolve_qualified_to_space(
           if
             let QualifiedSearchSpace::Module(wildscare_space_module) = wildcard_space &&
             let QualifiedSearchSpace::Module(space_module) = &space &&
-            &wildscare_space_module == space_module
+            wildscare_space_module == space_module
           {
             let module_name = lazy.describe_module(*wildscare_space_module);
             let description = format!(line_dbg!("BUGBGUG: Module {} contains itself as an import star selector ... this will cause crashes."), module_name);
@@ -129,7 +130,7 @@ pub(crate) fn resolve_qualified_to_space(
               level: Warn,
               force: false,
               description,
-              contents: MessageContents::File(*wildscare_space_module),
+              contents: MessageContents::File::<LazyStructures>(*wildscare_space_module),
             });
 
             continue;

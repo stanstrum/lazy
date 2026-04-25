@@ -3,6 +3,7 @@ mod pair;
 mod overwrite;
 
 use crate::lang::ty::{Qualified, Type};
+use gluezy::{Lazy, LazyStructures};
 use ::lang::reference::TypeReference;
 use crate::resolve::tasks::OverwriteTypeReference;
 use crate::resolve::{TypePair, TypePairModifier};

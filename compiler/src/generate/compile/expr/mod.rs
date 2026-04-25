@@ -1,6 +1,8 @@
 mod literal;
 mod variable;
 
+use gluezy::LazyStructures;
+
 use crate::lang::expr::operator::BinaryOperator;
 use crate::generate::types::{LazyType, LazyValue};
 
@@ -9,7 +11,7 @@ use super::*;
 fn compile_expr<'ctx>(
   comp: &mut Compilation<'_, '_, 'ctx>,
   function: inkwell::values::FunctionValue<'ctx>,
-  expr: lang::ExpressionReference,
+  expr: lang::reference::ExpressionReference<LazyStructures>,
   scopes: &mut FunctionScopes<'ctx>,
 ) -> Result<LazyValue<'ctx>> {
   // for efficiency, we assume we are already positioned after the preceding
@@ -108,7 +110,7 @@ pub(super) fn compile_block<'ctx>(
   let borrow = comp.lazy.rget(block);
 
   for &id in borrow.children.iter() {
-    let expr = lang::ExpressionReference(block, id);
+    let expr = lang::reference::ExpressionReference(block, id);
     let value = compile_expr(comp, function, expr, scopes)?;
 
     last_value = value;

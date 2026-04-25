@@ -72,7 +72,7 @@ pub fn lazy(settings: Settings, verb: Verb) -> ExitCode {
   match result {
     Ok(exit_code) => exit_code,
     Err(message) => {
-      compiler::error::print_message(lazy, message);
+      log::print_message(lazy, message);
       ExitCode::FAILURE
     },
   }

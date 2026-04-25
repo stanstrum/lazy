@@ -6,9 +6,6 @@ mod lang {
 mod resolve;
 mod generate;
 
-pub mod error;
-pub mod settings;
-
 mod steps;
 
 #[cfg(test)] mod test;

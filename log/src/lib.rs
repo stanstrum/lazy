@@ -82,3 +82,7 @@ impl<C: Compiler> WithinSource<C> {
     results
   }
 }
+
+pub fn print_message<C: Compiler>(store: &C::Store<'_>, message: PrintableMessage<C>) {
+  todo!()
+}

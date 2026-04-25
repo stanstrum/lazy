@@ -1,7 +1,6 @@
-use crate::Lazy;
+use crate::{Lazy, LazyStructures, prelude::module::TokensId};
 use ::lang::expr::BlockExpression;
-use lang::function::{BlockId, ExprId};
-use ::lang::module::TypePartId;
+use lang::{Compiler, function::{BlockId, ExprId}, reference::{BlockReference, Reference, Store}};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ModuleReference(pub usize);
@@ -9,13 +8,13 @@ pub struct ModuleReference(pub usize);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FunctionReference(pub usize);
 
-pub type TypePartReference = ::lang::reference::TypePartReference<crate::lazy::LazyStructures>;
-pub type TypeReference = ::lang::reference::TypeReference<crate::lazy::LazyStructures>;
+pub type TypePartReference = ::lang::reference::TypePartReference<LazyStructures>;
+pub type TypeReference = ::lang::reference::TypeReference<LazyStructures>;
 
-pub type VariableReference = ::lang::reference::VariableReference<crate::lazy::LazyStructures>;
+pub type VariableReference = ::lang::reference::VariableReference<LazyStructures>;
 
 impl<'pool> Store<ModuleReference> for Lazy<'pool> {
-  type Out = crate::lang::module::Module;
+  type Out = lang::module::Module<LazyStructures>;
 
   fn rget(&self, ModuleReference(index): ModuleReference) -> &Self::Out {
     self.modules.get(index).unwrap()
@@ -27,7 +26,7 @@ impl<'pool> Store<ModuleReference> for Lazy<'pool> {
 }
 
 impl<'pool> Store<FunctionReference> for Lazy<'pool> {
-  type Out = crate::lang::function::Function;
+  type Out = lang::function::Function<LazyStructures>;
 
   fn rget(&self, FunctionReference(index): FunctionReference) -> &Self::Out {
     self.functions.get(index).unwrap()
@@ -39,7 +38,7 @@ impl<'pool> Store<FunctionReference> for Lazy<'pool> {
 }
 
 impl<'pool> Store<TokensId> for Lazy<'pool> {
-  type Out = Vec<crate::lang::TokenSpan>;
+  type Out = Vec<lang::token::TokenSpan<LazyStructures>>;
 
   fn rget(&self, TokensId(index): TokensId) -> &Self::Out {
     self.tokens.get(index).unwrap()
@@ -51,7 +50,7 @@ impl<'pool> Store<TokensId> for Lazy<'pool> {
 }
 
 impl FunctionReference {
-  pub fn body(&self) -> BlockReference {
+  pub fn body(&self) -> BlockReference<LazyStructures> {
     BlockReference(*self, BlockId::body_id())
   }
 
@@ -59,7 +58,7 @@ impl FunctionReference {
   //   self.body(lazy).rget_from(lazy)
   // }
 
-  pub fn get_body_mut<'a>(&self, lazy: &'a mut Lazy) -> &'a mut BlockExpression {
+  pub fn get_body_mut<'a>(&self, lazy: &'a mut Lazy) -> &'a mut BlockExpression<LazyStructures> {
     self.body().rget_from_mut(lazy)
   }
 

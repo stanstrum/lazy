@@ -1,10 +1,10 @@
 use super::*;
 
-pub(super) fn make_mod<'pool, const N: usize, T: Read>(
-  lazy: &mut crate::Lazy<'pool>,
-  stream: &mut Rereader<'pool, N, T>,
-  parent: lang::ModuleReference,
-) -> Result<Option<lang::ModuleReference>, Error> {
+pub(super) fn make_mod<'pool, C: Compiler, const N: usize, T: Read>(
+  lazy: &mut C::Store<'pool>,
+  stream: &mut Rereader<'pool, C, N, T>,
+  parent: C::ModuleReference,
+) -> Result<Option<C::ModuleReference>, Error<C>> {
   let Some((Token::Keyword(Keyword::Mod), _)) = stream.peek()? else {
     return Ok(None);
   };

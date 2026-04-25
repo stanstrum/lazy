@@ -26,13 +26,13 @@ enum Pemdas {
   Assign,
 }
 
-fn debug_gspan<C: Compiler>(lazy: &C::Store<'_>, part: &ExpressionPart<C>) -> Span<C> {
+fn debug_gspan<C: Compiler>(store: &C::Store<'_>, part: &ExpressionPart<C>) -> Span<C> {
   match part {
     | &ExpressionPart::UnaryPrefix((_, span))
     | &ExpressionPart::UnarySuffix((_, span))
     | &ExpressionPart::Binary((_, span))
       => span,
-    ExpressionPart::Expression(expr) => expr.get_span(lazy),
+    ExpressionPart::Expression(expr) => expr.get_span(store),
   }
 }
 
@@ -45,7 +45,7 @@ fn find_right_expr<C: Compiler>(cursor: usize, parts: &[ExpressionPart<C>]) -> O
     .map(|offset| cursor + offset)
 }
 
-fn melt_left<C: Compiler>(lazy: &mut C::Store<'_>, cursor: &mut usize, parts: &mut Vec<ExpressionPart<C>>) -> Result<ExpressionReference<C>, Error<C>> {
+fn melt_left<C: Compiler>(store: &mut C::Store<'_>, cursor: &mut usize, parts: &mut Vec<ExpressionPart<C>>) -> Result<ExpressionReference<C>, Error<C>> {
   let left = find_left_expr(*cursor, parts).unwrap();
   let melt_start = left + 1;
   let melt_end = (*cursor).min(parts.len());
@@ -67,7 +67,7 @@ fn melt_left<C: Compiler>(lazy: &mut C::Store<'_>, cursor: &mut usize, parts: &m
 
     let op = (UnaryOperator::Suffix(suffix), op_span);
 
-    let mut span = expr.rget_from(lazy).get_span(lazy);
+    let mut span = expr.rget_from(store).get_span(store);
     span.extend(op_span);
 
     let new_expr = lang::expr::Expression::Unary {
@@ -76,7 +76,7 @@ fn melt_left<C: Compiler>(lazy: &mut C::Store<'_>, cursor: &mut usize, parts: &m
       span,
       out: lang::ty::Type::Weak { span },
     };
-    let new_id = function.rget_from_mut(lazy).add_expr(new_expr);
+    let new_id = function.rget_from_mut(store).add_expr(new_expr);
     expr = ExpressionReference(block, new_id);
   };
 
@@ -126,7 +126,7 @@ fn melt_right<C: Compiler>(lazy: &mut C::Store<'_>, cursor: usize, parts: &mut V
   Ok(expr)
 }
 
-pub(crate) fn melt<C: Compiler>(lazy: &mut C::Store<'_>, mut parts: Vec<ExpressionPart<C>>) -> Result<ExpressionReference<C>, Error<C>> {
+pub(crate) fn melt<C: Compiler>(store: &mut C::Store<'_>, mut parts: Vec<ExpressionPart<C>>) -> Result<ExpressionReference<C>, Error<C>> {
   for step in Pemdas::iter() {
     let mut i = 0;
 
@@ -140,7 +140,7 @@ pub(crate) fn melt<C: Compiler>(lazy: &mut C::Store<'_>, mut parts: Vec<Expressi
           | UnarySuffixOperator::PostIncrement
           , _))) => {
             i += 1;
-            melt_left(lazy, &mut i, &mut parts)?;
+            melt_left(store, &mut i, &mut parts)?;
             i -= 1;
           },
           | (Pemdas::RefDeref, ExpressionPart::UnaryPrefix((
@@ -158,7 +158,7 @@ pub(crate) fn melt<C: Compiler>(lazy: &mut C::Store<'_>, mut parts: Vec<Expressi
           | UnaryPrefixOperator::Not
           | UnaryPrefixOperator::Invert
         , _))) => {
-          melt_right(lazy, i, &mut parts)?;
+          melt_right(store, i, &mut parts)?;
         },
         | (Pemdas::Dot, &ExpressionPart::Binary(op @ (
           | BinaryOperator::Dot
@@ -213,11 +213,11 @@ pub(crate) fn melt<C: Compiler>(lazy: &mut C::Store<'_>, mut parts: Vec<Expressi
           | BinaryOperator::LogicalShrAssign
         , _)))
         => {
-          let a = melt_left(lazy, &mut i, &mut parts)?;
-          let b = melt_right(lazy, i + 1, &mut parts)?;
+          let a = melt_left(store, &mut i, &mut parts)?;
+          let b = melt_right(store, i + 1, &mut parts)?;
 
-          let start = a.rget_from(lazy).get_span(lazy);
-          let end = b.rget_from(lazy).get_span(lazy);
+          let start = a.rget_from(store).get_span(store);
+          let end = b.rget_from(store).get_span(store);
           let span = Span::from_pair(start, end);
 
           let block = a.0;
@@ -230,7 +230,7 @@ pub(crate) fn melt<C: Compiler>(lazy: &mut C::Store<'_>, mut parts: Vec<Expressi
             span,
             out: lang::ty::Type::Weak { span },
           };
-          let id = function.rget_from_mut(lazy).add_expr(expr);
+          let id = function.rget_from_mut(store).add_expr(expr);
           let reference = ExpressionReference(block, id);
 
           parts.drain(i - 1 ..= i + 1);
@@ -262,11 +262,11 @@ pub(crate) fn melt<C: Compiler>(lazy: &mut C::Store<'_>, mut parts: Vec<Expressi
   if parts.len() != 1 {
     assert!(!parts.is_empty());
 
-    let start = debug_gspan(lazy, parts.first().unwrap());
-    let end = debug_gspan(lazy, parts.last().unwrap());
+    let start = debug_gspan(store, parts.first().unwrap());
+    let end = debug_gspan(store, parts.last().unwrap());
     let range = Span::from_pair(start, end);
 
-    print_message!(lazy, {
+    print_message!(store, {
       level: Warn,
       force: false,
       description: format!(line_dbg!("{} parts"), parts.len()),
@@ -274,7 +274,7 @@ pub(crate) fn melt<C: Compiler>(lazy: &mut C::Store<'_>, mut parts: Vec<Expressi
         range,
         sections: parts.iter().enumerate().map(|(i, part)| MessageSection {
           text: format!("part {i}"),
-          span: debug_gspan(lazy, part),
+          span: debug_gspan(store, part),
         }).collect(),
       }]),
     });

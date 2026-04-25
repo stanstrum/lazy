@@ -1,6 +1,6 @@
 use lang::reference::{ExpressionReference, Reference};
 use ::lang::span::GetSpan;
-use crate::line_dbg;
+use lazy_macros::line_dbg;
 
 use ::lang::token::Operator;
 
@@ -23,7 +23,7 @@ pub(super) fn make_function_argument<'pool, C: Compiler, const N: usize, T: Read
     return stream.expected_here(line_dbg!("an identifier"));
   };
 
-  let mut span = ty.get_span(lazy);
+  let mut span = Type::<C>::get_span(lazy);
   span.extend(name.get_span(lazy));
 
   Ok(Some(lang::expr::Variable {

@@ -58,8 +58,8 @@ pub fn make_block_statement<'pool, C: Compiler, const N: usize, T: Read>(
   };
 
   let expr = if let Some((variable, expr)) = variable::make_assignment(store, stream, module, block)? {
-    let function_ref = store.rget(function);
-    let block_ref = store.rget(block);
+    let function_ref = <C::Store<'pool> as Store<C::FunctionReference>>::rget(store, function);
+    let block_ref = <C::Store<'pool> as Store<BlockReference<C>>>::rget(store, block);
 
     let variable_names = block_ref.variables.iter().map(|x: &lang::expr::Variable<C>| &x.name);
     let argument_names = function_ref.header.arguments.iter().map(|x| &x.name);
@@ -68,7 +68,7 @@ pub fn make_block_statement<'pool, C: Compiler, const N: usize, T: Read>(
       .find(|prior| prior.id == variable.name.id);
 
     if let Some(conflict) = conflict {
-      print_message!(lazy, {
+      print_message!(store, {
         level: Warn,
         force: false,
         description: line_dbg!("conflicting name will be shadowed").into(),
@@ -226,7 +226,7 @@ pub(super) fn make_block<'pool, C: Compiler, const N: usize, T: Read>(
 
   let span = Span::from_pair(start, end);
 
-  let children = &store.rget(block).children;
+  let children = &<C::Store<'pool> as Store<BlockReference<C>>>::rget(store, block).children;
   let returns_last = !children.is_empty() && !non_return_last.is_some_and(
     |ExpressionReference(_, id)| id == *children.last().unwrap()
   );

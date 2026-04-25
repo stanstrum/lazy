@@ -3,18 +3,22 @@ mod reference;
 pub mod keys;
 pub mod format;
 
+use lazy_macros::{line_dbg, print_message};
+
 use std::path::{Path, PathBuf};
 
 use lang::Compiler;
 use log::Level;
 use string_pool::StringPool;
 
-use lang::token::{TokenSpan, Tokens};
+use lang::token::Tokens;
 use lang::function::{Function, FunctionHeader};
 use lang::module::{Module, ModuleParent, ModulePath};
 use lang::reference::{Store};
 
 pub use reference::*;
+
+use crate::prelude::module::TokensId;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct LazyStructures;
@@ -28,23 +32,15 @@ pub struct Settings {
   pub argv: Vec<String>,
 }
 
-pub type C = LazyStructures;
-
 #[derive(Debug)]
-pub enum LazyError<C: Compiler = LazyStructures> {
-  NotExist(PathBuf),
-  Aster(aster::Error<C>),
-}
-
-#[derive(Debug)]
-pub struct Lazy<'pool> {
+pub struct Lazy<'pool, C: Compiler = LazyStructures> {
   pub(crate) pool: &'pool StringPool,
   pub(crate) pool_keys: keys::PoolKeys,
   pub(crate) settings: Settings,
   pub(crate) std: Option<ModuleReference>,
   pub(crate) modules: Vec<Module<C>>,
   pub(crate) functions: Vec<Function<C>>,
-  pub(crate) tokens: Vec<Tokens>,
+  pub(crate) tokens: Vec<Tokens<C>>,
 }
 
 impl<'pool> Lazy<'pool> {
@@ -173,7 +169,7 @@ impl<'pool> Lazy<'pool> {
     Ok(module)
   }
 
-  pub fn create_module(&mut self, name: &str, parent: impl FnOnce(TokensId, ModuleReference) -> ModuleParent) -> ModuleReference {
+  pub fn create_module(&mut self, name: &str, parent: impl FnOnce(TokensId, ModuleReference) -> ModuleParent<LazyStructures>) -> ModuleReference {
     // Make the references for this file
     let module = ModuleReference(self.modules.len());
     let tokens = TokensId(self.tokens.len());
@@ -189,7 +185,7 @@ impl<'pool> Lazy<'pool> {
     module
   }
 
-  pub fn create_function(&mut self, module: ModuleReference, header: FunctionHeader) -> FunctionReference {
+  pub fn create_function(&mut self, module: ModuleReference, header: FunctionHeader<LazyStructures>) -> FunctionReference {
     let function_reference = FunctionReference(self.functions.len());
     let body = function_reference.body();
     let function = Function::new(body, module, header);
@@ -201,6 +197,12 @@ impl<'pool> Lazy<'pool> {
   }
 }
 
+impl lang::CompilerPoolStore<LazyStructures> for Lazy<'_> {
+  fn pool(&self) -> &StringPool {
+    self.pool
+  }
+}
+
 impl lang::Compiler for LazyStructures {
   type Store<'a> = Lazy<'a>;
 
@@ -209,7 +211,7 @@ impl lang::Compiler for LazyStructures {
 
   type TokensReference = TokensId;
 
-  type OverwriteTypeReference = ::resolve::tasks::OverwriteTypeReference;
+  type OverwriteTypeReference = compiler::tasks::OverwriteTypeReference;
 }
 
 // SPONGE: move this to gluezy

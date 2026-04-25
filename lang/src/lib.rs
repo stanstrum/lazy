@@ -17,15 +17,20 @@ use std::{fmt::Debug, hash::Hash};
 
 use string_pool::StringPool;
 
-use crate::module::{ModuleParent, ModulePath};
+use crate::{module::{ModuleParent, ModulePath}, reference::{BlockReference, TypePartReference, TypeReference}};
 
 pub trait CompilerReference: Debug + Clone + Copy + PartialEq + Eq {}
 impl<T: Debug + Clone + Copy + PartialEq + Eq> CompilerReference for T {}
 
+
 pub trait CompilerPoolStore<C: Compiler>:
   reference::Store<C::ModuleReference, Out = module::Module<C>> +
   reference::Store<C::FunctionReference, Out = function::Function<C>> +
-  reference::Store<C::TokensReference, Out = token::Tokens<C>>
+  reference::Store<C::TokensReference, Out = token::Tokens<C>> +
+  reference::Store<BlockReference<C>, Out = expr::BlockExpression<C>> +
+  reference::Store<TypeReference<C>, Out = ty::Type<C>> +
+  reference::Store<TypePartReference<C>, Out = ty::Type<C>> +
+  // reference::Store<TypePartReference<C>, Out = ty::Type<C>> +
 {
   fn pool(&self) -> &StringPool;
 

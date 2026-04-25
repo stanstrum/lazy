@@ -1,14 +1,14 @@
-use crate::{print_message, print_once_per_thread};
+use lazy_macros::{print_message, print_once_per_thread};
 
 use crate::resolve::impls::ty::resolve_qualified_to_space;
 
 use super::*;
 
-pub(super) fn traverse_import(
-  lazy: &mut crate::Lazy,
-  module: lang::ModuleReference,
-  import: &lang::module::import::Import,
-) -> Result<(), Error> {
+pub(super) fn traverse_import<C: Compiler>(
+  lazy: &mut C::Store<'_>,
+  module: C::ModuleReference,
+  import: &lang::import::Import<C>,
+) -> Result<(), Error<C>> {
   let mut stack = vec![];
 
   let count = traverse_group(lazy, &module, &import.source, &import.group, &mut stack)?;
@@ -63,23 +63,23 @@ fn insert_to_import_map<C: Compiler>(
   Ok(())
 }
 
-/// Processes a [`lang::module::import::ImportPart`].  Some notes on the params:
-/// * `module`: The module parsed the [`lang::module::import::Import`] in the
+/// Processes a [`lang::import::ImportPart`].  Some notes on the params:
+/// * `module`: The module parsed the [`lang::import::Import`] in the
 ///   first place.
-/// * `source`: The module pointed to by [`lang::module::import::Import::source`]
-/// * `part`  : The [`lang::module::import::ImportPart`] to process.
-/// * `stack` : The history of [`lang::module::import::ImportQualify`]s that got
+/// * `source`: The module pointed to by [`lang::import::Import::source`]
+/// * `part`  : The [`lang::import::ImportPart`] to process.
+/// * `stack` : The history of [`lang::import::ImportQualify`]s that got
 ///   us to the current point.  This is scope that this should be
 ///   contexutualized/represented with an [`lang::ty::Qualified`].
-fn traverse_part(
-  lazy: &mut crate::Lazy,
-  module: &lang::ModuleReference,
-  source: &lang::ModuleReference,
-  part: &lang::module::import::ImportPart,
-  stack: &mut Vec<lang::module::Name>,
-)  -> Result<usize, Error> {
+fn traverse_part<C: Compiler>(
+  lazy: &mut C::Store<'_>,
+  module: &C::ModuleReference,
+  source: &C::ModuleReference,
+  part: &lang::import::ImportPart<C>,
+  stack: &mut Vec<lang::module::Name<C>>,
+)  -> Result<usize, Error<C>> {
   match part {
-    &lang::module::import::ImportPart::Star(span) => {
+    &lang::import::ImportPart::Star(span) => {
       print_once_per_thread!(lazy, {
         level: Stub,
         force: false,
@@ -106,8 +106,8 @@ fn traverse_part(
 
       Ok(1)
     },
-    lang::module::import::ImportPart::Group(group) => traverse_group(lazy, module, source, group, stack),
-    lang::module::import::ImportPart::Qualify(qualify) => {
+    lang::import::ImportPart::Group(group) => traverse_group(lazy, module, source, group, stack),
+    lang::import::ImportPart::Qualify(qualify) => {
       stack.push(qualify.name);
 
       let result = match &qualify.next {

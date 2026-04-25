@@ -1,7 +1,6 @@
 use lang::Compiler;
 use ::lang::token::Operator;
 use ::lang::span::GetSpan;
-use crate::make::{make_name, ty};
 
 use super::*;
 
@@ -18,11 +17,11 @@ pub fn make_assignment<'pool, C: Compiler, const N: usize, T: Read>(
   let Some(ty) = ty::make_type(store, stream, module)? else {
     return Ok(None);
   };
-  let mut span = ty.get_span(store);
+  let mut span = Type::<C>::get_span(store);
 
   stream.skip_whitespace_and_comments()?;
 
-  let Some(name) = make_name(stream)? else {
+  let Some(name) = crate::make::make_name(stream)? else {
     stream.take_mark(ret_mark);
     return Ok(None);
   };

@@ -8,6 +8,7 @@ version = "0.1.0"
 dependencies = [
  "lang",
  "lazy_macros",
+ "log",
  "string_pool",
  "strum",
  "strum_macros",
@@ -30,6 +31,14 @@ dependencies = [
 [[package]]
 name = "lazy_macros"
 version = "0.1.0"
+
+[[package]]
+name = "log"
+version = "0.1.0"
+dependencies = [
+ "lang",
+ "lazy_macros",
+]
 
 [[package]]
 name = "proc-macro2"

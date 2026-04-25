@@ -2,28 +2,28 @@ mod module;
 mod import;
 mod traverser;
 
-use crate::{line_dbg, print_message};
+use lazy_macros::{line_dbg, print_message};
 
-use ::lang::span::GetSpan;
-use crate::lang::AliasReference;
-use ::lang::token::{Keyword, Operator};
+use lang::span::GetSpan;
+use lang::reference::{AliasReference, StructReference};
+use lang::token::{Keyword, Operator};
 
 use super::*;
 
 #[derive(Debug)]
-pub enum Structure {
-  Module(lang::ModuleReference),
-  Function(lang::FunctionReference),
-  TypeAlias(lang::AliasReference),
-  Struct(lang::StructReference),
+pub enum Structure<C: Compiler> {
+  Module(C::ModuleReference),
+  Function(C::FunctionReference),
+  TypeAlias(AliasReference<C>),
+  Struct(StructReference<C>),
   ImportFrom(()),
 }
 
-fn make_type_alias<'pool, const N: usize, T: Read>(
-  lazy: &mut crate::Lazy<'pool>,
-  stream: &mut Rereader<'pool, N, T>,
-  parent: lang::ModuleReference,
-) -> Result<Option<lang::AliasReference>, Error> {
+fn make_type_alias<'pool, C: Compiler, const N: usize, T: Read>(
+  store: &mut C::Store<'pool>,
+  stream: &mut Rereader<'pool, C, N, T>,
+  parent: C::ModuleReference,
+) -> Result<Option<AliasReference<C>>, Error<C>> {
   let Some((Token::Keyword(Keyword::Type), start_span)) = stream.peek()? else {
     return Ok(None);
   };
@@ -46,18 +46,18 @@ fn make_type_alias<'pool, const N: usize, T: Read>(
 
   stream.skip_whitespace_and_comments()?;
 
-  let Some(ty) = ty::make_type(lazy, stream, parent)? else {
+  let Some(ty) = ty::make_type(store, stream, parent)? else {
     return stream.expected_here(line_dbg!("a type"));
   };
 
   let mut span = start_span;
-  span.extend(ty.get_span(lazy));
+  span.extend(ty.get_span(store));
 
   // TODO: put this into a method
-  let index = lazy.rget(parent).aliases.len();
+  let index = store.rget(parent).aliases.len();
   let alias_reference = AliasReference(parent, index);
 
-  lazy.rget_mut(parent).aliases.push(lang::module::TypeAlias {
+  store.rget_mut(parent).aliases.push(lang::module::TypeAlias {
     name,
     span,
     ty,
@@ -72,11 +72,11 @@ fn make_type_alias<'pool, const N: usize, T: Read>(
 ///     struct Square
 ///       u32 height
 ///       u32 width
-fn make_struct<'pool, const N: usize, T: Read>(
-  lazy: &mut crate::Lazy<'pool>,
-  parent: lang::ModuleReference,
-  stream: &mut Rereader<'pool, N, T>,
-) -> Result<Option<lang::module::struc::Struct>, Error> {
+fn make_struct<'pool, C: Compiler, const N: usize, T: Read>(
+  store: &mut C::Store<'pool>,
+  parent: C::ModuleReference,
+  stream: &mut Rereader<'pool, C, N, T>,
+) -> Result<Option<lang::module::Struct<C>>, Error<C>> {
   let Some((Token::Keyword(Keyword::Struct), start)) = stream.peek()? else {
     return Ok(None);
   };
@@ -138,7 +138,7 @@ fn make_struct<'pool, const N: usize, T: Read>(
       },
     };
 
-    let Some(variable) = function::make_function_argument(lazy, stream, parent)? else {
+    let Some(variable) = function::make_function_argument(store, stream, parent)? else {
       return stream.expected_here(line_dbg!("a struct member"));
     };
 
@@ -158,19 +158,19 @@ fn make_struct<'pool, const N: usize, T: Read>(
 /// or from within a submodule, since this is where the processing/registration
 /// of the data structues get handled, i.e. storing the module in `parent` or
 /// traversing imports.
-pub(super) fn make_structure<'pool, const N: usize, T: Read>(
-  lazy: &mut crate::Lazy<'pool>,
-  parent: lang::ModuleReference,
-  stream: &mut Rereader<'pool, N, T>,
-) -> Result<Option<Structure>, Error> {
+pub(super) fn make_structure<'pool, C: Compiler, const N: usize, T: Read>(
+  store: &mut C::Store<'pool>,
+  parent: C::ModuleReference,
+  stream: &mut Rereader<'pool, C, N, T>,
+) -> Result<Option<Structure<C>>, Error<C>> {
   let here = stream.here()?;
 
-  if let Some(module) = module::make_mod(lazy, stream, parent)? {
-    lazy.rget_mut(parent).modules.push(module);
+  if let Some(module) = module::make_mod(store, stream, parent)? {
+    store.rget_mut(parent).modules.push(module);
 
-    let module_name = lazy.describe_module(module);
+    let module_name = store.describe_module(module);
 
-    print_message!(lazy, {
+    print_message!(store, {
       level: Debug,
       force: false,
       description: format!(line_dbg!("parsed a module: {}"), module_name),
@@ -186,16 +186,16 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
     return Ok(Some(Structure::Module(module)));
   };
 
-  if let Some(function) = function::make_function(lazy, stream, parent)? {
-    let name = &function.rget_from(lazy).header.name;
+  if let Some(function) = function::make_function(store, stream, parent)? {
+    let name = &function.rget_from(store).header.name;
     let (name, span) = (
-      lazy.pool.get(name.id),
+      store.pool().get(name.id),
       name.span,
     );
 
-    let module_name = lazy.describe_module(parent);
+    let module_name = store.describe_module(parent);
 
-    print_message!(lazy, {
+    print_message!(store, {
       level: Debug,
       force: false,
       description: format!(line_dbg!("parsed a function: {}::{}"), module_name, name),
@@ -211,13 +211,13 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
     return Ok(Some(Structure::Function(function)))
   };
 
-  if let Some(alias) = make_type_alias(lazy, stream, parent)? {
-    let alias_ref = alias.rget_from(lazy);
-    let name = lazy.pool.get(alias_ref.name.id);
+  if let Some(alias) = make_type_alias(store, stream, parent)? {
+    let alias_ref = alias.rget_from(store);
+    let name = store.pool().get(alias_ref.name.id);
 
-    let module_name = lazy.describe_module(parent);
+    let module_name = store.describe_module(parent);
 
-    print_message!(lazy, {
+    print_message!(store, {
       level: Debug,
       force: false,
       description: format!(line_dbg!("parsed a type alias: {}::{}"), module_name, name),
@@ -230,7 +230,7 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
           },
           MessageSection {
             text: "the type".into(),
-            span: alias_ref.ty.get_span(lazy),
+            span: alias_ref.ty.get_span(store),
           },
         ],
       }]),
@@ -239,18 +239,18 @@ pub(super) fn make_structure<'pool, const N: usize, T: Read>(
     return Ok(Some(Structure::TypeAlias(alias)))
   };
 
-  if let Some(struc) = make_struct(lazy, parent, stream)? {
+  if let Some(struc) = make_struct(store, parent, stream)? {
     // Make the next StructReference for the struct and then add it.
     // TODO: This is far too clumsy to keep this way forever
-    let parent_borrow = lazy.rget_mut(parent);
+    let parent_borrow = store.rget_mut(parent);
     let id = parent_borrow.structs.len();
     let struct_reference = lang::StructReference(parent, id);
     parent_borrow.structs.push(struc);
     return Ok(Some(Structure::Struct(struct_reference)))
   };
 
-  if let Some(import) = import::make_import(lazy, parent, stream)? {
-    traverser::traverse_import(lazy, stream.module, &import)?;
+  if let Some(import) = import::make_import(store, parent, stream)? {
+    traverser::traverse_import(store, stream.module, &import)?;
 
     return Ok(Some(Structure::ImportFrom(())));
   };

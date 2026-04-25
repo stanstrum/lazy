@@ -7,6 +7,7 @@ edition = "2024"
 lang = { version = "0.1.0", path = "../lang" }
 lazy_macros = { version = "0.1.0", path = "../lazy_macros" }
 string_pool = { version = "0.1.0", path = "../string_pool" }
+tokenize = { version = "0.1.0", path = "../tokenize" }
 strum = "0.28.0"
 strum_macros = "0.28.0"
-tokenize = { version = "0.1.0", path = "../tokenize" }
+log = { version = "0.1.0", path = "../log" }

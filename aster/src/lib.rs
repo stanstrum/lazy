@@ -3,6 +3,7 @@ pub mod rereader;
 pub mod pprint;
 
 use std::fs::File;
+use std::path::PathBuf;
 
 use rereader::Rereader;
 use ::tokenize::bufreader::BufferedUtf8MetadataReader;
@@ -10,6 +11,12 @@ use tokenize::{Tokenizer, self};
 use ::lang::{Compiler, CompilerPoolStore};
 use ::lang::reference::Store;
 use ::lang::span::Span;
+
+#[derive(Debug)]
+pub enum LazyError<C: Compiler> {
+  NotExist(PathBuf),
+  Aster(Error<C>),
+}
 
 #[derive(Debug)]
 pub enum Error<C: Compiler> {

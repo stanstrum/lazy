@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use lang::import::ImportPart;
 use lazy_macros::print_once_per_thread;
 
 use ::lang::token::StringKind;
@@ -7,7 +8,7 @@ use ::lang::token::StringKind;
 use super::*;
 
 fn make_group<'pool, C: Compiler, const N: usize, T: Read>(
-  lazy: &mut C::Store<'pool>,
+  store: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, C, N, T>,
   indenter: &Indenter,
 ) -> Result<Option<lang::import::ImportGroup<C>>, Error<C>> {
@@ -33,7 +34,7 @@ fn make_group<'pool, C: Compiler, const N: usize, T: Read>(
       continue;
     };
 
-    let Some(selector) = make_selector(lazy, stream, &indenter)? else {
+    let Some(selector) = make_selector(store, stream, &indenter)? else {
       break;
     };
 
@@ -41,7 +42,7 @@ fn make_group<'pool, C: Compiler, const N: usize, T: Read>(
   };
 
   if let Some(last) = selectors.last() {
-    span.extend(last.get_span(lazy));
+    span.extend(last.get_span(store));
   };
 
   Ok(Some(lang::import::ImportGroup {
@@ -90,15 +91,15 @@ fn make_qualify<'pool, C: Compiler, const N: usize, T: Read>(
 }
 
 fn make_selector<'pool, C: Compiler, const N: usize, T: Read>(
-  lazy: &mut C::Store<'pool>,
+  store: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, C, N, T>,
   indenter: &Indenter,
 ) -> Result<Option<lang::import::ImportPart<C>>, Error<C>> {
-  if let Some(qualify) = make_qualify(lazy, stream, indenter)? {
+  if let Some(qualify) = make_qualify(store, stream, indenter)? {
     return Ok(Some(lang::import::ImportPart::Qualify(qualify)))
   };
 
-  if let Some(group) = make_group(lazy, stream, indenter)? {
+  if let Some(group) = make_group(store, stream, indenter)? {
     return Ok(Some(lang::import::ImportPart::Group(group)))
   };
 
@@ -113,11 +114,11 @@ fn make_selector<'pool, C: Compiler, const N: usize, T: Read>(
     return Ok(Some(lang::import::ImportPart::Star(span)));
   };
 
-  print_once_per_thread!(lazy, {
+  print_once_per_thread!(store, {
     level: Stub,
     force: false,
     description: line_dbg!("parse other kinds of selector").into(),
-    contents: MessageContents::None,
+    contents: MessageContents::None::<C>,
   });
 
   Ok(None)

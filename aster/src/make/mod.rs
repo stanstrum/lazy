@@ -5,6 +5,7 @@ mod structure;
 
 use std::io::Read;
 
+use lazy_macros::line_dbg;
 use lang::{Compiler, CompilerPoolStore};
 use lang::reference::{Reference, Store};
 use lang::span::{Span};
@@ -12,17 +13,6 @@ use lang::token::{Token, TokenSpan};
 use crate::rereader::Rereader;
 
 use super::Error;
-
-#[macro_export]
-macro_rules! line_dbg {
-  () => {
-    line_dbg!("")
-  };
-
-  ($str:expr) => {
-    concat!("[\x1b[1;4m", file!(), ":", line!(), "\x1b[0;24m]: ", $str)
-  };
-}
 
 #[derive(Debug)]
 struct Indenter(pub usize);

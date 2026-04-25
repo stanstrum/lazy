@@ -165,7 +165,7 @@ fn make_array_of<'pool, C: Compiler, const N: usize, T: Read>(
 pub(super) fn make_type<'pool, C: Compiler, const N: usize, T: Read>(
   lazy: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, C, N, T>,
-  module: lang::ModuleReference,
+  module: C::ModuleReference,
 ) -> Result<Option<lang::ty::Type<C>>, Error<C>> {
   if let Some(qualified) = make_qualified(stream, module)? {
     return Ok(Some(lang::ty::Type::Unresolved { module, qualified }));

@@ -1,4 +1,4 @@
-use crate::{Compiler, function::{BlockId, ExprId}};
+use crate::{Compiler, expr::{BlockExpression, Expression}, function::{BlockId, ExprId}, ty::{OverwriteTypeReference, Type, TypeOf, TypePair}};
 
 pub trait Store<Item> {
   type Out;
@@ -55,4 +55,37 @@ pub enum TypeReference<C: Compiler> {
   ReturnTypeOf(C::FunctionReference),
   Variable(VariableReference<C>),
   StructMember(StructReference<C>, usize),
+}
+
+pub trait FunctionGetBody<C: Compiler> {
+  fn body(&self) -> BlockReference<C>;
+  // fn get_body<'a>(&self, lazy: &'a Lazy) -> &'a BlockExpression;
+
+  fn get_body_mut<'store, 'pool>(&self, store: &'store mut C::Store<'pool>) -> &'store mut BlockExpression<C>;
+
+  // fn last_expr(&self, lazy: &Lazy) -> Option<ExpressionReference>;
+}
+
+impl<C: Compiler> FunctionGetBody<C> for C::FunctionReference {
+  fn body(&self) -> BlockReference<C> {
+    BlockReference::<C>(*self, BlockId::body_id())
+  }
+
+  // fn get_body<'a>(&self, lazy: &'a Lazy) -> &'a BlockExpression {
+  //   self.body(lazy).rget_from(lazy)
+  // }
+
+  fn get_body_mut<'store, 'pool>(&self, store: &'store mut C::Store<'pool>) -> &'store mut BlockExpression<C> {
+    self.body().rget_from_mut(store)
+  }
+
+  // fn last_expr(&self, lazy: &Lazy) -> Option<ExpressionReference> {
+  //   let function = self.rget_from(lazy);
+  //   let body = function.body.rget_from(lazy);
+
+  //   body.returns_last.then(|| {
+  //     let id = body.children.last().unwrap();
+  //     ExpressionReference(*self, *id)
+  //   })
+  // }
 }

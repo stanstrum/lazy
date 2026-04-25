@@ -1,4 +1,4 @@
-use lang::reference::{ExpressionReference, Reference};
+use lang::reference::{ExpressionReference, FunctionGetBody, Reference};
 use ::lang::span::GetSpan;
 use lazy_macros::line_dbg;
 
@@ -7,11 +7,11 @@ use ::lang::token::Operator;
 use super::*;
 
 pub(super) fn make_function_argument<'pool, C: Compiler, const N: usize, T: Read>(
-  lazy: &mut C::Store<'pool>,
+  store: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, C, N, T>,
   parent: C::ModuleReference,
 ) -> Result<Option<lang::expr::Variable<C>>, Error<C>> {
-  let Some(ty) = ty::make_type(lazy, stream, parent)? else {
+  let Some(ty) = ty::make_type(store, stream, parent)? else {
     return Ok(None);
   };
 
@@ -23,8 +23,8 @@ pub(super) fn make_function_argument<'pool, C: Compiler, const N: usize, T: Read
     return stream.expected_here(line_dbg!("an identifier"));
   };
 
-  let mut span = Type::<C>::get_span(lazy);
-  span.extend(name.get_span(lazy));
+  let mut span = ty.get_span(store);
+  span.extend(name.get_span(store));
 
   Ok(Some(lang::expr::Variable {
     name,
@@ -104,15 +104,15 @@ fn make_function_header<'pool, C: Compiler, const N: usize, T: Read>(
 }
 
 pub(super) fn make_function<'pool, C: Compiler, const N: usize, T: Read>(
-  lazy: &mut C::Store<'pool>,
+  store: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, C, N, T>,
   module: C::ModuleReference,
 ) -> Result<Option<C::FunctionReference>, Error<C>> {
-  let Some(header) = make_function_header(lazy, stream, module)? else {
+  let Some(header) = make_function_header(store, stream, module)? else {
     return Ok(None);
   };
 
-  let function = lazy.create_function(module, header);
+  let function = store.create_function(module, header);
   let body = function.body();
 
   let mut non_return_last = None;
@@ -123,7 +123,7 @@ pub(super) fn make_function<'pool, C: Compiler, const N: usize, T: Read>(
     stream.skip_whitespace_and_comments()?;
 
     let Some(stmt) = expr::block::make_block_statement(
-      lazy, stream, &indenter,
+      store, stream, &indenter,
       module, function, body,
     )? else {
       return stream.expected_here(line_dbg!("a block statement"));
@@ -138,8 +138,8 @@ pub(super) fn make_function<'pool, C: Compiler, const N: usize, T: Read>(
     };
   };
 
-  if let Some(&last) = body.rget_from(lazy).children.last() {
-    let body_ref = function.get_body_mut(lazy);
+  if let Some(&last) = body.rget_from(store).children.last() {
+    let body_ref = function.get_body_mut(store);
 
     body_ref.returns_last = !non_return_last.is_some_and(
       |ExpressionReference(_, id)| id == last
@@ -149,7 +149,7 @@ pub(super) fn make_function<'pool, C: Compiler, const N: usize, T: Read>(
     body_ref.out = lang::ty::Type::Reference(lang::reference::TypeReference::Expression(expr_reference));
   };
 
-  function.rget_from_mut(lazy).span.end = stream.here()?.start;
+  function.rget_from_mut(store).span.end = stream.here()?.start;
 
   Ok(Some(function))
 }

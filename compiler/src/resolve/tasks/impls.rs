@@ -14,12 +14,7 @@ pub struct OverwriteExpression {
   pub src: Expression,
 }
 
-#[derive(Debug, Clone)]
-pub struct OverwriteTypeReference {
-  pub reference: TypeReference,
-  pub modifiers: Vec<TypePairModifier>,
-}
-
+pub type OverwriteTypeReference = ::lang::ty::OverwriteTypeReference<crate::LazyStructures>;
 pub struct OverwriteType {
   pub dest: OverwriteTypeReference,
   pub src: Type,
@@ -54,5 +49,18 @@ impl From<TypeReference> for OverwriteTypeReference {
       reference: dest,
       modifiers: vec![],
     }
+  }
+}
+
+// TODO: these should go to `lang`
+impl<C: Compiler> GetSpan<C> for TypePair<C> {
+  fn get_span(&self, store: &C::Store<'_>) -> Span<C> {
+    self.overwrite.get_span(store)
+  }
+}
+
+impl<C: Compiler> GetSpan<C> for OverwriteTypeReference<C> {
+  fn get_span(&self, store: &C::Store<'_>) -> Span<C> {
+    self.reference.get_span(store)
   }
 }

@@ -3,6 +3,7 @@ mod reference;
 pub mod keys;
 pub mod format;
 
+use aster::LazyError;
 use lazy_macros::{line_dbg, print_message};
 
 use std::path::{Path, PathBuf};
@@ -94,15 +95,31 @@ impl<'pool> Lazy<'pool> {
     Ok(*self.std.insert(std_reference))
   }
 
-  /// Creates a module with the provided values.  This module's
-  /// [`ModuleParent`] will be [`ModuleParent::Path`] (from `path`) and this
-  /// path will be resolved either using the provided path in `relative_to`, or
-  /// the current working directory using [`std::env::current_dir`].
-  ///
-  /// The path will be validated and then the source code will be parsed for
-  /// tokens and AST.  If successful, the corresponding [`ModuleReference`] will
-  /// be returned.
-  pub fn add_file(&mut self, name: &str, mut path: PathBuf, relative_to: Option<&Path>) -> Result<ModuleReference, LazyError> {
+  pub fn create_module(&mut self, name: &str, parent: impl FnOnce(TokensId, ModuleReference) -> ModuleParent<LazyStructures>) -> ModuleReference {
+    // Make the references for this file
+    let module = ModuleReference(self.modules.len());
+    let tokens = TokensId(self.tokens.len());
+
+    // Initialize the module struct
+    let name = self.pool.insert(name);
+    let to_insert = Module::new(name, parent(tokens, module));
+
+    // Store the module's entries
+    self.modules.push(to_insert);
+    self.tokens.push(vec![]);
+
+    module
+  }
+}
+
+impl lang::CompilerPoolStore<LazyStructures> for Lazy<'_> {
+  type Error = LazyError<LazyStructures>;
+
+  fn pool(&self) -> &StringPool {
+    self.pool
+  }
+
+  fn add_file(&mut self, name: &str, mut path: PathBuf, relative_to: Option<&Path>) -> Result<ModuleReference, LazyError> {
     // Make sure relative_to is absolute
     if let Some(relative_to) = &relative_to {
       assert!(relative_to.is_absolute(), "relative_to must be an absolute path");
@@ -169,23 +186,7 @@ impl<'pool> Lazy<'pool> {
     Ok(module)
   }
 
-  pub fn create_module(&mut self, name: &str, parent: impl FnOnce(TokensId, ModuleReference) -> ModuleParent<LazyStructures>) -> ModuleReference {
-    // Make the references for this file
-    let module = ModuleReference(self.modules.len());
-    let tokens = TokensId(self.tokens.len());
-
-    // Initialize the module struct
-    let name = self.pool.insert(name);
-    let to_insert = Module::new(name, parent(tokens, module));
-
-    // Store the module's entries
-    self.modules.push(to_insert);
-    self.tokens.push(vec![]);
-
-    module
-  }
-
-  pub fn create_function(&mut self, module: ModuleReference, header: FunctionHeader<LazyStructures>) -> FunctionReference {
+  fn create_function(&mut self, module: ModuleReference, header: FunctionHeader<LazyStructures>) -> FunctionReference {
     let function_reference = FunctionReference(self.functions.len());
     let body = function_reference.body();
     let function = Function::new(body, module, header);
@@ -197,12 +198,6 @@ impl<'pool> Lazy<'pool> {
   }
 }
 
-impl lang::CompilerPoolStore<LazyStructures> for Lazy<'_> {
-  fn pool(&self) -> &StringPool {
-    self.pool
-  }
-}
-
 impl lang::Compiler for LazyStructures {
   type Store<'a> = Lazy<'a>;
 
@@ -210,8 +205,6 @@ impl lang::Compiler for LazyStructures {
   type FunctionReference = FunctionReference;
 
   type TokensReference = TokensId;
-
-  type OverwriteTypeReference = compiler::tasks::OverwriteTypeReference;
 }
 
 // SPONGE: move this to gluezy

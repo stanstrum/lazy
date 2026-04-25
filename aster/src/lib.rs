@@ -32,7 +32,9 @@ pub enum Error<C: Compiler> {
   },
 }
 
-pub fn asterize<C: Compiler>(store: &mut C::Store<'_>, module: C::ModuleReference) -> Result<(), Error<C>> {
+pub fn asterize<'lazy, 'pool, C: Compiler>(store: &'lazy mut C::Store<'pool>, module: C::ModuleReference) -> Result<(), Error<C>>
+  where 'lazy: 'pool
+{
   let path = store.get_path(module).path.as_path();
   let file = File::open(path).expect("failed to open path");
   let meta_reader = BufferedUtf8MetadataReader::<64, _>::new(file);

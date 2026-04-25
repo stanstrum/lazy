@@ -54,7 +54,7 @@ fn make_type_alias<'pool, C: Compiler, const N: usize, T: Read>(
   span.extend(ty.get_span(store));
 
   // TODO: put this into a method
-  let index = store.rget(parent).aliases.len();
+  let index = (&*store).rget(parent).aliases.len();
   let alias_reference = AliasReference(parent, index);
 
   store.rget_mut(parent).aliases.push(lang::module::TypeAlias {
@@ -101,7 +101,7 @@ fn make_struct<'pool, C: Compiler, const N: usize, T: Read>(
       stream.seek();
     },
     Some((Token::Indent(0), _)) | None => {
-      return Ok(Some(lang::module::struc::Struct {
+      return Ok(Some(lang::module::Struct {
         name,
         members,
         span: Span::from_pair(start, stream.here()?),
@@ -147,7 +147,7 @@ fn make_struct<'pool, C: Compiler, const N: usize, T: Read>(
 
   let span = Span::from_pair(start, end);
 
-  Ok(Some(lang::module::struc::Struct {
+  Ok(Some(lang::module::Struct {
     name,
     members,
     span,
@@ -244,7 +244,7 @@ pub(super) fn make_structure<'pool, C: Compiler, const N: usize, T: Read>(
     // TODO: This is far too clumsy to keep this way forever
     let parent_borrow = store.rget_mut(parent);
     let id = parent_borrow.structs.len();
-    let struct_reference = lang::StructReference(parent, id);
+    let struct_reference = lang::reference::StructReference(parent, id);
     parent_borrow.structs.push(struc);
     return Ok(Some(Structure::Struct(struct_reference)))
   };

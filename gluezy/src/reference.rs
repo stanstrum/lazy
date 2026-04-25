@@ -48,27 +48,3 @@ impl<'pool> Store<TokensId> for Lazy<'pool> {
     self.tokens.get_mut(index).unwrap()
   }
 }
-
-impl FunctionReference {
-  pub fn body(&self) -> BlockReference<LazyStructures> {
-    BlockReference(*self, BlockId::body_id())
-  }
-
-  // pub fn get_body<'a>(&self, lazy: &'a Lazy) -> &'a BlockExpression {
-  //   self.body(lazy).rget_from(lazy)
-  // }
-
-  pub fn get_body_mut<'a>(&self, lazy: &'a mut Lazy) -> &'a mut BlockExpression<LazyStructures> {
-    self.body().rget_from_mut(lazy)
-  }
-
-  // pub fn last_expr(&self, lazy: &Lazy) -> Option<ExpressionReference> {
-  //   let function = self.rget_from(lazy);
-  //   let body = function.body.rget_from(lazy);
-
-  //   body.returns_last.then(|| {
-  //     let id = body.children.last().unwrap();
-  //     ExpressionReference(*self, *id)
-  //   })
-  // }
-}

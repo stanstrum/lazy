@@ -72,11 +72,6 @@ pub trait Coerce {
   fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()>;
 }
 
-pub trait TypeOf: GetSpan<crate::lazy::LazyStructures> {
-  fn type_of(&self, lazy: &Lazy) -> Option<Type>;
-  fn reference(&self, lazy: &Lazy) -> Option<OverwriteTypeReference>;
-}
-
 // impl<R: Copy> TypeOf for R
 //   where for<'a> Lazy<'a>: Store<R>,
 //         for<'a> <Lazy<'a> as Store<R>>::Out: TypeOf

@@ -10,16 +10,6 @@ use crate::lang::Span;
 
 use super::*;
 
-impl TypeOf for VariableReference {
-  fn type_of(&self, lazy: &Lazy) -> Option<Type> {
-    TypeReference::Variable(*self).type_of(lazy)
-  }
-
-  fn reference(&self, _lazy: &Lazy) -> Option<OverwriteTypeReference> {
-    Some(TypeReference::Variable(*self).into())
-  }
-}
-
 impl Resolve for VariableReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
     let description = {
@@ -70,32 +60,6 @@ fn verify_variable(lazy: &Lazy, variable: VariableReference, tasks: &mut Tasks) 
   })
 }
 
-impl TypeOf for ExpressionReference {
-  fn type_of(&self, lazy: &Lazy) -> Option<Type> {
-    match self.rget_from(lazy) {
-      Expression::Block(block) => block.type_of(lazy),
-      Expression::Variable { reference, .. } => reference.type_of(lazy),
-      // TODO: again, very unsure about this... we are relying on the Resolve
-      //       mechanism to hit the insides of the Expression and then
-      //       looping to finish the job.  is this Functional™?
-      | Expression::Literal { out, .. }
-      | Expression::Unknown { out, .. }
-      | Expression::Unary { out, .. }
-      | Expression::Binary { out, .. }
-      | Expression::StructInitializer { ty: out, .. }
-        => {
-          let reference = TypeReference::Expression(*self);
-
-          TypePair::new(reference, out.clone()).type_of(lazy)
-        },
-    }
-  }
-
-  fn reference(&self, _lazy: &Lazy) -> Option<OverwriteTypeReference> {
-    Some(TypeReference::Expression(*self).into())
-  }
-}
-
 impl Coerce for ExpressionReference {
   fn coerce(&self, lazy: &Lazy, other: &impl TypeOf, tasks: &mut Tasks) -> Result<()> {
     let a = self.print(lazy);
@@ -115,22 +79,6 @@ impl Coerce for ExpressionReference {
 
       TypeReference::Expression(*self).coerce(lazy, other, tasks)
     })
-  }
-}
-
-impl TypeOf for BlockReference {
-  fn type_of(&self, lazy: &Lazy) -> Option<Type> {
-    // TODO: is this correct? should I try to match the expr type directly,
-    //       maybe in addition to this?  Coerce in TypeOf? what could go
-    //       wrong ???
-    let reference = TypeReference::Block(*self);
-    let ty = &self.rget_from(lazy).out;
-
-    OverwriteTypeReference::from(TypePair::new(reference, ty.clone())).type_of(lazy)
-  }
-
-  fn reference(&self, _lazy: &Lazy) -> Option<OverwriteTypeReference> {
-    Some(TypeReference::Block(*self).into())
   }
 }
 

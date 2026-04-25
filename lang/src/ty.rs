@@ -1,14 +1,45 @@
 use crate::Compiler;
 use crate::token::StringKind;
-use crate::span::Span;
+use crate::span::{GetSpan, Span};
 use crate::intrinsic::Intrinsic;
 use crate::reference::{AliasReference, BlockReference, ExpressionReference, Reference, Store, StructReference, TypePartReference, TypeReference, VariableReference};
+
+pub trait TypeOf<C: Compiler>: GetSpan<C> {
+  fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>>;
+  fn reference(&self, store: &C::Store<'_>) -> Option<OverwriteTypeReference<C>>;
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum TypePairModifier {
+  Dereference,
+}
+
+#[derive(Debug, Clone)]
+pub struct OverwriteTypeReference<C: Compiler> {
+  pub reference: TypeReference<C>,
+  pub modifiers: Vec<TypePairModifier>,
+}
+
+#[derive(Debug, Clone)]
+pub struct TypePair<C: Compiler> {
+  pub overwrite: OverwriteTypeReference<C>,
+  pub ty: Type<C>,
+}
+
+impl<C: Compiler> TypePair<C> {
+  pub fn new(reference: TypeReference<C>, ty: Type<C>) -> Self where OverwriteTypeReference<C>: From<TypeReference<C>> {
+    Self {
+      overwrite: reference.into(),
+      ty,
+    }
+  }
+}
 
 #[derive(Debug, Clone)]
 pub enum QualifiedSearchSpace<C: Compiler> {
   Implicit,
   Struct(StructReference<C>),
-  Type(C::OverwriteTypeReference),
+  Type(OverwriteTypeReference<C>),
   Intrinsic {
     kind: crate::intrinsic::Intrinsic,
     span: crate::span::Span<C>,

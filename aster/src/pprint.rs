@@ -9,7 +9,7 @@ use ::lang::reference::{BlockReference, ExpressionReference, Reference, Store, T
 use ::lang::ty::{Qualified, QualifiedSearchSpace, Type};
 use ::lang::module::{Module, Name};
 use ::lang::function::Function;
-use ::resolve::{TypeOf, TypePair, TypePairModifier};
+use ::lang::ty::{TypeOf, TypePair, TypePairModifier};
 
 pub trait Pretty<C: Compiler> {
   type Out;
@@ -25,7 +25,7 @@ impl<C: Compiler> Pretty<C> for PoolId {
   }
 }
 
-impl<C: Compiler> Pretty<C> for TypePair {
+impl<C: Compiler> Pretty<C> for TypePair<C> {
   type Out = String;
 
   fn print(&self, store: &C::Store<'_>) -> Self::Out {

@@ -21,7 +21,7 @@ pub(super) fn make_mod<'pool, C: Compiler, const N: usize, T: Read>(
   };
 
   // set up the module, even if it'll be empty
-  let name_value = lazy.pool.get(name.id);
+  let name_value = lazy.pool().get(name.id);
   let module = lazy.create_module(&name_value, |_, _| lang::module::ModuleParent::Module(parent));
 
   stream.skip_whitespace_and_comments()?;

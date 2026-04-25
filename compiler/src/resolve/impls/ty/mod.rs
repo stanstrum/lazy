@@ -62,56 +62,6 @@ impl<T: TypeOf> DereferenceType for T {
   }
 }
 
-impl TypeOf for Type {
-  fn type_of(&self, lazy: &Lazy) -> Option<Type> {
-    match self {
-      | Type::Intrinsic { .. }
-      | Type::WeakInteger { .. }
-      | Type::WeakFloat { .. }
-      | Type::WeakString { .. }
-      | Type::Weak { .. }
-      | Type::ReferenceTo { .. }
-      | Type::UnsizedArrayOf { .. }
-      | Type::SizedArrayOf { .. }
-      // | Type::Unresolved { .. }
-      | Type::Struct { .. }
-        => Some(self.clone()),
-      // SPONGE
-      | Type::Unresolved { .. }
-        => None,
-      Type::Resolved { part, .. } => part.type_of(lazy),
-      Type::Reference(reference) => reference.type_of(lazy),
-    }
-  }
-
-  fn reference(&self, _lazy: &Lazy) -> Option<OverwriteTypeReference> {
-    match dbg!(self) {
-      &Type::Reference(type_reference) => Some(type_reference.into()),
-      &Type::Resolved { part, .. } => Some(TypeReference::Part(part).into()),
-      Type::Unresolved { .. } => todo!(),
-      Type::Intrinsic { .. } => todo!(),
-      Type::WeakInteger { .. } => todo!(),
-      Type::WeakFloat { .. } => todo!(),
-      Type::WeakString { .. } => todo!(),
-      Type::Weak { .. } => todo!(),
-      Type::ReferenceTo { .. } => todo!(),
-      Type::UnsizedArrayOf { .. } => todo!(),
-      Type::SizedArrayOf { .. } => todo!(),
-      Type::Struct { .. } => todo!(),
-    }
-  }
-}
-
-impl TypeOf for TypeReference {
-  fn type_of(&self, lazy: &Lazy) -> Option<Type> {
-    self.rget_from(lazy).type_of(lazy)
-  }
-
-  fn reference(&self, _lazy: &Lazy) -> Option<OverwriteTypeReference> {
-    Some((*self).into())
-  }
-}
-
 impl Resolve for TypeReference {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
     let description = format!(line_dbg!("Resolve TypeReference: {}"), self.print(lazy));

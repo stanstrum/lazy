@@ -17,7 +17,7 @@ pub fn make_assignment<'pool, C: Compiler, const N: usize, T: Read>(
   let Some(ty) = ty::make_type(store, stream, module)? else {
     return Ok(None);
   };
-  let mut span = Type::<C>::get_span(store);
+  let mut span = ty.get_span(store);
 
   stream.skip_whitespace_and_comments()?;
 

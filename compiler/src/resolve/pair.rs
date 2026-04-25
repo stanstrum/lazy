@@ -1,23 +1,2 @@
-use crate::lang::ty::Type;
-use crate::lang::TypeReference;
-use crate::resolve::tasks::OverwriteTypeReference;
-
-#[derive(Debug, Clone, Copy)]
-pub enum TypePairModifier {
-  Dereference,
-}
-
-#[derive(Debug, Clone)]
-pub struct TypePair {
-  pub overwrite: OverwriteTypeReference,
-  pub ty: Type,
-}
-
-impl TypePair {
-  pub fn new(reference: TypeReference, ty: Type) -> Self {
-    Self {
-      overwrite: reference.into(),
-      ty,
-    }
-  }
-}
+pub type TypePairModifier<C> = ::lang::ty::TypePairModifier<crate::LazyStructures>;
+pub type TypePair<C> = ::lang::ty::TypePair<crate::LazyStructures>;

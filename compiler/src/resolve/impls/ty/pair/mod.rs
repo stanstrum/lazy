@@ -18,16 +18,6 @@ use super::*;
 //   }
 // }
 
-impl TypeOf for TypePair {
-  fn type_of(&self, lazy: &Lazy) -> Option<Type> {
-    self.ty.type_of(lazy)
-  }
-
-  fn reference(&self, _lazy: &Lazy) -> Option<OverwriteTypeReference> {
-    Some(self.clone().into())
-  }
-}
-
 impl Resolve for TypePair {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks) -> Result<()> {
     let description = format!(line_dbg!("Resolve TypePair:\n- Ref.: {}\n- Type: {}"),

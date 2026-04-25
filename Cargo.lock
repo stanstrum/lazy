@@ -111,6 +111,7 @@ dependencies = [
  "lang",
  "lazy_macros",
  "log 0.1.0",
+ "resolve",
  "string_pool",
 ]
 
@@ -187,6 +188,7 @@ checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 name = "lang"
 version = "0.1.0"
 dependencies = [
+ "lazy_macros",
  "string_pool",
 ]
 
@@ -305,6 +307,13 @@ name = "regex-lite"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cab834c73d247e67f4fae452806d17d3c7501756d98c8808d7c9c7aa7d18f973"
+
+[[package]]
+name = "resolve"
+version = "0.1.0"
+dependencies = [
+ "lang",
+]
 
 [[package]]
 name = "rustix"

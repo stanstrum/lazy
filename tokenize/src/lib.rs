@@ -12,17 +12,6 @@ use crate::{state::State, token::TokenSpan};
 use crate::bufreader::BufferedUtf8MetadataReader;
 
 #[derive(Debug)]
-pub enum Error<C: Compiler> {
-  IO {
-    module: C::ModuleReference,
-    name: String,
-  },
-  InvalidNumeric {
-    span: Span<C>,
-  },
-}
-
-#[derive(Debug)]
 pub struct Tokenizer<'pool, C: Compiler, const N: usize, T: Read> {
   /// The [`StringPool`] that stores all of our identifiers and maps them to a
   /// [`Copy`] unique key.
@@ -54,6 +43,8 @@ pub struct Tokenizer<'pool, C: Compiler, const N: usize, T: Read> {
   /// inside them.
   override_indentation: Option<usize>,
 }
+
+pub type Error<C> = lang::error::TokenError<C>;
 
 impl<'a, C: Compiler, const N: usize, T: Read> Iterator for Tokenizer<'a, C, N, T> {
   type Item = Result<TokenSpan<C>, Error<C>>;

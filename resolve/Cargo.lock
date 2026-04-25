@@ -6,13 +6,15 @@ version = 4
 name = "lang"
 version = "0.1.0"
 dependencies = [
- "lazy_macros",
  "string_pool",
 ]
 
 [[package]]
-name = "lazy_macros"
+name = "resolve"
 version = "0.1.0"
+dependencies = [
+ "lang",
+]
 
 [[package]]
 name = "string_pool"

@@ -20,42 +20,8 @@ type Result<T> = std::result::Result<T, Box<Error>>;
 
 pub use pair::*;
 
-#[derive(Debug)]
-pub struct Error {
-  pub base: ErrorBase,
-  pub call_stack: String,
-}
-
-#[derive(Debug)]
-pub enum ErrorBase {
-  MissingEntryPoint {
-    module_name: String,
-    file: ModuleReference,
-  },
-  UnknownTypeName {
-    module_name: String,
-    span: Span,
-  },
-  TypeMismatch {
-    whence: &'static str,
-    a_print: String,
-    a_span: Span,
-    b_print: String,
-    b_span: Span,
-  },
-  UnresolvedInVerify {
-    what: String,
-    span: Span,
-  },
-  BadQualify {
-    span: Span,
-  },
-  NotImplemented {
-    what: &'static str,
-    span: Span,
-  },
-  Lazy(Box<LazyError>),
-}
+pub type Error = ::resolve::Error<crate::LazyStructures>;
+pub type ErrorBase = ::resolve::ErrorBase<crate::LazyStructures>;
 
 struct Resolver<'lazy, 'pool> {
   lazy: &'lazy mut Lazy<'pool>,

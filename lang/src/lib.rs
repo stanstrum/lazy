@@ -11,15 +11,18 @@ pub mod reference;
 
 pub mod expr;
 
+pub mod tasks;
 mod store;
 mod get_span;
 mod type_of;
+
+pub mod error;
 
 use std::{fmt::Debug, hash::Hash, path::{Path, PathBuf}};
 
 use string_pool::StringPool;
 
-use crate::{function::FunctionHeader, module::{ModuleParent, ModulePath}, reference::{BlockReference, TypePartReference, TypeReference}, ty::OverwriteTypeReference};
+use crate::{function::FunctionHeader, module::{ModuleParent, ModulePath}, reference::{BlockReference, TypePartReference, TypeReference}, ty::{OverwriteTypeReference, Qualified, QualifiedSearchSpace}};
 
 pub trait CompilerReference: Debug + Clone + Copy + PartialEq + Eq {}
 impl<T: Debug + Clone + Copy + PartialEq + Eq> CompilerReference for T {}
@@ -34,7 +37,7 @@ pub trait CompilerPoolStore<'a, C: Compiler>:
   reference::Store<OverwriteTypeReference<C>, Out = ty::Type<C>> +
   // reference::Store<TypePartReference<C>, Out = ty::Type<C>> +
 {
-  type Error;
+  type Error: Debug;
 
   fn pool(&self) -> &'a StringPool;
 
@@ -119,4 +122,11 @@ pub trait Compiler: Debug + Sized + Clone + Copy + PartialEq + Eq {
   type FunctionReference: CompilerReference + Hash;
 
   type TokensReference: CompilerReference;
+
+  fn resolve_qualified_to_space<'a>(
+    store: &mut Self::Store<'a>,
+    module: Self::ModuleReference,
+    qualified: &Qualified<Self>,
+    option: &Option<&mut tasks::Tasks<Self>>,
+  ) -> Result<Option<QualifiedSearchSpace<Self>>, error::ResolveError<Self>>;
 }

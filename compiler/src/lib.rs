@@ -1,8 +1,10 @@
-mod lang;
+mod lang {
+  pub use ::gluezy::prelude::*;
+  pub use ::lang::reference::{Store, Reference};
+}
+
 mod resolve;
 mod generate;
-
-pub use ::structure::*;
 
 pub mod error;
 pub mod settings;
@@ -18,6 +20,7 @@ use crate::lang::{ModuleReference, TokenSpan};
 use crate::lang::module::Module;
 use crate::lang::function::Function;
 
+pub use ::structure::*;
 pub use steps::*;
 
 pub mod tokenize {

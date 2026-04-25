@@ -12,23 +12,3 @@ impl Coerce for OverwriteTypeReference {
     }.coerce(lazy, other, tasks)
   }
 }
-
-impl<'a> Store<OverwriteTypeReference> for Lazy<'a> {
-  type Out = Type;
-
-  fn rget(&self, _key: OverwriteTypeReference) -> &Self::Out {
-    todo!()
-  }
-
-  fn rget_mut(&mut self, key: OverwriteTypeReference) -> &mut Self::Out {
-    let ty = self.rget_mut(key.reference);
-
-    for modifier in key.modifiers.iter() {
-      match modifier {
-        TypePairModifier::Dereference => todo!(),
-      };
-    };
-
-    ty
-  }
-}

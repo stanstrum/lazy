@@ -1,6 +1,6 @@
 use lazy_macros::{print_message, print_once_per_thread};
 
-use crate::resolve::impls::ty::resolve_qualified_to_space;
+// use crate::resolve::impls::ty::resolve_qualified_to_space;
 
 use super::*;
 
@@ -84,7 +84,7 @@ fn traverse_part<C: Compiler>(
         level: Stub,
         force: false,
         description: line_dbg!("restrict ImportPart::Star selector to expored members only").into(),
-        contents: MessageContents::File(*module),
+        contents: MessageContents::File::<C>(*module),
       });
 
       let where_are_we_now = lang::ty::Qualified {
@@ -93,7 +93,8 @@ fn traverse_part<C: Compiler>(
         span,
       };
 
-      let space_search = resolve_qualified_to_space(lazy, *source, &where_are_we_now, &None)
+      let space_search = C::resolve_qualified_to_space(lazy, *source, &where_are_we_now, &None);
+      let space_search = space_search
         // shouldn't actually throw an error if we don't pass it `tasks`, rather
         // return `None`
         .unwrap();

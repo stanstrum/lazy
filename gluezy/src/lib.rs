@@ -3,19 +3,19 @@ mod reference;
 pub mod keys;
 pub mod format;
 
-use aster::LazyError;
+use lang::error::{AsterError, LazyError, ResolveError, TokenError};
 use lazy_macros::{line_dbg, print_message};
 
 use std::path::{Path, PathBuf};
 
-use lang::Compiler;
+use lang::{Compiler, CompilerPoolStore};
 use log::Level;
 use string_pool::StringPool;
 
 use lang::token::Tokens;
 use lang::function::{Function, FunctionHeader};
 use lang::module::{Module, ModuleParent, ModulePath};
-use lang::reference::{Store};
+use lang::reference::{FunctionGetBody, Store};
 
 pub use reference::*;
 
@@ -38,7 +38,7 @@ pub struct Lazy<'pool, C: Compiler = LazyStructures> {
   pub(crate) pool: &'pool StringPool,
   pub(crate) pool_keys: keys::PoolKeys,
   pub(crate) settings: Settings,
-  pub(crate) std: Option<ModuleReference>,
+  pub(crate) std: Option<C::ModuleReference>,
   pub(crate) modules: Vec<Module<C>>,
   pub(crate) functions: Vec<Function<C>>,
   pub(crate) tokens: Vec<Tokens<C>>,
@@ -65,7 +65,7 @@ impl<'pool> Lazy<'pool> {
       level: Debug,
       force: false,
       description: argv,
-      contents: MessageContents::None,
+      contents: MessageContents::None::<LazyStructures>,
     });
 
     lazy
@@ -73,12 +73,12 @@ impl<'pool> Lazy<'pool> {
 }
 
 // TODO: find a nicer spot for this stuff
-impl<'pool> Lazy<'pool> {
+impl<'pool, C: Compiler> Lazy<'pool, C> {
   /// Sounds like a rough time.
   ///
   /// Returns a [`ModuleReference`] to the standard library, tokenizing those
   /// structures if necessary
-  fn get_std(&mut self) -> Result<ModuleReference, LazyError> {
+  fn get_std(&mut self) -> Result<C::ModuleReference, LazyError<C>> {
     if let Some(std) = self.std {
       return Ok(std);
     };
@@ -87,7 +87,7 @@ impl<'pool> Lazy<'pool> {
       level: Stub,
       force: false,
       description: line_dbg!("@std can only be imported from cwd").into(),
-      contents: MessageContents::None,
+      contents: MessageContents::None::<C>,
     });
 
     let std_reference = self.add_file("@std", "std".into(), None)?;
@@ -96,14 +96,14 @@ impl<'pool> Lazy<'pool> {
   }
 }
 
-impl lang::CompilerPoolStore<LazyStructures> for Lazy<'_> {
+impl<'pool> lang::CompilerPoolStore<'pool, LazyStructures> for Lazy<'pool> {
   type Error = LazyError<LazyStructures>;
 
-  fn pool(&self) -> &StringPool {
+  fn pool(&self) -> &'pool StringPool {
     self.pool
   }
 
-  fn add_file(&mut self, name: &str, mut path: PathBuf, relative_to: Option<&Path>) -> Result<ModuleReference, LazyError> {
+  fn add_file(&mut self, name: &str, mut path: PathBuf, relative_to: Option<&Path>) -> Result<ModuleReference, LazyError<LazyStructures>> {
     // Make sure relative_to is absolute
     if let Some(relative_to) = &relative_to {
       assert!(relative_to.is_absolute(), "relative_to must be an absolute path");
@@ -205,14 +205,13 @@ impl lang::Compiler for LazyStructures {
   type FunctionReference = FunctionReference;
 
   type TokensReference = TokensId;
-}
 
-// SPONGE: move this to gluezy
-impl<C: Compiler> From<LazyError> for Error<C> {
-  fn from(value: LazyError) -> Self {
-    match value {
-      value @ LazyError::NotExist(_) => Self::Lazy(Box::new(value)),
-      LazyError::Aster(error) => error,
-    }
+  fn resolve_qualified_to_space<'a>(
+    store: &mut Self::Store<'a>,
+    module: Self::ModuleReference,
+    qualified: &lang::ty::Qualified<Self>,
+    option: &Option<&mut lang::tasks::Tasks<Self>>,
+  ) -> Result<Option<lang::ty::QualifiedSearchSpace<Self>>, ResolveError<Self>> {
+    todo!()
   }
 }

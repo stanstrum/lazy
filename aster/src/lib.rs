@@ -12,25 +12,7 @@ use ::lang::{Compiler, CompilerPoolStore};
 use ::lang::reference::Store;
 use ::lang::span::Span;
 
-#[derive(Debug)]
-pub enum LazyError<C: Compiler> {
-  NotExist(PathBuf),
-  Aster(Error<C>),
-}
-
-#[derive(Debug)]
-pub enum Error<C: Compiler> {
-  Token(tokenize::Error<C>),
-  // Lazy(Box<crate::lang::LazyError>),
-  Expected {
-    what: &'static str,
-    at: Span<C>,
-  },
-  Invalid {
-    what: &'static str,
-    at: Span<C>,
-  },
-}
+pub type Error<C> = ::lang::error::AsterError<C>;
 
 pub fn asterize<'lazy, 'pool, C: Compiler>(store: &'lazy mut C::Store<'pool>, module: C::ModuleReference) -> Result<(), Error<C>>
   where 'lazy: 'pool

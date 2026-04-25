@@ -10,14 +10,11 @@ use lang::{Compiler, CompilerPoolStore, ty::TypeOf};
 use lazy_macros::{print_message, line_dbg};
 
 use ::pprint::Pretty;
-use crate::lang::Span;
 use ::lang::intrinsic::Intrinsic;
 use ::lang::span::GetSpan;
 use crate::lang::ty::Type;
 use gluezy::{FunctionReference, Lazy, LazyStructures, ModuleReference, TypeReference};
 use crate::lang::{Reference, Store};
-use ::lang::error::LazyError;
-use crate::resolve::tasks::OverwriteTypeReference;
 
 use tasks::Tasks;
 

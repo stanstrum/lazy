@@ -1,6 +1,5 @@
 use crate::{Lazy, LazyStructures, prelude::module::TokensId};
-use ::lang::expr::BlockExpression;
-use lang::{Compiler, function::{BlockId, ExprId}, reference::{BlockReference, Reference, Store}};
+use lang::reference::Store;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ModuleReference(pub usize);

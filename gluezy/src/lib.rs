@@ -3,7 +3,7 @@ mod reference;
 pub mod keys;
 pub mod format;
 
-use lang::error::{AsterError, LazyError, ResolveError, TokenError};
+use lang::error::{LazyError, ResolveError};
 use lazy_macros::{line_dbg, print_message};
 
 use std::path::{Path, PathBuf};

@@ -8,7 +8,6 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use gluezy::LazyStructures;
-use lang::Compiler;
 use lazy_macros::{line_dbg, print_message};
 use ::lang::span::GetSpan;
 use log::{Level, MessageContents, MessageSection, WithinSource};

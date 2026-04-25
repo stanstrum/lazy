@@ -61,7 +61,7 @@ fn main() -> ExitCode {
 /// This is the function called by the CLI after parsing arguments from argv.
 pub fn lazy(settings: Settings, verb: Verb) -> ExitCode {
   let pool = compiler::StringPool::new();
-  let ref mut lazy = gluezy::Lazy::new(&pool, settings);
+  let lazy = &mut gluezy::Lazy::new(&pool, settings);
 
   let result = match verb {
     parse::Verb::Check => compiler::check(lazy).and(Ok(ExitCode::SUCCESS)),
@@ -72,7 +72,7 @@ pub fn lazy(settings: Settings, verb: Verb) -> ExitCode {
   match result {
     Ok(exit_code) => exit_code,
     Err(message) => {
-      compiler::error::print_message(&lazy, message);
+      compiler::error::print_message(lazy, message);
       ExitCode::FAILURE
     },
   }

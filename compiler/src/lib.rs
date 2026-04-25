@@ -14,11 +14,6 @@ mod steps;
 #[cfg(test)] mod test;
 
 pub use string_pool::StringPool;
-use gluezy::Settings;
-
-use crate::lang::{TokenSpan};
-use crate::lang::module::Module;
-use crate::lang::function::Function;
 
 pub use steps::*;
 

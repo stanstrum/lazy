@@ -1,4 +1,3 @@
-use crate::reference::{Reference, Store};
 use crate::Compiler;
 
 pub trait GetSpan<C: Compiler> {

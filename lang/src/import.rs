@@ -1,6 +1,5 @@
 use crate::{Compiler, module::Name, span::Span};
 
-
 #[derive(Debug)]
 pub struct ImportGroup<C: Compiler> {
   pub selectors: Vec<ImportPart<C>>,

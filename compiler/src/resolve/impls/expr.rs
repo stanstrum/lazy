@@ -8,7 +8,6 @@ use crate::lang::ty::Type;
 use ::lang::intrinsic::Intrinsic;
 use lazy_macros::print_once_per_thread;
 use crate::resolve::TypePair;
-use crate::resolve::tasks::OverwriteTypeReference;
 use crate::lang::Span;
 
 use super::*;

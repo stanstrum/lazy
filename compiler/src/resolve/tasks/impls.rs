@@ -1,7 +1,5 @@
 use lang::Compiler;
-use ::pprint::Pretty;
 use ::lang::expr::Expression;
-use ::gluezy::{TypeReference};
 use ::lang::reference::ExpressionReference;
 
 use super::*;

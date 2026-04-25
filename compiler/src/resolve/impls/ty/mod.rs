@@ -8,8 +8,6 @@ use ::lang::reference::TypeReference;
 use crate::resolve::tasks::OverwriteTypeReference;
 use crate::resolve::{TypePair, TypePairModifier};
 
-pub(crate) use pair::unknown::resolve_qualified_to_space;
-
 use super::*;
 
 trait DereferenceType {
@@ -119,7 +117,7 @@ impl Coerce for TypeReference<LazyStructures> {
 
 pub(super) fn verify_typeof(
   lazy: &Lazy,
-  ty: &(impl TypeOf<LazyStructures> + GetSpan<LazyStructures> + Pretty<LazyStructures, Out = String>),
+  ty: &(impl TypeOf<LazyStructures> + Pretty<LazyStructures, Out = String>),
   tasks: &mut Tasks<LazyStructures>,
 ) -> Result<()> {
   let description = format!(line_dbg!("Verify type via TypeOf: {}"), ty.print(lazy));

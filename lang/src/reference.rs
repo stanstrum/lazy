@@ -1,4 +1,4 @@
-use crate::{Compiler, expr::{BlockExpression, Expression}, function::{BlockId, ExprId}, ty::{OverwriteTypeReference, Type, TypeOf, TypePair}};
+use crate::{Compiler, expr::BlockExpression, function::{BlockId, ExprId}};
 
 pub trait Store<Item> {
   type Out;

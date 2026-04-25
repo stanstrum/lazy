@@ -1,7 +1,6 @@
 mod impls;
 
 use std::rc::Rc;
-use std::collections::VecDeque;
 use std::cell::RefCell;
 
 pub use impls::*;

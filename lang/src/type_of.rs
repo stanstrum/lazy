@@ -84,7 +84,7 @@ impl<C: Compiler> TypeOf<C> for ExpressionReference<C> {
     }
   }
 
-  fn reference(&self, store: &C::Store<'_>) -> Option<OverwriteTypeReference<C>> {
+  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference<C>> {
     Some(TypeReference::Expression(*self).into())
   }
 }

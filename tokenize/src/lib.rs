@@ -67,7 +67,7 @@ impl<'pool, C: Compiler, const N: usize, T: Read> Tokenizer<'pool, C, N, T> {
     name: String,
     meta_reader: BufferedUtf8MetadataReader<N, T>,
   ) -> Self {
-    let start_and_end = Position::new();
+    let start_and_end = Position::default();
 
     Self {
       pool,

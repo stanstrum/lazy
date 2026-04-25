@@ -6,15 +6,20 @@ version = 4
 name = "lang"
 version = "0.1.0"
 dependencies = [
+ "lazy_macros",
  "string_pool",
 ]
+
+[[package]]
+name = "lazy_macros"
+version = "0.1.0"
 
 [[package]]
 name = "string_pool"
 version = "0.1.0"
 
 [[package]]
-name = "tokenizer"
+name = "tokenize"
 version = "0.1.0"
 dependencies = [
  "lang",

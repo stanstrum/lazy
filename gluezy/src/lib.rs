@@ -3,7 +3,7 @@ mod reference;
 pub mod keys;
 pub mod format;
 
-use lang::error::{LazyError, ResolveError};
+use lang::error::LazyError;
 use lazy_macros::{line_dbg, print_message};
 
 use std::path::{Path, PathBuf};
@@ -21,13 +21,15 @@ pub use reference::*;
 
 use crate::prelude::module::TokensId;
 
+type DynamicResolveQualifiedToSpace<C> = &'static dyn Fn(
+  &<C as Compiler>::Store<'_>,
+  <C as Compiler>::ModuleReference,
+  &lang::ty::Qualified<C>,
+  &Option<&mut lang::tasks::Tasks<C>>,
+) -> Result<Option<lang::ty::QualifiedSearchSpace<C>>, Box<lang::error::ResolveError<C>>>;
+
 pub struct LazyStructures {
-  pub resolve_qualified_to_space: &'static dyn Fn(
-    &<Self as Compiler>::Store<'_>,
-    <Self as Compiler>::ModuleReference,
-    &lang::ty::Qualified<Self>,
-    &Option<&mut lang::tasks::Tasks<Self>>,
-  ) -> Result<Option<lang::ty::QualifiedSearchSpace<Self>>, Box<lang::error::ResolveError<Self>>>,
+  pub resolve_qualified_to_space: DynamicResolveQualifiedToSpace<Self>,
 }
 
 impl std::fmt::Debug for LazyStructures {
@@ -38,14 +40,16 @@ impl std::fmt::Debug for LazyStructures {
 
 impl Clone for LazyStructures {
   fn clone(&self) -> Self {
-    Self { resolve_qualified_to_space: self.resolve_qualified_to_space.clone() }
+    Self {
+      resolve_qualified_to_space: self.resolve_qualified_to_space,
+    }
   }
 }
 
 impl Copy for LazyStructures {}
 
 impl PartialEq for LazyStructures {
-  fn eq(&self, other: &Self) -> bool {
+  fn eq(&self, _other: &Self) -> bool {
     unimplemented!()
   }
 }
@@ -230,16 +234,6 @@ impl<'pool> lang::CompilerPoolStore<'pool, LazyStructures> for Lazy<'pool> {
   }
 }
 
-pub trait ResolveQualifiedToSpace<C: Compiler> {
-  fn resolve_qualified_to_space<'a>(
-    store: &mut C::Store<'a>,
-    module: C::ModuleReference,
-    qualified: &lang::ty::Qualified<C>,
-    option: &Option<&mut lang::tasks::Tasks<C>>,
-  ) -> Result<Option<lang::ty::QualifiedSearchSpace<C>>, ResolveError<C>>;
-
-}
-
 impl lang::Compiler for LazyStructures {
   type Store<'a> = Lazy<'a>;
 
@@ -254,12 +248,9 @@ impl lang::Compiler for LazyStructures {
     qualified: &lang::ty::Qualified<Self>,
     option: &Option<&mut lang::tasks::Tasks<Self>>,
   ) -> Result<Option<lang::ty::QualifiedSearchSpace<Self>>, Box<lang::error::ResolveError<Self>>> {
-    let mut p = store.hack_specifier();
-
-    let m = &mut p.resolve_qualified_to_space;
-
-    let r = m(store, module, qualified, option);
-
-    r
+    // SPONGE: Some wacko dynamic dispatch going on here that stems from refactoring and
+    // I just had to do this to make things work.  Get rid of this.
+    let Self { resolve_qualified_to_space } = store.specifier;
+    resolve_qualified_to_space(store, module, qualified, option)
   }
 }

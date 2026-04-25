@@ -45,6 +45,9 @@ dependencies = [
 [[package]]
 name = "pprint"
 version = "0.1.0"
+dependencies = [
+ "lang",
+]
 
 [[package]]
 name = "proc-macro2"

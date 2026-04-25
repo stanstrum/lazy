@@ -9,7 +9,7 @@ use crate::reference::{Store, TypePartId, TypePartReference};
 use crate::ty::{Qualified, QualifiedSearchSpace, Type};
 use crate::span::Span;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Name<C: Compiler> {
   pub id: PoolId,
   pub span: Span<C>,
@@ -59,17 +59,6 @@ pub struct Struct<C: Compiler> {
   pub members: Vec<Variable<C>>,
   pub span: Span<C>,
 }
-
-impl<C: Compiler> Clone for Name<C> {
-  fn clone(&self) -> Self {
-    Self {
-      id: self.id.clone(),
-      span: self.span.clone(),
-    }
-  }
-}
-
-impl<C: Compiler> Copy for Name<C> {}
 
 impl<C: Compiler> Module<C> {
   pub fn new(name: PoolId, parent: ModuleParent<C>) -> Self {

@@ -22,8 +22,8 @@ pub struct Position {
   pub indentation: usize,
 }
 
-impl Position {
-  pub fn new() -> Self {
+impl Default for Position {
+  fn default() -> Self {
     Self {
       position: 0,
       line: 1,
@@ -33,25 +33,12 @@ impl Position {
   }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Span<C: Compiler> {
   pub start: Position,
   pub end: Position,
   pub module: C::ModuleReference,
 }
-
-impl<C: Compiler> Clone for Span<C>
-{
-  fn clone(&self) -> Self {
-    Self {
-      start: self.start,
-      end: self.end,
-      module: self.module,
-    }
-  }
-}
-
-impl<C: Compiler> Copy for Span<C> {}
 
 impl<C: Compiler> Span<C> {
   pub fn from_pair(start: Self, end: Self) -> Self {

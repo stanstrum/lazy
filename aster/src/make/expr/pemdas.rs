@@ -86,7 +86,7 @@ fn melt_left<C: Compiler>(store: &mut C::Store<'_>, cursor: &mut usize, parts: &
   Ok(expr)
 }
 
-fn melt_right<C: Compiler>(lazy: &mut C::Store<'_>, cursor: usize, parts: &mut Vec<ExpressionPart<C>>) -> Result<ExpressionReference<C>, Error<C>> {
+fn melt_right<C: Compiler>(store: &mut C::Store<'_>, cursor: usize, parts: &mut Vec<ExpressionPart<C>>) -> Result<ExpressionReference<C>, Error<C>> {
   let right = find_right_expr(cursor, parts).unwrap();
   let melt_start = cursor;
   let melt_end = right;
@@ -108,7 +108,7 @@ fn melt_right<C: Compiler>(lazy: &mut C::Store<'_>, cursor: usize, parts: &mut V
     let op = (UnaryOperator::Prefix(prefix), op_span);
 
     let mut span = op_span;
-    let expr_span = expr.rget_from(lazy).get_span(lazy);
+    let expr_span = expr.rget_from(store).get_span(store);
     span.extend(expr_span);
 
     let new_expr = lang::expr::Expression::Unary {
@@ -117,7 +117,7 @@ fn melt_right<C: Compiler>(lazy: &mut C::Store<'_>, cursor: usize, parts: &mut V
       span,
       out: lang::ty::Type::Weak { span },
     };
-    let new_id = function.rget_from_mut(lazy).add_expr(new_expr);
+    let new_id = function.rget_from_mut(store).add_expr(new_expr);
     expr = ExpressionReference(block, new_id);
   };
 

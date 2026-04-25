@@ -54,7 +54,7 @@ fn make_type_alias<'pool, C: Compiler, const N: usize, T: Read>(
   span.extend(ty.get_span(store));
 
   // TODO: put this into a method
-  let index = (&*store).rget(parent).aliases.len();
+  let index = (*store).rget(parent).aliases.len();
   let alias_reference = AliasReference(parent, index);
 
   store.rget_mut(parent).aliases.push(lang::module::TypeAlias {

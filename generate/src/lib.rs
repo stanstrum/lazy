@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use gluezy::LazyStructures;
+pub use inkwell::targets::FileType;
 use lang::Compiler;
 use lazy_macros::{line_dbg, print_message};
 use ::lang::span::GetSpan;
@@ -51,18 +52,18 @@ struct Compilation<'lazy, 'pool, 'llvm> {
   >,
 }
 
-pub(super) struct Program {
+pub struct Program {
   context: inkwell::context::Context,
   global: gluezy::ModuleReference,
   cli_args: CliArgs,
 }
 
-pub(super) struct ProgramCompilation<'ctx> {
+pub struct ProgramCompilation<'ctx> {
   program: &'ctx Program,
   llvm: LLVMContext<'ctx>,
 }
 
-pub(super) struct ProgramObjectFile {
+pub struct ProgramObjectFile {
   pub target: String,
   pub path: tempfile::TempPath,
 }
@@ -110,7 +111,7 @@ impl<'lazy, 'pool, 'llvm> Compilation<'lazy, 'pool, 'llvm> {
 }
 
 impl Program {
-  pub(super) fn new(global: gluezy::ModuleReference, cli_args: CliArgs) -> Self {
+  pub fn new(global: gluezy::ModuleReference, cli_args: CliArgs) -> Self {
     Self {
       context: inkwell::context::Context::create(),
       global,
@@ -119,7 +120,7 @@ impl Program {
     }
   }
 
-  pub(super) fn compile<'ctx>(&'ctx self, lazy: &gluezy::Lazy) -> Result<ProgramCompilation<'ctx>> {
+  pub fn compile<'ctx>(&'ctx self, lazy: &gluezy::Lazy) -> Result<ProgramCompilation<'ctx>> {
     let llvm_ctx = LLVMContext::new(&self.context, &self.cli_args);
     let mut comp = Compilation::new(lazy, llvm_ctx);
 
@@ -133,7 +134,7 @@ impl Program {
 }
 
 impl<'ctx> ProgramCompilation<'ctx> {
-  pub(super) fn save_to_file(self, file_type: inkwell::targets::FileType) -> Result<ProgramObjectFile> {
+  pub fn save_to_file(self, file_type: FileType) -> Result<ProgramObjectFile> {
     let file = {
       let temp_file_result = tempfile::Builder::new()
         .prefix("lazy-object-")
@@ -165,11 +166,11 @@ impl<'ctx> ProgramCompilation<'ctx> {
     })
   }
 
-  pub(super) fn dump(&self) -> String {
+  pub fn dump(&self) -> String {
     self.llvm.dump_module()
   }
 
-  pub(super) fn optimize(&self, lazy: &gluezy::Lazy) -> Result {
+  pub fn optimize(&self, lazy: &gluezy::Lazy) -> Result {
     print_message!(lazy, {
       level: Info,
       force: false,
@@ -182,7 +183,7 @@ impl<'ctx> ProgramCompilation<'ctx> {
 }
 
 impl ProgramObjectFile {
-  pub(super) fn link_with<'a>(self, out_path: &'a Path, linked: &[&str]) -> Result<&'a Path> {
+  pub fn link_with<'a>(self, out_path: &'a Path, linked: &[&str]) -> Result<&'a Path> {
     let out_dir = if out_path.is_absolute() {
       out_path.parent()
         .expect("a parent directory in output")
@@ -239,10 +240,10 @@ impl ProgramObjectFile {
   }
 }
 
-impl From<crate::generate::Error> for log::PrintableMessage<LazyStructures> {
-  fn from(value: crate::generate::Error) -> Self {
+impl From<crate::Error> for log::PrintableMessage<LazyStructures> {
+  fn from(value: crate::Error) -> Self {
     match value {
-      crate::generate::Error::StillUnresolved { what, note, span } => Self {
+      crate::Error::StillUnresolved { what, note, span } => Self {
         level: Level::Error,
         force: true,
         description: format!("unresolved in generation: {what}"),
@@ -253,7 +254,7 @@ impl From<crate::generate::Error> for log::PrintableMessage<LazyStructures> {
           }],
         )),
       },
-      crate::generate::Error::LLVMError(description) => Self {
+      crate::Error::LLVMError(description) => Self {
         level: Level::Error,
         force: true,
         description,

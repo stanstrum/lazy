@@ -1,5 +1,5 @@
 use gluezy::LazyStructures;
-use ::pprint::Pretty;
+use pprint::Pretty;
 
 use super::*;
 

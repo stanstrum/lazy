@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-lang = { version = "0.1.0", path = "../lang" }
 lazy_macros = { version = "0.1.0", path = "../lazy_macros" }
+lang = { version = "0.1.0", path = "../lang" }

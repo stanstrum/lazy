@@ -3,7 +3,7 @@ use inkwell::values::BasicValue;
 use ::lang::token;
 
 use ::lang::span::Span;
-use crate::generate::types::make_type;
+use crate::types::make_type;
 
 use super::*;
 

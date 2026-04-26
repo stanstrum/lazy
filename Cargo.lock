@@ -48,16 +48,14 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 name = "compiler"
 version = "0.1.0"
 dependencies = [
- "cc",
+ "generate",
  "gluezy",
- "inkwell",
  "lang",
  "lazy_macros",
  "log 0.1.0",
  "pprint",
  "resolve",
  "string_pool",
- "tempfile",
  "tokenize",
 ]
 
@@ -94,6 +92,21 @@ name = "foldhash"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
+
+[[package]]
+name = "generate"
+version = "0.1.0"
+dependencies = [
+ "cc",
+ "gluezy",
+ "inkwell",
+ "lang",
+ "lazy_macros",
+ "log 0.1.0",
+ "pprint",
+ "string_pool",
+ "tempfile",
+]
 
 [[package]]
 name = "getrandom"

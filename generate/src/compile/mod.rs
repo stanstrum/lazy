@@ -2,7 +2,7 @@ mod expr;
 
 use gluezy::LazyStructures;
 
-use crate::generate::types::make_type;
+use crate::types::make_type;
 
 use super::*;
 

@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-aster = { version = "0.1.0", path = "../aster" }
-lang = { version = "0.1.0", path = "../lang" }
 lazy_macros = { version = "0.1.0", path = "../lazy_macros" }
-log = { version = "0.1.0", path = "../log" }
-resolve = { version = "0.1.0", path = "../resolve" }
 string_pool = { version = "0.1.0", path = "../string_pool" }
+log = { version = "0.1.0", path = "../log" }
+lang = { version = "0.1.0", path = "../lang" }
+aster = { version = "0.1.0", path = "../aster" }
+resolve = { version = "0.1.0", path = "../resolve" }

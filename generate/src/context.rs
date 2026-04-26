@@ -1,6 +1,6 @@
 use super::Result;
 
-use crate::generate::args::CliArgs;
+use crate::args::CliArgs;
 
 pub(super) struct LLVMContext<'ctx> {
   pub context: &'ctx inkwell::context::Context,

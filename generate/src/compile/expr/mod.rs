@@ -4,7 +4,7 @@ mod variable;
 use gluezy::LazyStructures;
 
 use ::lang::expr::operator::BinaryOperator;
-use crate::generate::types::{LazyType, LazyValue};
+use crate::types::{LazyType, LazyValue};
 
 use super::*;
 

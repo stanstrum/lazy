@@ -1,5 +1,3 @@
-mod generate;
-
 #[cfg(test)] mod test;
 
 pub use string_pool::StringPool;
@@ -33,13 +31,13 @@ pub fn build<'a>(lazy: &'a mut gluezy::Lazy) -> Result<&'a Path, log::PrintableM
   let global = check(lazy)?;
 
   // Otherwise, let's go build the module
-  let args = crate::generate::args::CliArgs {
+  let args = generate::args::CliArgs {
     target: None,
-    opt_level: crate::generate::args::OptimizationLevel::O0,
+    opt_level: generate::args::OptimizationLevel::O0,
     passes: "instcombine,reassociate,gvn,simplifycfg,mem2reg".into(),
   };
 
-  let program = crate::generate::Program::new(global, args);
+  let program = generate::Program::new(global, args);
   let compilation = program.compile(lazy)?;
 
   // Debug the LLVM source
@@ -51,7 +49,7 @@ pub fn build<'a>(lazy: &'a mut gluezy::Lazy) -> Result<&'a Path, log::PrintableM
 
   // Write out the object file for the global module
   // TODO: get this from settings
-  let file_type = inkwell::targets::FileType::Object;
+  let file_type = generate::FileType::Object;
   let object_file = compilation.save_to_file(file_type)?;
 
   debug::object_file(lazy, &object_file);

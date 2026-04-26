@@ -6,6 +6,10 @@ edition = "2024"
 [dependencies]
 log = { version = "0.1.0", path = "log" }
 gluezy = { version = "0.1.0", path = "gluezy" }
-compiler = { version = "0.1.0", path = "compiler" }
 aster = { version = "0.1.0", path = "aster" }
 lang = { version = "0.1.0", path = "lang" }
+string_pool = { version = "0.1.0", path = "string_pool" }
+lazy_macros = { version = "0.1.0", path = "lazy_macros" }
+resolve = { version = "0.1.0", path = "resolve" }
+generate = { version = "0.1.0", path = "generate" }
+pprint = { version = "0.1.0", path = "pprint" }

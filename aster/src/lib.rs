@@ -31,4 +31,3 @@ pub fn asterize<'pool, C: Compiler>(store: &mut C::Store<'pool>, module: C::Modu
 
   result
 }
-

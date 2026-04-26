@@ -78,4 +78,3 @@ pub fn show_error_position(args: Vec<String>, position: usize) {
 
   eprintln!();
 }
-

@@ -1,8 +1,8 @@
 use lang::reference::{ExpressionReference, FunctionGetBody, Reference};
-use ::lang::span::GetSpan;
+use lang::span::GetSpan;
 use lazy_macros::line_dbg;
 
-use ::lang::token::Operator;
+use lang::token::Operator;
 
 use super::*;
 
@@ -56,7 +56,7 @@ fn make_function_header<'pool, C: Compiler, const N: usize, T: Read>(
       ret_ty
     } else {
       lang::ty::Type::Intrinsic {
-        kind: ::lang::intrinsic::Intrinsic::Void,
+        kind: lang::intrinsic::Intrinsic::Void,
         span: name.span,
       }
     }

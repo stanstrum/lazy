@@ -2,8 +2,8 @@ pub mod impls {
   use std::marker::PhantomData;
 
 use lang::Compiler;
-  use ::lang::expr::Expression;
-  use ::lang::reference::ExpressionReference;
+  use lang::expr::Expression;
+  use lang::reference::ExpressionReference;
 
   use super::*;
 
@@ -17,7 +17,7 @@ use lang::Compiler;
     pub src: Expression<C>,
   }
 
-  pub use ::lang::ty::OverwriteTypeReference;
+  pub use lang::ty::OverwriteTypeReference;
   pub struct OverwriteType<C: Compiler> {
     pub dest: OverwriteTypeReference<C>,
     pub src: Type<C>,

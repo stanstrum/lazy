@@ -136,7 +136,7 @@ impl Iterator for LineYielder {
 }
 
 struct Colorizer<'a, C: Compiler> {
-  tokens: &'a [::lang::token::TokenSpan<C>],
+  tokens: &'a [lang::token::TokenSpan<C>],
 }
 
 impl<'a, C: Compiler> Colorizer<'a, C> {
@@ -154,7 +154,7 @@ impl<'a, C: Compiler> Colorizer<'a, C> {
     }
   }
 
-  fn find_token_by(&mut self, line: usize, column: usize) -> Option<&::lang::token::TokenSpan<C>> {
+  fn find_token_by(&mut self, line: usize, column: usize) -> Option<&lang::token::TokenSpan<C>> {
     let offset = self.tokens.iter()
       .position(|(_, span)| span.start.line == line)?;
 
@@ -264,13 +264,13 @@ fn print_partial_section_header<C: Compiler>(out: &mut Vec<u8>, store: &C::Store
   print_section_header::<C>(out, store, module, None)
 }
 
-fn print_full_section_header<C: Compiler>(out: &mut Vec<u8>, store: &C::Store<'_>, span: ::lang::span::Span<C>) {
+fn print_full_section_header<C: Compiler>(out: &mut Vec<u8>, store: &C::Store<'_>, span: lang::span::Span<C>) {
   print_section_header::<C>(out, store, span.module, Some(span.start))
 }
 
-fn print_sections<C: Compiler>(out: &mut Vec<u8>, store: &C::Store<'_>, range: ::lang::span::Span<C>, mut sections: Vec<MessageSection<C>>) {
+fn print_sections<C: Compiler>(out: &mut Vec<u8>, store: &C::Store<'_>, range: lang::span::Span<C>, mut sections: Vec<MessageSection<C>>) {
   // Open and create a reader for this module's source file
-  let ::lang::module::ModulePath::<C> { path, tokens, .. } = store.get_path(range.module);
+  let lang::module::ModulePath::<C> { path, tokens, .. } = store.get_path(range.module);
   let file = File::open(path).unwrap();
   let mut reader = BufReader::new(file);
 
@@ -417,11 +417,11 @@ impl<C: Compiler> From<lang::error::TokenError<C>> for PrintableMessage<C> {
   }
 }
 
-impl<C: Compiler> From<::lang::error::AsterError<C>> for PrintableMessage<C> {
-  fn from(value: ::lang::error::AsterError<C>) -> Self {
+impl<C: Compiler> From<lang::error::AsterError<C>> for PrintableMessage<C> {
+  fn from(value: lang::error::AsterError<C>) -> Self {
     match value {
-      ::lang::error::AsterError::Token(error) => error.into(),
-      ::lang::error::AsterError::Expected { what, at } => Self {
+      lang::error::AsterError::Token(error) => error.into(),
+      lang::error::AsterError::Expected { what, at } => Self {
         level: Level::Error,
         force: true,
         description: format!(line_dbg!("expected {}"), what),
@@ -433,7 +433,7 @@ impl<C: Compiler> From<::lang::error::AsterError<C>> for PrintableMessage<C> {
           }],
         }]),
       },
-      ::lang::error::AsterError::Invalid { what, at } => Self {
+      lang::error::AsterError::Invalid { what, at } => Self {
         level: Level::Error,
         force: true,
         description: format!(line_dbg!("invalid {}"), what),
@@ -445,7 +445,7 @@ impl<C: Compiler> From<::lang::error::AsterError<C>> for PrintableMessage<C> {
           }],
         }]),
       },
-      ::lang::error::AsterError::Lazy(lazy) => (*lazy).into(),
+      lang::error::AsterError::Lazy(lazy) => (*lazy).into(),
     }
   }
 }
@@ -542,16 +542,16 @@ impl<C: Compiler> From<Box<lang::error::ResolveError<C>>> for PrintableMessage<C
   }
 }
 
-impl<C: Compiler> From<::lang::error::LazyError<C>> for PrintableMessage<C> {
-  fn from(value: ::lang::error::LazyError<C>) -> Self {
+impl<C: Compiler> From<lang::error::LazyError<C>> for PrintableMessage<C> {
+  fn from(value: lang::error::LazyError<C>) -> Self {
     match value {
-      ::lang::error::LazyError::NotExist(path_buf) => Self {
+      lang::error::LazyError::NotExist(path_buf) => Self {
         level: Level::Error,
         force: true,
         description: format!(line_dbg!("not a file {:?}"), &path_buf),
         contents: MessageContents::None,
       },
-      ::lang::error::LazyError::Aster(aster) => aster.into(),
+      lang::error::LazyError::Aster(aster) => aster.into(),
     }
   }
 }

@@ -5,9 +5,9 @@ use std::cmp::Ordering;
 
 use crate::make::Indenter;
 use lang::reference::{BlockReference, ExpressionReference, Reference, Store};
-use ::lang::span::GetSpan;
-use ::lang::token::{GroupingKind, GroupingType, Operator};
-use ::lang::span::Span;
+use lang::span::GetSpan;
+use lang::token::{GroupingKind, GroupingType, Operator};
+use lang::span::Span;
 
 use super::*;
 
@@ -33,7 +33,7 @@ pub fn make_block_statement<'pool, C: Compiler, const N: usize, T: Read>(
   _indenter: &Indenter,
   module: C::ModuleReference,
   function: C::FunctionReference,
-  block: ::lang::reference::BlockReference<C>,
+  block: lang::reference::BlockReference<C>,
 ) -> Result<Option<BlockStatement<C>>, Error<C>> {
   if let Some((Token::Indent(indent), _)) = stream.peek()? {
     match indent.cmp(&0) {
@@ -240,7 +240,7 @@ pub(super) fn make_block<'pool, C: Compiler, const N: usize, T: Read>(
     )
   } else {
     lang::ty::Type::Intrinsic {
-      kind: ::lang::intrinsic::Intrinsic::Void,
+      kind: lang::intrinsic::Intrinsic::Void,
       span,
     }
   };

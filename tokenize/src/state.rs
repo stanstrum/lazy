@@ -209,7 +209,7 @@ impl<'pool, C: Compiler, const N: usize, T: Read> Tokenizer<'pool, C, N, T> {
             // operators
             | ("-", '>') // ->
             | (":", '=') // :=
-            | (":", ':') // ::
+            | (":", ':') //
             // arithmetic
             | ("+", '+' | '=') // ++ and +=
             | ("-", '-' | '=') // -- and -=

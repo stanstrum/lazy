@@ -1,6 +1,6 @@
 use lang::Compiler;
-use ::lang::token::Operator;
-use ::lang::span::GetSpan;
+use lang::token::Operator;
+use lang::span::GetSpan;
 
 use super::*;
 

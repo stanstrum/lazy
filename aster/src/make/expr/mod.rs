@@ -14,20 +14,20 @@ use crate::Rereader;
 use lazy_macros::line_dbg;
 use lang::expr::LiteralKind;
 use lang::reference::{BlockReference, ExpressionReference, Reference};
-use ::lang::token::Token;
+use lang::token::Token;
 
 use super::Error;
 
 fn new_weak_string<C: Compiler>(
   store: &C::Store<'_>,
-  kind: ::lang::token::StringKind,
+  kind: lang::token::StringKind,
   value: string_pool::StringId,
   span: Span<C>,
 ) -> lang::ty::Type<C> {
   let length = unsafe { store.pool().get_string(value).len() };
 
   let characters = match kind {
-    ::lang::token::StringKind::C => length + 1,
+    lang::token::StringKind::C => length + 1,
     _ => length,
   };
 
@@ -47,8 +47,8 @@ pub(super) fn make_literal<'pool, C: Compiler, const N: usize, T: Read>(
     stream.seek();
 
     let out = match value {
-      ::lang::token::NumericValue::U64(_) => lang::ty::Type::WeakInteger { span },
-      ::lang::token::NumericValue::F64(_) => lang::ty::Type::WeakFloat { span },
+      lang::token::NumericValue::U64(_) => lang::ty::Type::WeakInteger { span },
+      lang::token::NumericValue::F64(_) => lang::ty::Type::WeakFloat { span },
     };
 
     let value = lang::expr::LiteralKind::Numeric(value);

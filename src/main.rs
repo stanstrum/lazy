@@ -2,6 +2,8 @@ mod compiler;
 mod parse;
 mod info;
 
+#[cfg(test)] mod test;
+
 use std::process::ExitCode;
 
 use gluezy::Settings;

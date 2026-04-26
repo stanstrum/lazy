@@ -1,6 +1,7 @@
 use std::path::PathBuf;
-use crate::settings::Settings;
-use crate::error::Level;
+use gluezy::{Lazy, LazyStructures, Settings};
+use lang::CompilerPoolStore;
+use log::Level;
 
 use super::*;
 
@@ -13,19 +14,18 @@ macro_rules! compile_test {
         .expect("to create tempfile")
         .into_temp_path();
 
-      let out_path = out_handle.to_string_lossy();
+      let input_path = concat!(env!("CARGO_MANIFEST_DIR"), "/snippets/", $file).into();
+      let output_path = out_handle.to_string_lossy().to_string().into();
 
-      let exit = run_with(
-        [
-          "lazy:test",
-          "--log-level=debug",
-          &format!("--output-file={out_path}"),
-          "run",
-          concat!(env!("CARGO_MANIFEST_DIR"), "/snippets/", $file)
-        ]
-          .map(String::from)
-          .into_iter()
-      );
+      let settings = Settings {
+        executable: "lazy:test".into(),
+        input_path,
+        output_path,
+        log_level: log::Level::Debug,
+        argv: vec!["lazy:test".into(), $file.into()],
+      };
+
+      let exit = lazy(settings, Verb::Run);
 
       out_handle.close().expect("to close tempfile");
 
@@ -75,18 +75,18 @@ fn debug_tokens() {
     argv: vec!["lazy:test", "ck:test", "snippets/00_base_main.zy"].into_iter().map(String::from).collect()
   };
 
-  let pool = StringPool::new();
-  let mut lazy = lazy::Lazy::new(&pool, settings);
+  let pool = string_pool::StringPool::new();
+  let mut lazy = Lazy::new(&pool, settings);
 
   let global = lazy.add_file("global", lazy.settings.input_path.to_owned(), None)
     .expect("to add global module");
   let path = lazy.get_path(global).path.as_path();
 
   let file = std::fs::File::open(path).unwrap();
-  let meta_reader= aster::bufreader::BufferedUtf8MetadataReader::<64, _>::new(file);
+  let meta_reader = tokenize::bufreader::BufferedUtf8MetadataReader::<64, _>::new(file);
   let name = lazy.describe_module(global);
-  let tokens = tokenize::Tokenizer::<'_, 64, _>::new(&pool, global, name, meta_reader);
-  let rereader = crate::aster::rereader::Rereader::new(tokens, global);
+  let tokens = tokenize::Tokenizer::<'_, LazyStructures, 64, _>::new(&pool, global, name, meta_reader);
+  let rereader = aster::rereader::Rereader::new(tokens, global);
 
   let mut indentation = 0isize;
   for (i, token) in rereader.enumerate() {
@@ -99,11 +99,11 @@ fn debug_tokens() {
     print!("{i:<2}: [{indentation:>+3}] {padding}");
 
     match &token {
-      tokenize::token::Token::Identifier(id) => print!("Identifier({:?})", pool.get(*id)),
+      lang::token::Token::Identifier(id) => print!("Identifier({:?})", pool.get(*id)),
       other => print!("{other:?}"),
     };
 
-    if let tokenize::token::Token::Indent(difference) = token {
+    if let lang::token::Token::Indent(difference) = token {
       print!(" (indent: {})", span.start.indentation);
       indentation += difference;
     };

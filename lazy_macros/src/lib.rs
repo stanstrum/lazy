@@ -20,7 +20,7 @@ macro_rules! line_dbg {
 macro_rules! print_message {
   ($lazy:expr, $x:tt) => {
     #[allow(unused_imports)]
-    use ::log::{
+    use log::{
       Level::*,
       *
     };

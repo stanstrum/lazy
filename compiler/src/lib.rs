@@ -1,3 +1,5 @@
+#[cfg(test)] mod test;
+
 pub use string_pool::StringPool;
 
 mod debug;

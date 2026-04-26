@@ -13,3 +13,7 @@ lazy_macros = { version = "0.1.0", path = "lazy_macros" }
 resolve = { version = "0.1.0", path = "resolve" }
 generate = { version = "0.1.0", path = "generate" }
 pprint = { version = "0.1.0", path = "pprint" }
+tokenize = { version = "0.1.0", path = "tokenize" }
+
+[dev-dependencies]
+tempfile = "3.27.0"

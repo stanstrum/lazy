@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use lazy_macros::print_once_per_thread;
 
-use ::lang::token::StringKind;
+use lang::token::StringKind;
 
 use super::*;
 

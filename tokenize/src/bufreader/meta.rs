@@ -1,4 +1,4 @@
-use ::lang::span::Position;
+use lang::span::Position;
 
 #[derive(Debug)]
 pub struct Metadata {

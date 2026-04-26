@@ -165,7 +165,7 @@ impl<'pool> lang::CompilerPoolStore<'pool, LazyStructures> for Lazy<'pool> {
     let module = self.create_module(name, parent);
 
     // Tokenize, asterize (parse AST)
-    if let Err(err) = ::aster::asterize::<LazyStructures>(self, module) {
+    if let Err(err) = aster::asterize::<LazyStructures>(self, module) {
       return Err(LazyError::Aster(err));
     };
 
@@ -216,6 +216,6 @@ impl lang::Compiler for LazyStructures {
   ) -> Result<Option<lang::ty::QualifiedSearchSpace<Self>>, Box<lang::error::ResolveError<Self>>> {
     // SPONGE: Some wacko dynamic dispatch going on here that stems from refactoring and
     // I just had to do this to make things work.  Get rid of this.
-    ::resolve::impls::ty::pair::unknown::resolve_qualified_to_space(store, module, qualified, option)
+    resolve::impls::ty::pair::unknown::resolve_qualified_to_space(store, module, qualified, option)
   }
 }

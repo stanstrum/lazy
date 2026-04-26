@@ -25,7 +25,7 @@ main
   u32 ctr := 0
 
   while true
-    :: buf := io::stdin
-    :: amt := str_to_num(buf)
+     buf := io::stdin
+     amt := str_to_num(buf)
 
     println("Counter is {}", amt)

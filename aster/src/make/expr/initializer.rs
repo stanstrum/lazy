@@ -1,6 +1,6 @@
 use lang::Compiler;
-use ::lang::span::GetSpan;
-use ::lang::token::{GroupingKind, GroupingType, Operator};
+use lang::span::GetSpan;
+use lang::token::{GroupingKind, GroupingType, Operator};
 use crate::make::make_name;
 
 use super::*;

@@ -16,9 +16,9 @@ pub struct Tokenizer<'pool, C: Compiler, const N: usize, T: Read> {
   /// The [`StringPool`] that stores all of our identifiers and maps them to a
   /// [`Copy`] unique key.
   pool: &'pool StringPool,
-  /// [`ModuleReference`] to [`crate::lang::module::Module`] that is the root
+  /// [`ModuleReference`] to [`lang::module::Module`] that is the root
   /// of that source file, i.e. has a [`std::path::Path`] for
-  /// [`crate::lang::module::ModuleParent`].
+  /// [`lang::module::ModuleParent`].
   module: C::ModuleReference,
   /// The name of this module for debugging purposes.
   name: String,

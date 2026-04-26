@@ -208,6 +208,8 @@ dependencies = [
  "pprint",
  "resolve",
  "string_pool",
+ "tempfile",
+ "tokenize",
 ]
 
 [[package]]

@@ -1,16 +1,16 @@
 mod make;
 pub mod rereader;
-pub use ::pprint::*;
+pub use pprint::*;
 
 use std::fs::File;
 
 use rereader::Rereader;
-use ::tokenize::bufreader::BufferedUtf8MetadataReader;
+use tokenize::bufreader::BufferedUtf8MetadataReader;
 use tokenize::{Tokenizer, self};
-use ::lang::{Compiler, CompilerPoolStore};
-use ::lang::reference::Store;
+use lang::{Compiler, CompilerPoolStore};
+use lang::reference::Store;
 
-pub type Error<C> = ::lang::error::AsterError<C>;
+pub type Error<C> = lang::error::AsterError<C>;
 
 pub fn asterize<'pool, C: Compiler>(store: &mut C::Store<'pool>, module: C::ModuleReference) -> Result<(), Error<C>> {
   let path = store.get_path(module).path.as_path();

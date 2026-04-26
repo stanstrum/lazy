@@ -12,10 +12,10 @@ hello_explicit
 implicit
 
   // should be Slice<char>
-  :: hello := "hello"
+   hello := "hello"
 
   // should be [5]u8
-  :: hello_bytes := b"hello"
+   hello_bytes := b"hello"
 
   // should be usize
   // n1234 := 1234usize

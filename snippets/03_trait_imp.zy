@@ -19,4 +19,4 @@ impl i32: IAdd
 
     // do stuff
 
-    ::new()
+    new()

@@ -11,11 +11,11 @@ use gluezy::LazyStructures;
 pub use inkwell::targets::FileType;
 use lang::Compiler;
 use lazy_macros::{line_dbg, print_message};
-use ::lang::span::GetSpan;
+use lang::span::GetSpan;
 use log::{Level, MessageContents, MessageSection, WithinSource};
-use ::lang::reference::{Reference, Store};
-use ::lang::span::Span;
-use ::lang::ty::TypeOf;
+use lang::reference::{Reference, Store};
+use lang::span::Span;
+use lang::ty::TypeOf;
 
 use {args::*, context::*};
 

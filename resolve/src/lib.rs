@@ -2,18 +2,18 @@ pub mod impls;
 pub mod tasks;
 
 pub mod pair {
-  pub use ::lang::ty::TypePairModifier;
-  pub use ::lang::ty::TypePair;
+  pub use lang::ty::TypePairModifier;
+  pub use lang::ty::TypePair;
 }
 
 use lang::{Compiler, CompilerPoolStore, ty::TypeOf};
 use lazy_macros::{print_message, line_dbg};
 
-use ::pprint::Pretty;
-use ::lang::intrinsic::Intrinsic;
-use ::lang::span::GetSpan;
-use ::lang::ty::Type;
-use ::lang::reference::{Reference, Store, TypeReference};
+use pprint::Pretty;
+use lang::intrinsic::Intrinsic;
+use lang::span::GetSpan;
+use lang::ty::Type;
+use lang::reference::{Reference, Store, TypeReference};
 
 use tasks::Tasks;
 
@@ -21,8 +21,8 @@ pub(crate) type Result<C, T = ()> = std::result::Result<T, Box<ResolveError<C>>>
 
 pub use pair::*;
 
-pub use ::lang::error::ResolveError;
-pub use ::lang::error::ResolveErrorBase;
+pub use lang::error::ResolveError;
+pub use lang::error::ResolveErrorBase;
 
 struct Resolver<'store, 'pool, C: Compiler> {
   store: &'store mut C::Store<'pool>,

@@ -2,8 +2,8 @@ use super::*;
 
 use std::cmp::Ordering;
 
-pub use ::lang::span::Position;
-pub use ::lang::token::*;
+pub use lang::span::Position;
+pub use lang::token::*;
 
 pub type TokenSpan<C> = (Token, Span<C>);
 

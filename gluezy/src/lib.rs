@@ -20,40 +20,8 @@ pub use reference::*;
 
 use crate::prelude::module::TokensId;
 
-type DynamicResolveQualifiedToSpace<C> = &'static dyn Fn(
-  &<C as Compiler>::Store<'_>,
-  <C as Compiler>::ModuleReference,
-  &lang::ty::Qualified<C>,
-  &Option<&mut lang::tasks::Tasks<C>>,
-) -> Result<Option<lang::ty::QualifiedSearchSpace<C>>, Box<lang::error::ResolveError<C>>>;
-
-pub struct LazyStructures {
-  pub resolve_qualified_to_space: DynamicResolveQualifiedToSpace<Self>,
-}
-
-impl std::fmt::Debug for LazyStructures {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.debug_struct("LazyStructures").field("hack", &"(some static pointer)").finish()
-  }
-}
-
-impl Clone for LazyStructures {
-  fn clone(&self) -> Self {
-    Self {
-      resolve_qualified_to_space: self.resolve_qualified_to_space,
-    }
-  }
-}
-
-impl Copy for LazyStructures {}
-
-impl PartialEq for LazyStructures {
-  fn eq(&self, _other: &Self) -> bool {
-    unimplemented!()
-  }
-}
-
-impl Eq for LazyStructures {}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LazyStructures;
 
 #[derive(Debug)]
 pub struct Settings {
@@ -111,7 +79,7 @@ impl<'pool> lang::CompilerPoolStore<'pool, LazyStructures> for Lazy<'pool> {
   }
 
   fn pool_keys(&self) -> &lang::keys::PoolKeys {
-    todo!()
+    &self.pool_keys
   }
 
   fn unwrap_std(&self) -> ModuleReference {

@@ -1,5 +1,7 @@
 pub mod impls {
-  use lang::Compiler;
+  use std::marker::PhantomData;
+
+use lang::Compiler;
   use ::lang::expr::Expression;
   use ::lang::reference::ExpressionReference;
 
@@ -15,14 +17,24 @@ pub mod impls {
     pub src: Expression<C>,
   }
 
-  pub type OverwriteTypeReference = ::lang::ty::OverwriteTypeReference<gluezy::LazyStructures>;
-  pub struct OverwriteType {
-    pub dest: OverwriteTypeReference,
-    pub src: Type,
+  pub use ::lang::ty::OverwriteTypeReference;
+  pub struct OverwriteType<C: Compiler> {
+    pub dest: OverwriteTypeReference<C>,
+    pub src: Type<C>,
   }
 
-  pub struct ResolveAsTask<R: Resolve> {
+  pub struct ResolveAsTask<C: Compiler, R: Resolve<C>> {
     pub reference: R,
+    phantom: PhantomData<C>,
+  }
+
+  impl<C: Compiler, R: Resolve<C>> ResolveAsTask<C, R> {
+    pub fn new(reference: R) -> Self {
+      Self {
+        reference,
+        phantom: Default::default(),
+      }
+    }
   }
 }
 
@@ -33,8 +45,7 @@ pub use impls::*;
 
 use super::*;
 
-pub type TaskResponse = ::lang::tasks::TaskResponse<gluezy::LazyStructures>;
-pub use ::lang::tasks::{Task, Tasks};
+pub use lang::tasks::{Task, Tasks};
 
 pub struct TaskStatus {
   trace: Rc<RefCell<Vec<String>>>,

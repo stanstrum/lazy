@@ -7,10 +7,10 @@ mod tasks;
 
 use lazy_macros::line_dbg;
 
-use ::pprint::*;
-use ::lang::span::GetSpan;
-use crate::lang::{Reference, Store};
-use ::resolve::{Coerce, Resolve};
-use ::lang::ty::TypeOf;
+use pprint::*;
+use lang::span::GetSpan;
+use lang::reference::{Reference, Store};
+use lang::ty::TypeOf;
+use crate::{Coerce, Resolve};
 
-use super::{Result, ErrorBase, Tasks};
+use super::{Result, ResolveErrorBase, Tasks};

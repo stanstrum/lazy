@@ -1,16 +1,16 @@
 pub mod unknown;
 
-use gluezy::{Lazy, LazyStructures};
-use ::lang::intrinsic::Intrinsic;
+use lang::Compiler;
+use lang::token::StringKind;
 use lang::module::AddTypePart;
-use crate::lang::ty::{QualifiedSearchSpace};
-use crate::resolve::TypePair;
-use ::lang::token::StringKind;
+use lang::intrinsic::Intrinsic;
+use lang::ty::{QualifiedSearchSpace};
+use crate::TypePair;
 
 use super::*;
 
 // impl DereferenceType for TypePair {
-//   fn dereference(&self, lazy: &Lazy, r#mut: bool) -> Result<Option<Type>> {
+//   fn dereference(&self, lazy: &C::Store<'_>, r#mut: bool) -> Result<C, Option<Type>> {
 //     let modifiers = self.modifiers.clone();
 //     let reference = *self.pair.0;
 
@@ -20,25 +20,23 @@ use super::*;
 //   }
 // }
 
-impl Resolve for TypePair<LazyStructures> {
-  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
+impl<C: Compiler + 'static> Resolve<C> for TypePair<C> {
+  fn resolve(&self, store: &C::Store<'_>, tasks: &mut Tasks<C>) -> Result<C> {
     let description = format!(line_dbg!("Resolve TypePair:\n- Ref.: {}\n- Type: {}"),
-      self.overwrite.print(lazy),
-      self.ty.print(lazy),
+      self.overwrite.print(store),
+      self.ty.print(store),
     );
 
     tasks.work(description, |tasks| {
       match &self.ty {
         Type::Unresolved { module, qualified } => {
-          if let Some(ty) = unknown::resolve_qualified_to_type(lazy, *module, qualified, tasks)? {
+          if let Some(ty) = unknown::resolve_qualified_to_type(store, *module, qualified, tasks)? {
             tasks.push(tasks::Subjugate {
               prerequisite: Box::new(tasks::OverwriteType {
                 dest: self.clone().into(),
                 src: ty,
               }),
-              after: Box::new(tasks::ResolveAsTask::<TypeReference<LazyStructures>> {
-                reference: self.overwrite.reference,
-              }),
+              after: Box::new(tasks::ResolveAsTask::<C, TypeReference<C>>::new(self.overwrite.reference)),
             }, line_dbg!("here"));
           };
 
@@ -59,27 +57,27 @@ impl Resolve for TypePair<LazyStructures> {
         | Type::UnsizedArrayOf { ty, .. }
         | Type::SizedArrayOf { ty, .. }
         | Type::Resolved { part: ty, .. }
-          => ty.resolve(lazy, tasks),
+          => ty.resolve(store, tasks),
         | Type::Reference(reference) => {
-          let ty = reference.rget_from(lazy).clone();
+          let ty = reference.rget_from(store).clone();
 
           let mut new_reference = self.clone();
           new_reference.ty = ty;
 
-          new_reference.resolve(lazy, tasks)
+          new_reference.resolve(store, tasks)
         },
-        Type::Struct { prototype } => prototype.resolve(lazy, tasks),
+        Type::Struct { prototype } => prototype.resolve(store, tasks),
       }
     })
   }
 }
 
-impl Coerce for TypePair<LazyStructures> {
-  fn coerce(&self, lazy: &Lazy, other_ref: &impl TypeOf<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
-    let a = self.overwrite.print(lazy);
-    let b = self.ty.print(lazy);
-    let c = other_ref.type_of(lazy)
-      .map(|x| x.print(lazy))
+impl<C: Compiler + 'static> Coerce<C> for TypePair<C> {
+  fn coerce(&self, store: &C::Store<'_>, other_ref: &impl TypeOf<C>, tasks: &mut Tasks<C>) -> Result<C> {
+    let a = self.overwrite.print(store);
+    let b = self.ty.print(store);
+    let c = other_ref.type_of(store)
+      .map(|x| x.print(store))
       .unwrap_or_else(|| "{none}".into());
     let d = format!("{:?}", &self.overwrite.modifiers);
 
@@ -91,7 +89,7 @@ impl Coerce for TypePair<LazyStructures> {
     tasks.work(description, |tasks| {
       // println!(line_dbg!("here:\n{}"), tasks.explain(2));
 
-      let Some(other) = other_ref.type_of(lazy) else {
+      let Some(other) = other_ref.type_of(store) else {
         return Ok(());
       };
 
@@ -124,25 +122,25 @@ impl Coerce for TypePair<LazyStructures> {
           Ok(())
         },
         (Type::Resolved { part, .. }, _) => {
-          let ty = part.rget_from(lazy);
+          let ty = part.rget_from(store);
           let reference = TypeReference::Part(*part);
 
-          TypePair::new(reference, ty.clone()).coerce(lazy, other_ref, tasks)
+          TypePair::new(reference, ty.clone()).coerce(store, other_ref, tasks)
         },
         (Type::Reference(reference), _) => {
-          let ty = reference.rget_from(lazy);
-          TypePair::new(*reference, ty.clone()).coerce(lazy, other_ref, tasks)
+          let ty = reference.rget_from(store);
+          TypePair::new(*reference, ty.clone()).coerce(store, other_ref, tasks)
         },
         (_, Type::Resolved { part, .. }) => {
-          let ty = part.rget_from(lazy);
+          let ty = part.rget_from(store);
           let reference = TypeReference::Part(*part);
           let other_ref = TypePair::new(reference, ty.clone());
-          self.coerce(lazy, &other_ref, tasks)
+          self.coerce(store, &other_ref, tasks)
         },
         (_, Type::Reference(reference)) => {
-          let ty = reference.rget_from(lazy);
+          let ty = reference.rget_from(store);
           let other_ref = TypePair::new(*reference, ty.clone());
-          self.coerce(lazy, &other_ref, tasks)
+          self.coerce(store, &other_ref, tasks)
         },
         // SPONGE: structs can be equivalent to one another without being the
         //         exact same ...
@@ -166,7 +164,7 @@ impl Coerce for TypePair<LazyStructures> {
           let dest = self.clone().into();
 
           let mut qualified = qualified.clone();
-          qualified.implicit = QualifiedSearchSpace::Type(other_ref.reference(lazy).expect("god help me"));
+          qualified.implicit = QualifiedSearchSpace::Type(other_ref.reference(store).expect("god help me"));
 
           let src = Type::Unresolved {
             module: *module,
@@ -180,9 +178,7 @@ impl Coerce for TypePair<LazyStructures> {
               dest,
               src,
             }),
-            after: Box::new(tasks::ResolveAsTask {
-              reference: self.overwrite.reference,
-            }),
+            after: Box::new(tasks::ResolveAsTask::new(self.overwrite.reference)),
           };
 
           tasks.push(task, line_dbg!("here"));
@@ -199,8 +195,8 @@ impl Coerce for TypePair<LazyStructures> {
           Type::SizedArrayOf { ty: ty_a, .. } | Type::UnsizedArrayOf { ty: ty_a, .. },
           Type::SizedArrayOf { ty: ty_b, .. } | Type::UnsizedArrayOf { ty: ty_b, .. },
         ) => {
-          ty_a.coerce(lazy, ty_b, tasks)?;
-          ty_b.coerce(lazy, ty_a, tasks)?;
+          ty_a.coerce(store, ty_b, tasks)?;
+          ty_b.coerce(store, ty_a, tasks)?;
 
           Ok(())
         },
@@ -235,7 +231,7 @@ impl Coerce for TypePair<LazyStructures> {
           assert!(dereferenced, "todo");
           assert!(size == characters, "throw error for weak string size mismatch");
 
-          ty.coerce(lazy, &Type::Intrinsic {
+          ty.coerce(store, &Type::Intrinsic {
             kind: (*kind).into(),
             span: *span,
           }, tasks)?;
@@ -250,7 +246,7 @@ impl Coerce for TypePair<LazyStructures> {
           Type::WeakString { kind, span, .. },
           Type::UnsizedArrayOf { ty, .. },
         ) => {
-          ty.coerce(lazy, &Type::Intrinsic {
+          ty.coerce(store, &Type::Intrinsic {
             kind: (*kind).into(),
             span: *span,
           }, tasks)
@@ -259,18 +255,18 @@ impl Coerce for TypePair<LazyStructures> {
           // #[cfg(debug_assertions)] dbg!(a, b);
 
           if
-            let Some(a) = self.dereference(lazy, false)? &&
-            let Some(b) = other_ref.dereference(lazy, false)?
+            let Some(a) = self.dereference(store, false)? &&
+            let Some(b) = other_ref.dereference(store, false)?
           {
-            return a.coerce(lazy, &b, tasks);
+            return a.coerce(store, &b, tasks);
           };
 
-          tasks.seed_error(ErrorBase::TypeMismatch {
+          tasks.seed_error(ResolveErrorBase::TypeMismatch {
             whence: line_dbg!(),
-            a_print: a.print(lazy),
-            a_span: a.get_span(lazy),
-            b_print: b.print(lazy),
-            b_span: b.get_span(lazy),
+            a_print: a.print(store),
+            a_span: a.get_span(store),
+            b_print: b.print(store),
+            b_span: b.get_span(store),
           })
         },
       }
@@ -278,11 +274,11 @@ impl Coerce for TypePair<LazyStructures> {
   }
 }
 
-pub(in crate::resolve::impls) fn default_types_of_type_pair(lazy: &mut Lazy, pair: &TypePair<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
+pub(in crate::impls) fn default_types_of_type_pair<C: Compiler + 'static>(store: &mut C::Store<'_>, pair: &TypePair<C>, tasks: &mut Tasks<C>) -> Result<C> {
   match &pair.ty {
-    Type::Reference(ty) => default_types_of_type(lazy, ty, tasks),
+    Type::Reference(ty) => default_types_of_type(store, ty, tasks),
     Type::Resolved { part, .. } => default_types_of_type(
-      lazy, &TypeReference::Part(*part), tasks,
+      store, &TypeReference::Part(*part), tasks,
     ),
     Type::Unresolved { .. } => todo!(),
     Type::Intrinsic { .. } => Ok(()),
@@ -308,14 +304,14 @@ pub(in crate::resolve::impls) fn default_types_of_type_pair(lazy: &mut Lazy, pai
       };
 
       let src = {
-        let parent_module = pair.overwrite.reference.parent_module(lazy);
+        let parent_module = pair.overwrite.reference.parent_module(store);
 
         let element_intrinsic = kind.into();
         let element_part = Type::Intrinsic { kind: element_intrinsic, span };
-        let element_reference = parent_module.add_type_part(element_part, lazy);
+        let element_reference = parent_module.add_type_part(element_part, store);
 
         let arr_of_element_part = Type::SizedArrayOf { ty: element_reference, size: characters, span };
-        let arr_of_element_reference = parent_module.add_type_part(arr_of_element_part, lazy);
+        let arr_of_element_reference = parent_module.add_type_part(arr_of_element_part, store);
 
         Type::ReferenceTo { ty: arr_of_element_reference, r#mut: false, span }
       };
@@ -329,20 +325,20 @@ pub(in crate::resolve::impls) fn default_types_of_type_pair(lazy: &mut Lazy, pai
     },
     Type::Weak { .. } => todo!(),
     Type::ReferenceTo { r#mut, .. } => {
-      let pair = pair.dereference(lazy, *r#mut)?
+      let pair = pair.dereference(store, *r#mut)?
         .expect("to dereference the type");
 
-      default_types_of_type_pair(lazy, &pair, tasks)
+      default_types_of_type_pair(store, &pair, tasks)
     },
     | Type::SizedArrayOf { ty, .. }
     | Type::UnsizedArrayOf { ty, .. } => {
-      ty::default_types_of_type(lazy, &TypeReference::Part(*ty), tasks)
+      ty::default_types_of_type(store, &TypeReference::Part(*ty), tasks)
     },
     Type::Struct { prototype } => {
-      let borrow = prototype.rget_from(lazy);
+      let borrow = prototype.rget_from(store);
 
       for id in 0..borrow.members.len() {
-        default_types_of_type(lazy, &TypeReference::StructMember(*prototype, id), tasks)?;
+        default_types_of_type(store, &TypeReference::StructMember(*prototype, id), tasks)?;
       };
 
       Ok(())

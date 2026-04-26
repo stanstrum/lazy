@@ -1,22 +1,21 @@
 use super::*;
 
-use crate::lang::module::ModuleParent;
+use lang::module::ModuleParent;
 use lang::CompilerPoolStore;
 use lazy_macros::{print_message, print_once_per_thread};
 
-use crate::lang::ty::{Qualified, QualifiedSearchSpace};
-use gluezy::ModuleReference;
-use ::lang::reference::{AliasReference, StructReference};
+use lang::ty::{Qualified, QualifiedSearchSpace};
+use lang::reference::{AliasReference, StructReference};
 
-pub fn resolve_qualified_to_space(
-  lazy: &Lazy,
-  module: ModuleReference,
-  qualified: &Qualified,
-  tasks: &Option<&mut Tasks<LazyStructures>>,
-) -> Result<Option<QualifiedSearchSpace>> {
+pub fn resolve_qualified_to_space<C: Compiler + 'static>(
+  store: &C::Store<'_>,
+  module: C::ModuleReference,
+  qualified: &Qualified<C>,
+  tasks: &Option<&mut Tasks<C>>,
+) -> Result<C, Option<QualifiedSearchSpace<C>>> {
   let mut space = qualified.implicit.to_owned();
 
-  let seed = |base: ErrorBase| -> Result<Option<QualifiedSearchSpace>> {
+  let seed = |base: ResolveErrorBase<C>| -> Result<C, Option<QualifiedSearchSpace<C>>> {
     if let Some(tasks) = tasks {
       tasks.seed_error(base)
     } else {
@@ -31,27 +30,27 @@ pub fn resolve_qualified_to_space(
     // First thing, if it's super, we'll do that first.  I don't mind having
     // 'super' be something you can't name something, without it being a Keyword,
     // no yeah, it doesn't bother me at all :(
-    if part.id == lazy.pool_keys.super_ {
-      print_message!(lazy, {
+    if part.id == store.pool_keys().super_ {
+      print_message!(store, {
         level: Debug,
         force: false,
-        description: format!(line_dbg!("super keyword in {}"), lazy.describe_module(part.span.module)),
+        description: format!(line_dbg!("super keyword in {}"), store.describe_module(part.span.module)),
         contents: MessageContents::WithinSource(WithinSource::new(
           vec![MessageSection {
-            text: format!("space is {}", space.print(lazy)),
+            text: format!("space is {}", space.print(store)),
             span: part.span,
           }],
         )),
       });
 
       let QualifiedSearchSpace::Module(space_module) = space else {
-        return seed(ErrorBase::BadQualify {
+        return seed(ResolveErrorBase::BadQualify {
           span: part.span,
         });
       };
 
-      let ModuleParent::Module(parent) = lazy.rget(space_module).parent else {
-        return seed(ErrorBase::BadQualify {
+      let ModuleParent::Module(parent) = store.rget(space_module).parent else {
+        return seed(ResolveErrorBase::BadQualify {
           span: part.span,
         });
       };
@@ -64,7 +63,7 @@ pub fn resolve_qualified_to_space(
       !matches!(&qualified.implicit, QualifiedSearchSpace::Implicit)
     {
       // If the first part is an intrinsic, make it so
-      let part_string = lazy.pool.get(part.id);
+      let part_string = store.pool().get(part.id);
       if let Some(kind) = Intrinsic::try_from_str(&part_string) {
         space = QualifiedSearchSpace::Intrinsic {
           kind,
@@ -77,7 +76,7 @@ pub fn resolve_qualified_to_space(
       // We must make sure we aren't stuck in an infinite loop so that the
       // standard library doesn't try to go look itself up recursively
       if let QualifiedSearchSpace::Module(space_module) = space {
-        let std = lazy.std.unwrap();
+        let std = store.unwrap_std();
 
         if space_module != std && module != std {
           let std_qualified = Qualified {
@@ -87,7 +86,7 @@ pub fn resolve_qualified_to_space(
           };
 
           // Search std for the part
-          if let Ok(Some(next_space)) = resolve_qualified_to_space(lazy, module, &std_qualified, tasks) {
+          if let Ok(Some(next_space)) = resolve_qualified_to_space(store, module, &std_qualified, tasks) {
             space = next_space;
             continue;
           };
@@ -98,15 +97,15 @@ pub fn resolve_qualified_to_space(
     match space {
       // QualifiedSearchSpace::Type(ty) => todo!("match space: {ty:#?}"),
       QualifiedSearchSpace::Module(current_module) => {
-        let borrow = current_module.rget_from(lazy);
+        let borrow = current_module.rget_from(store);
 
         if let Some(qualified) = borrow.transports.import_map.get(&part.id) {
-          let Some(new_space) = resolve_qualified_to_space(lazy, current_module, qualified, tasks)? else {
-            print_once_per_thread!(lazy, {
+          let Some(new_space) = resolve_qualified_to_space(store, current_module, qualified, tasks)? else {
+            print_once_per_thread!(store, {
               level: Stub,
               force: false,
               description: line_dbg!("disregarding failed resolution of qualified").into(),
-              contents: MessageContents::None::<LazyStructures>,
+              contents: MessageContents::None::<C>,
             });
 
             return Ok(None);
@@ -123,14 +122,14 @@ pub fn resolve_qualified_to_space(
             let QualifiedSearchSpace::Module(space_module) = &space &&
             wildscare_space_module == space_module
           {
-            let module_name = lazy.describe_module(*wildscare_space_module);
+            let module_name = store.describe_module(*wildscare_space_module);
             let description = format!(line_dbg!("BUGBGUG: Module {} contains itself as an import star selector ... this will cause crashes."), module_name);
 
-            print_message!(lazy, {
+            print_message!(store, {
               level: Warn,
               force: false,
               description,
-              contents: MessageContents::File::<LazyStructures>(*wildscare_space_module),
+              contents: MessageContents::File::<C>(*wildscare_space_module),
             });
 
             continue;
@@ -142,7 +141,7 @@ pub fn resolve_qualified_to_space(
             span: *span,
           };
 
-          if let Ok(Some(next_space)) = resolve_qualified_to_space(lazy, current_module, &test_qualified, tasks) {
+          if let Ok(Some(next_space)) = resolve_qualified_to_space(store, current_module, &test_qualified, tasks) {
             // replace the space and search from there
             space = next_space;
             continue 'part_match;
@@ -152,7 +151,7 @@ pub fn resolve_qualified_to_space(
         // Look for submodules by this name
         if let Some(found_submodule) = borrow
           .modules.iter()
-          .find(|submodule| part.id == (*submodule).rget_from(lazy).name)
+          .find(|submodule| part.id == (*submodule).rget_from(store).name)
         {
           space = QualifiedSearchSpace::Module(*found_submodule);
           continue 'part_match;
@@ -186,8 +185,8 @@ pub fn resolve_qualified_to_space(
     };
 
     // fallthrough if no matches; yield error
-    return seed(ErrorBase::UnknownTypeName {
-      module_name: lazy.describe_module(module),
+    return seed(ResolveErrorBase::UnknownTypeName {
+      module_name: store.describe_module(module),
       span: qualified.span,
     });
   };
@@ -195,14 +194,14 @@ pub fn resolve_qualified_to_space(
   Ok(Some(space))
 }
 
-pub(super) fn resolve_qualified_to_type(
-  lazy: &Lazy,
-  module: ModuleReference,
-  qualified: &Qualified,
-  tasks: &mut Tasks<LazyStructures>,
-) -> Result<Option<Type>> {
-  Ok(match resolve_qualified_to_space(lazy, module, qualified, &Some(tasks))? {
-    Some(QualifiedSearchSpace::Type(ty)) => ty.type_of(lazy),
+pub(super) fn resolve_qualified_to_type<C: Compiler + 'static>(
+  store: &C::Store<'_>,
+  module: C::ModuleReference,
+  qualified: &Qualified<C>,
+  tasks: &mut Tasks<C>,
+) -> Result<C, Option<Type<C>>> {
+  Ok(match resolve_qualified_to_space(store, module, qualified, &Some(tasks))? {
+    Some(QualifiedSearchSpace::Type(ty)) => ty.type_of(store),
     Some(QualifiedSearchSpace::Intrinsic { kind, span }) => Some(Type::Intrinsic { kind, span }),
     Some(QualifiedSearchSpace::Struct(prototype)) => Some(Type::Struct { prototype }),
     Some(QualifiedSearchSpace::Implicit) => {

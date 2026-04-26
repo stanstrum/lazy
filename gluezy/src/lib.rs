@@ -1,6 +1,5 @@
 pub mod prelude;
 mod reference;
-pub mod keys;
 pub mod format;
 
 use lang::error::LazyError;
@@ -67,8 +66,7 @@ pub struct Settings {
 
 #[derive(Debug)]
 pub struct Lazy<'pool, C: Compiler = LazyStructures> { pub pool: &'pool StringPool,
-  pub specifier: C,
-  pub pool_keys: keys::PoolKeys,
+  pub pool_keys: lang::keys::PoolKeys,
   pub settings: Settings,
   pub std: Option<C::ModuleReference>,
   pub(crate) modules: Vec<Module<C>>,
@@ -77,13 +75,12 @@ pub struct Lazy<'pool, C: Compiler = LazyStructures> { pub pool: &'pool StringPo
 }
 
 impl<'pool> Lazy<'pool> {
-  pub fn new(pool: &'pool StringPool, settings: Settings, specifier: LazyStructures) -> Self {
+  pub fn new(pool: &'pool StringPool, settings: Settings) -> Self {
     let lazy = Self {
-      specifier,
       pool,
       settings,
       std: None,
-      pool_keys: keys::PoolKeys::init(pool),
+      pool_keys: lang::keys::PoolKeys::init(pool),
       modules: vec![],
       functions: vec![],
       tokens: vec![],
@@ -113,8 +110,12 @@ impl<'pool> lang::CompilerPoolStore<'pool, LazyStructures> for Lazy<'pool> {
     self.pool
   }
 
-  fn hack_specifier(&self) -> LazyStructures {
-    self.specifier
+  fn pool_keys(&self) -> &lang::keys::PoolKeys {
+    todo!()
+  }
+
+  fn unwrap_std(&self) -> ModuleReference {
+    self.std.unwrap()
   }
 
   fn get_std(&mut self) -> Result<<LazyStructures as Compiler>::ModuleReference, LazyError<LazyStructures>> {
@@ -250,7 +251,6 @@ impl lang::Compiler for LazyStructures {
   ) -> Result<Option<lang::ty::QualifiedSearchSpace<Self>>, Box<lang::error::ResolveError<Self>>> {
     // SPONGE: Some wacko dynamic dispatch going on here that stems from refactoring and
     // I just had to do this to make things work.  Get rid of this.
-    let Self { resolve_qualified_to_space } = store.specifier;
-    resolve_qualified_to_space(store, module, qualified, option)
+    ::resolve::impls::ty::pair::unknown::resolve_qualified_to_space(store, module, qualified, option)
   }
 }

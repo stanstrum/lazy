@@ -26,7 +26,7 @@ pub enum TaskResponse<C: Compiler> {
   Replace(Box<dyn Task<C>>),
 }
 
-pub struct Tasks<C> {
+pub struct Tasks<C: Compiler> {
   tasks: VecDeque<Box<dyn Task<C>>>,
   trace: Rc<RefCell<Vec<String>>>,
 }

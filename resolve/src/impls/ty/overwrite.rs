@@ -1,14 +1,14 @@
 use super::*;
 
-impl Coerce for OverwriteTypeReference {
-  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
-    let Some(ty) = self.type_of(lazy) else {
+impl<C: Compiler + 'static> Coerce<C> for OverwriteTypeReference<C> {
+  fn coerce(&self, store: &C::Store<'_>, other: &impl TypeOf<C>, tasks: &mut Tasks<C>) -> Result<C> {
+    let Some(ty) = self.type_of(store) else {
       return Ok(());
     };
 
     TypePair {
       overwrite: self.clone(),
       ty,
-    }.coerce(lazy, other, tasks)
+    }.coerce(store, other, tasks)
   }
 }

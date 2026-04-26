@@ -6,16 +6,17 @@ pub mod module;
 pub mod function;
 pub mod import;
 
+pub mod expr;
+
 pub mod ty;
 pub mod reference;
 
-pub mod expr;
-
-pub mod tasks;
-mod store;
 mod get_span;
 mod type_of;
 
+mod store;
+pub mod keys;
+pub mod tasks;
 pub mod error;
 
 use std::{fmt::Debug, hash::Hash, path::{Path, PathBuf}};
@@ -39,15 +40,16 @@ pub trait CompilerPoolStore<'pool, C: Compiler>:
 {
   type Error: Debug;
 
-  fn hack_specifier(&self) -> C;
-
   fn pool(&self) -> &'pool StringPool;
+  fn pool_keys(&self) -> &crate::keys::PoolKeys;
 
   /// Sounds like a rough time.
   ///
   /// Returns a [`ModuleReference`] to the standard library, tokenizing those
   /// structures if necessary
   fn get_std(&mut self) -> Result<C::ModuleReference, LazyError<C>>;
+
+  fn unwrap_std(&self) -> C::ModuleReference;
 
   /// Creates a module with the provided values.  This module's
   /// [`ModuleParent`] will be [`ModuleParent::Path`] (from `path`) and this

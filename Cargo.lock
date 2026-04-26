@@ -328,6 +328,9 @@ name = "resolve"
 version = "0.1.0"
 dependencies = [
  "lang",
+ "lazy_macros",
+ "log 0.1.0",
+ "pprint",
 ]
 
 [[package]]

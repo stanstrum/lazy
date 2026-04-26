@@ -14,7 +14,7 @@ pub fn check(lazy: &mut Lazy<LazyStructures>) -> Result<ModuleReference, log::Pr
   let global = lazy.add_file("@global", path, None)?;
 
   // Resolve, verify
-  crate::resolve::resolve_and_verify(lazy, global)?;
+  ::resolve::resolve_and_verify(lazy, global)?;
 
   // Debugs
   debug::source(lazy, &global);

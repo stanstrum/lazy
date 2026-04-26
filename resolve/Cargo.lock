@@ -15,10 +15,28 @@ name = "lazy_macros"
 version = "0.1.0"
 
 [[package]]
+name = "log"
+version = "0.1.0"
+dependencies = [
+ "lang",
+ "lazy_macros",
+]
+
+[[package]]
+name = "pprint"
+version = "0.1.0"
+dependencies = [
+ "lang",
+]
+
+[[package]]
 name = "resolve"
 version = "0.1.0"
 dependencies = [
  "lang",
+ "lazy_macros",
+ "log",
+ "pprint",
 ]
 
 [[package]]

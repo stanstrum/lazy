@@ -1,71 +1,69 @@
-use crate::lang::expr::Expression;
-use crate::lang::expr::operator::BinaryOperator;
-use gluezy::{Lazy, LazyStructures, TypeReference, VariableReference};
-use lang::CompilerPoolStore;
-use ::lang::reference::{BlockReference, ExpressionReference};
-use pprint::Pretty;
-use crate::lang::ty::Type;
-use ::lang::intrinsic::Intrinsic;
 use lazy_macros::print_once_per_thread;
-use crate::resolve::TypePair;
-use crate::lang::Span;
+use lang::{Compiler, CompilerPoolStore};
+use lang::span::Span;
+use lang::intrinsic::Intrinsic;
+use lang::ty::{Type, TypePair};
+use lang::expr::Expression;
+use lang::expr::operator::BinaryOperator;
+use lang::reference::{BlockReference, ExpressionReference, TypeReference, VariableReference};
+use pprint::Pretty;
 
 use super::*;
 
-impl Resolve for VariableReference {
-  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
+impl<C: Compiler + 'static> Resolve<C> for VariableReference<C> {
+  fn resolve(&self, store: &C::Store<'_>, tasks: &mut Tasks<C>) -> Result<C> {
     let description = {
       let (function, print): (_, String) = match self {
-        VariableReference::Block(block_reference, _) => (block_reference.0, block_reference.print(lazy)),
-        VariableReference::Argument(function_reference, _) => (*function_reference, pprint::print_function_reference::<LazyStructures>(function_reference, lazy)),
+        VariableReference::Block(block_reference, _) => (block_reference.0, block_reference.print(store)),
+        VariableReference::Argument(function_reference, _) => (*function_reference, pprint::print_function_reference::<C>(function_reference, store)),
       };
 
       format!(
         line_dbg!("Resolve VariableReference: {} in {}"),
-        pprint::print_function_reference::<LazyStructures>(&function, lazy),
+        pprint::print_function_reference::<C>(&function, store),
         print,
       )
     };
 
     tasks.work(description, |tasks| {
-      TypeReference::Variable(*self).resolve(lazy, tasks)
+      TypeReference::Variable(*self).resolve(store, tasks)
     })
   }
 }
 
-impl Coerce for VariableReference {
-  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
-    TypeReference::Variable(*self).coerce(lazy, other, tasks)
+impl<C: Compiler + 'static> Coerce<C> for VariableReference<C> {
+  fn coerce(&self, store: &C::Store<'_>, other: &impl TypeOf<C>, tasks: &mut Tasks<C>) -> Result<C> {
+    TypeReference::Variable(*self).coerce(store, other, tasks)
   }
 }
 
-fn verify_variable(lazy: &Lazy, variable: VariableReference, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
+fn verify_variable<C: Compiler + 'static>(store: &C::Store<'_>, variable: VariableReference<C>, tasks: &mut Tasks<C>) -> Result<C> {
   let description = {
     let (function, print): (_, String) = match &variable {
-      VariableReference::Block(block_reference, _) => (block_reference.0, block_reference.print(lazy)),
-      VariableReference::Argument(function_reference, _) => (*function_reference, pprint::print_function_reference::<LazyStructures>(function_reference, lazy)),
+      VariableReference::Block(block_reference, _) => (block_reference.0, block_reference.print(store)),
+      VariableReference::Argument(function_reference, _) => (*function_reference, pprint::print_function_reference::<C>(function_reference, store)),
     };
 
-    let function_borrow = lazy.rget(function);
+    let function_borrow = store.rget(function);
     let parent = function_borrow.parent;
 
     format!(
       line_dbg!("Verify variable: {}::{} in {}"),
-      lazy.describe_module(parent),
-      function_borrow.header.name.print(lazy),
+      store.describe_module(parent),
+      function_borrow.header.name.print(store),
       print,
     )
   };
 
   tasks.work(description, |tasks| {
-    ty::verify_typeof(lazy, &TypeReference::Variable(variable), tasks)
+    ty::verify_typeof(store, &TypeReference::Variable(variable), tasks)
   })
 }
 
-impl Coerce for ExpressionReference<LazyStructures> {
-  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
-    let a = self.print(lazy);
-    let b = other.type_of(lazy).map(|x| x.print(lazy)).unwrap_or_else(|| "{none}".into());
+impl<C: Compiler + 'static> Coerce<C> for ExpressionReference<C> {
+  fn coerce(&self, store: &C::Store<'_>, other: &impl TypeOf<C>, tasks: &mut Tasks<C>) -> Result<C> {
+    let a = self.print(store);
+    let b = other.type_of(store).map(|x| x.print(store)).unwrap_or_else(|| "{none}".into());
 
     let description = format!(line_dbg!("Coerce ExpressionReference\n- Reference: {}\n- Coerce w/: {}"), a, b);
 
@@ -79,24 +77,24 @@ impl Coerce for ExpressionReference<LazyStructures> {
       //   Expression::Binary { .. } => todo!(),
       // };
 
-      TypeReference::Expression(*self).coerce(lazy, other, tasks)
+      TypeReference::Expression(*self).coerce(store, other, tasks)
     })
   }
 }
 
-impl Resolve for BlockReference<LazyStructures> {
-  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
-    let description = format!(line_dbg!("Resolve BlockReference: {}"), self.print(lazy));
+impl<C: Compiler + 'static> Resolve<C> for BlockReference<C> {
+  fn resolve(&self, store: &C::Store<'_>, tasks: &mut Tasks<C>) -> Result<C> {
+    let description = format!(line_dbg!("Resolve BlockReference: {}"), self.print(store));
 
     tasks.work(description, |tasks| {
-      let borrow = self.rget_from(lazy);
+      let borrow = self.rget_from(store);
 
       for id in 0..borrow.variables.len() {
-        VariableReference::Block(*self, id).resolve(lazy, tasks)?;
+        VariableReference::Block(*self, id).resolve(store, tasks)?;
       };
 
       for &expr in borrow.children.iter() {
-        ExpressionReference(*self, expr).resolve(lazy, tasks)?;
+        ExpressionReference(*self, expr).resolve(store, tasks)?;
       };
 
       Ok(())
@@ -104,9 +102,9 @@ impl Resolve for BlockReference<LazyStructures> {
   }
 }
 
-pub(super) fn default_types_in_block_expr(lazy: &mut Lazy, block: &BlockReference<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
+pub(super) fn default_types_in_block_expr<C: Compiler + 'static>(store: &mut C::Store<'_>, block: &BlockReference<C>, tasks: &mut Tasks<C>) -> Result<C> {
   let description = {
-    let Span { start, end, .. } = block.get_span(lazy);
+    let Span { start, end, .. } = block.get_span(store);
 
     format!(line_dbg!("Make default ambiguous types for block: {}:{} - {}:{}"),
       start.line, start.column,
@@ -115,18 +113,18 @@ pub(super) fn default_types_in_block_expr(lazy: &mut Lazy, block: &BlockReferenc
   };
 
   tasks.work(description, |tasks| {
-    ty::default_types_of_type(lazy, &TypeReference::Block(*block), tasks)?;
+    ty::default_types_of_type(store, &TypeReference::Block(*block), tasks)?;
 
-    for expr in block.rget_from(lazy).children.clone() {
-      default_types_in_expr(lazy, &ExpressionReference(*block, expr), tasks)?;
+    for expr in block.rget_from(store).children.clone() {
+      default_types_in_expr(store, &ExpressionReference(*block, expr), tasks)?;
     };
 
     Ok(())
   })
 }
 
-pub(super) fn verify_block(lazy: &Lazy, block: &BlockReference<LazyStructures>, ret_ty: Option<&TypePair<LazyStructures>>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
-  let block_borrow = block.rget_from(lazy);
+pub(super) fn verify_block<C: Compiler + 'static>(store: &C::Store<'_>, block: &BlockReference<C>, ret_ty: Option<&TypePair<C>>, tasks: &mut Tasks<C>) -> Result<C> {
+  let block_borrow = block.rget_from(store);
 
   let description = {
     let Span { start, end, .. } = block_borrow.span;
@@ -142,7 +140,7 @@ pub(super) fn verify_block(lazy: &Lazy, block: &BlockReference<LazyStructures>, 
     let block_out = TypePair::new(block_type_reference, block_borrow.out.clone());
 
     if let Some(ret_ty) = ret_ty {
-      block_out.coerce(lazy, ret_ty, tasks)?;
+      block_out.coerce(store, ret_ty, tasks)?;
     };
 
     let last = block_borrow.returns_last.then(|| *block_borrow.children.last().unwrap());
@@ -152,46 +150,46 @@ pub(super) fn verify_block(lazy: &Lazy, block: &BlockReference<LazyStructures>, 
       let expr = ExpressionReference(*block, *id);
 
       let irr_reference = TypeReference::Expression(expr);
-      let irr_ty = irr_reference.rget_from(lazy);
+      let irr_ty = irr_reference.rget_from(store);
 
       let irr = TypePair::new(irr_reference, irr_ty.clone());
 
       let ret_ty = if is_last(id) && let Some(ret_ty) = ret_ty {
-        irr.coerce(lazy, ret_ty, tasks)?;
+        irr.coerce(store, ret_ty, tasks)?;
         Some(ret_ty)
       } else {
         None
       };
 
-      verify_expr(lazy, expr, ret_ty, tasks)?;
+      verify_expr(store, expr, ret_ty, tasks)?;
     };
 
     Ok(())
   })
 }
 
-impl Resolve for ExpressionReference<LazyStructures> {
-  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
+impl<C: Compiler + 'static> Resolve<C> for ExpressionReference<C> {
+  fn resolve(&self, store: &C::Store<'_>, tasks: &mut Tasks<C>) -> Result<C> {
     let description = {
       format!(line_dbg!("Resolve ExpressionReference: {} in {}"),
-        self.print(lazy),
-        self.0.print(lazy),
+        self.print(store),
+        self.0.print(store),
       )
     };
 
     tasks.work(description, |tasks| {
-      let borrow = self.rget_from(lazy);
+      let borrow = self.rget_from(store);
         let ty_reference = TypeReference::Expression(*self);
 
       match borrow {
         Expression::Block(block) => {
-          block.resolve(lazy, tasks)
+          block.resolve(store, tasks)
         },
         Expression::Literal { out, .. } => {
-          TypePair::new(ty_reference, out.clone()).resolve(lazy, tasks)
+          TypePair::new(ty_reference, out.clone()).resolve(store, tasks)
         },
         Expression::Variable { reference, .. } => {
-          reference.resolve(lazy, tasks)
+          reference.resolve(store, tasks)
         },
         Expression::Binary {
           a, b,
@@ -206,14 +204,14 @@ impl Resolve for ExpressionReference<LazyStructures> {
             span: *op_span,
           };
 
-          out_pair.coerce(lazy, &void_op, tasks)?;
-          out_pair.resolve(lazy, tasks)?;
+          out_pair.coerce(store, &void_op, tasks)?;
+          out_pair.resolve(store, tasks)?;
 
-          a.coerce(lazy, b, tasks)?;
-          b.coerce(lazy, a, tasks)?;
+          a.coerce(store, b, tasks)?;
+          b.coerce(store, a, tasks)?;
 
-          a.resolve(lazy, tasks)?;
-          b.resolve(lazy, tasks)?;
+          a.resolve(store, tasks)?;
+          b.resolve(store, tasks)?;
 
           Ok(())
         },
@@ -224,13 +222,13 @@ impl Resolve for ExpressionReference<LazyStructures> {
 
           let hierarchy = std::iter::from_fn(move || {
             let old = block;
-            block = block.and_then(|block| lazy.rget(block).parent);
+            block = block.and_then(|block| store.rget(block).parent);
 
             old
           });
 
           let variables_iter_iter = hierarchy.map(|block| {
-            lazy.rget(block)
+            store.rget(block)
               .variables.iter().enumerate()
               // I do not understand why this lambda is `move` ...
               .map(move |(id, var)| (var.name.id, VariableReference::Block(block, id))
@@ -238,7 +236,7 @@ impl Resolve for ExpressionReference<LazyStructures> {
           });
 
           let function = self.0.0;
-          let arguments_iter = lazy.rget(function)
+          let arguments_iter = store.rget(function)
             .header.arguments.iter()
             .enumerate().map(|(id, arg)| {
               (arg.name.id, VariableReference::Argument(function, id))
@@ -255,7 +253,7 @@ impl Resolve for ExpressionReference<LazyStructures> {
                 dest: *self,
                 src: Expression::Variable {
                   reference: variable_reference,
-                  span: borrow.get_span(lazy),
+                  span: borrow.get_span(store),
                 },
               }, line_dbg!("here"));
 
@@ -263,13 +261,13 @@ impl Resolve for ExpressionReference<LazyStructures> {
             };
           };
 
-          tasks.seed_error(ErrorBase::UnknownTypeName {
-            module_name: lazy.describe_module(self.0.0.rget_from(lazy).parent),
-            span: borrow.get_span(lazy),
+          tasks.seed_error(ResolveErrorBase::UnknownTypeName {
+            module_name: store.describe_module(self.0.0.rget_from(store).parent),
+            span: borrow.get_span(store),
           })
         },
         Expression::StructInitializer { ty, members, .. } => {
-          let prototype = ty.type_of(lazy).map(|ty| {
+          let prototype = ty.type_of(store).map(|ty| {
             let Type::Struct { prototype } = ty else {
               todo!("error for bad struct initializer type at resolve");
             };
@@ -280,16 +278,16 @@ impl Resolve for ExpressionReference<LazyStructures> {
           TypePair::new(
             TypeReference::Expression(*self),
             ty.clone(),
-          ).resolve(lazy, tasks)?;
+          ).resolve(store, tasks)?;
 
-          print_once_per_thread!(lazy, {
+          print_once_per_thread!(store, {
             level: Stub,
             force: false,
             description: line_dbg!("coerce member expressions from struct `ty`").into(),
             contents: MessageContents::WithinSource(
               WithinSource::new(
                 members.iter().map(|(name, expr)| {
-                  let span = Span::from_pair(name.span, expr.get_span(lazy));
+                  let span = Span::from_pair(name.span, expr.get_span(store));
 
                   log::MessageSection {
                     text: "here".into(),
@@ -301,44 +299,44 @@ impl Resolve for ExpressionReference<LazyStructures> {
           });
 
           for (member_name, member_expr) in members.iter() {
-            member_expr.resolve(lazy, tasks)?;
+            member_expr.resolve(store, tasks)?;
 
             if let Some(prototype) = prototype {
-              let field_ty = lazy.rget(prototype).members.iter()
+              let field_ty = store.rget(prototype).members.iter()
                 .enumerate()
                 .find_map(|(id, field)| (field.name.id == member_name.id).then_some(TypeReference::StructMember(prototype, id)))
                 .expect("to find a corresponding field for a struct initializer member");
 
-              member_expr.coerce(lazy, &field_ty, tasks)?;
-              field_ty.coerce(lazy, &TypeReference::Expression(*member_expr), tasks)?;
+              member_expr.coerce(store, &field_ty, tasks)?;
+              field_ty.coerce(store, &TypeReference::Expression(*member_expr), tasks)?;
             };
           };
 
           Ok(())
         },
-        other => tasks.seed_error(ErrorBase::NotImplemented {
+        other => tasks.seed_error(ResolveErrorBase::NotImplemented {
           what: line_dbg!("impl Resolve for ExpressionReference"),
-          span: other.get_span(lazy),
+          span: other.get_span(store),
         }),
       }
     })
   }
 }
 
-fn default_types_in_expr(lazy: &mut Lazy, expr: &ExpressionReference<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
-  let Span { start, end , .. } = expr.get_span(lazy);
+fn default_types_in_expr<C: Compiler + 'static>(store: &mut C::Store<'_>, expr: &ExpressionReference<C>, tasks: &mut Tasks<C>) -> Result<C> {
+  let Span { start, end , .. } = expr.get_span(store);
 
   let description = format!(line_dbg!("Make default ambiguous types for expr {}:{} - {}:{}"),
     start.line, start.column,
     end.line, end.column,
   );
 
-  ty::default_types_of_type(lazy, &TypeReference::Expression(*expr), tasks)?;
+  ty::default_types_of_type(store, &TypeReference::Expression(*expr), tasks)?;
 
   tasks.work(description, |tasks| {
-    match expr.rget_from(lazy) {
+    match expr.rget_from(store) {
       &Expression::Block(block) => {
-        default_types_in_block_expr(lazy, &block, tasks)?;
+        default_types_in_block_expr(store, &block, tasks)?;
       },
       Expression::Literal { .. } => {},
       Expression::Variable {.. } => {},
@@ -347,11 +345,11 @@ fn default_types_in_expr(lazy: &mut Lazy, expr: &ExpressionReference<LazyStructu
         // SPONGE: There are actually two type fields in a unary expression because
         // one is contained within the expr and one is part of the Expression
         // variant ... maybe fix this?
-        ty::default_types_of_type(lazy, &TypeReference::Expression(*a), tasks)?;
+        ty::default_types_of_type(store, &TypeReference::Expression(*a), tasks)?;
       },
       &Expression::Binary { a, b, .. } => {
-        default_types_in_expr(lazy, &a, tasks)?;
-        default_types_in_expr(lazy, &b, tasks)?;
+        default_types_in_expr(store, &a, tasks)?;
+        default_types_in_expr(store, &b, tasks)?;
       },
       Expression::StructInitializer { members, .. } => {
         let value_iter = members.iter()
@@ -359,33 +357,33 @@ fn default_types_in_expr(lazy: &mut Lazy, expr: &ExpressionReference<LazyStructu
           .collect::<Vec<_>>();
 
         for value in value_iter {
-          default_types_in_expr(lazy, &value, tasks)?;
+          default_types_in_expr(store, &value, tasks)?;
         };
       },
     };
 
-    ty::default_types_of_type(lazy, &TypeReference::Expression(*expr), tasks)
+    ty::default_types_of_type(store, &TypeReference::Expression(*expr), tasks)
   })
 }
 
-fn verify_expr(lazy: &Lazy, expr: ExpressionReference<LazyStructures>, ret_ty: Option<&TypePair<LazyStructures>>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
-  let Span { start, end , .. } = lazy.rget(expr).get_span(lazy);
+fn verify_expr<C: Compiler + 'static>(store: &C::Store<'_>, expr: ExpressionReference<C>, ret_ty: Option<&TypePair<C>>, tasks: &mut Tasks<C>) -> Result<C> {
+  let Span { start, end , .. } = store.rget(expr).get_span(store);
 
   let description = format!(line_dbg!("Verify expr {}:{} - {}:{}"),
     start.line, start.column,
     end.line, end.column,
   );
 
-  tasks.work(description, |tasks| match lazy.rget(expr) {
-    Expression::Block(block) => verify_block(lazy, block, ret_ty, tasks),
-    Expression::Literal { out, .. } => ty::verify_type(lazy, out, tasks),
-    Expression::Variable { reference, .. } => verify_variable(lazy, *reference, tasks),
+  tasks.work(description, |tasks| match store.rget(expr) {
+    Expression::Block(block) => verify_block(store, block, ret_ty, tasks),
+    Expression::Literal { out, .. } => ty::verify_type(store, out, tasks),
+    Expression::Variable { reference, .. } => verify_variable(store, *reference, tasks),
     Expression::Unknown { qualified, .. } => {
       // SPONGE: there must be a better way.
-      let module = lazy.rget(expr.0.0).parent;
-      let module_name = lazy.describe_module(module);
+      let module = store.rget(expr.0.0).parent;
+      let module_name = store.describe_module(module);
 
-      tasks.seed_error(ErrorBase::UnknownTypeName {
+      tasks.seed_error(ResolveErrorBase::UnknownTypeName {
         module_name,
         span: qualified.span,
       })
@@ -399,15 +397,15 @@ fn verify_expr(lazy: &Lazy, expr: ExpressionReference<LazyStructures>, ret_ty: O
       ..
     } => {
       let ty_reference = TypeReference::Expression(expr);
-      let out_pair: TypePair<LazyStructures> = TypePair::new(ty_reference, out.clone());
+      let out_pair: TypePair<C> = TypePair::new(ty_reference, out.clone());
 
-      verify_expr(lazy, *a, None, tasks)?;
-      verify_expr(lazy, *b, None, tasks)?;
+      verify_expr(store, *a, None, tasks)?;
+      verify_expr(store, *b, None, tasks)?;
 
       // TypeReference::Expression(*a).coerce(lazy, &TypeReference::Expression(*b), tasks)?;
       // TypeReference::Expression(*b).coerce(lazy, &TypeReference::Expression(*a), tasks)?;
 
-      out_pair.coerce(lazy, &Type::Intrinsic {
+      out_pair.coerce(store, &Type::Intrinsic {
         kind: Intrinsic::Void,
         span: *op_span,
       }, tasks)?;
@@ -416,7 +414,7 @@ fn verify_expr(lazy: &Lazy, expr: ExpressionReference<LazyStructures>, ret_ty: O
     },
     Expression::Binary { .. } => todo!(),
     Expression::StructInitializer { ty, members, .. } => {
-      let Some(prototype) = ty.type_of(lazy).map(|ty| {
+      let Some(prototype) = ty.type_of(store).map(|ty| {
         let Type::Struct { prototype } = ty else {
           todo!("error for bad struct initializer type at resolve");
         };
@@ -426,12 +424,12 @@ fn verify_expr(lazy: &Lazy, expr: ExpressionReference<LazyStructures>, ret_ty: O
         todo!("error for uninitialized struct initializer type");
       };
 
-      for (struct_index, field) in lazy.rget(prototype).members.iter().enumerate() {
+      for (struct_index, field) in store.rget(prototype).members.iter().enumerate() {
         let expr_reference = members.iter()
           .find_map(|(name, value)| (field.name.id == name.id).then_some(value))
           .expect("to find a corresponding field for this struct initializer member");
 
-        let Some(ty) = field.ty.type_of(lazy) else {
+        let Some(ty) = field.ty.type_of(store) else {
           todo!("unresolved type");
         };
 
@@ -440,7 +438,7 @@ fn verify_expr(lazy: &Lazy, expr: ExpressionReference<LazyStructures>, ret_ty: O
           ty,
         );
 
-        verify_expr(lazy, *expr_reference, Some(&ret_ty), tasks)?;
+        verify_expr(store, *expr_reference, Some(&ret_ty), tasks)?;
       };
 
       Ok(())

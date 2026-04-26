@@ -3,7 +3,7 @@ mod info;
 
 use std::process::ExitCode;
 
-use gluezy::{LazyStructures, Settings};
+use gluezy::Settings;
 use crate::parse::{Verb, Error};
 
 /// The entry point for the command-line interface to the LaZY compiler.
@@ -60,12 +60,8 @@ fn main() -> ExitCode {
 /// context and runs the compiler with the specified instructions and options.
 /// This is the function called by the CLI after parsing arguments from argv.
 pub fn lazy(settings: Settings, verb: Verb) -> ExitCode {
-  let specifier = LazyStructures {
-    resolve_qualified_to_space: &compiler::resolve_qualified_to_space,
-  };
-
   let pool = compiler::StringPool::new();
-  let lazy = &mut gluezy::Lazy::new(&pool, settings, specifier);
+  let lazy = &mut gluezy::Lazy::new(&pool, settings);
 
   let result = match verb {
     parse::Verb::Check => compiler::check(lazy).and(Ok(ExitCode::SUCCESS)),

@@ -5,7 +5,7 @@ namespace Whatever
       T a
       T b
 
-       s := "hello, world"
+      :: s := "hello, world"
 
       // defer! s {
       //   drop! $

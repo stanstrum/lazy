@@ -28,28 +28,28 @@ impl u8: IArithmetic
   add -> u8
     u8 lhs
     u8 rhs
-  llvm
+  llvm ::
     %tmp1 = add u8 %lhs, %rhs
     ret u8 %tmp1
 
   sub -> u8
     u8 lhs
     u8 rhs
-  llvm
+  llvm ::
     %tmp1 = sub u8 %lhs, %rhs
     ret u8 %tmp1
 
   imul -> u8
     u8 lhs
     u8 rhs
-  llvm
+  llvm ::
     %tmp1 = imul u8 %lhs, %rhs
     ret u8 %tmp1
 
   idiv -> u8
     u8 lhs
     u8 rhs
-  llvm
+  llvm ::
     %tmp1 = idiv u8 %lhs, %rhs
     ret u8 %tmp1
 
@@ -68,7 +68,7 @@ interface Double
 test double
   mut f32 s := 40
 
-   b := s.double()
+  :: b := s.double()
   s = b
 
   // s |>= $.double()

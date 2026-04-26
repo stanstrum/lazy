@@ -16,7 +16,7 @@ main -> i32
 
   a.value = 1000
 
-   b := Struct { value: 337 }
+  :: b := Struct { value: 337 }
 
   printf(c"a.value = %d\n", a.value)
   printf(c"b.value = %d\n", b.value)

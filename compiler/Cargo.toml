@@ -14,3 +14,4 @@ gluezy = { version = "0.1.0", path = "../gluezy" }
 lazy_macros = { version = "0.1.0", path = "../lazy_macros" }
 pprint = { version = "0.1.0", path = "../pprint" }
 log = { version = "0.1.0", path = "../log" }
+resolve = { version = "0.1.0", path = "../resolve" }

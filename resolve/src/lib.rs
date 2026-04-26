@@ -1,0 +1,220 @@
+pub mod impls;
+pub mod tasks;
+
+pub mod pair {
+  pub use ::lang::ty::TypePairModifier;
+  pub use ::lang::ty::TypePair;
+}
+
+use lang::{Compiler, CompilerPoolStore, ty::TypeOf};
+use lazy_macros::{print_message, line_dbg};
+
+use ::pprint::Pretty;
+use ::lang::intrinsic::Intrinsic;
+use ::lang::span::GetSpan;
+use crate::lang::ty::Type;
+use gluezy::{FunctionReference, Lazy, LazyStructures, ModuleReference, TypeReference};
+use crate::lang::{Reference, Store};
+
+use tasks::Tasks;
+
+type Result<T> = std::result::Result<T, Box<Error>>;
+
+pub use pair::*;
+
+pub type Error = ::lang::error::ResolveError<LazyStructures>;
+pub type ErrorBase = ::lang::error::ResolveErrorBase<LazyStructures>;
+
+struct Resolver<'lazy, 'pool, C: Compiler = LazyStructures> {
+  lazy: &'lazy mut Lazy<'pool>,
+  tasks: Tasks<C>,
+  global: C::ModuleReference,
+  std: C::ModuleReference,
+}
+
+pub trait Resolve {
+  fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()>;
+}
+
+pub trait Coerce {
+  fn coerce(&self, lazy: &Lazy, other: &impl TypeOf<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()>;
+}
+
+// impl<R: Copy> TypeOf for R
+//   where for<'a> Lazy<'a>: Store<R>,
+//         for<'a> <Lazy<'a> as Store<R>>::Out: TypeOf
+// {
+//   fn type_of(&self, lazy: &Lazy) -> Result<Option<Type>> {
+//     self.rget_from(lazy).type_of(lazy)
+//   }
+
+//   fn reference(&self, lazy: &Lazy) -> Option<TypeReference> {
+//     self.rget_from(lazy).reference(lazy)
+//   }
+// }
+
+impl<'lazy, 'pool> Resolver<'lazy, 'pool> {
+  fn new(lazy: &'lazy mut Lazy<'pool>, global: ModuleReference) -> Result<Self> {
+    let mut tasks = Tasks::new();
+
+    let std = tasks.work::<Result<ModuleReference>>(
+      line_dbg!("Get standard library").into(),
+      |tasks| match lazy.get_std() {
+        Ok(std) => Ok(std),
+        Err(err) => tasks.seed_error(ErrorBase::Lazy(Box::new(err))),
+      },
+    )?;
+
+    Ok(Self {
+      lazy,
+      tasks,
+      global,
+      std
+    })
+  }
+
+  fn resolve_tasks(&mut self, description: String) -> Result<()> {
+    self.tasks.work(description, |tasks| loop {
+      // Resolve `global` recursively
+      self.global.resolve(self.lazy, tasks)?;
+
+      // Execute the tasks: typically overwriting unknown values with &mut
+      let did_execute = tasks.execute_pass(self.lazy)?;
+
+      // If no tasks ran, we _should_ be finished resolving
+      if !did_execute {
+        return Ok(());
+      };
+    })
+  }
+}
+
+fn find_main(lazy: &Lazy, module: ModuleReference, tasks: &mut Tasks<LazyStructures>) -> Result<FunctionReference> {
+  let main_search = {
+    let main_id = lazy.pool.insert("main");
+
+    module.rget_from(lazy)
+      .functions.iter()
+      .find(|&function| {
+        function.rget_from(lazy)
+          .header.name.id == main_id
+      })
+  };
+
+  let Some(main) = main_search else {
+    let root = lazy.get_root_module(module);
+    let module_name = lazy.describe_module(root);
+
+    return tasks.seed_error(ErrorBase::MissingEntryPoint {
+      module_name,
+      file: module,
+    });
+  };
+
+  {
+    let module_name = lazy.describe_module(module);
+    let function = main.rget_from(lazy);
+    let span = function.header.name.span;
+
+    print_message!(lazy, {
+      level: Debug,
+      force: false,
+      description: format!(line_dbg!("{} has the entry point \"main\""), module_name),
+      contents: MessageContents::WithinSource(vec![WithinSource {
+        range: span,
+        sections: vec![MessageSection {
+          text: "here".into(),
+          span,
+        }],
+      }]),
+    });
+  };
+
+  Ok(*main)
+}
+
+pub fn resolve_and_verify(lazy: &mut Lazy, global: ModuleReference) -> Result<()> {
+  let mut resolver = Resolver::new(lazy, global)?;
+
+  resolver.resolve_tasks(line_dbg!("Resolve global").into())?;
+
+  resolver.tasks.work::<Result<()>>(
+    line_dbg!("Make default ambiguous types").into(),
+    |tasks| {
+      impls::structure::default_types_in_module(resolver.lazy, &global, tasks)?;
+
+      Ok(())
+    },
+  )?;
+
+  resolver.resolve_tasks(line_dbg!("Resolve after make default ambiguous types").into())?;
+
+  resolver.tasks.work::<Result<()>>(
+    line_dbg!("Verify global").into(),
+    |tasks| {
+      impls::structure::verify_module(resolver.lazy, &global, tasks)?;
+
+      print_message!(resolver.lazy, {
+        level: Stub,
+        force: false,
+        description: line_dbg!("verify rest of program, apart from main").into(),
+        contents: MessageContents::File::<LazyStructures>(global),
+      });
+
+      Ok(())
+    },
+  )?;
+
+  resolver.tasks.work::<Result<()>>(
+    line_dbg!("Verify main").into(),
+    |tasks| {
+      // get main and error if it's not present
+      let main = find_main(resolver.lazy, global, tasks)?;
+
+      let borrow = <Lazy as Store<FunctionReference>>::rget(resolver.lazy, main);
+      let ret_ty_reference = TypeReference::ReturnTypeOf(main);
+
+      // set up some perfunctory data to coerce return type to i32
+      // TODO: eventually just coerce main as fn(...) -> ...
+      {
+        let ret_ty = &borrow.header.ret_ty;
+        let span = ret_ty.get_span(resolver.lazy);
+
+        print_message!(resolver.lazy, {
+          level: Debug,
+          force: false,
+          description: format!(line_dbg!("{reference} is {ty}"),
+            reference = ret_ty_reference.print(resolver.lazy),
+            ty = ret_ty.print(resolver.lazy),
+          ),
+          contents: MessageContents::WithinSource(WithinSource::new(vec![
+            MessageSection {
+              text: "here".into(),
+              span,
+            }
+          ])),
+        });
+
+        ret_ty_reference.coerce(resolver.lazy, &Type::Intrinsic {
+          kind: Intrinsic::I32,
+          span,
+        }, tasks)?;
+      };
+
+      Ok(())
+    },
+  )?;
+
+  print_message!(resolver.lazy, {
+    level: Info,
+    force: false,
+    description: line_dbg!("No further work should be done.").into(),
+    contents: MessageContents::None::<LazyStructures>,
+  });
+  assert!(
+    !resolver.tasks.execute_pass(lazy)?,
+    "verifying should not have queued any more work",
+  );
+
+  Ok(())
+}

@@ -61,7 +61,7 @@ impl<T: TypeOf<LazyStructures>> DereferenceType for T {
   }
 }
 
-impl Resolve for TypeReference<LazyStructures> {
+impl Resolve<LazyStructures> for TypeReference<LazyStructures> {
   fn resolve(&self, lazy: &Lazy, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
     let description = format!(line_dbg!("Resolve TypeReference: {}"), self.print(lazy));
 
@@ -102,7 +102,7 @@ impl Resolve for TypeReference<LazyStructures> {
   }
 }
 
-impl Coerce for TypeReference<LazyStructures> {
+impl Coerce<LazyStructures> for TypeReference<LazyStructures> {
   fn coerce(&self, lazy: &Lazy, other: &impl TypeOf<LazyStructures>, tasks: &mut Tasks<LazyStructures>) -> Result<()> {
     // let Some(ty) = self.type_of(lazy)? else {
     //   dbg!(self.rget_from(lazy));

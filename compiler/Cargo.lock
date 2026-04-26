@@ -55,6 +55,7 @@ dependencies = [
  "lazy_macros",
  "log 0.1.0",
  "pprint",
+ "resolve",
  "string_pool",
  "tempfile",
  "tokenize",

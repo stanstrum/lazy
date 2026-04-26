@@ -2,7 +2,7 @@ use gluezy::LazyStructures;
 use inkwell::values::BasicValue;
 use ::lang::token;
 
-use crate::lang::Span;
+use ::lang::span::Span;
 use crate::generate::types::make_type;
 
 use super::*;

@@ -5,7 +5,7 @@ use lazy_macros::print_message;
 
 use ::pprint::Pretty;
 use ::gluezy::ModuleReference;
-use crate::lang::{Reference};
+use lang::reference::{Reference};
 use crate::generate::{ProgramCompilation, ProgramObjectFile};
 
 const ERROR_PAD_LEN: usize = "error ".len();

@@ -3,7 +3,7 @@ mod variable;
 
 use gluezy::LazyStructures;
 
-use crate::lang::expr::operator::BinaryOperator;
+use ::lang::expr::operator::BinaryOperator;
 use crate::generate::types::{LazyType, LazyValue};
 
 use super::*;
@@ -88,7 +88,7 @@ pub(super) fn compile_block<'ctx>(
 
   // TODO: could the names be more imaginative here?
   //       perhaps programmatically named for clarity
-  let span: Span = block.get_span(comp.lazy);
+  let span: Span<LazyStructures> = block.get_span(comp.lazy);
   let name = format!("at_{}_{}_to_{}_{}",
     span.start.line,
     span.start.column,

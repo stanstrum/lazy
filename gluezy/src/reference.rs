@@ -1,4 +1,4 @@
-use crate::{Lazy, LazyStructures, prelude::module::TokensId};
+use crate::{Lazy, LazyStructures};
 use lang::reference::Store;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -7,10 +7,8 @@ pub struct ModuleReference(pub usize);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FunctionReference(pub usize);
 
-pub type TypePartReference = ::lang::reference::TypePartReference<LazyStructures>;
-pub type TypeReference = ::lang::reference::TypeReference<LazyStructures>;
-
-pub type VariableReference = ::lang::reference::VariableReference<LazyStructures>;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TokensId(pub usize);
 
 impl<'pool> Store<ModuleReference> for Lazy<'pool> {
   type Out = lang::module::Module<LazyStructures>;

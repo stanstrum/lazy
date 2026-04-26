@@ -1,13 +1,3 @@
-mod lang {
-  pub use ::gluezy::prelude::*;
-  pub use ::lang::reference::{Store, Reference};
-}
-
-pub mod tokenize {
-  pub type Error = ::tokenize::Error<gluezy::LazyStructures>;
-  pub type Tokenizer<'pool, const N: usize, T> = ::tokenize::Tokenizer<'pool, gluezy::LazyStructures, N, T>;
-}
-
 mod generate;
 
 #[cfg(test)] mod test;

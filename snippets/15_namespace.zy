@@ -1,4 +1,4 @@
-namespace something
+mod something
   do_stuff -> i32
 
     0

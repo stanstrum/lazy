@@ -1,4 +1,4 @@
-namespace Something
+mod Something
   type foo_c_str := &[]u8
 
   struct HelloWorld

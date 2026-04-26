@@ -1,5 +1,5 @@
-namespace Whatever
-  export namespace Stuff
+mod Whatever
+  export mod Stuff
     template T
     export do_stuff -> &str
       T a
@@ -11,7 +11,7 @@ namespace Whatever
       //   drop! $
       // };
 
-  export namespace SomethingElse
+  export mod SomethingElse
     export class SomeClass
       {}
 

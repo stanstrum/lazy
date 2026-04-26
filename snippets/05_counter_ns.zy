@@ -1,4 +1,4 @@
-namespace io
+mod io
   struct Stdin
 
   stdin -> Stdin
@@ -11,13 +11,13 @@ namespace io
 
       /* todo */
 
-namespace string
+mod string
   impl &super::str
     len -> usize
 
     {}
 
-namespace ToString
+mod ToString
   str_to_num -> i32:
     &super::str text
 

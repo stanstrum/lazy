@@ -1,7 +1,7 @@
 use crate::Compiler;
 use crate::reference::{BlockReference, ExpressionReference, Reference, TypePartReference, TypeReference, VariableReference};
 use crate::expr::Expression;
-use crate::ty::{OverwriteTypeReference, Type, TypeOf, TypePair, TypePairModifier};
+use crate::ty::{Type, TypeOf, TypePair};
 
 impl<C: Compiler> TypeOf<C> for Type<C> {
   fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {
@@ -25,41 +25,17 @@ impl<C: Compiler> TypeOf<C> for Type<C> {
     }
   }
 
-  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference<C>> {
-    match dbg!(self) {
-      &Type::Reference(type_reference) => Some(type_reference.into()),
-      &Type::Resolved { part, .. } => Some(TypeReference::Part(part).into()),
-      Type::Unresolved { .. } => todo!(),
-      Type::Intrinsic { .. } => todo!(),
-      Type::WeakInteger { .. } => todo!(),
-      Type::WeakFloat { .. } => todo!(),
-      Type::WeakString { .. } => todo!(),
-      Type::Weak { .. } => todo!(),
-      Type::ReferenceTo { .. } => todo!(),
-      Type::UnsizedArrayOf { .. } => todo!(),
-      Type::SizedArrayOf { .. } => todo!(),
-      Type::Struct { .. } => todo!(),
-    }
-  }
 }
 
 impl<C: Compiler> TypeOf<C> for TypePartReference<C> {
   fn type_of(&self, store: &<C as Compiler>::Store<'_>) -> Option<Type<C>> {
     self.rget_from(store).type_of(store)
   }
-
-  fn reference(&self, store: &<C as Compiler>::Store<'_>) -> Option<OverwriteTypeReference<C>> {
-    self.rget_from(store).reference(store)
-  }
 }
 
 impl<C: Compiler> TypeOf<C> for TypeReference<C> {
   fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {
     self.rget_from(store).type_of(store)
-  }
-
-  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference<C>> {
-    Some((*self).into())
   }
 }
 
@@ -83,60 +59,17 @@ impl<C: Compiler> TypeOf<C> for ExpressionReference<C> {
         },
     }
   }
-
-  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference<C>> {
-    Some(TypeReference::Expression(*self).into())
-  }
 }
 
 impl<C: Compiler> TypeOf<C> for TypePair<C> {
   fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {
     self.ty.type_of(store)
   }
-
-  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference<C>> {
-    Some(self.clone().into())
-  }
-}
-
-impl<C: Compiler> TypeOf<C> for OverwriteTypeReference<C> {
-  fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {
-    let ty = self.reference.rget_from(store).to_owned();
-
-    for modifier in self.modifiers.iter() {
-      match modifier {
-        TypePairModifier::Dereference => match ty {
-          Type::Reference(_) => todo!(),
-          Type::Resolved { .. } => todo!(),
-          Type::Unresolved { .. } => todo!(),
-          Type::Intrinsic { .. } => todo!(),
-          Type::WeakInteger { .. } => todo!(),
-          Type::WeakFloat { .. } => todo!(),
-          Type::WeakString { .. } => todo!(),
-          Type::Weak { .. } => todo!(),
-          Type::ReferenceTo { .. } => todo!(),
-          Type::UnsizedArrayOf { .. } => todo!(),
-          Type::SizedArrayOf { .. } => todo!(),
-          Type::Struct { .. } => todo!(),
-        },
-      };
-    };
-
-    Some(ty)
-  }
-
-  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference<C>> {
-    todo!()
-  }
 }
 
 impl<C: Compiler> TypeOf<C> for VariableReference<C> {
   fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {
     TypeReference::Variable(*self).type_of(store)
-  }
-
-  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference<C>> {
-    Some(TypeReference::Variable(*self).into())
   }
 }
 
@@ -148,10 +81,7 @@ impl<C: Compiler> TypeOf<C> for BlockReference<C> {
     let reference = TypeReference::Block(*self);
     let ty = &self.rget_from(store).out;
 
-    OverwriteTypeReference::from(TypePair::new(reference, ty.clone())).type_of(store)
-  }
-
-  fn reference(&self, _store: &C::Store<'_>) -> Option<OverwriteTypeReference<C>> {
-    Some(TypeReference::Block(*self).into())
+    todo!()
+    // OverwriteTypeReference::from(TypePair::new(reference, ty.clone())).type_of(store)
   }
 }

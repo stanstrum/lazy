@@ -52,14 +52,15 @@ impl<C: Compiler + 'static> Task<C> for Subjugate<C> {
 
 impl<C: Compiler> Task<C> for OverwriteType<C> {
   fn explain(&self, store: &C::Store<'_>) -> String {
-    let parent = self.dest.reference.parent_module(store);
+    todo!()
+    // let parent = self.dest.reference.parent_module(store);
 
-    format!(
-      line_dbg!("OverwriteType in {}:\n- dest = {}\n- src  = {}"),
-      store.describe_module(parent),
-      self.dest.print(store),
-      self.src.print(store),
-    )
+    // format!(
+    //   line_dbg!("OverwriteType in {}:\n- dest = {}\n- src  = {}"),
+    //   store.describe_module(parent),
+    //   self.dest.print(store),
+    //   self.src.print(store),
+    // )
   }
 
   fn execute(self: Box<Self>, store: &mut C::Store<'_>, _tasks: &mut Tasks<C>) -> Result<C, TaskResponse<C>> {
@@ -70,14 +71,15 @@ impl<C: Compiler> Task<C> for OverwriteType<C> {
     // let span = self.src.get_span(store);
     let span = old_span;
 
-    let part = self.dest.reference.parent_module(store)
-      .add_type_part(self.src, store);
+    todo!()
+    // let part = self.dest.reference.parent_module(store)
+    //   .add_type_part(self.src, store);
 
-    let replace = Type::Resolved { part, span };
+    // let replace = Type::Resolved { part, span };
 
-    *store.rget_mut(self.dest) = replace;
+    // *store.rget_mut(self.dest) = replace;
 
-    Ok(TaskResponse::Pop)
+    // Ok(TaskResponse::Pop)
   }
 }
 

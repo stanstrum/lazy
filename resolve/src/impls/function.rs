@@ -1,8 +1,8 @@
-use lang::{Compiler, CompilerPoolStore, reference::ExpressionReference, ty::Type};
 use lazy_macros::{print_message, print_once_per_thread};
 
-use crate::TypePair;
-use lang::reference::{TypeReference, VariableReference};
+use lang::{Compiler, CompilerPoolStore};
+use lang::reference::{ExpressionReference, TypeReference, VariableReference};
+use lang::ty::{Type, TypePair};
 
 use super::*;
 

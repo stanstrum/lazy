@@ -1,15 +1,13 @@
-use lang::ty::OverwriteTypeReference;
 use lang::{Compiler, CompilerPoolStore};
 
 use lang::token::{NumericValue, StringKind};
 use lang::span::{Span, GetSpan};
+use lang::function::Function;
+use lang::module::{Module, Name};
 use lang::expr::operator::{UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 use lang::expr::{BlockExpression, Expression, LiteralKind};
 use lang::reference::{BlockReference, ExpressionReference, Reference, Store, TypePartReference, TypeReference, VariableReference};
-use lang::ty::{Qualified, QualifiedSearchSpace, Type};
-use lang::module::{Module, Name};
-use lang::function::Function;
-use lang::ty::{TypeOf, TypePair, TypePairModifier};
+use lang::ty::{Qualified, QualifiedSearchSpace, Type, TypeOf, TypePair};
 
 pub trait Pretty<C: Compiler> {
   type Out;
@@ -17,34 +15,22 @@ pub trait Pretty<C: Compiler> {
   fn print<'local, 'store, 'pool>(&'local self, store: &'store C::Store<'pool>) -> Self::Out;
 }
 
-impl<C: Compiler> Pretty<C> for OverwriteTypeReference<C> {
-  type Out = String;
-
-  fn print<'local, 'store, 'pool>(&'local self, store: &'store C::Store<'pool>) -> Self::Out {
-    let ty = self.reference.rget_from(store);
-
-    TypePair {
-      overwrite: self.reference.into(),
-      ty: ty.clone(),
-    }.print(store)
-  }
-}
-
 impl<C: Compiler> Pretty<C> for TypePair<C> {
   type Out = String;
 
   fn print<'local, 'store, 'pool>(&'local self, store: &'store C::Store<'pool>) -> Self::Out {
-    let reference = self.overwrite.reference.print(store);
+    todo!()
+    // let reference = self.overwrite.reference.print(store);
 
-    let mut out = format!("/* {{pair := {}}} */ {reference}", self.ty.print(store));
+    // let mut out = format!("/* {{pair := {}}} */ {reference}", self.ty.print(store));
 
-    for modifier in self.overwrite.modifiers.iter() {
-      match modifier {
-        TypePairModifier::Dereference => out = format!("Dereference<{out}>"),
-      };
-    };
+    // for modifier in self.overwrite.modifiers.iter() {
+    //   match modifier {
+    //     TypePairModifier::Dereference => out = format!("Dereference<{out}>"),
+    //   };
+    // };
 
-    out
+    // out
   }
 }
 

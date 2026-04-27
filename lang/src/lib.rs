@@ -23,7 +23,7 @@ use std::{fmt::Debug, hash::Hash, path::{Path, PathBuf}};
 
 use string_pool::StringPool;
 
-use crate::{error::LazyError, function::FunctionHeader, module::{ModuleParent, ModulePath}, reference::{BlockReference, TypePartReference, TypeReference}, ty::{OverwriteTypeReference, Qualified, QualifiedSearchSpace}};
+use crate::{error::LazyError, function::FunctionHeader, module::{ModuleParent, ModulePath}, reference::{BlockReference, TypePartReference, TypeReference}, ty::{Qualified, QualifiedSearchSpace}};
 
 pub trait CompilerReference: Debug + Clone + Copy + PartialEq + Eq {}
 impl<T: Debug + Clone + Copy + PartialEq + Eq> CompilerReference for T {}
@@ -35,8 +35,6 @@ pub trait CompilerPoolStore<'pool, C: Compiler>:
   reference::Store<BlockReference<C>, Out = expr::BlockExpression<C>> +
   reference::Store<TypeReference<C>, Out = ty::Type<C>> +
   reference::Store<TypePartReference<C>, Out = ty::Type<C>> +
-  reference::Store<OverwriteTypeReference<C>, Out = ty::Type<C>> +
-  // reference::Store<TypePartReference<C>, Out = ty::Type<C>> +
 {
   type Error: Debug;
 

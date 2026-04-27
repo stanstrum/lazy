@@ -17,10 +17,9 @@ use lang::Compiler;
     pub src: Expression<C>,
   }
 
-  pub use lang::ty::OverwriteTypeReference;
   pub struct OverwriteType<C: Compiler> {
-    pub dest: OverwriteTypeReference<C>,
     pub src: Type<C>,
+    pub dest: Type<C>,
   }
 
   pub struct ResolveAsTask<C: Compiler, R: Resolve<C>> {

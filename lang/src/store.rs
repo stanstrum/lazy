@@ -1,7 +1,7 @@
 use crate::Compiler;
 use crate::expr::Expression;
 use crate::reference::{AliasReference, BlockReference, ExpressionReference, Store, StructReference, TypePartId, TypePartReference, TypeReference, VariableReference};
-use crate::ty::{OverwriteTypeReference, Type, TypePairModifier};
+use crate::ty::Type;
 
 impl<'pool, C: Compiler> Store<AliasReference<C>> for C::Store<'pool> {
   type Out = crate::module::TypeAlias<C>;
@@ -48,26 +48,6 @@ impl<'pool, C: Compiler> Store<ExpressionReference<C>> for C::Store<'pool> {
 
   fn rget_mut(&mut self, ExpressionReference(BlockReference(function, _), id): ExpressionReference<C>) -> &mut Self::Out {
     &mut self.rget_mut(function)[id]
-  }
-}
-
-impl<'pool, C: Compiler> Store<OverwriteTypeReference<C>> for C::Store<'pool> {
-  type Out = Type<C>;
-
-  fn rget(&self, _key: OverwriteTypeReference<C>) -> &Self::Out {
-    todo!()
-  }
-
-  fn rget_mut(&mut self, key: OverwriteTypeReference<C>) -> &mut Self::Out {
-    let ty = self.rget_mut(key.reference);
-
-    for modifier in key.modifiers.iter() {
-      match modifier {
-        TypePairModifier::Dereference => todo!(),
-      };
-    };
-
-    ty
   }
 }
 

@@ -9,6 +9,12 @@ impl<C: Compiler> GetSpan<C> for crate::module::Name<C> {
   }
 }
 
+impl<C: Compiler> GetSpan<C> for crate::module::Struct<C> {
+  fn get_span(&self, store: &<C as Compiler>::Store<'_>) -> Span<C> {
+    self.span
+  }
+}
+
 impl<C: Compiler> GetSpan<C> for crate::import::ImportPart<C> {
   fn get_span(&self, _store: &C::Store<'_>) -> Span<C> {
     match self {
@@ -34,7 +40,7 @@ impl<C: Compiler> GetSpan<C> for crate::ty::Type<C> {
       | Self::WeakString { span, .. }
         => *span,
       Self::Reference(reference) => reference.rget_from(store).get_span(store),
-      Self::Struct { prototype } => prototype.rget_from(store).span,
+      Self::Struct { prototype } => prototype.rget_from(store).get_span(store),
     }
   }
 }
@@ -68,7 +74,7 @@ impl<C: Compiler> GetSpan<C> for crate::expr::Variable<C> {
 
 impl<C: Compiler> GetSpan<C> for crate::reference::BlockReference<C> {
   fn get_span(&self, store: &<C as Compiler>::Store<'_>) -> Span<C> {
-    self.rget_from(store).span
+    self.rget_from(store).get_span(store)
   }
 }
 
@@ -99,11 +105,5 @@ impl<C: Compiler> GetSpan<C> for crate::reference::TypePartReference<C> {
 impl<C: Compiler> GetSpan<C> for crate::ty::TypePair<C> {
   fn get_span(&self, store: &C::Store<'_>) -> Span<C> {
     self.overwrite.get_span(store)
-  }
-}
-
-impl<C: Compiler> GetSpan<C> for crate::ty::OverwriteTypeReference<C> {
-  fn get_span(&self, store: &C::Store<'_>) -> Span<C> {
-    self.reference.get_span(store)
   }
 }

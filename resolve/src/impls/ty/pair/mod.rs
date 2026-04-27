@@ -4,8 +4,7 @@ use lang::Compiler;
 use lang::token::StringKind;
 use lang::module::AddTypePart;
 use lang::intrinsic::Intrinsic;
-use lang::ty::{QualifiedSearchSpace};
-use crate::TypePair;
+use lang::ty::{QualifiedSearchSpace, TypePair};
 
 use super::*;
 
@@ -31,13 +30,14 @@ impl<C: Compiler + 'static> Resolve<C> for TypePair<C> {
       match &self.ty {
         Type::Unresolved { module, qualified } => {
           if let Some(ty) = unknown::resolve_qualified_to_type(store, *module, qualified, tasks)? {
-            tasks.push(tasks::Subjugate {
-              prerequisite: Box::new(tasks::OverwriteType {
-                dest: self.clone().into(),
-                src: ty,
-              }),
-              after: Box::new(tasks::ResolveAsTask::<C, TypeReference<C>>::new(self.overwrite.reference)),
-            }, line_dbg!("here"));
+            todo!()
+            // tasks.push(tasks::Subjugate {
+            //   prerequisite: Box::new(tasks::OverwriteType {
+            //     dest: self.clone().into(),
+            //     src: ty,
+            //   }),
+            //   after: Box::new(tasks::ResolveAsTask::<C, TypeReference<C>>::new(self.overwrite.reference)),
+            // }, line_dbg!("here"));
           };
 
           Ok(())
@@ -79,7 +79,8 @@ impl<C: Compiler + 'static> Coerce<C> for TypePair<C> {
     let c = other_ref.type_of(store)
       .map(|x| x.print(store))
       .unwrap_or_else(|| "{none}".into());
-    let d = format!("{:?}", &self.overwrite.modifiers);
+    todo!();
+    let d = /* format!("{:?}", &self.overwrite.modifiers); */ todo!();
 
     let description = format!(
       line_dbg!("Coerce TypePair\n- Reference: {}\n- Modifiers: {}\n- Type:      {}\n- Coerce w/: {}"),
@@ -111,10 +112,11 @@ impl<C: Compiler + 'static> Coerce<C> for TypePair<C> {
           | Type::WeakFloat { .. },
           Type::Intrinsic { kind, .. },
         ) if !matches!(kind, Intrinsic::Bool | Intrinsic::Void) => {
-          tasks.push(tasks::OverwriteType {
-            dest: self.clone().into(),
-            src: other,
-          }, line_dbg!("here"));
+          todo!();
+          // tasks.push(tasks::OverwriteType {
+          //   dest: self.clone().into(),
+          //   src: other,
+          // }, line_dbg!("here"));
 
           Ok(())
         },
@@ -148,10 +150,12 @@ impl<C: Compiler + 'static> Coerce<C> for TypePair<C> {
           Ok(())
         },
         (Type::Weak { .. }, _) => {
-          tasks.push(tasks::OverwriteType {
-            dest: self.overwrite.clone(),
-            src: other,
-          }, line_dbg!("here"));
+          todo!();
+
+          // tasks.push(tasks::OverwriteType {
+          //   dest: self.overwrite.clone(),
+          //   src: other,
+          // }, line_dbg!("here"));
 
           Ok(())
         },
@@ -161,27 +165,29 @@ impl<C: Compiler + 'static> Coerce<C> for TypePair<C> {
           Ok(())
         },
         (Type::Unresolved { module, qualified }, _) if qualified.is_implicit() => {
-          let dest = self.clone().into();
+          let dest = /* self.clone().into() */ todo!();
 
           let mut qualified = qualified.clone();
-          qualified.implicit = QualifiedSearchSpace::Type(other_ref.reference(store).expect("god help me"));
+          todo!();
+          // qualified.implicit = QualifiedSearchSpace::Type(other_ref.reference(store).expect("god help me"));
 
           let src = Type::Unresolved {
             module: *module,
             qualified,
           };
 
-          // RHS should be anything but another Unresolved.  Try to resolve
-          // an implicit
-          let task = tasks::Subjugate {
-            prerequisite: Box::new(tasks::OverwriteType {
-              dest,
-              src,
-            }),
-            after: Box::new(tasks::ResolveAsTask::new(self.overwrite.reference)),
-          };
+          todo!();
+          // // RHS should be anything but another Unresolved.  Try to resolve
+          // // an implicit
+          // let task = /* tasks::Subjugate {
+          //   prerequisite: Box::new(tasks::OverwriteType {
+          //     dest,
+          //     src,
+          //   }),
+          //   after: Box::new(tasks::ResolveAsTask::new(self.overwrite.reference)),
+          // } */ todo!();
 
-          tasks.push(task, line_dbg!("here"));
+          // tasks.push(task, line_dbg!("here"));
 
           Ok(())
         },
@@ -288,10 +294,11 @@ pub(in crate::impls) fn default_types_of_type_pair<C: Compiler + 'static>(store:
         span: *span,
       };
 
-      tasks.push(tasks::OverwriteType {
-        dest: pair.to_owned().into(),
-        src,
-      }, line_dbg!("here"));
+      todo!();
+      // tasks.push(tasks::OverwriteType {
+      //   dest: pair.to_owned().into(),
+      //   src,
+      // }, line_dbg!("here"));
 
       Ok(())
     },
@@ -303,8 +310,8 @@ pub(in crate::impls) fn default_types_of_type_pair<C: Compiler + 'static>(store:
         todo!()
       };
 
-      let src = {
-        let parent_module = pair.overwrite.reference.parent_module(store);
+      let src = /* {
+        let parent_module = pair.overwrite.reference.parent_module(store) todo!();
 
         let element_intrinsic = kind.into();
         let element_part = Type::Intrinsic { kind: element_intrinsic, span };
@@ -314,12 +321,12 @@ pub(in crate::impls) fn default_types_of_type_pair<C: Compiler + 'static>(store:
         let arr_of_element_reference = parent_module.add_type_part(arr_of_element_part, store);
 
         Type::ReferenceTo { ty: arr_of_element_reference, r#mut: false, span }
-      };
+      } */ todo!();
 
-      tasks.push(tasks::OverwriteType {
-        dest: pair.to_owned().into(),
-        src,
-      }, line_dbg!("here"));
+      // tasks.push(tasks::OverwriteType {
+      //   dest: pair.to_owned().into(),
+      //   src,
+      // }, line_dbg!("here"));
 
       Ok(())
     },

@@ -1,12 +1,9 @@
 mod part;
 pub mod pair;
-mod overwrite;
 
 use lang::Compiler;
-use lang::ty::{Qualified, Type};
+use lang::ty::{Qualified, Type, TypePair};
 use lang::reference::TypeReference;
-use crate::tasks::OverwriteTypeReference;
-use crate::{TypePair, TypePairModifier};
 
 use super::*;
 
@@ -29,29 +26,31 @@ impl<C: Compiler, T: TypeOf<C>> DereferenceType<C> for T {
       Type::WeakFloat { .. } => Ok(None),
       Type::WeakString { dereferenced: true, .. } => Ok(None),
       Type::WeakString { kind, characters, span, .. } => Ok({
-        let mut reference = self.reference(store).expect("please please please");
-        let ty = Type::WeakString {
-          dereferenced: true,
-          kind,
-          characters,
-          span,
-        };
+        todo!()
+        // let mut reference = self.reference(store).expect("please please please");
+        // let ty = Type::WeakString {
+        //   dereferenced: true,
+        //   kind,
+        //   characters,
+        //   span,
+        // };
 
-        reference.modifiers.push(TypePairModifier::Dereference);
+        // reference.modifiers.push(TypePairModifier::Dereference);
 
-        Some(TypePair { overwrite: reference, ty, })
+        // Some(TypePair { overwrite: reference, ty, })
       }),
       Type::Weak { .. } => Ok(None),
       Type::ReferenceTo { ty, r#mut: reference_mut, .. } => Ok({
         #[allow(clippy::nonminimal_bool)]
         (!(reference_mut && !r#mut)).then(|| {
-          let mut reference = self.reference(store).expect("please please please");
-          reference.modifiers.push(TypePairModifier::Dereference);
+          todo!()
+          // let mut reference = self.reference(store).expect("please please please");
+          // reference.modifiers.push(TypePairModifier::Dereference);
 
-          TypePair {
-            overwrite: reference,
-            ty: Type::Reference(TypeReference::Part(ty)),
-          }
+          // TypePair {
+          //   overwrite: reference,
+          //   ty: Type::Reference(TypeReference::Part(ty)),
+          // }
         })
       }),
       Type::UnsizedArrayOf { .. } => Ok(None),
@@ -110,8 +109,9 @@ impl<C: Compiler + 'static> Coerce<C> for TypeReference<C> {
     //   todo!()
     // };
 
-    let overwrite: OverwriteTypeReference<C> = (*self).into();
-    overwrite.coerce(store, other, tasks)
+    todo!()
+    // let overwrite: OverwriteTypeReference<C> = (*self).into();
+    // overwrite.coerce(store, other, tasks)
   }
 }
 

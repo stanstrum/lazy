@@ -77,7 +77,7 @@ fn make_reference_to<'pool, C: Compiler, const N: usize, T: Read>(
   store: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, C, N, T>,
   module: C::ModuleReference,
-) -> Result<Option<lang::ty::Type<C>>, Error<C>> {
+) -> Result<Option<lang::ty::TypeKind<C>>, Error<C>> {
   let Some((Token::Operator(Operator::SingleAnd), mut span)) = stream.peek()? else {
     return Ok(None);
   };
@@ -100,14 +100,14 @@ fn make_reference_to<'pool, C: Compiler, const N: usize, T: Read>(
 
   span.extend(ty.get_span(store));
 
-  Ok(Some(lang::ty::Type::ReferenceTo { ty, r#mut, span, }))
+  Ok(Some(lang::ty::TypeKind::ReferenceTo { ty, r#mut, span, }))
 }
 
 fn make_array_of<'pool, C: Compiler, const N: usize, T: Read>(
   store: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, C, N, T>,
   module: C::ModuleReference,
-) -> Result<Option<lang::ty::Type<C>>, Error<C>> {
+) -> Result<Option<lang::ty::TypeKind<C>>, Error<C>> {
   let Some((Token::Grouping(GroupingType::Open(GroupingKind::Bracket)), start)) = stream.peek()? else {
     return Ok(None);
   };
@@ -157,8 +157,8 @@ fn make_array_of<'pool, C: Compiler, const N: usize, T: Read>(
   span.extend(ty.get_span(store));
 
   Ok(Some(match size {
-    Some(size) => lang::ty::Type::SizedArrayOf { ty, size, span },
-    None => lang::ty::Type::UnsizedArrayOf { ty, span }
+    Some(size) => lang::ty::TypeKind::SizedArrayOf { ty, size, span },
+    None => lang::ty::TypeKind::UnsizedArrayOf { ty, span }
   }))
 }
 
@@ -166,9 +166,9 @@ pub(super) fn make_type<'pool, C: Compiler, const N: usize, T: Read>(
   lazy: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, C, N, T>,
   module: C::ModuleReference,
-) -> Result<Option<lang::ty::Type<C>>, Error<C>> {
+) -> Result<Option<lang::ty::TypeKind<C>>, Error<C>> {
   if let Some(qualified) = make_qualified(stream, module)? {
-    return Ok(Some(lang::ty::Type::Unresolved { module, qualified }));
+    return Ok(Some(lang::ty::TypeKind::Unresolved { module, qualified }));
   };
 
   if let Some(reference_to) = make_reference_to(lazy, stream, module)? {

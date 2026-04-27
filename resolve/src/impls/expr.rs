@@ -2,7 +2,7 @@ use lazy_macros::print_once_per_thread;
 use lang::{Compiler, CompilerPoolStore};
 use lang::span::Span;
 use lang::intrinsic::Intrinsic;
-use lang::ty::{Type, TypePair};
+use lang::ty::{TypeKind, Type};
 use lang::expr::Expression;
 use lang::expr::operator::BinaryOperator;
 use lang::reference::{BlockReference, ExpressionReference, TypeReference, VariableReference};
@@ -123,7 +123,7 @@ pub(super) fn default_types_in_block_expr<C: Compiler + 'static>(store: &mut C::
   })
 }
 
-pub(super) fn verify_block<C: Compiler + 'static>(store: &C::Store<'_>, block: &BlockReference<C>, ret_ty: Option<&TypePair<C>>, tasks: &mut Tasks<C>) -> Result<C> {
+pub(super) fn verify_block<C: Compiler + 'static>(store: &C::Store<'_>, block: &BlockReference<C>, ret_ty: Option<&Type<C>>, tasks: &mut Tasks<C>) -> Result<C> {
   let block_borrow = block.rget_from(store);
 
   let description = {
@@ -137,7 +137,7 @@ pub(super) fn verify_block<C: Compiler + 'static>(store: &C::Store<'_>, block: &
 
   tasks.work(description, |tasks| {
     let block_type_reference = TypeReference::Block(*block);
-    let block_out = TypePair::new(block_type_reference, block_borrow.out.clone());
+    let block_out = Type::new(block_type_reference, block_borrow.out.clone());
 
     if let Some(ret_ty) = ret_ty {
       block_out.coerce(store, ret_ty, tasks)?;
@@ -152,7 +152,7 @@ pub(super) fn verify_block<C: Compiler + 'static>(store: &C::Store<'_>, block: &
       let irr_reference = TypeReference::Expression(expr);
       let irr_ty = irr_reference.rget_from(store);
 
-      let irr = TypePair::new(irr_reference, irr_ty.clone());
+      let irr = Type::new(irr_reference, irr_ty.clone());
 
       let ret_ty = if is_last(id) && let Some(ret_ty) = ret_ty {
         irr.coerce(store, ret_ty, tasks)?;
@@ -186,7 +186,7 @@ impl<C: Compiler + 'static> Resolve<C> for ExpressionReference<C> {
           block.resolve(store, tasks)
         },
         Expression::Literal { out, .. } => {
-          TypePair::new(ty_reference, out.clone()).resolve(store, tasks)
+          Type::new(ty_reference, out.clone()).resolve(store, tasks)
         },
         Expression::Variable { reference, .. } => {
           reference.resolve(store, tasks)
@@ -197,9 +197,9 @@ impl<C: Compiler + 'static> Resolve<C> for ExpressionReference<C> {
           out,
           ..
         } => {
-          let out_pair = TypePair::new(ty_reference, out.clone());
+          let out_pair = Type::new(ty_reference, out.clone());
 
-          let void_op = Type::Intrinsic {
+          let void_op = TypeKind::Intrinsic {
             kind: Intrinsic::Void,
             span: *op_span,
           };
@@ -268,14 +268,14 @@ impl<C: Compiler + 'static> Resolve<C> for ExpressionReference<C> {
         },
         Expression::StructInitializer { ty, members, .. } => {
           let prototype = ty.type_of(store).map(|ty| {
-            let Type::Struct { prototype } = ty else {
+            let TypeKind::Struct { prototype } = ty else {
               todo!("error for bad struct initializer type at resolve");
             };
 
             prototype
           });
 
-          TypePair::new(
+          Type::new(
             TypeReference::Expression(*self),
             ty.clone(),
           ).resolve(store, tasks)?;
@@ -366,7 +366,7 @@ fn default_types_in_expr<C: Compiler + 'static>(store: &mut C::Store<'_>, expr: 
   })
 }
 
-fn verify_expr<C: Compiler + 'static>(store: &C::Store<'_>, expr: ExpressionReference<C>, ret_ty: Option<&TypePair<C>>, tasks: &mut Tasks<C>) -> Result<C> {
+fn verify_expr<C: Compiler + 'static>(store: &C::Store<'_>, expr: ExpressionReference<C>, ret_ty: Option<&Type<C>>, tasks: &mut Tasks<C>) -> Result<C> {
   let Span { start, end , .. } = store.rget(expr).get_span(store);
 
   let description = format!(line_dbg!("Verify expr {}:{} - {}:{}"),
@@ -397,7 +397,7 @@ fn verify_expr<C: Compiler + 'static>(store: &C::Store<'_>, expr: ExpressionRefe
       ..
     } => {
       let ty_reference = TypeReference::Expression(expr);
-      let out_pair: TypePair<C> = TypePair::new(ty_reference, out.clone());
+      let out_pair: Type<C> = Type::new(ty_reference, out.clone());
 
       verify_expr(store, *a, None, tasks)?;
       verify_expr(store, *b, None, tasks)?;
@@ -405,7 +405,7 @@ fn verify_expr<C: Compiler + 'static>(store: &C::Store<'_>, expr: ExpressionRefe
       // TypeReference::Expression(*a).coerce(lazy, &TypeReference::Expression(*b), tasks)?;
       // TypeReference::Expression(*b).coerce(lazy, &TypeReference::Expression(*a), tasks)?;
 
-      out_pair.coerce(store, &Type::Intrinsic {
+      out_pair.coerce(store, &TypeKind::Intrinsic {
         kind: Intrinsic::Void,
         span: *op_span,
       }, tasks)?;
@@ -415,7 +415,7 @@ fn verify_expr<C: Compiler + 'static>(store: &C::Store<'_>, expr: ExpressionRefe
     Expression::Binary { .. } => todo!(),
     Expression::StructInitializer { ty, members, .. } => {
       let Some(prototype) = ty.type_of(store).map(|ty| {
-        let Type::Struct { prototype } = ty else {
+        let TypeKind::Struct { prototype } = ty else {
           todo!("error for bad struct initializer type at resolve");
         };
 
@@ -433,7 +433,7 @@ fn verify_expr<C: Compiler + 'static>(store: &C::Store<'_>, expr: ExpressionRefe
           todo!("unresolved type");
         };
 
-        let ret_ty = TypePair::new(
+        let ret_ty = Type::new(
           TypeReference::StructMember(prototype, struct_index),
           ty,
         );

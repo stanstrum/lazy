@@ -1,46 +1,46 @@
 use crate::Compiler;
 use crate::reference::{BlockReference, ExpressionReference, Reference, TypePartReference, TypeReference, VariableReference};
 use crate::expr::Expression;
-use crate::ty::{Type, TypeOf, TypePair};
+use crate::ty::{TypeKind, TypeOf, Type};
 
-impl<C: Compiler> TypeOf<C> for Type<C> {
-  fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {
+impl<C: Compiler> TypeOf<C> for TypeKind<C> {
+  fn type_of(&self, store: &C::Store<'_>) -> Option<TypeKind<C>> {
     match self {
-      | Type::Intrinsic { .. }
-      | Type::WeakInteger { .. }
-      | Type::WeakFloat { .. }
-      | Type::WeakString { .. }
-      | Type::Weak { .. }
-      | Type::ReferenceTo { .. }
-      | Type::UnsizedArrayOf { .. }
-      | Type::SizedArrayOf { .. }
+      | TypeKind::Intrinsic { .. }
+      | TypeKind::WeakInteger { .. }
+      | TypeKind::WeakFloat { .. }
+      | TypeKind::WeakString { .. }
+      | TypeKind::Weak { .. }
+      | TypeKind::ReferenceTo { .. }
+      | TypeKind::UnsizedArrayOf { .. }
+      | TypeKind::SizedArrayOf { .. }
       // | Type::Unresolved { .. }
-      | Type::Struct { .. }
+      | TypeKind::Struct { .. }
         => Some(self.clone()),
       // SPONGE
-      | Type::Unresolved { .. }
+      | TypeKind::Unresolved { .. }
         => None,
-      Type::Resolved { part, .. } => part.type_of(store),
-      Type::Reference(reference) => reference.type_of(store),
+      TypeKind::Resolved { part, .. } => part.type_of(store),
+      TypeKind::Reference(reference) => reference.type_of(store),
     }
   }
 
 }
 
 impl<C: Compiler> TypeOf<C> for TypePartReference<C> {
-  fn type_of(&self, store: &<C as Compiler>::Store<'_>) -> Option<Type<C>> {
+  fn type_of(&self, store: &<C as Compiler>::Store<'_>) -> Option<TypeKind<C>> {
     self.rget_from(store).type_of(store)
   }
 }
 
 impl<C: Compiler> TypeOf<C> for TypeReference<C> {
-  fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {
+  fn type_of(&self, store: &C::Store<'_>) -> Option<TypeKind<C>> {
     self.rget_from(store).type_of(store)
   }
 }
 
 impl<C: Compiler> TypeOf<C> for ExpressionReference<C> {
-  fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {
+  fn type_of(&self, store: &C::Store<'_>) -> Option<TypeKind<C>> {
     match self.rget_from(store) {
       Expression::Block(block) => block.type_of(store),
       Expression::Variable { reference, .. } => reference.type_of(store),
@@ -55,26 +55,26 @@ impl<C: Compiler> TypeOf<C> for ExpressionReference<C> {
         => {
           let reference = TypeReference::Expression(*self);
 
-          TypePair::new(reference, out.clone()).type_of(store)
+          Type::new(reference, out.clone()).type_of(store)
         },
     }
   }
 }
 
-impl<C: Compiler> TypeOf<C> for TypePair<C> {
-  fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {
+impl<C: Compiler> TypeOf<C> for Type<C> {
+  fn type_of(&self, store: &C::Store<'_>) -> Option<TypeKind<C>> {
     self.ty.type_of(store)
   }
 }
 
 impl<C: Compiler> TypeOf<C> for VariableReference<C> {
-  fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {
+  fn type_of(&self, store: &C::Store<'_>) -> Option<TypeKind<C>> {
     TypeReference::Variable(*self).type_of(store)
   }
 }
 
 impl<C: Compiler> TypeOf<C> for BlockReference<C> {
-  fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {
+  fn type_of(&self, store: &C::Store<'_>) -> Option<TypeKind<C>> {
     // TODO: is this correct? should I try to match the expr type directly,
     //       maybe in addition to this?  Coerce in TypeOf? what could go
     //       wrong ???

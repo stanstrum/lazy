@@ -7,7 +7,7 @@ use lazy_macros::{print_message, line_dbg};
 use pprint::Pretty;
 use lang::intrinsic::Intrinsic;
 use lang::span::GetSpan;
-use lang::ty::Type;
+use lang::ty::TypeKind;
 use lang::reference::{Reference, Store, TypeReference};
 
 use tasks::Tasks;
@@ -189,7 +189,7 @@ pub fn resolve_and_verify<C: Compiler + 'static>(store: &mut C::Store<'_>, globa
           ])),
         });
 
-        ret_ty_reference.coerce(resolver.store, &Type::Intrinsic {
+        ret_ty_reference.coerce(resolver.store, &TypeKind::Intrinsic {
           kind: Intrinsic::I32,
           span,
         }, tasks)?;

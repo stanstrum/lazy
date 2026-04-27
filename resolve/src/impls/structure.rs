@@ -1,4 +1,4 @@
-use lang::ty::Type;
+use lang::ty::TypeKind;
 use lang::{Compiler, CompilerPoolStore};
 use lang::reference::{AliasReference, StructReference, TypeReference};
 use crate::impls::function::resolve_function_reference;
@@ -63,7 +63,7 @@ pub(super) fn verify_struct<C: Compiler + 'static>(store: &C::Store<'_>, struct_
 }
 
 fn verify_alias<C: Compiler + 'static>(store: &C::Store<'_>, alias: &AliasReference<C>, tasks: &mut Tasks<C>) -> Result<C> {
-  let ty = Type::Reference(TypeReference::Alias(*alias));
+  let ty = TypeKind::Reference(TypeReference::Alias(*alias));
   verify_typeof(store, &ty, tasks)
 }
 

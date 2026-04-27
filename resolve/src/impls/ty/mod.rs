@@ -2,30 +2,30 @@ mod part;
 pub mod pair;
 
 use lang::Compiler;
-use lang::ty::{Qualified, Type, TypePair};
+use lang::ty::{Qualified, TypeKind, Type};
 use lang::reference::TypeReference;
 
 use super::*;
 
 trait DereferenceType<C: Compiler> {
-  fn dereference(&self, store: &C::Store<'_>, r#mut: bool) -> Result<C, Option<TypePair<C>>>;
+  fn dereference(&self, store: &C::Store<'_>, r#mut: bool) -> Result<C, Option<Type<C>>>;
 }
 
 impl<C: Compiler, T: TypeOf<C>> DereferenceType<C> for T {
-  fn dereference(&self, store: &C::Store<'_>, r#mut: bool) -> Result<C, Option<TypePair<C>>> {
+  fn dereference(&self, store: &C::Store<'_>, r#mut: bool) -> Result<C, Option<Type<C>>> {
     let Some(ty) = self.type_of(store) else {
       return Ok(None);
     };
 
     match ty {
-      Type::Reference(type_reference) => type_reference.dereference(store, r#mut),
-      Type::Resolved { part, .. } => dbg!(part.dereference(store, r#mut)),
-      Type::Unresolved { .. } => Ok(None),
-      Type::Intrinsic { .. } => Ok(None),
-      Type::WeakInteger { .. } => Ok(None),
-      Type::WeakFloat { .. } => Ok(None),
-      Type::WeakString { dereferenced: true, .. } => Ok(None),
-      Type::WeakString { kind, characters, span, .. } => Ok({
+      TypeKind::Reference(type_reference) => type_reference.dereference(store, r#mut),
+      TypeKind::Resolved { part, .. } => dbg!(part.dereference(store, r#mut)),
+      TypeKind::Unresolved { .. } => Ok(None),
+      TypeKind::Intrinsic { .. } => Ok(None),
+      TypeKind::WeakInteger { .. } => Ok(None),
+      TypeKind::WeakFloat { .. } => Ok(None),
+      TypeKind::WeakString { dereferenced: true, .. } => Ok(None),
+      TypeKind::WeakString { kind, characters, span, .. } => Ok({
         todo!()
         // let mut reference = self.reference(store).expect("please please please");
         // let ty = Type::WeakString {
@@ -39,8 +39,8 @@ impl<C: Compiler, T: TypeOf<C>> DereferenceType<C> for T {
 
         // Some(TypePair { overwrite: reference, ty, })
       }),
-      Type::Weak { .. } => Ok(None),
-      Type::ReferenceTo { ty, r#mut: reference_mut, .. } => Ok({
+      TypeKind::Weak { .. } => Ok(None),
+      TypeKind::ReferenceTo { ty, r#mut: reference_mut, .. } => Ok({
         #[allow(clippy::nonminimal_bool)]
         (!(reference_mut && !r#mut)).then(|| {
           todo!()
@@ -53,9 +53,9 @@ impl<C: Compiler, T: TypeOf<C>> DereferenceType<C> for T {
           // }
         })
       }),
-      Type::UnsizedArrayOf { .. } => Ok(None),
-      Type::SizedArrayOf { .. } => Ok(None),
-      Type::Struct { .. } => Ok(None),
+      TypeKind::UnsizedArrayOf { .. } => Ok(None),
+      TypeKind::SizedArrayOf { .. } => Ok(None),
+      TypeKind::Struct { .. } => Ok(None),
     }
   }
 }
@@ -68,28 +68,28 @@ impl<C: Compiler + 'static> Resolve<C> for TypeReference<C> {
       TypeReference::Part(type_part_reference) => {
         let ty = type_part_reference.rget_from(store);
 
-        TypePair::new(*self, ty.clone()).resolve(store, tasks)
+        Type::new(*self, ty.clone()).resolve(store, tasks)
       },
       TypeReference::ReturnTypeOf(function_reference) => {
         let ty = &function_reference.rget_from(store).header.ret_ty;
 
-        TypePair::new(*self, ty.clone()).resolve(store, tasks)
+        Type::new(*self, ty.clone()).resolve(store, tasks)
       },
       TypeReference::StructMember(struct_reference, id) => {
         let ty = &struct_reference.rget_from(store).members.get(*id).unwrap().ty;
 
-        TypePair::new(*self, ty.clone()).resolve(store, tasks)
+        Type::new(*self, ty.clone()).resolve(store, tasks)
       },
       TypeReference::Alias(alias) => {
         let ty = &alias.rget_from(store).ty;
 
-        TypePair::new(*self, ty.clone()).resolve(store, tasks)
+        Type::new(*self, ty.clone()).resolve(store, tasks)
       },
       TypeReference::Variable(v) => {
         let variable = v.rget_from(store);
         let ty = &variable.ty;
 
-        TypePair::new(*self, ty.clone()).resolve(store, tasks)
+        Type::new(*self, ty.clone()).resolve(store, tasks)
       },
       TypeReference::Expression(expr) => {
         expr.resolve(store, tasks)
@@ -136,32 +136,32 @@ pub(super) fn verify_typeof<C: Compiler + 'static>(
 
 pub(super) fn default_types_of_type<C: Compiler + 'static>(store: &mut C::Store<'_>, reference: &TypeReference<C>, tasks: &mut Tasks<C>) -> Result<C> {
   let ty = reference.type_of(store).expect("to get a type");
-  let pair = TypePair::new(*reference, ty);
+  let pair = Type::new(*reference, ty);
 
   ty::pair::default_types_of_type_pair(store, &pair, tasks)
 }
 
-pub(super) fn verify_type<C: Compiler + 'static>(store: &C::Store<'_>, ty: &Type<C>, tasks: &mut Tasks<C>) -> Result<C> {
+pub(super) fn verify_type<C: Compiler + 'static>(store: &C::Store<'_>, ty: &TypeKind<C>, tasks: &mut Tasks<C>) -> Result<C> {
   let description = format!(line_dbg!("Verify type {}"), ty.print(store));
 
   tasks.work(description, |tasks| match ty {
-    Type::Reference(type_reference) => verify_typeof(store, type_reference, tasks),
+    TypeKind::Reference(type_reference) => verify_typeof(store, type_reference, tasks),
 
-    | Type::Resolved { part: ty, .. }
-    | Type::ReferenceTo { ty, .. }
-    | Type::UnsizedArrayOf { ty, .. }
-    | Type::SizedArrayOf { ty, .. } => verify_type(store, ty.rget_from(store), tasks),
+    | TypeKind::Resolved { part: ty, .. }
+    | TypeKind::ReferenceTo { ty, .. }
+    | TypeKind::UnsizedArrayOf { ty, .. }
+    | TypeKind::SizedArrayOf { ty, .. } => verify_type(store, ty.rget_from(store), tasks),
 
-    | &Type::Unresolved { qualified: Qualified { span, .. }, .. }
-    | &Type::WeakInteger { span, .. }
-    | &Type::WeakFloat { span, .. }
-    | &Type::WeakString { span, .. }
-    | &Type::Weak { span, .. }
+    | &TypeKind::Unresolved { qualified: Qualified { span, .. }, .. }
+    | &TypeKind::WeakInteger { span, .. }
+    | &TypeKind::WeakFloat { span, .. }
+    | &TypeKind::WeakString { span, .. }
+    | &TypeKind::Weak { span, .. }
       => tasks.seed_error(ResolveErrorBase::UnresolvedInVerify {
         what: ty.print(store),
         span,
       }),
-    Type::Intrinsic { .. } => Ok(()),
-    Type::Struct { prototype } => structure::verify_struct(store, prototype, tasks),
+    TypeKind::Intrinsic { .. } => Ok(()),
+    TypeKind::Struct { prototype } => structure::verify_struct(store, prototype, tasks),
   })
 }

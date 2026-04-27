@@ -72,29 +72,29 @@ pub(super) fn make_type<'ctx>(comp: &Compilation<'_, '_, 'ctx>, t: &impl TypeOf<
     .expect("type of to be Some()");
 
   match ty {
-    lang::ty::Type::Reference(_) => todo!(),
-    lang::ty::Type::Resolved { .. } => todo!(),
-    lang::ty::Type::Intrinsic { kind, .. } => Ok(make_intrinsic_type(comp, kind)),
-    lang::ty::Type::ReferenceTo { .. } => {
+    lang::ty::TypeKind::Reference(_) => todo!(),
+    lang::ty::TypeKind::Resolved { .. } => todo!(),
+    lang::ty::TypeKind::Intrinsic { kind, .. } => Ok(make_intrinsic_type(comp, kind)),
+    lang::ty::TypeKind::ReferenceTo { .. } => {
       Ok(LazyType::Pointer(
         comp.llvm.context.ptr_type(Default::default())
       ))
     },
-    lang::ty::Type::UnsizedArrayOf { .. } => todo!(),
-    lang::ty::Type::SizedArrayOf { .. } => todo!(),
+    lang::ty::TypeKind::UnsizedArrayOf { .. } => todo!(),
+    lang::ty::TypeKind::SizedArrayOf { .. } => todo!(),
 
-    lang::ty::Type::Unresolved { .. } => todo!(),
-    | lang::ty::Type::WeakInteger { span, .. }
-    | lang::ty::Type::WeakFloat { span, .. }
-    | lang::ty::Type::WeakString { span, .. }
-    | lang::ty::Type::Weak { span, .. } => {
+    lang::ty::TypeKind::Unresolved { .. } => todo!(),
+    | lang::ty::TypeKind::WeakInteger { span, .. }
+    | lang::ty::TypeKind::WeakFloat { span, .. }
+    | lang::ty::TypeKind::WeakString { span, .. }
+    | lang::ty::TypeKind::Weak { span, .. } => {
       Err(Error::StillUnresolved {
         what: "type".into(),
         note: format!("is {}", ty.print(comp.lazy)),
         span,
       })
     },
-    lang::ty::Type::Struct { prototype } => {
+    lang::ty::TypeKind::Struct { prototype } => {
       let field_types = comp.lazy.rget(prototype).members.iter()
         .map(|variable| {
           make_type(comp, &variable.ty)

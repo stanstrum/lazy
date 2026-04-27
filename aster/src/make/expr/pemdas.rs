@@ -74,7 +74,7 @@ fn melt_left<C: Compiler>(store: &mut C::Store<'_>, cursor: &mut usize, parts: &
       expr,
       op,
       span,
-      out: lang::ty::Type::Weak { span },
+      out: lang::ty::TypeKind::Weak { span },
     };
     let new_id = function.rget_from_mut(store).add_expr(new_expr);
     expr = ExpressionReference(block, new_id);
@@ -115,7 +115,7 @@ fn melt_right<C: Compiler>(store: &mut C::Store<'_>, cursor: usize, parts: &mut 
       expr,
       op,
       span,
-      out: lang::ty::Type::Weak { span },
+      out: lang::ty::TypeKind::Weak { span },
     };
     let new_id = function.rget_from_mut(store).add_expr(new_expr);
     expr = ExpressionReference(block, new_id);
@@ -228,7 +228,7 @@ pub(crate) fn melt<C: Compiler>(store: &mut C::Store<'_>, mut parts: Vec<Express
             b,
             op,
             span,
-            out: lang::ty::Type::Weak { span },
+            out: lang::ty::TypeKind::Weak { span },
           };
           let id = function.rget_from_mut(store).add_expr(expr);
           let reference = ExpressionReference(block, id);

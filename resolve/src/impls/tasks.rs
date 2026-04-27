@@ -1,7 +1,7 @@
 use lang::{Compiler, CompilerPoolStore, module::AddTypePart, tasks::TaskResponse};
 
 pub use crate::tasks::*;
-use lang::ty::Type;
+use lang::ty::TypeKind;
 
 use super::*;
 

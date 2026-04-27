@@ -106,7 +106,7 @@ pub fn make_block_statement<'pool, C: Compiler, const N: usize, T: Read>(
         b,
         op: (lang::expr::operator::BinaryOperator::Assign, variable_span),
         span,
-        out: lang::ty::Type::Weak { span },
+        out: lang::ty::TypeKind::Weak { span },
       };
 
       let id = function.rget_from_mut(store).add_expr(assignment);
@@ -235,11 +235,11 @@ pub(super) fn make_block<'pool, C: Compiler, const N: usize, T: Read>(
     let &index = children.last().unwrap();
     let reference = ExpressionReference(block, index);
 
-    lang::ty::Type::Reference(
+    lang::ty::TypeKind::Reference(
       lang::reference::TypeReference::Expression(reference)
     )
   } else {
-    lang::ty::Type::Intrinsic {
+    lang::ty::TypeKind::Intrinsic {
       kind: lang::intrinsic::Intrinsic::Void,
       span,
     }

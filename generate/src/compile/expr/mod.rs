@@ -44,7 +44,7 @@ fn compile_expr<'ctx>(
       Ok(LazyValue::Void)
     },
     lang::expr::Expression::StructInitializer { ty, members, .. } => {
-      let lang::ty::Type::Struct { prototype } = ty.type_of(comp.lazy).expect("type to exist") else {
+      let lang::ty::TypeKind::Struct { prototype } = ty.type_of(comp.lazy).expect("type to exist") else {
         todo!("error for bad struct out type");
       };
 

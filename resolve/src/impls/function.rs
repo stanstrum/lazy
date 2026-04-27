@@ -2,7 +2,7 @@ use lazy_macros::{print_message, print_once_per_thread};
 
 use lang::{Compiler, CompilerPoolStore};
 use lang::reference::{ExpressionReference, TypeReference, VariableReference};
-use lang::ty::{Type, TypePair};
+use lang::ty::{TypeKind, Type};
 
 use super::*;
 
@@ -30,10 +30,10 @@ pub(in crate::impls) fn resolve_function_reference<C: Compiler + 'static>(
     if let Some(ty) = ret_ty.type_of(store) {
       let expr_id = body.children.last().unwrap();
       let reference = TypeReference::Expression(ExpressionReference(function.body, *expr_id));
-      let typed_reference = Type::Reference(reference);
+      let typed_reference = TypeKind::Reference(reference);
 
-      let last_expression = TypePair::new(reference, typed_reference);
-      let return_type: TypePair<C> = TypePair::new(ret_ty, ty);
+      let last_expression = Type::new(reference, typed_reference);
+      let return_type: Type<C> = Type::new(ret_ty, ty);
 
       last_expression.coerce(store, &return_type, tasks)?;
     };
@@ -104,11 +104,11 @@ pub(crate) fn verify_function<C: Compiler + 'static>(
 
     // verify return type
     let ret_ty_pair = tasks.work(line_dbg!("verify return type").into(),
-    |tasks| -> Result<C, TypePair<C>> {
+    |tasks| -> Result<C, Type<C>> {
         let ret_ty = &borrow.header.ret_ty;
         ty::verify_type(store, ret_ty, tasks)?;
 
-        Ok(TypePair::new(
+        Ok(Type::new(
           ret_ty_reference,
           ret_ty.clone(),
         ))

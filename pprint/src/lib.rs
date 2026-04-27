@@ -7,7 +7,7 @@ use lang::module::{Module, Name};
 use lang::expr::operator::{UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 use lang::expr::{BlockExpression, Expression, LiteralKind};
 use lang::reference::{BlockReference, ExpressionReference, Reference, Store, TypePartReference, TypeReference, VariableReference};
-use lang::ty::{Qualified, QualifiedSearchSpace, Type, TypeOf, TypePair};
+use lang::ty::{Qualified, QualifiedSearchSpace, TypeKind, TypeOf, Type};
 
 pub trait Pretty<C: Compiler> {
   type Out;
@@ -15,7 +15,7 @@ pub trait Pretty<C: Compiler> {
   fn print<'local, 'store, 'pool>(&'local self, store: &'store C::Store<'pool>) -> Self::Out;
 }
 
-impl<C: Compiler> Pretty<C> for TypePair<C> {
+impl<C: Compiler> Pretty<C> for Type<C> {
   type Out = String;
 
   fn print<'local, 'store, 'pool>(&'local self, store: &'store C::Store<'pool>) -> Self::Out {
@@ -143,38 +143,38 @@ impl<C: Compiler> Pretty<C> for TypeReference<C> {
   }
 }
 
-impl<C: Compiler> Pretty<C> for Type<C> {
+impl<C: Compiler> Pretty<C> for TypeKind<C> {
   type Out = String;
 
   fn print<'local, 'store, 'pool>(&self, store: &'store C::Store<'pool>) -> Self::Out {
     match self {
       // Type::Reference(reference) => reference.print(store),
-      Type::Unresolved { qualified, .. } => format!("{{unknown}} {}", qualified.print(store)),
-      Type::Intrinsic { kind, .. } => kind.to_string(),
+      TypeKind::Unresolved { qualified, .. } => format!("{{unknown}} {}", qualified.print(store)),
+      TypeKind::Intrinsic { kind, .. } => kind.to_string(),
       // Type::Resolved { original, reference } => {
       //   format!("/* {deferred} */ {original}",
       //     deferred = reference.print(store),
       //     original = original.print(store),
       //   )
       // },
-      Type::WeakFloat { .. } => "{weak float}".into(),
-      Type::WeakInteger { .. } => "{weak integer}".into(),
-      Type::WeakString { .. } => "{weak string}".into(),
-      Type::ReferenceTo { ty, r#mut, .. } => format!("&{mutable}{ty}",
+      TypeKind::WeakFloat { .. } => "{weak float}".into(),
+      TypeKind::WeakInteger { .. } => "{weak integer}".into(),
+      TypeKind::WeakString { .. } => "{weak string}".into(),
+      TypeKind::ReferenceTo { ty, r#mut, .. } => format!("&{mutable}{ty}",
         mutable = if *r#mut { "mut " } else { "" },
         ty = ty.print(store),
       ),
-      Type::SizedArrayOf { ty, size, .. } => format!("[{size}]{}", ty.print(store)),
-      Type::UnsizedArrayOf { ty, .. } => format!("[]{}", ty.print(store)),
+      TypeKind::SizedArrayOf { ty, size, .. } => format!("[{size}]{}", ty.print(store)),
+      TypeKind::UnsizedArrayOf { ty, .. } => format!("[]{}", ty.print(store)),
       // Type::Expression(expression) => {
       //   let fname = store[expression.function].header.name.print(store);
       //   let index = expression.index;
       //   format!("/* typeof {fname}:{index:?} */")
       // },
-      Type::Resolved { part, .. } => format!("|{}|", part.print(store)),
-      Type::Reference(reference) => format!("|{}|", reference.print(store)),
-      Type::Weak { .. } => "{weak}".into(),
-      Type::Struct { prototype } => {
+      TypeKind::Resolved { part, .. } => format!("|{}|", part.print(store)),
+      TypeKind::Reference(reference) => format!("|{}|", reference.print(store)),
+      TypeKind::Weak { .. } => "{weak}".into(),
+      TypeKind::Struct { prototype } => {
         let parent_name = store.describe_module(prototype.0);
         let name = prototype.rget_from(store).name.print(store);
 

@@ -33,8 +33,8 @@ pub trait CompilerPoolStore<'pool, C: Compiler>:
   reference::Store<C::FunctionReference, Out = function::Function<C>> +
   reference::Store<C::TokensReference, Out = token::Tokens<C>> +
   reference::Store<BlockReference<C>, Out = expr::BlockExpression<C>> +
-  reference::Store<TypeReference<C>, Out = ty::Type<C>> +
-  reference::Store<TypePartReference<C>, Out = ty::Type<C>> +
+  reference::Store<TypeReference<C>, Out = ty::TypeKind<C>> +
+  reference::Store<TypePartReference<C>, Out = ty::TypeKind<C>> +
 {
   type Error: Debug;
 

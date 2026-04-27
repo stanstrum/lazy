@@ -199,11 +199,11 @@ pub(super) fn resolve_qualified_to_type<C: Compiler + 'static>(
   module: C::ModuleReference,
   qualified: &Qualified<C>,
   tasks: &mut Tasks<C>,
-) -> Result<C, Option<Type<C>>> {
+) -> Result<C, Option<TypeKind<C>>> {
   Ok(match resolve_qualified_to_space(store, module, qualified, &Some(tasks))? {
     Some(QualifiedSearchSpace::Type(ty)) => ty.type_of(store),
-    Some(QualifiedSearchSpace::Intrinsic { kind, span }) => Some(Type::Intrinsic { kind, span }),
-    Some(QualifiedSearchSpace::Struct(prototype)) => Some(Type::Struct { prototype }),
+    Some(QualifiedSearchSpace::Intrinsic { kind, span }) => Some(TypeKind::Intrinsic { kind, span }),
+    Some(QualifiedSearchSpace::Struct(prototype)) => Some(TypeKind::Struct { prototype }),
     Some(QualifiedSearchSpace::Implicit) => {
       // not enough info ... do nothing and pray the problem goes away by itself
       None

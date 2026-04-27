@@ -23,7 +23,7 @@ fn new_weak_string<C: Compiler>(
   kind: lang::token::StringKind,
   value: string_pool::StringId,
   span: Span<C>,
-) -> lang::ty::Type<C> {
+) -> lang::ty::TypeKind<C> {
   let length = unsafe { store.pool().get_string(value).len() };
 
   let characters = match kind {
@@ -31,7 +31,7 @@ fn new_weak_string<C: Compiler>(
     _ => length,
   };
 
-  lang::ty::Type::WeakString {
+  lang::ty::TypeKind::WeakString {
     kind,
     characters,
     span,
@@ -47,8 +47,8 @@ pub(super) fn make_literal<'pool, C: Compiler, const N: usize, T: Read>(
     stream.seek();
 
     let out = match value {
-      lang::token::NumericValue::U64(_) => lang::ty::Type::WeakInteger { span },
-      lang::token::NumericValue::F64(_) => lang::ty::Type::WeakFloat { span },
+      lang::token::NumericValue::U64(_) => lang::ty::TypeKind::WeakInteger { span },
+      lang::token::NumericValue::F64(_) => lang::ty::TypeKind::WeakFloat { span },
     };
 
     let value = lang::expr::LiteralKind::Numeric(value);

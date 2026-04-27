@@ -18,8 +18,8 @@ use lang::Compiler;
   }
 
   pub struct OverwriteType<C: Compiler> {
-    pub src: Type<C>,
-    pub dest: Type<C>,
+    pub src: TypeKind<C>,
+    pub dest: TypeKind<C>,
   }
 
   pub struct ResolveAsTask<C: Compiler, R: Resolve<C>> {

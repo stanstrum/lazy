@@ -55,7 +55,7 @@ fn make_function_header<'pool, C: Compiler, const N: usize, T: Read>(
 
       ret_ty
     } else {
-      lang::ty::TypeKind::Intrinsic {
+      lang::ty::TypeValue::Intrinsic {
         kind: lang::intrinsic::Intrinsic::Void,
         span: name.span,
       }
@@ -146,7 +146,7 @@ pub(super) fn make_function<'pool, C: Compiler, const N: usize, T: Read>(
     );
 
     let expr_reference = ExpressionReference(body, last);
-    body_ref.out = lang::ty::TypeKind::Reference(lang::reference::TypeReference::Expression(expr_reference));
+    body_ref.out = lang::ty::TypeValue::Reference(lang::reference::TypeReference::Expression(expr_reference));
   };
 
   function.rget_from_mut(store).span.end = stream.here()?.start;

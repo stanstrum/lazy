@@ -5,8 +5,8 @@ use string_pool::PoolId;
 
 use crate::Compiler;
 use crate::expr::Variable;
-use crate::reference::{Store, TypePartId, TypePartReference};
-use crate::ty::{Qualified, QualifiedSearchSpace, TypeKind};
+use crate::reference::{Store, TypePartId, TypePartReference, TypeReference};
+use crate::ty::{Qualified, QualifiedSearchSpace, Type, TypeValue};
 use crate::span::Span;
 
 #[derive(Debug, Clone, Copy)]
@@ -43,13 +43,13 @@ pub struct Module<C: Compiler> {
   pub parent: ModuleParent<C>,
   pub aliases: Vec<TypeAlias<C>>,
   pub structs: Vec<Struct<C>>,
-  pub type_parts: Vec<TypeKind<C>>,
+  pub type_parts: Vec<Type<C>>,
 }
 
 #[derive(Debug)]
 pub struct TypeAlias<C: Compiler> {
   pub name: Name<C>,
-  pub ty: TypeKind<C>,
+  pub ty: Type<C>,
   pub span: Span<C>,
 }
 
@@ -79,16 +79,20 @@ impl<C: Compiler> Module<C> {
 }
 
 pub trait AddTypePart<C: Compiler>: Sized where for<'a> C::Store<'a>: Store<Self, Out = crate::module::Module<C>> {
-  fn add_type_part(&self, part: crate::ty::TypeKind<C>, store: &mut C::Store<'_>) -> TypePartReference<C>;
+  fn add_type_part(&self, part: crate::ty::TypeValue<C>, store: &mut C::Store<'_>) -> TypePartReference<C>;
 }
 
 impl<C: Compiler> AddTypePart<C> for C::ModuleReference {
-  fn add_type_part(&self, part: crate::ty::TypeKind<C>, store: &mut <C as Compiler>::Store<'_>) -> TypePartReference<C> {
+  fn add_type_part(&self, part_value: crate::ty::TypeValue<C>, store: &mut <C as Compiler>::Store<'_>) -> TypePartReference<C> {
     let module_ref = store.rget_mut(*self);
 
-    let id = TypePartId(module_ref.type_parts.len());
-    module_ref.type_parts.push(part);
+    let part_id = TypePartId(module_ref.type_parts.len());
+    let part_reference = TypePartReference(*self, part_id);
+    let type_reference = TypeReference::Part(part_reference);
+    let ty = Type::new(type_reference, part_value);
 
-    TypePartReference::<C>(*self, id)
+    module_ref.type_parts.push(ty);
+
+    part_reference
   }
 }

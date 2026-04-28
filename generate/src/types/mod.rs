@@ -38,7 +38,7 @@ fn make_intrinsic_type<'ctx>(comp: &Compilation<'_, '_, 'ctx>, intrinsic: lang::
 fn make_param_types<'ctx>(
   comp: &mut Compilation<'_, '_, 'ctx>,
   function: gluezy::FunctionReference,
-) -> Result<Vec<inkwell::types::BasicMetadataTypeEnum<'ctx>>> {
+) -> Result<LazyStructures, Vec<inkwell::types::BasicMetadataTypeEnum<'ctx>>> {
   let borrow = comp.lazy.rget(function);
 
   borrow.header.arguments.iter()
@@ -53,7 +53,7 @@ fn make_param_types<'ctx>(
 pub(super) fn make_function_type<'ctx>(
   comp: &mut Compilation<'_, '_, 'ctx>,
   function: gluezy::FunctionReference,
-) -> Result<inkwell::types::FunctionType<'ctx>> {
+) -> Result<LazyStructures, inkwell::types::FunctionType<'ctx>> {
   let borrow = comp.lazy.rget(function);
 
   let param_types = make_param_types(comp, function)?;
@@ -67,41 +67,43 @@ pub(super) fn make_function_type<'ctx>(
   Ok(function_type)
 }
 
-pub(super) fn make_type<'ctx>(comp: &Compilation<'_, '_, 'ctx>, t: &impl TypeOf<LazyStructures>) -> Result<LazyType<'ctx>> {
+pub(super) fn make_type<'ctx>(comp: &Compilation<'_, '_, 'ctx>, t: &impl TypeOf<LazyStructures>) -> Result<LazyStructures, LazyType<'ctx>> {
   let ty = t.type_of(comp.lazy)
+    .expect("type of to be Some()")
+    .ty
     .expect("type of to be Some()");
 
   match ty {
-    lang::ty::TypeKind::Reference(_) => todo!(),
-    lang::ty::TypeKind::Resolved { .. } => todo!(),
-    lang::ty::TypeKind::Intrinsic { kind, .. } => Ok(make_intrinsic_type(comp, kind)),
-    lang::ty::TypeKind::ReferenceTo { .. } => {
+    lang::ty::TypeValue::Reference(_) => todo!(),
+    lang::ty::TypeValue::Resolved { .. } => todo!(),
+    lang::ty::TypeValue::Intrinsic { kind, .. } => Ok(make_intrinsic_type(comp, kind)),
+    lang::ty::TypeValue::ReferenceTo { .. } => {
       Ok(LazyType::Pointer(
         comp.llvm.context.ptr_type(Default::default())
       ))
     },
-    lang::ty::TypeKind::UnsizedArrayOf { .. } => todo!(),
-    lang::ty::TypeKind::SizedArrayOf { .. } => todo!(),
+    lang::ty::TypeValue::UnsizedArrayOf { .. } => todo!(),
+    lang::ty::TypeValue::SizedArrayOf { .. } => todo!(),
 
-    lang::ty::TypeKind::Unresolved { .. } => todo!(),
-    | lang::ty::TypeKind::WeakInteger { span, .. }
-    | lang::ty::TypeKind::WeakFloat { span, .. }
-    | lang::ty::TypeKind::WeakString { span, .. }
-    | lang::ty::TypeKind::Weak { span, .. } => {
+    lang::ty::TypeValue::Unresolved { .. } => todo!(),
+    | lang::ty::TypeValue::WeakInteger { span, .. }
+    | lang::ty::TypeValue::WeakFloat { span, .. }
+    | lang::ty::TypeValue::WeakString { span, .. }
+    | lang::ty::TypeValue::Weak { span, .. } => {
       Err(Error::StillUnresolved {
         what: "type".into(),
         note: format!("is {}", ty.print(comp.lazy)),
         span,
       })
     },
-    lang::ty::TypeKind::Struct { prototype } => {
+    lang::ty::TypeValue::Struct { prototype } => {
       let field_types = comp.lazy.rget(prototype).members.iter()
         .map(|variable| {
           make_type(comp, &variable.ty)
             .map(LazyType::as_basic_type_enum)
             .map(Option::unwrap)
         })
-        .collect::<Result<Vec<_>>>()?;
+        .collect::<Result<LazyStructures, Vec<_>>>()?;
 
       // SPONGE: packed is not implemented
       let struct_type = comp.llvm.context.struct_type(&field_types, false);

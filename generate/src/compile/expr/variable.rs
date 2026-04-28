@@ -4,7 +4,7 @@ pub(super) fn compile_variable<'ctx>(
   _comp: &mut Compilation<'_, '_, 'ctx>,
   variable: &lang::reference::VariableReference<LazyStructures>,
   scopes: &mut FunctionScopes<'ctx>,
-) -> Result<LazyValue<'ctx>> {
+) -> Result<LazyStructures, LazyValue<'ctx>> {
   match variable {
     lang::reference::VariableReference::Block(block_to_find, index) => {
       let Some(scope) = scopes.scopes.iter().rfind(|scope| {

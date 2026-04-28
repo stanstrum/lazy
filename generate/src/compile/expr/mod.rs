@@ -13,7 +13,7 @@ fn compile_expr<'ctx>(
   function: inkwell::values::FunctionValue<'ctx>,
   expr: lang::reference::ExpressionReference<LazyStructures>,
   scopes: &mut FunctionScopes<'ctx>,
-) -> Result<LazyValue<'ctx>> {
+) -> Result<LazyStructures, LazyValue<'ctx>> {
   // for efficiency, we assume we are already positioned after the preceding
   // instruction.  otherwise we'd need block: BlockValue<'_> passed in, and then
   // call:
@@ -44,7 +44,7 @@ fn compile_expr<'ctx>(
       Ok(LazyValue::Void)
     },
     lang::expr::Expression::StructInitializer { ty, members, .. } => {
-      let lang::ty::TypeKind::Struct { prototype } = ty.type_of(comp.lazy).expect("type to exist") else {
+      let lang::ty::TypeValue::Struct { prototype } = expect_resolved_type(comp.lazy, ty)?.ty else {
         todo!("error for bad struct out type");
       };
 
@@ -81,7 +81,7 @@ pub(super) fn compile_block<'ctx>(
   function: inkwell::values::FunctionValue<'ctx>,
   block: lang::reference::BlockReference<LazyStructures>,
   scopes: &mut FunctionScopes<'ctx>,
-) -> Result<LazyValue<'ctx>> {
+) -> Result<LazyStructures, LazyValue<'ctx>> {
   // Note where we came from -- will need to jmp from that block to this one
   let prev_block = comp.llvm.builder.get_insert_block()
     .expect("to have come from a previous BasicBlock");

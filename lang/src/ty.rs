@@ -6,20 +6,29 @@ use crate::intrinsic::Intrinsic;
 use crate::reference::{AliasReference, BlockReference, ExpressionReference, Reference, Store, StructReference, TypePartReference, TypeReference, VariableReference};
 
 pub trait TypeOf<C: Compiler>: GetSpan<C> {
-  fn type_of(&self, store: &C::Store<'_>) -> Option<TypeKind<C>>;
+  fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>>;
 }
 
 #[derive(Debug, Clone)]
 pub struct Type<C: Compiler> {
   pub reference: TypeReference<C>,
-  pub ty: TypeKind<C>,
+  pub ty: Option<TypeValue<C>>,
 }
 
 impl<C: Compiler> Type<C> {
-  pub fn new(reference: TypeReference<C>, ty: TypeKind<C>) -> Self {
+  pub fn new(reference: TypeReference<C>, ty: TypeValue<C>) -> Self {
     Self {
       reference: reference.into(),
-      ty,
+      ty: Some(ty),
+    }
+  }
+}
+
+impl<C: Compiler> From<TypeReference<C>> for Type<C> {
+  fn from(reference: TypeReference<C>) -> Self {
+    Self {
+      reference,
+      ty: None,
     }
   }
 }
@@ -50,7 +59,7 @@ impl<C: Compiler> Qualified<C> {
 }
 
 #[derive(Debug, Clone)]
-pub enum TypeKind<C: Compiler> {
+pub enum TypeValue<C: Compiler> {
   Reference(TypeReference<C>),
   Resolved {
     part: TypePartReference<C>,

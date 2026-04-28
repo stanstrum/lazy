@@ -25,7 +25,7 @@ impl<C: Compiler> GetSpan<C> for crate::import::ImportPart<C> {
   }
 }
 
-impl<C: Compiler> GetSpan<C> for crate::ty::TypeKind<C> {
+impl<C: Compiler> GetSpan<C> for crate::ty::TypeValue<C> {
   fn get_span(&self, store: &C::Store<'_>) -> Span<C> {
     match self {
       Self::Unresolved { qualified, .. } => qualified.span,

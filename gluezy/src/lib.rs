@@ -214,8 +214,9 @@ impl lang::Compiler for LazyStructures {
     qualified: &lang::ty::Qualified<Self>,
     option: &Option<&mut lang::tasks::Tasks<Self>>,
   ) -> Result<Option<lang::ty::QualifiedSearchSpace<Self>>, Box<lang::error::ResolveError<Self>>> {
-    // SPONGE: Some wacko dynamic dispatch going on here that stems from refactoring and
-    // I just had to do this to make things work.  Get rid of this.
-    resolve::impls::ty::pair::unknown::resolve_qualified_to_space(store, module, qualified, option)
+    todo!()
+    // // SPONGE: Some wacko dynamic dispatch going on here that stems from refactoring and
+    // // I just had to do this to make things work.  Get rid of this.
+    // resolve::impls::ty::pair::unknown::resolve_qualified_to_space(store, module, qualified, option)
   }
 }

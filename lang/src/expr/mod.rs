@@ -4,7 +4,7 @@ use string_pool::StringId;
 
 use crate::Compiler;
 use crate::reference::{BlockReference, ExpressionReference, VariableReference};
-use crate::ty::{Qualified, TypeKind};
+use crate::ty::{Qualified, TypeValue};
 use crate::token::{NumericValue, StringKind};
 use crate::span::Span;
 use crate::module::Name;
@@ -13,7 +13,7 @@ use crate::function::ExprId;
 #[derive(Debug)]
 pub struct Variable<C: Compiler> {
   pub name: Name<C>,
-  pub ty: TypeKind<C>,
+  pub ty: TypeValue<C>,
   pub span: Span<C>,
 }
 
@@ -23,7 +23,7 @@ pub struct BlockExpression<C: Compiler> {
   pub children: Vec<ExprId>,
   pub span: Span<C>,
   pub returns_last: bool,
-  pub out: TypeKind<C>,
+  pub out: TypeValue<C>,
   pub variables: Vec<Variable<C>>,
 }
 
@@ -42,7 +42,7 @@ pub enum Expression<C: Compiler> {
   Literal {
     value: LiteralKind,
     span: Span<C>,
-    out: TypeKind<C>,
+    out: TypeValue<C>,
   },
   Variable {
     reference: VariableReference<C>,
@@ -50,23 +50,23 @@ pub enum Expression<C: Compiler> {
   },
   Unknown {
     qualified: Qualified<C>,
-    out: TypeKind<C>,
+    out: TypeValue<C>,
   },
   Unary {
     expr: ExpressionReference<C>,
     op: (operator::UnaryOperator<C>, Span<C>),
     span: Span<C>,
-    out: TypeKind<C>,
+    out: TypeValue<C>,
   },
   Binary {
     a: ExpressionReference<C>,
     b: ExpressionReference<C>,
     op: (operator::BinaryOperator, Span<C>),
     span: Span<C>,
-    out: TypeKind<C>,
+    out: TypeValue<C>,
   },
   StructInitializer {
-    ty: TypeKind<C>,
+    ty: TypeValue<C>,
     members: Vec<(Name<C>, ExpressionReference<C>)>,
     span: Span<C>,
   },
@@ -78,7 +78,7 @@ impl<C: Compiler> Expression<C> {
 
     Self::Unknown {
       qualified,
-      out: TypeKind::Weak { span },
+      out: TypeValue::Weak { span },
     }
   }
 }
@@ -88,14 +88,14 @@ impl<C: Compiler> BlockExpression<C> {
     Self::new(
       parent,
       temp_span,
-      TypeKind::Intrinsic {
+      TypeValue::Intrinsic {
         kind: crate::intrinsic::Intrinsic::Void,
         span: temp_span,
       },
     )
   }
 
-  pub fn new(parent: Option<BlockReference<C>>, span: Span<C>, out: TypeKind<C>) -> Self {
+  pub fn new(parent: Option<BlockReference<C>>, span: Span<C>, out: TypeValue<C>) -> Self {
     Self {
       parent,
       children: vec![],

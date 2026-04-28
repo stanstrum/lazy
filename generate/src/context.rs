@@ -1,3 +1,5 @@
+use gluezy::LazyStructures;
+
 use super::Result;
 
 use crate::args::CliArgs;
@@ -75,7 +77,7 @@ impl<'ctx> LLVMContext<'ctx> {
   // }
 
   /// Optimization passes
-  pub fn run_passes(&self, passes: &str) -> Result {
+  pub fn run_passes(&self, passes: &str) -> Result<LazyStructures> {
     if !passes.is_empty() {
       let pass_options = inkwell::passes::PassBuilderOptions::create();
 

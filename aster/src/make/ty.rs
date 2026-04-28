@@ -77,7 +77,7 @@ fn make_reference_to<'pool, C: Compiler, const N: usize, T: Read>(
   store: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, C, N, T>,
   module: C::ModuleReference,
-) -> Result<Option<lang::ty::TypeKind<C>>, Error<C>> {
+) -> Result<Option<lang::ty::TypeValue<C>>, Error<C>> {
   let Some((Token::Operator(Operator::SingleAnd), mut span)) = stream.peek()? else {
     return Ok(None);
   };
@@ -92,22 +92,22 @@ fn make_reference_to<'pool, C: Compiler, const N: usize, T: Read>(
 
   stream.skip_whitespace_and_comments()?;
 
-  let Some(ty) = make_type(store, stream, module)? else {
+  let Some(part_value) = make_type(store, stream, module)? else {
     return Ok(None);
   };
 
-  let ty = module.add_type_part(ty, store);
+  let ty = module.add_type_part(part_value, store);
 
   span.extend(ty.get_span(store));
 
-  Ok(Some(lang::ty::TypeKind::ReferenceTo { ty, r#mut, span, }))
+  Ok(Some(lang::ty::TypeValue::ReferenceTo { ty, r#mut, span, }))
 }
 
 fn make_array_of<'pool, C: Compiler, const N: usize, T: Read>(
   store: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, C, N, T>,
   module: C::ModuleReference,
-) -> Result<Option<lang::ty::TypeKind<C>>, Error<C>> {
+) -> Result<Option<lang::ty::TypeValue<C>>, Error<C>> {
   let Some((Token::Grouping(GroupingType::Open(GroupingKind::Bracket)), start)) = stream.peek()? else {
     return Ok(None);
   };
@@ -157,8 +157,8 @@ fn make_array_of<'pool, C: Compiler, const N: usize, T: Read>(
   span.extend(ty.get_span(store));
 
   Ok(Some(match size {
-    Some(size) => lang::ty::TypeKind::SizedArrayOf { ty, size, span },
-    None => lang::ty::TypeKind::UnsizedArrayOf { ty, span }
+    Some(size) => lang::ty::TypeValue::SizedArrayOf { ty, size, span },
+    None => lang::ty::TypeValue::UnsizedArrayOf { ty, span }
   }))
 }
 
@@ -166,9 +166,9 @@ pub(super) fn make_type<'pool, C: Compiler, const N: usize, T: Read>(
   lazy: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, C, N, T>,
   module: C::ModuleReference,
-) -> Result<Option<lang::ty::TypeKind<C>>, Error<C>> {
+) -> Result<Option<lang::ty::TypeValue<C>>, Error<C>> {
   if let Some(qualified) = make_qualified(stream, module)? {
-    return Ok(Some(lang::ty::TypeKind::Unresolved { module, qualified }));
+    return Ok(Some(lang::ty::TypeValue::Unresolved { module, qualified }));
   };
 
   if let Some(reference_to) = make_reference_to(lazy, stream, module)? {

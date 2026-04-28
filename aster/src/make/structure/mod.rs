@@ -2,6 +2,7 @@ mod module;
 mod import;
 mod traverser;
 
+use lang::ty::Type;
 use lazy_macros::{line_dbg, print_message};
 
 use lang::span::GetSpan;
@@ -46,16 +47,19 @@ fn make_type_alias<'pool, C: Compiler, const N: usize, T: Read>(
 
   stream.skip_whitespace_and_comments()?;
 
-  let Some(ty) = ty::make_type(store, stream, parent)? else {
+  let Some(type_value) = ty::make_type(store, stream, parent)? else {
     return stream.expected_here(line_dbg!("a type"));
   };
 
   let mut span = start_span;
-  span.extend(ty.get_span(store));
+  span.extend(type_value.get_span(store));
 
   // TODO: put this into a method
   let index = (*store).rget(parent).aliases.len();
   let alias_reference = AliasReference(parent, index);
+
+  let type_reference = lang::reference::TypeReference::Alias(alias_reference);
+  let ty = Type::new(type_reference, type_value);
 
   store.rget_mut(parent).aliases.push(lang::module::TypeAlias {
     name,

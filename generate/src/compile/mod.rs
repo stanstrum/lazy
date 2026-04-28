@@ -29,7 +29,7 @@ impl<'ctx> FunctionScopes<'ctx> {
     }
   }
 
-  fn push(&mut self, comp: &mut Compilation<'_, '_, 'ctx>, block: lang::reference::BlockReference<LazyStructures>) -> Result {
+  fn push(&mut self, comp: &mut Compilation<'_, '_, 'ctx>, block: lang::reference::BlockReference<LazyStructures>) -> Result<LazyStructures> {
     let borrow = comp.lazy.rget(block);
 
     let variables = borrow.variables.iter()
@@ -43,7 +43,7 @@ impl<'ctx> FunctionScopes<'ctx> {
         )?;
 
         Ok(pointer)
-      }).collect::<Result<Vec<_>>>()?;
+      }).collect::<Result<LazyStructures, Vec<_>>>()?;
 
     self.scopes.push(FunctionScope {
       block,
@@ -58,7 +58,7 @@ impl<'ctx> FunctionScopes<'ctx> {
   }
 }
 
-fn compile_function(comp: &mut Compilation, function_reference: gluezy::FunctionReference) -> Result {
+fn compile_function(comp: &mut Compilation, function_reference: gluezy::FunctionReference) -> Result<LazyStructures> {
   let borrow = comp.lazy.rget(function_reference);
   let body = borrow.body;
 
@@ -82,7 +82,7 @@ fn compile_function(comp: &mut Compilation, function_reference: gluezy::Function
   Ok(())
 }
 
-pub(super) fn compile_module(comp: &mut Compilation, module: gluezy::ModuleReference) -> Result {
+pub(super) fn compile_module(comp: &mut Compilation, module: gluezy::ModuleReference) -> Result<LazyStructures> {
   for &module in comp.lazy.rget(module).modules.iter() {
     compile_module(comp, module)?;
   };

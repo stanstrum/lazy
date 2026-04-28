@@ -13,14 +13,34 @@ use lang::Compiler;
 use lazy_macros::{line_dbg, print_message};
 use lang::span::GetSpan;
 use log::{Level, MessageContents, MessageSection, WithinSource};
-use lang::reference::{Reference, Store};
+use lang::reference::{Reference, Store, TypeReference};
 use lang::span::Span;
-use lang::ty::TypeOf;
+use lang::ty::{Type, TypeOf, TypeValue};
 
 use {args::*, context::*};
 
 #[derive(Debug)]
-pub enum Error<C: Compiler = LazyStructures> {
+struct ResolvedType<C: Compiler> {
+  pub reference: TypeReference<C>,
+  pub ty: TypeValue<C>,
+}
+
+fn expect_resolved_type<C: Compiler>(store: &C::Store<'_>, t: &(impl TypeOf<C> + GetSpan<C>)) -> Result<C, ResolvedType<C>> {
+  let Some(ty) = t.type_of(store) else {
+    let span = t.get_span(store);
+
+    return Err(Error::StillUnresolved {
+      what: line_dbg!("type").into(),
+      note: "here".into(),
+      span,
+    });
+  };
+
+  todo!()
+}
+
+#[derive(Debug)]
+pub enum Error<C: Compiler> {
   LLVMError(String),
   StillUnresolved {
     what: String,
@@ -29,15 +49,15 @@ pub enum Error<C: Compiler = LazyStructures> {
   },
 }
 
-type Result<T = ()> = std::result::Result<T, Error>;
+type Result<C, T = ()> = std::result::Result<T, Error<C>>;
 
-impl From<inkwell::support::LLVMString> for Error {
+impl<C: Compiler> From<inkwell::support::LLVMString> for Error<C> {
   fn from(value: inkwell::support::LLVMString) -> Self {
     Self::LLVMError(format!("LLVM error: {}", value.to_string()))
   }
 }
 
-impl From<inkwell::builder::BuilderError> for Error {
+impl<C: Compiler> From<inkwell::builder::BuilderError> for Error<C> {
   fn from(value: inkwell::builder::BuilderError) -> Self {
     Self::LLVMError(format!("Builder error: {value}"))
   }
@@ -79,7 +99,7 @@ impl<'lazy, 'pool, 'llvm> Compilation<'lazy, 'pool, 'llvm> {
 
   fn get_or_declare_function(&mut self,
     function: gluezy::FunctionReference,
-  ) -> Result<inkwell::values::FunctionValue<'llvm>> {
+  ) -> Result<LazyStructures, inkwell::values::FunctionValue<'llvm>> {
     // return it if we have it already
     if let Some(value) = self.functions.get(&function) {
       return Ok(*value);
@@ -120,7 +140,7 @@ impl Program {
     }
   }
 
-  pub fn compile<'ctx>(&'ctx self, lazy: &gluezy::Lazy) -> Result<ProgramCompilation<'ctx>> {
+  pub fn compile<'ctx>(&'ctx self, lazy: &gluezy::Lazy) -> Result<LazyStructures, ProgramCompilation<'ctx>> {
     let llvm_ctx = LLVMContext::new(&self.context, &self.cli_args);
     let mut comp = Compilation::new(lazy, llvm_ctx);
 
@@ -134,7 +154,7 @@ impl Program {
 }
 
 impl<'ctx> ProgramCompilation<'ctx> {
-  pub fn save_to_file(self, file_type: FileType) -> Result<ProgramObjectFile> {
+  pub fn save_to_file(self, file_type: FileType) -> Result<LazyStructures, ProgramObjectFile> {
     let file = {
       let temp_file_result = tempfile::Builder::new()
         .prefix("lazy-object-")
@@ -170,7 +190,7 @@ impl<'ctx> ProgramCompilation<'ctx> {
     self.llvm.dump_module()
   }
 
-  pub fn optimize(&self, lazy: &gluezy::Lazy) -> Result {
+  pub fn optimize(&self, lazy: &gluezy::Lazy) -> Result<LazyStructures> {
     print_message!(lazy, {
       level: Info,
       force: false,
@@ -183,7 +203,7 @@ impl<'ctx> ProgramCompilation<'ctx> {
 }
 
 impl ProgramObjectFile {
-  pub fn link_with<'a>(self, out_path: &'a Path, linked: &[&str]) -> Result<&'a Path> {
+  pub fn link_with<'a>(self, out_path: &'a Path, linked: &[&str]) -> Result<LazyStructures, &'a Path> {
     let out_dir = if out_path.is_absolute() {
       out_path.parent()
         .expect("a parent directory in output")
@@ -240,8 +260,8 @@ impl ProgramObjectFile {
   }
 }
 
-impl From<crate::Error> for log::PrintableMessage<LazyStructures> {
-  fn from(value: crate::Error) -> Self {
+impl<C: Compiler> From<crate::Error<C>> for log::PrintableMessage<C> {
+  fn from(value: crate::Error<C>) -> Self {
     match value {
       crate::Error::StillUnresolved { what, note, span } => Self {
         level: Level::Error,

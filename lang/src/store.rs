@@ -1,7 +1,7 @@
 use crate::Compiler;
 use crate::expr::Expression;
 use crate::reference::{AliasReference, BlockReference, ExpressionReference, Store, StructReference, TypePartId, TypePartReference, TypeReference, VariableReference};
-use crate::ty::TypeKind;
+use crate::ty::TypeValue;
 
 impl<'pool, C: Compiler> Store<AliasReference<C>> for C::Store<'pool> {
   type Out = crate::module::TypeAlias<C>;
@@ -52,19 +52,21 @@ impl<'pool, C: Compiler> Store<ExpressionReference<C>> for C::Store<'pool> {
 }
 
 impl<'pool, C: Compiler> Store<TypePartReference<C>> for C::Store<'pool> {
-  type Out = crate::ty::TypeKind<C>;
+  type Out = crate::ty::TypeValue<C>;
 
   fn rget(&self, TypePartReference(module, TypePartId(index)): TypePartReference<C>) -> &Self::Out {
-    self.rget(module).type_parts.get(index).unwrap()
+    todo!()
+    // self.rget(module).type_parts.get(index).unwrap()
   }
 
   fn rget_mut(&mut self, TypePartReference(module, TypePartId(index)): TypePartReference<C>) -> &mut Self::Out {
-    self.rget_mut(module).type_parts.get_mut(index).unwrap()
+    todo!()
+    // self.rget_mut(module).type_parts.get_mut(index).unwrap()
   }
 }
 
 impl<'pool, C: Compiler> Store<TypeReference<C>> for C::Store<'pool> {
-  type Out = crate::ty::TypeKind<C>;
+  type Out = crate::ty::TypeValue<C>;
 
   fn rget(&self, reference: TypeReference<C>) -> &Self::Out {
     match reference {
@@ -73,7 +75,8 @@ impl<'pool, C: Compiler> Store<TypeReference<C>> for C::Store<'pool> {
         &self.rget(function).header.ret_ty
       },
       TypeReference::Alias(alias) => {
-        &self.rget(alias).ty
+        todo!()
+        // &self.rget(alias).ty
       },
       TypeReference::Variable(VariableReference::Argument(function, index)) => {
         &self.rget(function).header.arguments.get(index).unwrap().ty
@@ -110,7 +113,8 @@ impl<'pool, C: Compiler> Store<TypeReference<C>> for C::Store<'pool> {
         &mut self.rget_mut(struct_reference).members.get_mut(id).unwrap().ty
       },
       TypeReference::Alias(alias) => {
-        &mut self.rget_mut(alias).ty
+        todo!()
+        // &mut self.rget_mut(alias).ty
       },
       TypeReference::Variable(VariableReference::Argument(function, index)) => {
         &mut self.rget_mut(function).header.arguments.get_mut(index).unwrap().ty

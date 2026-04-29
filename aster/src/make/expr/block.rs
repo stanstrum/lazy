@@ -106,7 +106,8 @@ pub fn make_block_statement<'pool, C: Compiler, const N: usize, T: Read>(
         b,
         op: (lang::expr::operator::BinaryOperator::Assign, variable_span),
         span,
-        out: lang::ty::TypeValue::Weak { span },
+        out: todo!(),
+        // lang::ty::TypeValue::Weak { span },
       };
 
       let id = function.rget_from_mut(store).add_expr(assignment);
@@ -245,7 +246,8 @@ pub(super) fn make_block<'pool, C: Compiler, const N: usize, T: Read>(
     }
   };
 
-  store.rget_mut(block).out = out;
+  todo!();
+  // store.rget_mut(block).out = out;
   store.rget_mut(block).returns_last = returns_last;
   store.rget_mut(block).span = span;
 

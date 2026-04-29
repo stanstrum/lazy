@@ -24,7 +24,8 @@ fn compile_expr<'ctx>(
     &lang::expr::Expression::Block(block)
       => compile_block(comp, function, block, scopes),
     &lang::expr::Expression::Literal { value, ref out, .. }
-      => literal::compile_literal(comp, function, value, out),
+      => todo!(),
+      // => literal::compile_literal(comp, function, value, out),
     lang::expr::Expression::Variable { reference, .. }
       => variable::compile_variable(comp, reference, scopes),
     lang::expr::Expression::Unknown { .. } => todo!(),

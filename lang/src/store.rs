@@ -1,7 +1,7 @@
 use crate::Compiler;
 use crate::expr::Expression;
 use crate::reference::{AliasReference, BlockReference, ExpressionReference, Store, StructReference, TypePartId, TypePartReference, TypeReference, VariableReference};
-use crate::ty::TypeValue;
+use crate::ty::{Type, TypeValue};
 
 impl<'pool, C: Compiler> Store<AliasReference<C>> for C::Store<'pool> {
   type Out = crate::module::TypeAlias<C>;
@@ -52,21 +52,19 @@ impl<'pool, C: Compiler> Store<ExpressionReference<C>> for C::Store<'pool> {
 }
 
 impl<'pool, C: Compiler> Store<TypePartReference<C>> for C::Store<'pool> {
-  type Out = crate::ty::TypeValue<C>;
+  type Out = Type<C>;
 
   fn rget(&self, TypePartReference(module, TypePartId(index)): TypePartReference<C>) -> &Self::Out {
-    todo!()
-    // self.rget(module).type_parts.get(index).unwrap()
+    self.rget(module).type_parts.get(index).unwrap()
   }
 
   fn rget_mut(&mut self, TypePartReference(module, TypePartId(index)): TypePartReference<C>) -> &mut Self::Out {
-    todo!()
-    // self.rget_mut(module).type_parts.get_mut(index).unwrap()
+    self.rget_mut(module).type_parts.get_mut(index).unwrap()
   }
 }
 
 impl<'pool, C: Compiler> Store<TypeReference<C>> for C::Store<'pool> {
-  type Out = crate::ty::TypeValue<C>;
+  type Out = crate::ty::Type<C>;
 
   fn rget(&self, reference: TypeReference<C>) -> &Self::Out {
     match reference {

@@ -56,7 +56,8 @@ impl<C: Compiler> TypeOf<C> for ExpressionReference<C> {
         => {
           let reference = TypeReference::Expression(*self);
 
-          Type::new(reference, out.clone()).type_of(store)
+          todo!()
+          // Type::new(reference, out.clone()).type_of(store)
         },
     }
   }

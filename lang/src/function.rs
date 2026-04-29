@@ -1,11 +1,16 @@
 use std::ops::{Index, IndexMut};
 
-use crate::{Compiler, expr::{BlockExpression, Expression, Variable}, module::Name, reference::BlockReference, span::Span, ty::TypeValue};
+use crate::Compiler;
+use crate::span::Span;
+use crate::module::Name;
+use crate::reference::BlockReference;
+use crate::ty::Type;
+use crate::expr::{BlockExpression, Expression, Variable};
 
 #[derive(Debug)]
 pub struct FunctionHeader<C: Compiler> {
   pub name: Name<C>,
-  pub ret_ty: TypeValue<C>,
+  pub ret_ty: Type<C>,
   pub arguments: Vec<Variable<C>>,
   pub span: Span<C>,
 }

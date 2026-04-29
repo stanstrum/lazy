@@ -53,6 +53,8 @@ pub(super) fn make_literal<'pool, C: Compiler, const N: usize, T: Read>(
 
     let value = lang::expr::LiteralKind::Numeric(value);
 
+    let out = todo!();
+
     return Ok(Some(lang::expr::Expression::Literal { value, span, out }));
   };
 
@@ -61,6 +63,8 @@ pub(super) fn make_literal<'pool, C: Compiler, const N: usize, T: Read>(
 
     let out = new_weak_string(store, kind, value, span);
     let value = LiteralKind::String { kind, value };
+
+    let out = todo!();
 
     return Ok(Some(lang::expr::Expression::Literal { value, span, out }));
   };

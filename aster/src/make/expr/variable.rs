@@ -49,6 +49,8 @@ pub fn make_assignment<'pool, C: Compiler, const N: usize, T: Read>(
     }
   };
 
+  let ty = todo!();
+
   let variable = lang::expr::Variable { name, ty, span };
 
   Ok(Some((variable, expr)))

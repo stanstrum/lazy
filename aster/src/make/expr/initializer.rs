@@ -129,6 +129,7 @@ pub(super) fn make_struct_initializer<'pool, C: Compiler, const N: usize, T: Rea
 
   let span = Span::from_pair(start, end);
 
+  let ty = todo!();
   Ok(Some(lang::expr::Expression::StructInitializer {
     ty,
     members,

@@ -26,6 +26,8 @@ pub(super) fn make_function_argument<'pool, C: Compiler, const N: usize, T: Read
   let mut span = ty.get_span(store);
   span.extend(name.get_span(store));
 
+  let ty = todo!();
+
   Ok(Some(lang::expr::Variable {
     name,
     ty,
@@ -95,6 +97,8 @@ fn make_function_header<'pool, C: Compiler, const N: usize, T: Read>(
   let mut span = name.span;
   span.end = stream.here()?.start;
 
+  let ret_ty = todo!();
+
   Ok(Some(lang::function::FunctionHeader {
     name,
     ret_ty,
@@ -139,14 +143,15 @@ pub(super) fn make_function<'pool, C: Compiler, const N: usize, T: Read>(
   };
 
   if let Some(&last) = body.rget_from(store).children.last() {
-    let body_ref = function.get_body_mut(store);
+    let body_ref: &mut lang::expr::BlockExpression<C> = function.get_body_mut(store);
 
     body_ref.returns_last = !non_return_last.is_some_and(
       |ExpressionReference(_, id)| id == last
     );
 
     let expr_reference = ExpressionReference(body, last);
-    body_ref.out = lang::ty::TypeValue::Reference(lang::reference::TypeReference::Expression(expr_reference));
+    body_ref.out = todo!();
+    // lang::ty::TypeValue::Reference(lang::reference::TypeReference::Expression(expr_reference));
   };
 
   function.rget_from_mut(store).span.end = stream.here()?.start;

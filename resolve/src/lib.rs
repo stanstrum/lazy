@@ -12,7 +12,7 @@ use pprint::Pretty;
 use lang::intrinsic::Intrinsic;
 use lang::span::GetSpan;
 use lang::ty::TypeValue;
-use lang::reference::{Reference, Store, TypeReference};
+use lang::reference::{Reference, Store, TypeReference, VariableReference};
 
 trait Resolve<C: Compiler> {
   fn resolve(&self, resolver: &Resolver<C>) -> Result<C>;
@@ -198,21 +198,54 @@ fn find_main<C: Compiler + 'static>(resolver: &Resolver<C>, module: C::ModuleRef
   Ok(*main)
 }
 
+trait Typify<C: Compiler> {
+  fn get_type_iter(&self, store: &C::Store<'_>) -> impl Iterator<Item = TypeReference<C>>;
+}
+
+fn typify_module_reference<C: Compiler>(resolver: &Resolver<C>, module_reference: C::ModuleReference) -> impl Iterator<Item = TypeReference<C>> {
+  todo!();
+
+  vec![].into_iter()
+}
+
+fn typify_function_reference<C: Compiler>(resolver: &Resolver<C>, function_reference: C::FunctionReference) -> impl Iterator<Item = TypeReference<C>> {
+  let function_borrow = function_reference.rget_from(resolver.store);
+  let args = (0..function_borrow.header.arguments.len())
+    .map(move |index| TypeReference::Variable(
+      VariableReference::Argument(function_reference, index)
+    )
+  );
+  let return_type = std::iter::once(TypeReference::ReturnTypeOf(function_reference));
+
+  let exprs = vec![todo!()].into_iter();
+
+  return_type.chain(args).chain(exprs)
+}
+
 pub fn resolve_and_verify<C: Compiler + 'static>(store: &mut C::Store<'_>, global: C::ModuleReference) -> Result<C> {
   let tasks = &mut Tasks::new();
   let mut resolver = Resolver::new(store, global, tasks)?;
 
+  let _std = resolver.store.get_std()
+    .expect("failed to load standard library");
+
+  let main = find_main(&resolver, global)?;
+
+  for m in typify_function_reference(&resolver, main) {
+    dbg!(m);
+  };
+
   resolver.resolve_tasks(line_dbg!("Resolve global").into())?;
 
   todo!();
-  // resolver.tasks.work::<Result<C>>(
-  //   line_dbg!("Make default ambiguous types").into(),
-  //   |tasks| {
-  //     impls::structure::default_types_in_module(resolver.store, &global, tasks)?;
+  resolver.work::<Result<C>>(
+    line_dbg!("Make default ambiguous types").into(),
+    |tasks| {
+      // impls::structure::default_types_in_module(resolver.store, &global, tasks)?;
 
-  //     Ok(())
-  //   },
-  // )?;
+      Ok(())
+    },
+  )?;
 
   // resolver.resolve_tasks(line_dbg!("Resolve after make default ambiguous types").into())?;
 

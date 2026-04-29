@@ -140,19 +140,11 @@ pub(super) fn make_import<'pool, C: Compiler, const N: usize, T: Read>(
   stream.seek();
   stream.skip_whitespace_and_comments()?;
 
-  let expr = todo!();
-  // let Some(expr) = expr::make_literal(store, stream)? else {
-  //   return stream.expected_here(line_dbg!("the path literal"));
-  // };
-
-  let lang::expr::Expression::Literal { value, span: literal_span, .. } = expr else {
-    return Err(Error::Invalid {
-      what: line_dbg!("expression, expected string literal"),
-      at: expr.get_span(store),
-    });
+  let Some((literal_kind, _, literal_span)) = expr::make_literal(store, stream)? else {
+    return stream.expected_here(line_dbg!("the path literal"));
   };
 
-  let lang::expr::LiteralKind::String { value, kind: StringKind::Wide } = value else {
+  let lang::expr::LiteralKind::String { value, kind: StringKind::Wide } = literal_kind else {
     return Err(Error::Invalid {
       what: line_dbg!("literal, expected normal string"),
       at: literal_span,

@@ -201,15 +201,15 @@ impl<'pool> lang::CompilerPoolStore<'pool, LazyStructures> for Lazy<'pool> {
 }
 
 impl lang::Compiler for LazyStructures {
-  type Store<'a> = Lazy<'a>;
+  type Store<'pool> = Lazy<'pool>;
 
   type ModuleReference = ModuleReference;
   type FunctionReference = FunctionReference;
 
   type TokensReference = TokensId;
 
-  fn resolve_qualified_to_space<'a>(
-    store: &mut Self::Store<'a>,
+  fn resolve_qualified_to_space<'pool>(
+    store: &mut Self::Store<'pool>,
     module: Self::ModuleReference,
     qualified: &lang::ty::Qualified<Self>,
   ) -> Result<Option<lang::ty::QualifiedSearchSpace<Self>>, Box<lang::error::ResolveError<Self>>> {

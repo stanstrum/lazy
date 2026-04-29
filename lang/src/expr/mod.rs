@@ -3,7 +3,7 @@ pub mod operator;
 use string_pool::StringId;
 
 use crate::Compiler;
-use crate::reference::{BlockReference, ExpressionReference, Store, TypeReference, VariableReference};
+use crate::reference::{BlockReference, ExpressionReference, Reference, Store, TypeReference, VariableReference};
 use crate::ty::{Qualified, Type, TypeValue};
 use crate::token::{NumericValue, StringKind};
 use crate::span::Span;
@@ -130,5 +130,29 @@ impl<C: Compiler> BlockExpression<C> {
     span: Span<C>,
   ) -> BlockReference<C> {
     Self::create_in(store, function_reference, parent, span, TypeValue::Weak { span })
+  }
+
+  /// "New Contextualized" - creates an [`Expression`] using a callback to
+  /// instantiate the expr with its future [`ExpressionReference`]
+  /// -- not thread safe
+  pub fn create_new_expr_in(
+    store: &mut C::Store<'_>,
+    block_reference: BlockReference<C>,
+    cb: impl FnOnce(ExpressionReference<C>) -> Expression<C>,
+  ) -> ExpressionReference<C> {
+    let function_reference = block_reference.0;
+    let function_borrow = store.rget_mut(function_reference);
+
+    let next_expr_id = ExprId(function_borrow.exprs.len());
+    let next_expression_reference = ExpressionReference(block_reference, next_expr_id);
+
+    let expr = cb(next_expression_reference);
+
+    let legacy_expr_id = function_borrow.add_expr(expr);
+
+    assert!(legacy_expr_id == next_expr_id, "disagreement over where this expr is!");
+    store.rget_mut(block_reference).children.push(next_expr_id);
+
+    next_expression_reference
   }
 }

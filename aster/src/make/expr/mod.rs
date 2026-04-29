@@ -42,34 +42,61 @@ fn new_weak_string<C: Compiler>(
 pub(super) fn make_literal<'pool, C: Compiler, const N: usize, T: Read>(
   store: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, C, N, T>,
-) -> Result<Option<lang::expr::Expression<C>>, Error<C>> {
+) -> Result<Option<(
+  lang::expr::LiteralKind,
+  lang::ty::TypeValue<C>,
+  lang::span::Span<C>,
+)>, Error<C>> {
   if let Some((Token::Numeric(value), span)) = stream.peek()? {
     stream.seek();
 
-    let out = match value {
+    let type_value = match value {
       lang::token::NumericValue::U64(_) => lang::ty::TypeValue::WeakInteger { span },
       lang::token::NumericValue::F64(_) => lang::ty::TypeValue::WeakFloat { span },
     };
 
-    let value = lang::expr::LiteralKind::Numeric(value);
+    let literal_kind = lang::expr::LiteralKind::Numeric(value);
 
-    let out = todo!();
-
-    return Ok(Some(lang::expr::Expression::Literal { value, span, out }));
+    return Ok(Some((literal_kind, type_value, span)));
   };
 
   if let Some((Token::String(kind, value), span)) = stream.peek()? {
     stream.seek();
 
-    let out = new_weak_string(store, kind, value, span);
-    let value = LiteralKind::String { kind, value };
+    let type_value = new_weak_string(store, kind, value, span);
+    let literal_kind = LiteralKind::String { kind, value };
 
-    let out = todo!();
-
-    return Ok(Some(lang::expr::Expression::Literal { value, span, out }));
+    return Ok(Some((literal_kind, type_value, span)));
   };
 
   Ok(None)
+}
+
+pub(super) fn make_literal_expr<'pool, C: Compiler, const N: usize, T: Read>(
+  store: &mut C::Store<'pool>,
+  block_reference: BlockReference<C>,
+  stream: &mut Rereader<'pool, C, N, T>,
+) -> Result<Option<lang::reference::ExpressionReference<C>>, Error<C>> {
+  let Some((literal_kind, type_value, span)) = make_literal(store, stream)? else {
+    return Ok(None);
+  };
+
+  let expression_reference = lang::expr::BlockExpression::create_new_expr_in(store, block_reference, |expr| {
+    let type_reference = lang::reference::TypeReference::Expression(expr);
+
+    let out = lang::ty::Type::new(
+      type_reference,
+      type_value,
+    );
+
+    lang::expr::Expression::Literal {
+      value: literal_kind,
+      span,
+      out,
+    }
+  });
+
+  Ok(Some(expression_reference))
 }
 
 fn make_expr_part<'pool, C: Compiler, const N: usize, T: Read>(
@@ -89,8 +116,9 @@ fn make_expr_part<'pool, C: Compiler, const N: usize, T: Read>(
       break 'expr lang::expr::Expression::Block(block);
     };
 
-    if let Some(literal) = make_literal(store, stream)? {
-      break 'expr literal;
+    if let Some(literal_expr_reference) = make_literal_expr(store, block, stream)? {
+      // bypass the expression contextualization segment at the end
+      return Ok(Some(literal_expr_reference));
     };
 
     if let Some(qualified) = ty::make_qualified(stream, module)? {

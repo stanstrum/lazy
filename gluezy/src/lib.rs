@@ -212,7 +212,6 @@ impl lang::Compiler for LazyStructures {
     store: &mut Self::Store<'a>,
     module: Self::ModuleReference,
     qualified: &lang::ty::Qualified<Self>,
-    option: &Option<&mut lang::tasks::Tasks<Self>>,
   ) -> Result<Option<lang::ty::QualifiedSearchSpace<Self>>, Box<lang::error::ResolveError<Self>>> {
     todo!()
     // // SPONGE: Some wacko dynamic dispatch going on here that stems from refactoring and

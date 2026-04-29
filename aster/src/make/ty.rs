@@ -115,17 +115,7 @@ fn make_array_of<'pool, C: Compiler, const N: usize, T: Read>(
 
   stream.skip_whitespace_and_comments()?;
 
-  let size = if let Some(expr) = expr::make_literal(store, stream)? {
-    let expr_start = stream.here()?;
-    let Expression::Literal { value, span: lit_span, .. } = expr else {
-      let end = stream.here()?;
-
-      return Err(Error::Invalid {
-        what: line_dbg!("expression: must be a literal"),
-        at: Span::from_pair(expr_start, end),
-      });
-    };
-
+  let size = if let Some((value, _, lit_span)) = expr::make_literal(store, stream)? {
     let LiteralKind::Numeric(NumericValue::U64(size)) = value else {
       return Err(Error::Invalid {
         what: line_dbg!("literal: must be an integer"),

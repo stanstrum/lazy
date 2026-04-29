@@ -3,7 +3,7 @@ use std::ops::{Index, IndexMut};
 use crate::Compiler;
 use crate::span::Span;
 use crate::module::Name;
-use crate::reference::{BlockReference, TypeReference};
+use crate::reference::{BlockReference, ExpressionReference, Store, TypeReference};
 use crate::ty::{Type, TypeValue};
 use crate::expr::{BlockExpression, Expression, Variable};
 
@@ -26,7 +26,8 @@ pub struct Function<C: Compiler> {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct ExprId(usize);
+/// TODO: internalize this value
+pub struct ExprId(pub usize);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 /// TODO: internalize this value

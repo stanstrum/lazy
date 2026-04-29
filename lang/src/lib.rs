@@ -16,7 +16,6 @@ mod type_of;
 
 mod store;
 pub mod keys;
-pub mod tasks;
 pub mod error;
 
 use std::{fmt::Debug, hash::Hash, path::{Path, PathBuf}};
@@ -135,6 +134,5 @@ pub trait Compiler: Debug + Sized + Clone + Copy + PartialEq + Eq {
     store: &mut Self::Store<'a>,
     module: Self::ModuleReference,
     qualified: &Qualified<Self>,
-    option: &Option<&mut tasks::Tasks<Self>>,
   ) -> Result<Option<QualifiedSearchSpace<Self>>, Box<error::ResolveError<Self>>>;
 }

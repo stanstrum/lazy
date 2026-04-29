@@ -1,6 +1,10 @@
-use std::collections::VecDeque;
+mod tasks;
 
-use lang::tasks::Task;
+use std::cell::RefCell;
+use std::collections::VecDeque;
+use std::rc::Rc;
+
+use tasks::{Task, TaskResponse};
 use lang::{Compiler, CompilerPoolStore, ty::TypeOf};
 use lazy_macros::{print_message, line_dbg};
 
@@ -10,25 +14,116 @@ use lang::span::GetSpan;
 use lang::ty::TypeValue;
 use lang::reference::{Reference, Store, TypeReference};
 
-pub(crate) type Result<C, T = ()> = std::result::Result<T, Box<ResolveError<C>>>;
-
-pub use lang::error::ResolveError;
-pub use lang::error::ResolveErrorBase;
-
-struct Resolver<'store, 'pool, C: Compiler> {
-  store: &'store mut C::Store<'pool>,
-  tasks: VecDeque<Box<dyn Task<C>>>,
-  trace: Vec<String>,
-  global: C::ModuleReference,
-  std: C::ModuleReference,
-}
-
 trait Resolve<C: Compiler> {
   fn resolve(&self, resolver: &Resolver<C>) -> Result<C>;
 }
 
 trait Coerce<C: Compiler> {
   fn coerce(&self, resolver: &Resolver<C>, other: &impl TypeOf<C>) -> Result<C>;
+}
+
+pub(crate) type Result<C, T = ()> = std::result::Result<T, Box<ResolveError<C>>>;
+
+pub use lang::error::ResolveError;
+pub use lang::error::ResolveErrorBase;
+
+pub struct Tasks<C: Compiler> {
+  tasks: RefCell<VecDeque<Box<dyn Task<C>>>>,
+  trace: RefCell<Vec<String>>,
+}
+
+pub struct Resolver<'store, 'pool, 'tasks, C: Compiler> {
+  store: &'store mut C::Store<'pool>,
+  tasks: &'tasks Tasks<C>,
+  global: C::ModuleReference,
+}
+
+impl<C: Compiler> Tasks<C> {
+  fn new() -> Self {
+    Self {
+      tasks: RefCell::new(VecDeque::new()),
+      trace: RefCell::new(vec![]),
+    }
+  }
+}
+
+impl<'store, 'pool, 'tasks, C: Compiler> Resolver<'store, 'pool, 'tasks, C> {
+  fn work<T>(&mut self, description: String, cb: impl FnOnce(&mut Self) -> T) -> T {
+    todo!()
+  }
+
+  /// Returns a boolean corresponding to whether any tasks were executed
+  fn execute_pass(&mut self) -> Result<C, bool> {
+    // #[cfg(debug_assertions)]
+    // println!(line_dbg!("execute_pass start"));
+
+    let total = self.tasks.tasks.borrow().len();
+
+    if total == 0 {
+      return Ok(false);
+    };
+
+    let mut count = 0;
+
+    loop {
+      let Some(task) = ({
+        let mut borrow = self.tasks.tasks.borrow_mut();
+        let value = borrow.pop_front();
+        drop(borrow);
+        value
+      }) else {
+        break;
+      };
+
+      let description = {
+        let explain = task.explain::<'tasks>(self);
+
+        format!(
+          "execute_pass: {count}/{total}:\n{explain}",
+        ).to_owned()
+      };
+
+      let response = self.work(description, |resolver| task.execute(resolver))?;
+
+      match response {
+        TaskResponse::Pop => {
+          // do nothing
+        },
+        TaskResponse::Replace(replace) => {
+          self.tasks.tasks.borrow_mut().push_back(replace);
+        },
+      };
+
+      count += 1;
+    };
+
+    Ok(true)
+  }
+
+  fn explain(&self, offset: usize) -> String {
+    let mut out = String::new();
+
+    for (count, explain) in self.tasks.trace.borrow().iter().enumerate() {
+      let spaces = " ".repeat(offset) + &"|  ".repeat(count);
+
+      for line in explain.split('\n') {
+        out += &format!("{spaces}{line}\n");
+      };
+    };
+
+    // out += "###";
+
+    out
+  }
+
+  fn seed_error<T>(&self, base: ResolveErrorBase<C>) -> Result<C, T> {
+    let call_stack = format!("Call Stack:\n{}", self.explain(4));
+
+    Err(Box::new(ResolveError {
+      base,
+      call_stack,
+    }))
+  }
 }
 
 // impl<R: Copy> TypeOf for R
@@ -44,43 +139,17 @@ trait Coerce<C: Compiler> {
 //   }
 // }
 
-impl<'store, 'pool, C: Compiler + 'static> Resolver<'store, 'pool, C> {
-  fn new(store: &'store mut C::Store<'pool>, global: C::ModuleReference) -> Result<C, Self> {
-    todo!()
-    // let mut tasks = Tasks::new();
-
-    // let std = tasks.work::<Result<C, C::ModuleReference>>(
-    //   line_dbg!("Get standard library").into(),
-    //   |tasks| match store.get_std() {
-    //     Ok(std) => Ok(std),
-    //     Err(err) => tasks.seed_error(ResolveErrorBase::Lazy(Box::new(err))),
-    //   },
-    // )?;
-
-    // let this = Self {
-    //   store,
-    //   tasks,
-    //   global,
-    //   std,
-    // };
-
-    // Ok(this)
+impl<'store, 'pool, 'tasks, C: Compiler + 'static> Resolver<'store, 'pool, 'tasks, C> {
+  fn new(store: &'store mut C::Store<'pool>, global: C::ModuleReference, tasks: &'tasks Tasks<C>) -> Result<C, Self> {
+    Ok(Self {
+      store,
+      tasks,
+      global,
+    })
   }
 
   fn resolve_tasks(&mut self, description: String) -> Result<C> {
-    todo!()
-    // self.tasks.work(description, |tasks| loop {
-    //   // Resolve `global` recursively
-    //   impls::structure::resolve_module_reference(self.store, &self.global, tasks)?;
-
-    //   // Execute the tasks: typically overwriting unknown values with &mut
-    //   let did_execute = tasks.execute_pass(self.store)?;
-
-    //   // If no tasks ran, we _should_ be finished resolving
-    //   if !did_execute {
-    //     return Ok(());
-    //   };
-    // })
+    self.execute_pass().and(Ok(()))
   }
 }
 
@@ -130,7 +199,8 @@ fn find_main<C: Compiler + 'static>(resolver: &Resolver<C>, module: C::ModuleRef
 }
 
 pub fn resolve_and_verify<C: Compiler + 'static>(store: &mut C::Store<'_>, global: C::ModuleReference) -> Result<C> {
-  let mut resolver = Resolver::new(store, global)?;
+  let tasks = &mut Tasks::new();
+  let mut resolver = Resolver::new(store, global, tasks)?;
 
   resolver.resolve_tasks(line_dbg!("Resolve global").into())?;
 

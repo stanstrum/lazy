@@ -140,9 +140,10 @@ pub(super) fn make_import<'pool, C: Compiler, const N: usize, T: Read>(
   stream.seek();
   stream.skip_whitespace_and_comments()?;
 
-  let Some(expr) = expr::make_literal(store, stream)? else {
-    return stream.expected_here(line_dbg!("the path literal"));
-  };
+  let expr = todo!();
+  // let Some(expr) = expr::make_literal(store, stream)? else {
+  //   return stream.expected_here(line_dbg!("the path literal"));
+  // };
 
   let lang::expr::Expression::Literal { value, span: literal_span, .. } = expr else {
     return Err(Error::Invalid {

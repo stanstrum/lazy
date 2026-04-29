@@ -176,8 +176,7 @@ pub(super) fn make_function<'pool, C: Compiler, const N: usize, T: Read>(
     );
 
     let expr_reference = ExpressionReference(body, last);
-    body_ref.out = todo!();
-    // lang::ty::TypeValue::Reference(lang::reference::TypeReference::Expression(expr_reference));
+    body_ref.out = lang::reference::TypeReference::Expression(expr_reference).into();
   };
 
   function.rget_from_mut(store).span.end = stream.here()?.start;

@@ -3,8 +3,8 @@ use std::ops::{Index, IndexMut};
 use crate::Compiler;
 use crate::span::Span;
 use crate::module::Name;
-use crate::reference::BlockReference;
-use crate::ty::Type;
+use crate::reference::{BlockReference, TypeReference};
+use crate::ty::{Type, TypeValue};
 use crate::expr::{BlockExpression, Expression, Variable};
 
 #[derive(Debug)]
@@ -29,7 +29,8 @@ pub struct Function<C: Compiler> {
 pub struct ExprId(usize);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct BlockId(usize);
+/// TODO: internalize this value
+pub struct BlockId(pub usize);
 
 impl BlockId {
   /// We're using the assumption that the body is block that is created first,
@@ -40,15 +41,27 @@ impl BlockId {
 }
 
 impl<C: Compiler> Function<C> {
-  pub fn new(body: BlockReference<C>, parent: C::ModuleReference, header: FunctionHeader<C>) -> Self {
+  pub fn new(function_reference: C::FunctionReference, parent: C::ModuleReference, header: FunctionHeader<C>) -> Self {
     let temp_span = header.span;
-    let blocks = vec![BlockExpression::new_dirty(None, temp_span)];
+
+    let body_reference = BlockReference(function_reference, BlockId::body_id());
+    let body_block = BlockExpression::new(
+      None,
+      temp_span,
+      Type::new(
+        TypeReference::Block(body_reference),
+        TypeValue::Intrinsic {
+          kind: crate::intrinsic::Intrinsic::Void,
+          span: temp_span,
+        },
+      ),
+    );
 
     Self {
       parent,
       header,
-      body,
-      blocks,
+      body: body_reference,
+      blocks: vec![body_block],
       exprs: vec![],
       span: temp_span,
     }

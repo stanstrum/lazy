@@ -3,12 +3,12 @@ pub mod operator;
 use string_pool::StringId;
 
 use crate::Compiler;
-use crate::reference::{BlockReference, ExpressionReference, VariableReference};
+use crate::reference::{BlockReference, ExpressionReference, Store, TypeReference, VariableReference};
 use crate::ty::{Qualified, Type, TypeValue};
 use crate::token::{NumericValue, StringKind};
 use crate::span::Span;
 use crate::module::Name;
-use crate::function::ExprId;
+use crate::function::{BlockId, ExprId};
 
 #[derive(Debug)]
 pub struct Variable<C: Compiler> {
@@ -85,18 +85,6 @@ impl<C: Compiler> Expression<C> {
 }
 
 impl<C: Compiler> BlockExpression<C> {
-  pub fn new_dirty(parent: Option<BlockReference<C>>, temp_span: Span<C>) -> Self {
-    Self::new(
-      parent,
-      temp_span,
-      todo!(),
-      // TypeValue::Intrinsic {
-      //   kind: crate::intrinsic::Intrinsic::Void,
-      //   span: temp_span,
-      // },
-    )
-  }
-
   pub fn new(parent: Option<BlockReference<C>>, span: Span<C>, out: Type<C>) -> Self {
     Self {
       parent,
@@ -106,5 +94,41 @@ impl<C: Compiler> BlockExpression<C> {
       out,
       variables: vec![],
     }
+  }
+
+  pub fn create_in(
+    store: &mut C::Store<'_>,
+    function_reference: C::FunctionReference,
+    parent: Option<BlockReference<C>>,
+    span: Span<C>,
+    value: TypeValue<C>,
+  ) -> BlockReference<C> {
+    let function_borrow = store.rget_mut(function_reference);
+
+    // SPONGE: this needs to be done cleaner
+    let next_block_id = BlockId(function_borrow.blocks.len());
+    let next_block_reference = BlockReference(function_reference, next_block_id);
+
+    // This is completely incompatible with multithreading, just for starts
+    let out_ty_reference = TypeReference::Block(next_block_reference);
+    let out = Type::new(out_ty_reference, value);
+
+    let block = BlockExpression::new(parent, span, out);
+
+    let legacy_block_id = function_borrow.add_block(block);
+
+    assert!(legacy_block_id == next_block_reference.1,
+      "disagreement over where this newly created block expr is!");
+
+    next_block_reference
+  }
+
+  pub fn create_weak_in(
+    store: &mut C::Store<'_>,
+    function_reference: C::FunctionReference,
+    parent: Option<BlockReference<C>>,
+    span: Span<C>,
+  ) -> BlockReference<C> {
+    Self::create_in(store, function_reference, parent, span, TypeValue::Weak { span })
   }
 }

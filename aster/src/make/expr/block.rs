@@ -186,10 +186,13 @@ pub(super) fn make_block<'pool, C: Compiler, const N: usize, T: Read>(
 
     let span = Span::from_pair(start, end);
 
-    let empty_block = lang::expr::BlockExpression::new_dirty(parent, span);
-    let id = store.rget_mut(function).add_block(empty_block);
+    let empty_block = lang::expr::BlockExpression::create_in(
+      store,
+      function, parent, span,
+      lang::ty::TypeValue::Weak { span },
+    );
 
-    return Ok(Some(lang::reference::BlockReference(function, id)));
+    return Ok(Some(empty_block));
   };
 
   let Some((Token::Indent(0..), _)) = indenter.peek(stream)? else {
@@ -197,9 +200,11 @@ pub(super) fn make_block<'pool, C: Compiler, const N: usize, T: Read>(
   };
   stream.seek();
 
-  let block = lang::expr::BlockExpression::new_dirty(parent, start);
-  let block = store.rget_mut(function).add_block(block);
-  let block = lang::reference::BlockReference(function, block);
+  let block = lang::expr::BlockExpression::create_in(
+    store,
+    function, parent, start,
+    lang::ty::TypeValue::Weak { span: start },
+  );
 
   let mut non_return_last = None;
   loop {

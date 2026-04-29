@@ -80,7 +80,7 @@ fn make_struct<'pool, C: Compiler, const N: usize, T: Read>(
   store: &mut C::Store<'pool>,
   parent: C::ModuleReference,
   stream: &mut Rereader<'pool, C, N, T>,
-) -> Result<Option<lang::module::Struct<C>>, Error<C>> {
+) -> Result<Option<lang::reference::StructReference<C>>, Error<C>> {
   let Some((Token::Keyword(Keyword::Struct), start)) = stream.peek()? else {
     return Ok(None);
   };
@@ -98,64 +98,77 @@ fn make_struct<'pool, C: Compiler, const N: usize, T: Read>(
 
   stream.skip_whitespace_and_comments()?;
 
-  let mut members = vec![];
+  let struct_reference; {
+    let struc = lang::module::Struct {
+      name,
+      members: vec![],
+      span: start,
+    };
 
-  match indenter.peek(stream)? {
-    Some((Token::Indent(1..), _)) => {
-      stream.seek();
-    },
-    Some((Token::Indent(0), _)) | None => {
-      return Ok(Some(lang::module::Struct {
-        name,
-        members,
-        span: Span::from_pair(start, stream.here()?),
-      }));
-    },
-    other => todo!("{other:#?}"),
+    // Make the next StructReference for the struct and then add it.
+    // TODO: This is far too clumsy to keep this way forever
+    let parent_borrow = store.rget_mut(parent);
+    let index = parent_borrow.structs.len();
+    struct_reference = lang::reference::StructReference(parent, index);
+    parent_borrow.structs.push(struc);
   };
 
-  let end;
-  loop {
-    stream.skip_whitespace_and_comments()?;
-
+  let end = 'end: {
     match indenter.peek(stream)? {
-      Some((Token::Indent(1..), at)) => {
-        return Err(Error::Invalid {
-          what: line_dbg!("indent"),
-          at,
-        });
-      },
-      Some((Token::Indent(0), _)) => {
-        // skip empty lines
+      Some((Token::Indent(1..), _)) => {
         stream.seek();
-        continue;
       },
-      next_tok @ (None | Some((Token::Indent(..=-1), _))) => {
-        end = stream.here()?;
-        // only skip the token if we can see it.  TODO: would be nice to have
-        // some kind of a shorthand for this
-        if next_tok.is_some() { stream.seek(); };
-        break;
+      Some((Token::Indent(0), _)) | None => {
+        break 'end stream.here()?;
       },
-      Some(_) => {
-        // this will be code for us to
-      },
+      other => todo!("{other:#?}"),
     };
 
-    let Some(variable) = function::make_function_argument(store, stream, parent)? else {
-      return stream.expected_here(line_dbg!("a struct member"));
-    };
+    loop {
+      stream.skip_whitespace_and_comments()?;
 
-    members.push(variable);
+      match indenter.peek(stream)? {
+        Some((Token::Indent(1..), at)) => {
+          return Err(Error::Invalid {
+            what: line_dbg!("indent"),
+            at,
+          });
+        },
+        Some((Token::Indent(0), _)) => {
+          // skip empty lines
+          stream.seek();
+          continue;
+        },
+        next_tok @ (None | Some((Token::Indent(..=-1), _))) => {
+          let end = stream.here()?;
+          // only skip the token if we can see it.  TODO: would be nice to have
+          // some kind of a shorthand for this
+          if next_tok.is_some() { stream.seek(); };
+          break 'end end;
+        },
+        Some(_) => {
+          // this will be code for us to
+        },
+      };
+
+      let Some(type_and_name) = function::make_function_argument(store, stream, parent)? else {
+        return stream.expected_here(line_dbg!("a struct member"));
+      };
+
+      let struct_borrow = struct_reference.rget_from_mut(store);
+
+      let next_index = struct_borrow.members.len();
+      let type_reference = lang::reference::TypeReference::StructMember(struct_reference, next_index);
+
+      let variable = type_and_name.into_variable(type_reference);
+
+      struct_borrow.members.push(variable);
+    };
   };
 
-  let span = Span::from_pair(start, end);
+  struct_reference.rget_from_mut(store).span.extend(end);
 
-  Ok(Some(lang::module::Struct {
-    name,
-    members,
-    span,
-  }))
+  Ok(Some(struct_reference))
 }
 
 /// This should be the entry point to making a structure, whether from top-level
@@ -244,13 +257,7 @@ pub(super) fn make_structure<'pool, C: Compiler, const N: usize, T: Read>(
     return Ok(Some(Structure::TypeAlias(alias)))
   };
 
-  if let Some(struc) = make_struct(store, parent, stream)? {
-    // Make the next StructReference for the struct and then add it.
-    // TODO: This is far too clumsy to keep this way forever
-    let parent_borrow = store.rget_mut(parent);
-    let id = parent_borrow.structs.len();
-    let struct_reference = lang::reference::StructReference(parent, id);
-    parent_borrow.structs.push(struc);
+  if let Some(struct_reference) = make_struct(store, parent, stream)? {
     return Ok(Some(Structure::Struct(struct_reference)))
   };
 

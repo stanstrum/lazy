@@ -172,9 +172,10 @@ impl<'pool> lang::CompilerPoolStore<'pool, LazyStructures> for Lazy<'pool> {
     Ok(module)
   }
 
-  fn create_function(&mut self, module: ModuleReference, header: FunctionHeader<LazyStructures>) -> FunctionReference {
+  fn create_function(&mut self, module: ModuleReference, header: impl FnOnce(FunctionReference) -> FunctionHeader<LazyStructures>) -> FunctionReference {
     let function_reference = FunctionReference(self.functions.len());
     let body = function_reference.body();
+    let header = header(function_reference);
     let function = Function::new(body, module, header);
 
     self.functions.push(function);

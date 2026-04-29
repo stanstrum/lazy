@@ -6,11 +6,27 @@ use lang::token::Operator;
 
 use super::*;
 
+#[derive(Debug)]
+pub(crate) struct TypeValueAndNamePair<C: Compiler> {
+  name: lang::module::Name<C>,
+  ty: lang::ty::TypeValue<C>,
+  span: lang::span::Span<C>
+}
+
+impl<C: Compiler> TypeValueAndNamePair<C> {
+  pub(crate) fn into_variable(self, type_reference: lang::reference::TypeReference<C>) -> lang::expr::Variable<C> {
+    let Self { name, ty: type_value, span } = self;
+    let ty = lang::ty::Type::new(type_reference, type_value);
+
+    lang::expr::Variable { name, ty, span }
+  }
+}
+
 pub(super) fn make_function_argument<'pool, C: Compiler, const N: usize, T: Read>(
   store: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, C, N, T>,
   parent: C::ModuleReference,
-) -> Result<Option<lang::expr::Variable<C>>, Error<C>> {
+) -> Result<Option<TypeValueAndNamePair<C>>, Error<C>> {
   let Some(ty) = ty::make_type(store, stream, parent)? else {
     return Ok(None);
   };
@@ -23,23 +39,16 @@ pub(super) fn make_function_argument<'pool, C: Compiler, const N: usize, T: Read
     return stream.expected_here(line_dbg!("an identifier"));
   };
 
-  let mut span = ty.get_span(store);
-  span.extend(name.get_span(store));
+  let span = Span::from_pair(ty.get_span(store), name.span);
 
-  let ty = todo!();
-
-  Ok(Some(lang::expr::Variable {
-    name,
-    ty,
-    span,
-  }))
+  Ok(Some(TypeValueAndNamePair { name, ty, span, }))
 }
 
-fn make_function_header<'pool, C: Compiler, const N: usize, T: Read>(
-  lazy: &mut C::Store<'pool>,
+fn make_function_from_header<'pool, C: Compiler, const N: usize, T: Read>(
+  store: &mut C::Store<'pool>,
   stream: &mut Rereader<'pool, C, N, T>,
   parent: C::ModuleReference,
-) -> Result<Option<lang::function::FunctionHeader<C>>, Error<C>> {
+) -> Result<Option<C::FunctionReference>, Error<C>> {
   let Some(name) = make_name(stream)? else {
     return Ok(None);
   };
@@ -51,7 +60,7 @@ fn make_function_header<'pool, C: Compiler, const N: usize, T: Read>(
       stream.seek();
       stream.skip_whitespace_and_comments()?;
 
-      let Some(ret_ty) = ty::make_type(lazy, stream, parent)? else {
+      let Some(ret_ty) = ty::make_type(store, stream, parent)? else {
         return stream.expected_here(line_dbg!("a return type"));
       };
 
@@ -80,7 +89,7 @@ fn make_function_header<'pool, C: Compiler, const N: usize, T: Read>(
 
     stream.skip_whitespace_and_comments()?;
 
-    let Some(argument) = make_function_argument(lazy, stream, parent)? else {
+    let Some(argument) = make_function_argument(store, stream, parent)? else {
       return stream.expected_here(line_dbg!("a function argument"));
     };
 
@@ -97,14 +106,32 @@ fn make_function_header<'pool, C: Compiler, const N: usize, T: Read>(
   let mut span = name.span;
   span.end = stream.here()?.start;
 
-  let ret_ty = todo!();
+  let ret_ty_span = ret_ty.get_span(store);
+  let function_reference = store.create_function(parent, |function_reference| {
+    let ret_ty = lang::ty::Type::new(
+      lang::reference::TypeReference::ReturnTypeOf(function_reference),
+      lang::ty::TypeValue::Weak {
+        span: ret_ty_span,
+      },
+    );
+    let arguments = arguments.into_iter().enumerate()
+      .map(|(index, arg)| {
+        let type_reference = lang::reference::TypeReference::Variable(
+          lang::reference::VariableReference::Argument(function_reference, index)
+        );
+        arg.into_variable(type_reference)
+      })
+      .collect();
 
-  Ok(Some(lang::function::FunctionHeader {
-    name,
-    ret_ty,
-    arguments,
-    span,
-  }))
+    lang::function::FunctionHeader {
+      name,
+      ret_ty,
+      arguments,
+      span,
+    }
+  });
+
+  Ok(Some(function_reference))
 }
 
 pub(super) fn make_function<'pool, C: Compiler, const N: usize, T: Read>(
@@ -112,11 +139,10 @@ pub(super) fn make_function<'pool, C: Compiler, const N: usize, T: Read>(
   stream: &mut Rereader<'pool, C, N, T>,
   module: C::ModuleReference,
 ) -> Result<Option<C::FunctionReference>, Error<C>> {
-  let Some(header) = make_function_header(store, stream, module)? else {
+  let Some(function) = make_function_from_header(store, stream, module)? else {
     return Ok(None);
   };
 
-  let function = store.create_function(module, header);
   let body = function.body();
 
   let mut non_return_last = None;

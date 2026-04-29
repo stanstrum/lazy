@@ -59,7 +59,7 @@ pub trait CompilerPoolStore<'pool, C: Compiler>:
   /// be returned.
   fn add_file(&mut self, name: &str, path: PathBuf, relative_to: Option<&Path>) -> Result<C::ModuleReference, LazyError<C>>;
 
-  fn create_function(&mut self, module: C::ModuleReference, header: FunctionHeader<C>) -> C::FunctionReference;
+  fn create_function(&mut self, module: C::ModuleReference, header: impl FnOnce(C::FunctionReference) -> FunctionHeader<C>) -> C::FunctionReference;
 
   fn describe_module(&self, module_reference: C::ModuleReference) -> String {
     let module = self.rget(module_reference);

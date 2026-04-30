@@ -18,6 +18,8 @@ mod store;
 pub mod keys;
 pub mod error;
 
+pub mod resolve;
+
 use std::{fmt::Debug, hash::Hash, path::{Path, PathBuf}};
 
 use string_pool::StringPool;
@@ -129,10 +131,4 @@ pub trait Compiler: Debug + Sized + Clone + Copy + PartialEq + Eq {
   type FunctionReference: CompilerReference + Hash;
 
   type TokensReference: CompilerReference;
-
-  fn resolve_qualified_to_space<'a>(
-    store: &mut Self::Store<'a>,
-    module: Self::ModuleReference,
-    qualified: &Qualified<Self>,
-  ) -> Result<Option<QualifiedSearchSpace<Self>>, Box<error::ResolveError<Self>>>;
 }

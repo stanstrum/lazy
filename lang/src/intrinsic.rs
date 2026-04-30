@@ -1,3 +1,7 @@
+use string_pool::PoolId;
+
+use crate::keys::PoolKeys;
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[allow(unused)]
 pub enum Intrinsic {
@@ -61,6 +65,59 @@ impl Intrinsic {
       "f64" => Some(Self::F64),
       _ => None,
     }
+  }
+
+  // SPONGE: refactor this somehow
+  pub fn try_from_keys(id: PoolId, keys: &PoolKeys) -> Option<Self> {
+    if id == keys.void {
+      return Some(Self::Void);
+    };
+
+    if id == keys.bool {
+      return Some(Self::Bool);
+    };
+
+    if id == keys.u8 {
+      return Some(Self::U8);
+    };
+
+    if id == keys.u16 {
+      return Some(Self::U16);
+    };
+
+    if id == keys.u32 {
+      return Some(Self::U32);
+    };
+
+    if id == keys.u64 {
+      return Some(Self::U64);
+    };
+
+    if id == keys.i8 {
+      return Some(Self::I8);
+    };
+
+    if id == keys.i16 {
+      return Some(Self::I16);
+    };
+
+    if id == keys.i32 {
+      return Some(Self::I32);
+    };
+
+    if id == keys.i64 {
+      return Some(Self::I64);
+    };
+
+    if id == keys.f32 {
+      return Some(Self::F32);
+    };
+
+    if id == keys.f64 {
+      return Some(Self::F64);
+    };
+
+    None
   }
 }
 

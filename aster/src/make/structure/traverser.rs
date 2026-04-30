@@ -93,7 +93,7 @@ fn traverse_part<C: Compiler>(
         span,
       };
 
-      let space_search = C::resolve_qualified_to_space(lazy, *source, &where_are_we_now, /* &None */);
+      let space_search = lang::resolve::resolve_qualified_to_space(lazy, &where_are_we_now, true);
       let space_search = space_search
         // shouldn't actually throw an error if we don't pass it `tasks`, rather
         // return `None`

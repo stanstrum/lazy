@@ -33,7 +33,7 @@ impl<C: Compiler> From<TypeReference<C>> for Type<C> {
   }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum QualifiedSearchSpace<C: Compiler> {
   Implicit,
   Struct(StructReference<C>),

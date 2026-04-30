@@ -4,6 +4,7 @@ use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::rc::Rc;
 
+use lang::expr::BlockExpression;
 use tasks::{Task, TaskResponse};
 use lang::{Compiler, CompilerPoolStore, ty::TypeOf};
 use lazy_macros::{print_message, line_dbg};
@@ -12,7 +13,7 @@ use pprint::Pretty;
 use lang::intrinsic::Intrinsic;
 use lang::span::GetSpan;
 use lang::ty::TypeValue;
-use lang::reference::{Reference, Store, TypeReference, VariableReference};
+use lang::reference::{BlockReference, ExpressionReference, Reference, Store, TypeReference, VariableReference};
 
 trait Resolve<C: Compiler> {
   fn resolve(&self, resolver: &Resolver<C>) -> Result<C>;
@@ -198,28 +199,51 @@ fn find_main<C: Compiler + 'static>(resolver: &Resolver<C>, module: C::ModuleRef
   Ok(*main)
 }
 
-trait Typify<C: Compiler> {
-  fn get_type_iter(&self, store: &C::Store<'_>) -> impl Iterator<Item = TypeReference<C>>;
+trait Typify<C: Compiler>: Sized {
+  fn get_type_iter<'store>(self, store: &'store C::Store<'_>) -> Box<dyn Iterator<Item = TypeReference<C>> + 'store>;
 }
 
-fn typify_module_reference<C: Compiler>(resolver: &Resolver<C>, module_reference: C::ModuleReference) -> impl Iterator<Item = TypeReference<C>> {
-  todo!();
-
-  vec![].into_iter()
+fn typify_module_reference<'store, C: Compiler>(resolver: &Resolver<'store, '_, '_, C>, module_reference: C::ModuleReference) -> Box<dyn Iterator<Item = TypeReference<C>> + 'store> {
+  todo!()
 }
 
-fn typify_function_reference<C: Compiler>(resolver: &Resolver<C>, function_reference: C::FunctionReference) -> impl Iterator<Item = TypeReference<C>> {
-  let function_borrow = function_reference.rget_from(resolver.store);
-  let args = (0..function_borrow.header.arguments.len())
+impl<C: Compiler + 'static> Typify<C> for ExpressionReference<C> {
+  fn get_type_iter<'store>(self, store: &'store C::Store<'_>) -> Box<dyn Iterator<Item = TypeReference<C>> + 'store> {
+    let m: Box::<dyn Iterator<Item = TypeReference<C>>> = match store.rget(self) {
+      lang::expr::Expression::Block(block_reference) => Box::new(block_reference.get_type_iter(store)),
+      lang::expr::Expression::Literal { value, span, out } => Box::new(std::iter::once(out.reference)),
+      lang::expr::Expression::Variable { reference, span } => todo!(),
+      lang::expr::Expression::Unknown { qualified, out } => todo!(),
+      lang::expr::Expression::Unary { expr, op, span, out } => todo!(),
+      lang::expr::Expression::Binary { a, b, op, span, out } => todo!(),
+      lang::expr::Expression::StructInitializer { ty, members, span } => todo!(),
+    };
+
+    todo!()
+  }
+}
+
+impl<C: Compiler + 'static> Typify<C> for BlockReference<C> {
+  fn get_type_iter<'store>(self, store: &'store C::Store<'_>) -> Box<dyn Iterator<Item = TypeReference<C>> + 'store> {
+    Box::new(store.rget(self).children.iter().map(move |expr_id| {
+      let expression_reference = ExpressionReference(self, *expr_id);
+      expression_reference.get_type_iter(store)
+    }).flatten())
+  }
+}
+
+fn typify_function_reference<'store, C: Compiler + 'static>(resolver: &'store Resolver<'store, '_, '_, C>, function_reference: C::FunctionReference) -> Box<dyn Iterator<Item = TypeReference<C>> + 'store> {
+  let borrow = function_reference.rget_from(resolver.store);
+  let args = (0..borrow.header.arguments.len())
     .map(move |index| TypeReference::Variable(
       VariableReference::Argument(function_reference, index)
     )
   );
   let return_type = std::iter::once(TypeReference::ReturnTypeOf(function_reference));
 
-  let exprs = vec![todo!()].into_iter();
+  let exprs = borrow.body.get_type_iter(resolver.store);
 
-  return_type.chain(args).chain(exprs)
+  Box::new(return_type.chain(args).chain(exprs))
 }
 
 pub fn resolve_and_verify<C: Compiler + 'static>(store: &mut C::Store<'_>, global: C::ModuleReference) -> Result<C> {
@@ -231,16 +255,16 @@ pub fn resolve_and_verify<C: Compiler + 'static>(store: &mut C::Store<'_>, globa
 
   let main = find_main(&resolver, global)?;
 
-  for m in typify_function_reference(&resolver, main) {
-    dbg!(m);
+  for r#type in typify_function_reference(&resolver, main) {
+    println!(line_dbg!("{}"), r#type.print(resolver.store));
   };
 
   resolver.resolve_tasks(line_dbg!("Resolve global").into())?;
 
-  todo!();
   resolver.work::<Result<C>>(
     line_dbg!("Make default ambiguous types").into(),
-    |tasks| {
+    |resolver| {
+      todo!();
       // impls::structure::default_types_in_module(resolver.store, &global, tasks)?;
 
       Ok(())
@@ -316,5 +340,6 @@ pub fn resolve_and_verify<C: Compiler + 'static>(store: &mut C::Store<'_>, globa
   //   "verifying should not have queued any more work",
   // );
 
-  // Ok(())
+  todo!();
+  Ok(())
 }

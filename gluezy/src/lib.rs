@@ -207,15 +207,4 @@ impl lang::Compiler for LazyStructures {
   type FunctionReference = FunctionReference;
 
   type TokensReference = TokensId;
-
-  fn resolve_qualified_to_space<'pool>(
-    store: &mut Self::Store<'pool>,
-    module: Self::ModuleReference,
-    qualified: &lang::ty::Qualified<Self>,
-  ) -> Result<Option<lang::ty::QualifiedSearchSpace<Self>>, Box<lang::error::ResolveError<Self>>> {
-    todo!()
-    // // SPONGE: Some wacko dynamic dispatch going on here that stems from refactoring and
-    // // I just had to do this to make things work.  Get rid of this.
-    // resolve::impls::ty::pair::unknown::resolve_qualified_to_space(store, module, qualified, option)
-  }
 }

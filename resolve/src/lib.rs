@@ -50,7 +50,24 @@ impl<C: Compiler> Tasks<C> {
 
 impl<'store, 'pool, 'tasks, C: Compiler> Resolver<'store, 'pool, 'tasks, C> {
   fn work<T>(&mut self, description: String, cb: impl FnOnce(&mut Self) -> T) -> T {
-    todo!()
+    #[cfg(debug_assertions)]
+    // Push the description to the stack
+    self.tasks.trace.borrow_mut().push(description);
+
+    // #[cfg(debug_assertions)]
+    // // SPONGE: Print the explain() message for the whole stack
+    // println!("{}", self.explain(0));
+
+    // Run the task
+    let result = cb(self);
+
+    #[cfg(debug_assertions)]
+    // Drop the handle
+    self.tasks.trace.borrow_mut().pop()
+      .expect("to pop status from trace");
+
+    // Return the result, error or not
+    result
   }
 
   /// Returns a boolean corresponding to whether any tasks were executed
@@ -209,7 +226,7 @@ fn typify_module_reference<'store, C: Compiler>(resolver: &Resolver<'store, '_, 
 
 impl<C: Compiler + 'static> Typify<C> for ExpressionReference<C> {
   fn get_type_iter<'store>(self, store: &'store C::Store<'_>) -> Box<dyn Iterator<Item = TypeReference<C>> + 'store> {
-    let m: Box::<dyn Iterator<Item = TypeReference<C>>> = match store.rget(self) {
+    match store.rget(self) {
       lang::expr::Expression::Block(block_reference) => Box::new(block_reference.get_type_iter(store)),
       lang::expr::Expression::Literal { value, span, out } => Box::new(std::iter::once(out.reference)),
       lang::expr::Expression::Variable { reference, span } => todo!(),
@@ -217,9 +234,7 @@ impl<C: Compiler + 'static> Typify<C> for ExpressionReference<C> {
       lang::expr::Expression::Unary { expr, op, span, out } => todo!(),
       lang::expr::Expression::Binary { a, b, op, span, out } => todo!(),
       lang::expr::Expression::StructInitializer { ty, members, span } => todo!(),
-    };
-
-    todo!()
+    }
   }
 }
 

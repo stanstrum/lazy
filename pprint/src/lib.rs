@@ -19,18 +19,12 @@ impl<C: Compiler> Pretty<C> for Type<C> {
   type Out = String;
 
   fn print<'local, 'store, 'pool>(&'local self, store: &'store C::Store<'pool>) -> Self::Out {
-    todo!()
-    // let reference = self.overwrite.reference.print(store);
+    let reference = self.reference.print(store);
 
-    // let mut out = format!("/* {{pair := {}}} */ {reference}", self.ty.print(store));
-
-    // for modifier in self.overwrite.modifiers.iter() {
-    //   match modifier {
-    //     TypePairModifier::Dereference => out = format!("Dereference<{out}>"),
-    //   };
-    // };
-
-    // out
+    match &self.ty {
+      Some(ty) => format!("/* {reference} */ {}", ty.print(store)),
+      None => format!("{reference}"),
+    }
   }
 }
 
@@ -125,10 +119,7 @@ impl<C: Compiler> Pretty<C> for TypeReference<C> {
         format!("typeof {{{} {}}}::{}", print_function_reference::<C>(&v.parent(), store), block.print(store), name.print(store))
       },
       TypeReference::Expression(expression) => {
-        let type_print = expression.type_of(store).map(|s| format!(" /* {} */", s.print(store)));
-        let type_print = type_print.as_deref().unwrap_or_default();
-
-        format!("typeof {{{}}}{type_print}", expression.print(store))
+        format!("typeof {{{}}}", expression.print(store))
       },
       TypeReference::Block(block) => format!("typeof {{{}}}", block.print(store)),
       TypeReference::StructMember(struct_reference, id) => {

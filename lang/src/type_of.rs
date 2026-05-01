@@ -1,5 +1,5 @@
 use crate::Compiler;
-use crate::reference::{BlockReference, ExpressionReference, Reference, TypePartReference, TypeReference, VariableReference};
+use crate::reference::{BlockReference, ExpressionReference, Reference, Store, TypePartReference, TypeReference, VariableReference};
 use crate::expr::Expression;
 use crate::ty::{TypeValue, TypeOf, Type};
 
@@ -45,19 +45,14 @@ impl<C: Compiler> TypeOf<C> for ExpressionReference<C> {
     match self.rget_from(store) {
       Expression::Block(block) => block.type_of(store),
       Expression::Variable { reference, .. } => reference.type_of(store),
-      // TODO: again, very unsure about this... we are relying on the Resolve
-      //       mechanism to hit the insides of the Expression and then
-      //       looping to finish the job.  is this Functional™?
+      //
       | Expression::Literal { out, .. }
       | Expression::Unknown { out, .. }
       | Expression::Unary { out, .. }
       | Expression::Binary { out, .. }
       | Expression::StructInitializer { ty: out, .. }
         => {
-          let reference = TypeReference::Expression(*self);
-
-          todo!()
-          // Type::new(reference, out.clone()).type_of(store)
+          out.type_of(store)
         },
     }
   }
@@ -65,8 +60,31 @@ impl<C: Compiler> TypeOf<C> for ExpressionReference<C> {
 
 impl<C: Compiler> TypeOf<C> for Type<C> {
   fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {
-    todo!()
-    // self.ty.type_of(store)
+    let ty = if let Some(ty) = self.ty.as_ref() {
+      ty
+    } else if let Some(ty) = &self.reference.rget_from(store).ty {
+      ty
+    } else {
+      return None;
+    };
+
+    match ty {
+      TypeValue::Reference(type_reference) => type_reference.type_of(store),
+      TypeValue::Resolved { part, .. } => part.type_of(store),
+      TypeValue::Unresolved { module, qualified } => todo!(),
+      TypeValue::Intrinsic { kind, span } => todo!(),
+
+      | TypeValue::WeakInteger { .. }
+      | TypeValue::WeakFloat { .. }
+      | TypeValue::WeakString { .. }
+      | TypeValue::Weak { .. }
+        => Some(Self::new(self.reference, ty.clone())),
+
+      TypeValue::ReferenceTo { ty, r#mut, span } => todo!(),
+      TypeValue::UnsizedArrayOf { ty, span } => todo!(),
+      TypeValue::SizedArrayOf { ty, size, span } => todo!(),
+      TypeValue::Struct { prototype } => todo!(),
+    }
   }
 }
 

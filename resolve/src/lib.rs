@@ -1,32 +1,23 @@
+mod typing;
 mod tasks;
 
 use std::cell::RefCell;
 use std::collections::VecDeque;
-use std::rc::Rc;
-
-use lang::expr::BlockExpression;
-use tasks::{Task, TaskResponse};
-use lang::{Compiler, CompilerPoolStore, ty::TypeOf};
-use lazy_macros::{print_message, line_dbg};
 
 use pprint::Pretty;
-use lang::intrinsic::Intrinsic;
-use lang::span::GetSpan;
-use lang::ty::TypeValue;
-use lang::reference::{BlockReference, ExpressionReference, Reference, Store, TypeReference, VariableReference};
+use tasks::{Task, TaskResponse};
+use lang::ty::{Type, TypeOf, TypeValue};
+use lang::{Compiler, CompilerPoolStore};
+use lazy_macros::{print_message, line_dbg};
 
-trait Resolve<C: Compiler> {
-  fn resolve(&self, resolver: &Resolver<C>) -> Result<C>;
-}
-
-trait Coerce<C: Compiler> {
-  fn coerce(&self, resolver: &Resolver<C>, other: &impl TypeOf<C>) -> Result<C>;
-}
+use lang::reference::Reference;
 
 pub(crate) type Result<C, T = ()> = std::result::Result<T, Box<ResolveError<C>>>;
 
 pub use lang::error::ResolveError;
 pub use lang::error::ResolveErrorBase;
+
+use crate::typing::{Coerce, Resolve};
 
 pub struct Tasks<C: Compiler> {
   tasks: RefCell<VecDeque<Box<dyn Task<C>>>>,
@@ -45,6 +36,11 @@ impl<C: Compiler> Tasks<C> {
       tasks: RefCell::new(VecDeque::new()),
       trace: RefCell::new(vec![]),
     }
+  }
+
+  pub fn push(&mut self, task: impl Task<C> + 'static, _source: &'static str) {
+    // #[cfg(debug_assertions)] println!(line_dbg!("push from {}"), _source);
+    self.tasks.borrow_mut().push_back(Box::new(task));
   }
 }
 
@@ -216,49 +212,49 @@ fn find_main<C: Compiler + 'static>(resolver: &Resolver<C>, module: C::ModuleRef
   Ok(*main)
 }
 
-trait Typify<C: Compiler>: Sized {
-  fn get_type_iter<'store>(self, store: &'store C::Store<'_>) -> Box<dyn Iterator<Item = TypeReference<C>> + 'store>;
-}
+impl<C: Compiler> Resolve<C> for Type<C> {
+  fn resolve(&self, resolver: &Resolver<C>) -> Result<C, bool> {
+    let ty = if let Some(ty) = &self.ty {
+      ty
+    } else {
+      let Some(ty) = &self.reference.rget_from(resolver.store).ty else {
+        return Ok(false);
+      };
 
-fn typify_module_reference<'store, C: Compiler>(resolver: &Resolver<'store, '_, '_, C>, module_reference: C::ModuleReference) -> Box<dyn Iterator<Item = TypeReference<C>> + 'store> {
-  todo!()
-}
+      ty
+    };
 
-impl<C: Compiler + 'static> Typify<C> for ExpressionReference<C> {
-  fn get_type_iter<'store>(self, store: &'store C::Store<'_>) -> Box<dyn Iterator<Item = TypeReference<C>> + 'store> {
-    match store.rget(self) {
-      lang::expr::Expression::Block(block_reference) => Box::new(block_reference.get_type_iter(store)),
-      lang::expr::Expression::Literal { value, span, out } => Box::new(std::iter::once(out.reference)),
-      lang::expr::Expression::Variable { reference, span } => todo!(),
-      lang::expr::Expression::Unknown { qualified, out } => todo!(),
-      lang::expr::Expression::Unary { expr, op, span, out } => todo!(),
-      lang::expr::Expression::Binary { a, b, op, span, out } => todo!(),
-      lang::expr::Expression::StructInitializer { ty, members, span } => todo!(),
+    match &self.reference {
+      lang::reference::TypeReference::Alias(alias_reference) => todo!(),
+      lang::reference::TypeReference::Part(type_part_reference) => todo!(),
+      lang::reference::TypeReference::Expression(expression_reference) => todo!(),
+      lang::reference::TypeReference::Block(block_reference) => todo!(),
+      lang::reference::TypeReference::ReturnTypeOf(function_reference) => {
+        let block_reference = function_reference.rget_from(resolver.store).body;
+        let block_ty_reference = lang::reference::TypeReference::Block(block_reference);
+        let block_ty: Type<C> = block_ty_reference.into();
+
+        block_ty.coerce(resolver, &self.reference)?;
+      },
+      lang::reference::TypeReference::Variable(variable_reference) => todo!(),
+      lang::reference::TypeReference::StructMember(struct_reference, _) => todo!(),
+    };
+
+    match ty {
+      TypeValue::Reference(type_reference) => todo!(),
+      TypeValue::Resolved { part, span } => todo!(),
+      TypeValue::Unresolved { module, qualified } => Ok(false),
+      TypeValue::Intrinsic { kind, span } => Ok(true),
+      TypeValue::WeakInteger { span } => Ok(false),
+      TypeValue::WeakFloat { span } => Ok(false),
+      TypeValue::WeakString { kind, characters, span, dereferenced } => Ok(false),
+      TypeValue::Weak { span } => Ok(false),
+      TypeValue::ReferenceTo { ty, r#mut, span } => todo!(),
+      TypeValue::UnsizedArrayOf { ty, span } => todo!(),
+      TypeValue::SizedArrayOf { ty, size, span } => todo!(),
+      TypeValue::Struct { prototype } => todo!(),
     }
   }
-}
-
-impl<C: Compiler + 'static> Typify<C> for BlockReference<C> {
-  fn get_type_iter<'store>(self, store: &'store C::Store<'_>) -> Box<dyn Iterator<Item = TypeReference<C>> + 'store> {
-    Box::new(store.rget(self).children.iter().map(move |expr_id| {
-      let expression_reference = ExpressionReference(self, *expr_id);
-      expression_reference.get_type_iter(store)
-    }).flatten())
-  }
-}
-
-fn typify_function_reference<'store, C: Compiler + 'static>(resolver: &'store Resolver<'store, '_, '_, C>, function_reference: C::FunctionReference) -> Box<dyn Iterator<Item = TypeReference<C>> + 'store> {
-  let borrow = function_reference.rget_from(resolver.store);
-  let args = (0..borrow.header.arguments.len())
-    .map(move |index| TypeReference::Variable(
-      VariableReference::Argument(function_reference, index)
-    )
-  );
-  let return_type = std::iter::once(TypeReference::ReturnTypeOf(function_reference));
-
-  let exprs = borrow.body.get_type_iter(resolver.store);
-
-  Box::new(return_type.chain(args).chain(exprs))
 }
 
 pub fn resolve_and_verify<C: Compiler + 'static>(store: &mut C::Store<'_>, global: C::ModuleReference) -> Result<C> {
@@ -270,9 +266,31 @@ pub fn resolve_and_verify<C: Compiler + 'static>(store: &mut C::Store<'_>, globa
 
   let main = find_main(&resolver, global)?;
 
-  for r#type in typify_function_reference(&resolver, main) {
-    println!(line_dbg!("{}"), r#type.print(resolver.store));
+  let mut types = typing::function::typify_function_reference(&resolver, main).collect::<VecDeque<_>>();
+
+  for pass in 1.. {
+    if types.is_empty() {
+      break;
+    };
+
+    println!(line_dbg!("Resolve pass {}"), pass);
+
+    for i in 0..types.len() {
+      let ty = types.pop_front().unwrap();
+
+      println!(line_dbg!("{}: {}"), i, ty.print(resolver.store));
+
+      let is_resolved = Type::from(ty).resolve(&mut resolver)?;
+
+      if !is_resolved {
+        types.push_back(ty);
+      };
+    };
+
+    resolver.resolve_tasks(line_dbg!("Finish pass").into())?;
   };
+
+  todo!();
 
   resolver.resolve_tasks(line_dbg!("Resolve global").into())?;
 

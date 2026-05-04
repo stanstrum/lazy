@@ -15,15 +15,9 @@ use lang::span::GetSpan;
 use log::{Level, MessageContents, MessageSection, WithinSource};
 use lang::reference::{Reference, Store, TypeReference};
 use lang::span::Span;
-use lang::ty::{Type, TypeOf, TypeValue};
+use lang::ty::{ResolvedType, Type, TypeOf, TypeValue};
 
 use {args::*, context::*};
-
-#[derive(Debug)]
-struct ResolvedType<C: Compiler> {
-  pub reference: TypeReference<C>,
-  pub ty: TypeValue<C>,
-}
 
 fn expect_resolved_type<C: Compiler>(store: &C::Store<'_>, t: &(impl TypeOf<C> + GetSpan<C>)) -> Result<C, ResolvedType<C>> {
   let Some(ty) = t.type_of(store) else {

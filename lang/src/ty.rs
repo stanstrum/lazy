@@ -9,6 +9,12 @@ pub trait TypeOf<C: Compiler>: GetSpan<C> {
   fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>>;
 }
 
+#[derive(Debug)]
+pub struct ResolvedType<C: Compiler> {
+  pub reference: TypeReference<C>,
+  pub ty: TypeValue<C>,
+}
+
 #[derive(Debug, Clone)]
 pub struct Type<C: Compiler> {
   pub reference: TypeReference<C>,

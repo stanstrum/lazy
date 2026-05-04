@@ -1,10 +1,9 @@
-use lang::module::AddTypePart;
 use lazy_macros::line_dbg;
-
-use lang::Compiler;
-use lang::span::GetSpan;
 use lang::token::{GroupingKind, GroupingType, Keyword, NumericValue, Operator};
-use lang::expr::{Expression, LiteralKind};
+use lang::span::GetSpan;
+use lang::expr::LiteralKind;
+use lang::module::AddTypePart;
+use lang::Compiler;
 
 use super::*;
 

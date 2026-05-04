@@ -1,10 +1,10 @@
-use lang::reference::{BlockReference, ExpressionReference, Store, TypeReference, VariableReference};
-
-use super::*;
-
 pub(crate) mod module;
 pub(crate) mod function;
 pub(crate) mod expr;
+
+use lang::reference::{BlockReference, ExpressionReference, Store, TypeReference, VariableReference};
+
+use super::*;
 
 pub(crate) trait Resolve<C: Compiler> {
   /// Resolves with the given context [`Resolver`].  Returns `true` if the

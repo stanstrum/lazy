@@ -1,8 +1,7 @@
-use lazy_macros::print_message;
-
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
+use lazy_macros::print_message;
 use lang::span::GetSpan;
 use lang::expr::operator::{BinaryOperator, UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 

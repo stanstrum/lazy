@@ -1,8 +1,9 @@
-use gluezy::LazyStructures;
 use inkwell::values::BasicValue;
+
+use gluezy::LazyStructures;
+use lang::span::Span;
 use lang::token;
 
-use lang::span::Span;
 use crate::types::make_type;
 
 use super::*;

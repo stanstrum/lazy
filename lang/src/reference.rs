@@ -1,4 +1,6 @@
-use crate::{Compiler, expr::BlockExpression, function::{BlockId, ExprId}};
+use crate::function::{BlockId, ExprId};
+use crate::expr::BlockExpression;
+use crate::Compiler;
 
 pub trait Store<Item> {
   type Out;

@@ -1,14 +1,15 @@
 mod make;
 pub mod rereader;
-pub use pprint::*;
 
 use std::fs::File;
 
 use rereader::Rereader;
 use tokenize::bufreader::BufferedUtf8MetadataReader;
 use tokenize::{Tokenizer, self};
-use lang::{Compiler, CompilerPoolStore};
 use lang::reference::Store;
+use lang::{Compiler, CompilerPoolStore};
+
+pub use pprint::*;
 
 pub type Error<C> = lang::error::AsterError<C>;
 

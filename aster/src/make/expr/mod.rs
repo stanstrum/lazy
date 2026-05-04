@@ -6,15 +6,14 @@ mod initializer;
 
 use std::io::Read;
 
-use lang::{Compiler, CompilerPoolStore};
-use lang::span::Span;
-
-use crate::make::ty;
-use crate::Rereader;
 use lazy_macros::line_dbg;
-use lang::expr::LiteralKind;
-use lang::reference::{BlockReference, ExpressionReference, Reference};
 use lang::token::Token;
+use lang::span::Span;
+use lang::reference::{BlockReference, ExpressionReference, Reference};
+use lang::expr::LiteralKind;
+use lang::{Compiler, CompilerPoolStore};
+
+use crate::{Rereader, make::ty};
 
 use super::Error;
 

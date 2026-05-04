@@ -1,7 +1,5 @@
 use lazy_macros::{print_message, print_once_per_thread};
 
-// use crate::resolve::impls::ty::resolve_qualified_to_space;
-
 use super::*;
 
 pub(super) fn traverse_import<'pool, C: Compiler>(

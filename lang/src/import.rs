@@ -1,4 +1,6 @@
-use crate::{Compiler, module::Name, span::Span};
+use crate::span::Span;
+use crate::module::Name;
+use crate::Compiler;
 
 #[derive(Debug)]
 pub struct ImportGroup<C: Compiler> {

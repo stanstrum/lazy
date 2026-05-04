@@ -6,10 +6,11 @@ mod structure;
 use std::io::Read;
 
 use lazy_macros::line_dbg;
-use lang::{Compiler, CompilerPoolStore};
-use lang::reference::{Reference, Store};
-use lang::span::{Span};
 use lang::token::{Token, TokenSpan};
+use lang::span::{Span};
+use lang::reference::{Reference, Store};
+use lang::{Compiler, CompilerPoolStore};
+
 use crate::rereader::Rereader;
 
 use super::Error;

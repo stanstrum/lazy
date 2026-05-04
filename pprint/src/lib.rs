@@ -1,13 +1,12 @@
-use lang::{Compiler, CompilerPoolStore};
-
 use lang::token::{NumericValue, StringKind};
 use lang::span::{Span, GetSpan};
+use lang::reference::{BlockReference, ExpressionReference, Reference, Store, TypePartReference, TypeReference, VariableReference};
+use lang::ty::{Qualified, QualifiedSearchSpace, TypeValue, Type};
 use lang::function::Function;
 use lang::module::{Module, Name};
 use lang::expr::operator::{UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 use lang::expr::{BlockExpression, Expression, LiteralKind};
-use lang::reference::{BlockReference, ExpressionReference, Reference, Store, TypePartReference, TypeReference, VariableReference};
-use lang::ty::{Qualified, QualifiedSearchSpace, TypeValue, TypeOf, Type};
+use lang::{Compiler, CompilerPoolStore};
 
 pub trait Pretty<C: Compiler> {
   type Out;

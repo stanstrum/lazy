@@ -3,11 +3,11 @@ use std::collections::HashMap;
 
 use string_pool::PoolId;
 
-use crate::Compiler;
-use crate::expr::Variable;
-use crate::reference::{Store, TypePartId, TypePartReference, TypeReference};
-use crate::ty::{Qualified, QualifiedSearchSpace, Type, TypeValue};
 use crate::span::Span;
+use crate::ty::{Qualified, QualifiedSearchSpace, Type};
+use crate::reference::{Store, TypePartId, TypePartReference, TypeReference};
+use crate::expr::Variable;
+use crate::Compiler;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Name<C: Compiler> {

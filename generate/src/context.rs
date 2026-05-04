@@ -1,8 +1,8 @@
 use gluezy::LazyStructures;
 
-use super::Result;
-
 use crate::args::CliArgs;
+
+use super::Result;
 
 pub(super) struct LLVMContext<'ctx> {
   pub context: &'ctx inkwell::context::Context,

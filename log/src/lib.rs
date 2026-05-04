@@ -1,10 +1,15 @@
 mod seek;
 
-use std::{cmp::Ordering, collections::HashMap, fs::File, io::{BufRead, BufReader, Write}};
+use std::io::{BufRead, BufReader, Write};
+use std::fs::File;
+use std::collections::HashMap;
+use std::cmp::Ordering;
 
 use lazy_macros::{colorize, line_dbg};
-
-use lang::{Compiler, CompilerPoolStore, reference::Store, span::{Position, Span}, token::Token};
+use lang::token::Token;
+use lang::span::{Position, Span};
+use lang::reference::Store;
+use lang::{Compiler, CompilerPoolStore};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 #[repr(u8)]

@@ -1,8 +1,7 @@
-use lang::reference::{ExpressionReference, FunctionGetBody, Reference};
-use lang::span::GetSpan;
 use lazy_macros::line_dbg;
-
 use lang::token::Operator;
+use lang::span::GetSpan;
+use lang::reference::{ExpressionReference, FunctionGetBody, Reference};
 
 use super::*;
 

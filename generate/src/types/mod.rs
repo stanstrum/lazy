@@ -1,9 +1,9 @@
+mod reimpl;
+
 use gluezy::LazyStructures;
 use pprint::Pretty;
 
 use super::*;
-
-mod reimpl;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub(super) enum LazyType<'ctx> {

@@ -1,19 +1,17 @@
 mod reference;
 pub mod format;
 
-use lang::error::LazyError;
-use lazy_macros::{line_dbg, print_message};
-
 use std::path::{Path, PathBuf};
 
-use lang::{Compiler, CompilerPoolStore};
-use log::Level;
 use string_pool::StringPool;
-
+use lazy_macros::{line_dbg, print_message};
+use log::Level;
+use lang::error::LazyError;
 use lang::token::Tokens;
-use lang::function::{Function, FunctionHeader};
+use lang::reference::Store;
 use lang::module::{Module, ModuleParent, ModulePath};
-use lang::reference::{FunctionGetBody, Store};
+use lang::function::{Function, FunctionHeader};
+use lang::{Compiler, CompilerPoolStore};
 
 pub use reference::*;
 

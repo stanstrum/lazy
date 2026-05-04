@@ -1,10 +1,10 @@
 use std::io::Read;
 use std::collections::VecDeque;
 
+use lang::token::{Token, TokenSpan};
 use lang::Compiler;
 
 use crate::tokenize::Tokenizer;
-use lang::token::{Token, TokenSpan};
 
 use super::Error;
 

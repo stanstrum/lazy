@@ -1,9 +1,8 @@
-use crate::{Compiler, CompilerPoolStore, ty::{Qualified, QualifiedSearchSpace}};
+use crate::ty::{Qualified, QualifiedSearchSpace};
+use crate::{Compiler, CompilerPoolStore};
 
 #[derive(Debug)]
-pub enum QualifiedError {
-
-}
+pub enum QualifiedError {}
 
 /// This function takes in a [`Qualified`] reference and return the
 /// corresponding [`QualifiedSearchSpace`] or [`None`] if none is found.

@@ -1,12 +1,10 @@
 use std::process::Command;
 
-use gluezy::{Lazy, LazyStructures};
 use lazy_macros::print_message;
-
-use pprint::Pretty;
-use gluezy::ModuleReference;
-use lang::reference::{Reference};
+use gluezy::{Lazy, LazyStructures, ModuleReference};
+use lang::reference::Reference;
 use generate::{ProgramCompilation, ProgramObjectFile};
+use pprint::Pretty;
 
 const ERROR_PAD_LEN: usize = "error ".len();
 const DEBUG_PAD_LEN: usize = "debug ".len();

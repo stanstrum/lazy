@@ -7,6 +7,7 @@ mod info;
 use std::process::ExitCode;
 
 use gluezy::Settings;
+
 use crate::parse::{Verb, Error};
 
 /// The entry point for the command-line interface to the LaZY compiler.

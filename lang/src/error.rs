@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
-use crate::{Compiler, span::Span};
+use crate::span::Span;
+use crate::Compiler;
 
 #[derive(Debug)]
 pub enum LazyError<C: Compiler> {

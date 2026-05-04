@@ -7,17 +7,17 @@ mod types;
 use std::collections::HashMap;
 use std::path::Path;
 
-use gluezy::LazyStructures;
-pub use inkwell::targets::FileType;
-use lang::Compiler;
 use lazy_macros::{line_dbg, print_message};
-use lang::span::GetSpan;
+use gluezy::LazyStructures;
 use log::{Level, MessageContents, MessageSection, WithinSource};
-use lang::reference::{Reference, Store, TypeReference};
-use lang::span::Span;
-use lang::ty::{ResolvedType, Type, TypeOf, TypeValue};
+use lang::reference::{Reference, Store};
+use lang::span::{GetSpan, Span};
+use lang::ty::{ResolvedType, TypeOf};
+use lang::Compiler;
 
 use {args::*, context::*};
+
+pub use inkwell::targets::FileType;
 
 fn expect_resolved_type<C: Compiler>(store: &C::Store<'_>, t: &(impl TypeOf<C> + GetSpan<C>)) -> Result<C, ResolvedType<C>> {
   let Some(ty) = t.type_of(store) else {

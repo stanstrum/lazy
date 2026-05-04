@@ -4,20 +4,19 @@ mod tasks;
 use std::cell::RefCell;
 use std::collections::VecDeque;
 
+use lazy_macros::{print_message, line_dbg};
+use lang::ty::{Type, TypeOf, TypeValue};
+use lang::reference::Reference;
+use lang::{Compiler, CompilerPoolStore};
 use pprint::Pretty;
 use tasks::{Task, TaskResponse};
-use lang::ty::{Type, TypeOf, TypeValue};
-use lang::{Compiler, CompilerPoolStore};
-use lazy_macros::{print_message, line_dbg};
 
-use lang::reference::Reference;
-
-pub(crate) type Result<C, T = ()> = std::result::Result<T, Box<ResolveError<C>>>;
+use crate::typing::{Coerce, Resolve};
 
 pub use lang::error::ResolveError;
 pub use lang::error::ResolveErrorBase;
 
-use crate::typing::{Coerce, Resolve};
+pub(crate) type Result<C, T = ()> = std::result::Result<T, Box<ResolveError<C>>>;
 
 pub struct Tasks<C: Compiler> {
   tasks: RefCell<VecDeque<Box<dyn Task<C>>>>,

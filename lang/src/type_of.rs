@@ -1,7 +1,7 @@
-use crate::Compiler;
-use crate::reference::{BlockReference, ExpressionReference, Reference, Store, TypePartReference, TypeReference, VariableReference};
-use crate::expr::Expression;
 use crate::ty::{TypeValue, TypeOf, Type};
+use crate::reference::{BlockReference, ExpressionReference, Reference, TypePartReference, TypeReference, VariableReference};
+use crate::expr::Expression;
+use crate::Compiler;
 
 impl<C: Compiler> TypeOf<C> for TypeValue<C> {
   fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>> {

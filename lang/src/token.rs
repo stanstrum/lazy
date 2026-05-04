@@ -3,7 +3,6 @@ use string_pool::{PoolId, StringId};
 use crate::span::Span;
 
 pub type TokenSpan<C> = (Token, Span<C>);
-
 pub type Tokens<C> = Vec<TokenSpan<C>>;
 
 #[derive(Debug, Clone, Copy)]

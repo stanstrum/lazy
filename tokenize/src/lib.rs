@@ -3,13 +3,17 @@ mod token;
 mod state;
 pub mod bufreader;
 
-use std::{collections::VecDeque, io::Read};
+use std::io::Read;
+use std::collections::VecDeque;
 
-use lang::{Compiler, token::Token, span::{Position, Span}};
 use string_pool::StringPool;
+use lang::span::{Position, Span};
+use lang::token::Token;
+use lang::Compiler;
 
-use crate::{state::State, token::TokenSpan};
-use crate::bufreader::BufferedUtf8MetadataReader;
+use bufreader::BufferedUtf8MetadataReader;
+use token::TokenSpan;
+use state::State;
 
 #[derive(Debug)]
 pub struct Tokenizer<'pool, C: Compiler, const N: usize, T: Read> {

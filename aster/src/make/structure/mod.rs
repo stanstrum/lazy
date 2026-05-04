@@ -2,12 +2,12 @@ mod module;
 mod import;
 mod traverser;
 
-use lang::ty::Type;
 use lazy_macros::{line_dbg, print_message};
 
+use lang::token::{Keyword, Operator};
 use lang::span::GetSpan;
 use lang::reference::{AliasReference, StructReference};
-use lang::token::{Keyword, Operator};
+use lang::ty::Type;
 
 use super::*;
 

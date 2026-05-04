@@ -1,8 +1,6 @@
-use lazy_macros::line_dbg;
-use std::{cell::RefCell, collections::VecDeque, rc::Rc};
+use lang::error::ResolveError;
 
 use crate::{Compiler, Resolver};
-use lang::error::{ResolveError, ResolveErrorBase};
 
 pub trait Task<C: Compiler> {
   fn explain<'store, 'pool, 'tasks>(&self, resolver: &'store Resolver<'store, 'pool, 'tasks, C>) -> String;

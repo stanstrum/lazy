@@ -20,11 +20,16 @@ pub mod error;
 
 pub mod resolve;
 
-use std::{fmt::Debug, hash::Hash, path::{Path, PathBuf}};
+use std::path::{Path, PathBuf};
+use std::hash::Hash;
+use std::fmt::Debug;
 
 use string_pool::StringPool;
 
-use crate::{error::LazyError, function::FunctionHeader, module::{ModuleParent, ModulePath}, reference::{BlockReference, TypePartReference, TypeReference}, ty::{Qualified, QualifiedSearchSpace}};
+use crate::error::LazyError;
+use crate::reference::{BlockReference, TypePartReference, TypeReference};
+use crate::module::{ModuleParent, ModulePath};
+use crate::function::FunctionHeader;
 
 pub trait CompilerReference: Debug + Clone + Copy + PartialEq + Eq {}
 impl<T: Debug + Clone + Copy + PartialEq + Eq> CompilerReference for T {}

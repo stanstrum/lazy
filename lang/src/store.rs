@@ -1,7 +1,7 @@
-use crate::Compiler;
-use crate::expr::Expression;
 use crate::reference::{AliasReference, BlockReference, ExpressionReference, Store, StructReference, TypePartId, TypePartReference, TypeReference, VariableReference};
-use crate::ty::{Type, TypeValue};
+use crate::ty::Type;
+use crate::expr::Expression;
+use crate::Compiler;
 
 impl<'pool, C: Compiler> Store<AliasReference<C>> for C::Store<'pool> {
   type Out = crate::module::TypeAlias<C>;

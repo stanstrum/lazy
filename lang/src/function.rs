@@ -1,11 +1,11 @@
 use std::ops::{Index, IndexMut};
 
-use crate::Compiler;
 use crate::span::Span;
-use crate::module::Name;
-use crate::reference::{BlockReference, ExpressionReference, Store, TypeReference};
+use crate::reference::{BlockReference, TypeReference};
 use crate::ty::{Type, TypeValue};
+use crate::module::Name;
 use crate::expr::{BlockExpression, Expression, Variable};
+use crate::Compiler;
 
 #[derive(Debug)]
 pub struct FunctionHeader<C: Compiler> {

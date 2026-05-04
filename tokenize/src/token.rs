@@ -1,6 +1,6 @@
-use super::*;
-
 use std::cmp::Ordering;
+
+use super::*;
 
 pub use lang::span::Position;
 pub use lang::token::*;

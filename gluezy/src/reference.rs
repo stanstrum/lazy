@@ -1,5 +1,6 @@
-use crate::{Lazy, LazyStructures};
 use lang::reference::Store;
+
+use crate::{Lazy, LazyStructures};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ModuleReference(pub usize);

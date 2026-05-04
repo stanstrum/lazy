@@ -1,16 +1,17 @@
-pub use string_pool::StringPool;
-
 mod debug;
 
 use std::path::Path;
 use std::process::ExitCode;
 use std::os::unix::fs::PermissionsExt;
 
-use lang::CompilerPoolStore;
 use lazy_macros::print_message;
+use log::PrintableMessage;
 use gluezy::{Lazy, LazyStructures, ModuleReference};
+use lang::CompilerPoolStore;
 
-pub fn check(lazy: &mut Lazy<LazyStructures>) -> Result<ModuleReference, log::PrintableMessage<LazyStructures>> {
+pub use string_pool::StringPool;
+
+pub fn check(lazy: &mut Lazy<LazyStructures>) -> Result<ModuleReference, PrintableMessage<LazyStructures>> {
   // Instantiate the global scope
   let path = lazy.settings.input_path.to_owned();
   let global = lazy.add_file("@global", path, None)?;
@@ -25,7 +26,7 @@ pub fn check(lazy: &mut Lazy<LazyStructures>) -> Result<ModuleReference, log::Pr
   Ok(global)
 }
 
-pub fn build<'a>(lazy: &'a mut gluezy::Lazy) -> Result<&'a Path, log::PrintableMessage<LazyStructures>> {
+pub fn build<'a>(lazy: &'a mut gluezy::Lazy) -> Result<&'a Path, PrintableMessage<LazyStructures>> {
   let global = check(lazy)?;
 
   // Otherwise, let's go build the module
@@ -68,7 +69,7 @@ pub fn build<'a>(lazy: &'a mut gluezy::Lazy) -> Result<&'a Path, log::PrintableM
   Ok(executable)
 }
 
-pub fn run(lazy: &mut gluezy::Lazy) -> Result<ExitCode, log::PrintableMessage<LazyStructures>> {
+pub fn run(lazy: &mut gluezy::Lazy) -> Result<ExitCode, PrintableMessage<LazyStructures>> {
   let executable = build(lazy)?;
 
   // Otherwise, go run the child program

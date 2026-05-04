@@ -1,10 +1,11 @@
 use std::io::Read;
 
+use lang::span::Span;
 use lang::Compiler;
 
-use super::{Tokenizer, Error};
 use crate::token::{NumericKind, NumericValue, Token};
-use lang::span::Span;
+
+use super::{Tokenizer, Error};
 
 impl<'pool, C: Compiler, const N: usize, T: Read> Tokenizer<'pool, C, N, T> {
   pub(super) fn parse_and_push(&self, span: Span<C>, kind: Option<NumericKind>, content: &str) -> Result<Token, Error<C>> {

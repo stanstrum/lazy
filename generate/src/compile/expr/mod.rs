@@ -2,8 +2,8 @@ mod literal;
 mod variable;
 
 use gluezy::LazyStructures;
-
 use lang::expr::operator::BinaryOperator;
+
 use crate::types::{LazyType, LazyValue};
 
 use super::*;

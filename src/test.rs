@@ -1,7 +1,8 @@
 use std::path::PathBuf;
+
+use log::Level;
 use gluezy::{Lazy, LazyStructures, Settings};
 use lang::CompilerPoolStore;
-use log::Level;
 
 use super::*;
 

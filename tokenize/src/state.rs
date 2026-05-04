@@ -1,7 +1,7 @@
 use std::io::Read;
 
-use lang::Compiler;
 use lang::span::Span;
+use lang::Compiler;
 
 use crate::token::{
   CharState,

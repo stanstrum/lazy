@@ -1,4 +1,5 @@
-use crate::{Compiler, reference::ExpressionReference};
+use crate::reference::ExpressionReference;
+use crate::Compiler;
 
 #[derive(Debug, Clone, Copy)]
 pub enum BinaryOperator {

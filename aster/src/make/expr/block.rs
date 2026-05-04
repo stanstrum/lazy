@@ -1,13 +1,12 @@
-use lang::Compiler;
-use lazy_macros::print_message;
-
 use std::cmp::Ordering;
 
-use crate::make::Indenter;
-use lang::reference::{BlockReference, ExpressionReference, Reference, Store};
-use lang::span::GetSpan;
+use lazy_macros::print_message;
+use lang::span::{GetSpan, Span};
 use lang::token::{GroupingKind, GroupingType, Operator};
-use lang::span::Span;
+use lang::reference::{BlockReference, ExpressionReference, Reference, Store};
+use lang::Compiler;
+
+use crate::make::Indenter;
 
 use super::*;
 

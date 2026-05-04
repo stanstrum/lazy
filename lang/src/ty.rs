@@ -1,9 +1,9 @@
-use crate::Compiler;
-use crate::module::Name;
 use crate::token::StringKind;
 use crate::span::{GetSpan, Span};
 use crate::intrinsic::Intrinsic;
 use crate::reference::{AliasReference, BlockReference, ExpressionReference, Reference, Store, StructReference, TypePartReference, TypeReference, VariableReference};
+use crate::module::Name;
+use crate::Compiler;
 
 pub trait TypeOf<C: Compiler>: GetSpan<C> {
   fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>>;

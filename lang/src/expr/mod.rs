@@ -2,13 +2,13 @@ pub mod operator;
 
 use string_pool::StringId;
 
-use crate::Compiler;
-use crate::reference::{BlockReference, ExpressionReference, Reference, Store, TypeReference, VariableReference};
-use crate::ty::{Qualified, Type, TypeValue};
 use crate::token::{NumericValue, StringKind};
 use crate::span::Span;
+use crate::reference::{BlockReference, ExpressionReference, Store, TypeReference, VariableReference};
+use crate::ty::{Qualified, Type, TypeValue};
 use crate::module::Name;
 use crate::function::{BlockId, ExprId};
+use crate::Compiler;
 
 #[derive(Debug)]
 pub struct Variable<C: Compiler> {

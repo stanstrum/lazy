@@ -12,7 +12,7 @@ pub(super) fn compile_literal<'ctx>(
   comp: &mut Compilation<'_, '_, 'ctx>,
   function: inkwell::values::FunctionValue<'ctx>,
   kind: lang::expr::LiteralKind,
-  out: &lang::ty::TypeValue<LazyStructures>,
+  out: &lang::ty::Type<LazyStructures>,
 ) -> Result<LazyStructures, LazyValue<'ctx>> {
   match kind {
     lang::expr::LiteralKind::Numeric(token::NumericValue::U64(value)) => {
@@ -36,7 +36,7 @@ fn compile_string_literal<'ctx>(
   _function: inkwell::values::FunctionValue<'ctx>,
   kind: token::StringKind,
   value: string_pool::StringId,
-  out: &lang::ty::TypeValue<LazyStructures>,
+  out: &lang::ty::Type<LazyStructures>,
 ) -> Result<LazyStructures, LazyValue<'ctx>> {
   // SAFETY: this ref doesn't leave scope and we aren't borrowing anything else
   //         while we're using it

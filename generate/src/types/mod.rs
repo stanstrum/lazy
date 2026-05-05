@@ -70,8 +70,7 @@ pub(super) fn make_function_type<'ctx>(
 pub(super) fn make_type<'ctx>(comp: &Compilation<'_, '_, 'ctx>, t: &impl TypeOf<LazyStructures>) -> Result<LazyStructures, LazyType<'ctx>> {
   let ty = t.type_of(comp.lazy)
     .expect("type of to be Some()")
-    .ty
-    .expect("type of to be Some()");
+    .ty;
 
   match ty {
     lang::ty::TypeValue::Reference(_) => todo!(),

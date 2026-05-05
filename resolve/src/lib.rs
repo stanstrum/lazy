@@ -5,8 +5,8 @@ use std::cell::RefCell;
 use std::collections::VecDeque;
 
 use lazy_macros::{print_message, line_dbg};
-use lang::ty::{Type, TypeOf, TypeValue};
-use lang::reference::Reference;
+use lang::ty::{ResolvedType, Type, TypeOf, TypeValue};
+use lang::reference::{Reference, TypeReference};
 use lang::{Compiler, CompilerPoolStore};
 use pprint::Pretty;
 use tasks::{Task, TaskResponse};
@@ -211,6 +211,18 @@ fn find_main<C: Compiler + 'static>(resolver: &Resolver<C>, module: C::ModuleRef
   Ok(*main)
 }
 
+impl<C: Compiler> Resolve<C> for TypeReference<C> {
+  fn resolve(&self, resolver: &Resolver<C>) -> Result<C, bool> {
+    Into::<Type<C>>::into(*self).resolve(resolver)
+  }
+}
+
+impl<C: Compiler> Resolve<C> for ResolvedType<C> {
+  fn resolve(&self, resolver: &Resolver<C>) -> Result<C, bool> {
+    todo!()
+  }
+}
+
 impl<C: Compiler> Resolve<C> for Type<C> {
   fn resolve(&self, resolver: &Resolver<C>) -> Result<C, bool> {
     let ty = if let Some(ty) = &self.ty {
@@ -232,8 +244,9 @@ impl<C: Compiler> Resolve<C> for Type<C> {
         let block_reference = function_reference.rget_from(resolver.store).body;
         let block_ty_reference = lang::reference::TypeReference::Block(block_reference);
         let block_ty: Type<C> = block_ty_reference.into();
-
-        block_ty.coerce(resolver, &self.reference)?;
+        if let Some(ret_ty) = self.reference.type_of(resolver.store) {
+          block_ty.coerce(resolver, &ret_ty)?;
+        };
       },
       lang::reference::TypeReference::Variable(variable_reference) => todo!(),
       lang::reference::TypeReference::StructMember(struct_reference, _) => todo!(),
@@ -265,7 +278,8 @@ pub fn resolve_and_verify<C: Compiler + 'static>(store: &mut C::Store<'_>, globa
 
   let main = find_main(&resolver, global)?;
 
-  let mut types = typing::function::typify_function_reference(&resolver, main).collect::<VecDeque<_>>();
+  let mut types = typing::function::typify_function_reference(&resolver, main)
+    .collect::<VecDeque<_>>();
 
   for pass in 1.. {
     if types.is_empty() {
@@ -275,14 +289,14 @@ pub fn resolve_and_verify<C: Compiler + 'static>(store: &mut C::Store<'_>, globa
     println!(line_dbg!("Resolve pass {}"), pass);
 
     for i in 0..types.len() {
-      let ty = types.pop_front().unwrap();
+      let dyn_obj = types.pop_front().unwrap();
 
-      println!(line_dbg!("{}: {}"), i, ty.print(resolver.store));
+      // println!(line_dbg!("{}: {}"), i, dyn_obj.print(resolver.store));
 
-      let is_resolved = Type::from(ty).resolve(&mut resolver)?;
+      let is_resolved = dyn_obj.resolve(&mut resolver)?;
 
       if !is_resolved {
-        types.push_back(ty);
+        types.push_back(dyn_obj);
       };
     };
 

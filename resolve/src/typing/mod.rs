@@ -2,7 +2,8 @@ pub(crate) mod module;
 pub(crate) mod function;
 pub(crate) mod expr;
 
-use lang::reference::{BlockReference, ExpressionReference, Store, TypeReference, VariableReference};
+use lang::{reference::{BlockReference, ExpressionReference, Store, TypeReference, VariableReference}, ty::ResolvedType};
+use lazy_macros::print_once_per_thread;
 
 use super::*;
 
@@ -13,15 +14,26 @@ pub(crate) trait Resolve<C: Compiler> {
 }
 
 pub(crate) trait Coerce<C: Compiler> {
-  fn coerce(&self, resolver: &Resolver<C>, other: &impl TypeOf<C>) -> Result<C>;
+  fn coerce(&self, resolver: &Resolver<C>, other: &ResolvedType<C>) -> Result<C>;
 }
 
 pub(crate) trait Typify<C: Compiler>: Sized {
-  fn get_type_iter<'store>(self, store: &'store C::Store<'_>) -> Box<dyn Iterator<Item = TypeReference<C>> + 'store>;
+  fn get_type_iter<'store>(self, store: &'store C::Store<'_>) -> Box<dyn Iterator<Item = Box<dyn Resolve<C>>> + 'store>;
 }
 
-impl<C: Compiler> Coerce<C> for Type<C> {
-  fn coerce(&self, resolver: &Resolver<C>, other: &impl TypeOf<C>) -> Result<C> {
+impl<C: Compiler, T: TypeOf<C>> Coerce<C> for T {
+  fn coerce(&self, resolver: &Resolver<C>, other: &ResolvedType<C>) -> Result<C> {
+    let Some(ty) = self.type_of(resolver.store) else {
+      print_once_per_thread!(resolver.store, {
+        level: Level::Stub,
+        force: false,
+        description: line_dbg!("There's no knowing if this is any good").into(),
+        contents: MessageContents::None::<C>,
+      });
+
+      return Ok(());
+    };
+
     todo!()
   }
 }

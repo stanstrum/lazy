@@ -111,3 +111,9 @@ impl<C: Compiler> GetSpan<C> for crate::ty::Type<C> {
     self.reference.get_span(store)
   }
 }
+
+impl<C: Compiler> GetSpan<C> for crate::ty::ResolvedType<C> {
+  fn get_span(&self, store: &C::Store<'_>) -> Span<C> {
+    self.ty.get_span(store)
+  }
+}

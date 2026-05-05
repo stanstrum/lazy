@@ -6,7 +6,7 @@ use crate::module::Name;
 use crate::Compiler;
 
 pub trait TypeOf<C: Compiler>: GetSpan<C> {
-  fn type_of(&self, store: &C::Store<'_>) -> Option<Type<C>>;
+  fn type_of(&self, store: &C::Store<'_>) -> Option<ResolvedType<C>>;
 }
 
 #[derive(Debug)]
@@ -115,6 +115,12 @@ pub enum TypeValue<C: Compiler> {
   Struct {
     prototype: StructReference<C>,
   },
+}
+
+impl<C: Compiler> ResolvedType<C> {
+  pub fn new(reference: TypeReference<C>, ty: TypeValue<C>) -> Self {
+    Self { reference, ty }
+  }
 }
 
 impl<C: Compiler> TypeReference<C> {

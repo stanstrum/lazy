@@ -70,7 +70,9 @@ impl<C: Compiler> TypeOf<C> for Type<C> {
     let type_value = match type_value {
       TypeValue::Reference(type_reference) => todo!(),
       TypeValue::Resolved { part, span } => todo!(),
-      TypeValue::Unresolved { module, qualified } => todo!(),
+      TypeValue::Unresolved { module, qualified } => {
+        return None;
+      },
       TypeValue::Intrinsic { kind, span } => todo!(),
       | TypeValue::WeakInteger { .. }
       | TypeValue::WeakFloat { .. }
@@ -92,7 +94,7 @@ impl<C: Compiler> TypeOf<C> for ResolvedType<C> {
     match &self.ty {
       TypeValue::Reference(type_reference) => type_reference.type_of(store),
       TypeValue::Resolved { part, .. } => part.type_of(store),
-      TypeValue::Unresolved { module, qualified } => todo!(),
+      TypeValue::Unresolved { module, qualified, .. } => todo!(),
       TypeValue::Intrinsic { kind, span } => todo!(),
 
       | TypeValue::WeakInteger { .. }

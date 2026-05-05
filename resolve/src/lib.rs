@@ -219,40 +219,7 @@ impl<C: Compiler> Resolve<C> for TypeReference<C> {
 
 impl<C: Compiler> Resolve<C> for ResolvedType<C> {
   fn resolve(&self, resolver: &Resolver<C>) -> Result<C, bool> {
-    todo!()
-  }
-}
-
-impl<C: Compiler> Resolve<C> for Type<C> {
-  fn resolve(&self, resolver: &Resolver<C>) -> Result<C, bool> {
-    let ty = if let Some(ty) = &self.ty {
-      ty
-    } else {
-      let Some(ty) = &self.reference.rget_from(resolver.store).ty else {
-        return Ok(false);
-      };
-
-      ty
-    };
-
-    match &self.reference {
-      lang::reference::TypeReference::Alias(alias_reference) => todo!(),
-      lang::reference::TypeReference::Part(type_part_reference) => todo!(),
-      lang::reference::TypeReference::Expression(expression_reference) => todo!(),
-      lang::reference::TypeReference::Block(block_reference) => todo!(),
-      lang::reference::TypeReference::ReturnTypeOf(function_reference) => {
-        let block_reference = function_reference.rget_from(resolver.store).body;
-        let block_ty_reference = lang::reference::TypeReference::Block(block_reference);
-        let block_ty: Type<C> = block_ty_reference.into();
-        if let Some(ret_ty) = self.reference.type_of(resolver.store) {
-          block_ty.coerce(resolver, &ret_ty)?;
-        };
-      },
-      lang::reference::TypeReference::Variable(variable_reference) => todo!(),
-      lang::reference::TypeReference::StructMember(struct_reference, _) => todo!(),
-    };
-
-    match ty {
+    match &self.ty {
       TypeValue::Reference(type_reference) => todo!(),
       TypeValue::Resolved { part, span } => todo!(),
       TypeValue::Unresolved { module, qualified } => Ok(false),
@@ -266,6 +233,16 @@ impl<C: Compiler> Resolve<C> for Type<C> {
       TypeValue::SizedArrayOf { ty, size, span } => todo!(),
       TypeValue::Struct { prototype } => todo!(),
     }
+  }
+}
+
+impl<C: Compiler> Resolve<C> for Type<C> {
+  fn resolve(&self, resolver: &Resolver<C>) -> Result<C, bool> {
+    let Some(ty) = self.type_of(resolver.store) else {
+      return Ok(false);
+    };
+
+    ty.resolve(resolver)
   }
 }
 
@@ -288,6 +265,7 @@ pub fn resolve_and_verify<C: Compiler + 'static>(store: &mut C::Store<'_>, globa
 
     println!(line_dbg!("Resolve pass {}"), pass);
 
+    let mut have_resolved = false;
     for i in 0..types.len() {
       let dyn_obj = types.pop_front().unwrap();
 
@@ -297,10 +275,14 @@ pub fn resolve_and_verify<C: Compiler + 'static>(store: &mut C::Store<'_>, globa
 
       if !is_resolved {
         types.push_back(dyn_obj);
+      } else {
+        have_resolved = true;
       };
     };
 
-    resolver.resolve_tasks(line_dbg!("Finish pass").into())?;
+    resolver.resolve_tasks(format!(line_dbg!("Finish pass {}"), pass))?;
+
+    assert!(have_resolved, "nothing happened!");
   };
 
   todo!();

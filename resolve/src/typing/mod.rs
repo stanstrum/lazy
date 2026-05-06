@@ -1,6 +1,7 @@
 pub(crate) mod module;
 pub(crate) mod function;
 pub(crate) mod expr;
+pub(crate) mod ty;
 
 use lang::{reference::{BlockReference, ExpressionReference, Store, TypeReference, VariableReference}, ty::ResolvedType};
 use lazy_macros::print_once_per_thread;

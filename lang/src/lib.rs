@@ -129,7 +129,7 @@ pub trait CompilerPoolStore<'pool, C: Compiler>:
   fn create_module(&mut self, name: &str, parent: impl FnOnce(C::TokensReference, C::ModuleReference) -> ModuleParent<C>) -> C::ModuleReference;
 }
 
-pub trait Compiler: Debug + Sized + Clone + Copy + PartialEq + Eq {
+pub trait Compiler: Debug + Sized + Clone + Copy + PartialEq + Eq where Self: 'static {
   type Store<'a>: CompilerPoolStore<'a, Self>;
 
   type ModuleReference: CompilerReference + Hash;

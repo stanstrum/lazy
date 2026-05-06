@@ -1,3 +1,5 @@
+pub(crate) mod variable_resolution;
+
 use std::cmp::Ordering;
 
 use lazy_macros::print_message;
@@ -57,60 +59,29 @@ pub fn make_block_statement<'pool, C: Compiler, const N: usize, T: Read>(
   };
 
   let expr = if let Some((variable, expr)) = variable::make_assignment(store, stream, module, block)? {
-    let function_ref = <C::Store<'pool> as Store<C::FunctionReference>>::rget(store, function);
-    let block_ref = <C::Store<'pool> as Store<BlockReference<C>>>::rget(store, block);
-
-    let variable_names = block_ref.variables.iter().map(|x: &lang::expr::Variable<C>| &x.name);
-    let argument_names = function_ref.header.arguments.iter().map(|x| &x.name);
-
-    let conflict = argument_names.chain(variable_names)
-      .find(|prior| prior.id == variable.name.id);
-
-    if let Some(conflict) = conflict {
-      print_message!(store, {
-        level: Warn,
-        force: false,
-        description: line_dbg!("conflicting name will be shadowed").into(),
-        contents: MessageContents::WithinSource(vec![WithinSource {
-          range: function_ref.span,
-          sections: vec![
-            MessageSection {
-              text: "first used here".into(),
-              span: conflict.span,
-            },
-            MessageSection {
-              text: "shadowed here".into(),
-              span: variable.name.span,
-            },
-          ],
-        }]),
-      });
-    };
-
-    let variable_span = variable.span;
-    let var_id = block.rget_from(store).variables.len();
-
-    store.rget_mut(block).variables.push(variable);
-
     expr.map(|b| {
+      let variable_span = (&*store).rget(variable).span;
+
       let span = b.rget_from(store).get_span(store);
 
-      let variable_reference = lang::reference::VariableReference::Block(block, var_id);
+      let a_expr = lang::expr::Expression::Variable { reference: variable, span: variable_span };
+      let a_expr_index = function.rget_from_mut(store).add_expr(a_expr);
+      let a = ExpressionReference(block, a_expr_index);
 
-      let a = function.rget_from_mut(store).add_expr(lang::expr::Expression::Variable { reference: variable_reference, span: variable_span });
-      let a = ExpressionReference(block, a);
+      lang::expr::BlockExpression::create_new_expr_in(store, block, |expr_reference| {
 
-      let assignment = lang::expr::Expression::Binary {
-        a,
-        b,
-        op: (lang::expr::operator::BinaryOperator::Assign, variable_span),
-        span,
-        out: todo!(),
-        // lang::ty::TypeValue::Weak { span },
-      };
+        let type_reference = lang::reference::TypeReference::Expression(expr_reference);
+        let type_value = lang::ty::TypeValue::Weak { span };
+        let out = lang::ty::Type::new(type_reference, type_value);
 
-      let id = function.rget_from_mut(store).add_expr(assignment);
-      ExpressionReference(block, id)
+        lang::expr::Expression::Binary {
+          a,
+          b,
+          op: (lang::expr::operator::BinaryOperator::Assign, variable_span),
+          span,
+          out,
+        }
+      })
     })
   } else if let Some(expr) = make_expr(store, stream, module, block)? {
     Some(expr)

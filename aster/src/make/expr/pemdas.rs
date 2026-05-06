@@ -1,3 +1,4 @@
+use lang::expr::BlockExpression;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -222,18 +223,21 @@ pub(crate) fn melt<C: Compiler>(store: &mut C::Store<'_>, mut parts: Vec<Express
           let span = Span::from_pair(start, end);
 
           let block = a.0;
-          let function = block.0;
 
-          let expr = lang::expr::Expression::Binary {
-            a,
-            b,
-            op,
-            span,
-            out: todo!(),
-            // lang::ty::TypeValue::Weak { span },
-          };
-          let id = function.rget_from_mut(store).add_expr(expr);
-          let reference = ExpressionReference(block, id);
+          let reference = BlockExpression::create_new_expr_in(store, block, |expr| {
+            let type_reference = lang::reference::TypeReference::Expression(expr);
+            let type_value = lang::ty::TypeValue::Weak { span };
+
+            let out = lang::ty::Type::new(type_reference, type_value);
+
+            lang::expr::Expression::Binary {
+              a,
+              b,
+              op,
+              span,
+              out,
+            }
+          });
 
           parts.drain(i - 1 ..= i + 1);
           i -= 1;

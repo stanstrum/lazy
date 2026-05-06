@@ -207,7 +207,7 @@ pub(super) fn make_block<'pool, C: Compiler, const N: usize, T: Read>(
     |ExpressionReference(_, id)| id == *children.last().unwrap()
   );
 
-  let out = if returns_last {
+  let type_value = if returns_last {
     let &index = children.last().unwrap();
     let reference = ExpressionReference(block, index);
 
@@ -221,8 +221,10 @@ pub(super) fn make_block<'pool, C: Compiler, const N: usize, T: Read>(
     }
   };
 
-  todo!();
-  // store.rget_mut(block).out = out;
+  let type_reference = lang::reference::TypeReference::Block(block);
+  let out = lang::ty::Type::new(type_reference, type_value);
+
+  store.rget_mut(block).out = out;
   store.rget_mut(block).returns_last = returns_last;
   store.rget_mut(block).span = span;
 

@@ -48,10 +48,6 @@ pub enum Expression<C: Compiler> {
     reference: VariableReference<C>,
     span: Span<C>,
   },
-  Unknown {
-    qualified: Qualified<C>,
-    out: Type<C>,
-  },
   Unary {
     expr: ExpressionReference<C>,
     op: (operator::UnaryOperator<C>, Span<C>),
@@ -70,18 +66,6 @@ pub enum Expression<C: Compiler> {
     members: Vec<(Name<C>, ExpressionReference<C>)>,
     span: Span<C>,
   },
-}
-
-impl<C: Compiler> Expression<C> {
-  pub fn new_unknown(qualified: Qualified<C>) -> Self {
-    let span = qualified.span;
-
-    Self::Unknown {
-      qualified,
-      out: todo!(),
-      // TypeValue::Weak { span },
-    }
-  }
 }
 
 impl<C: Compiler> BlockExpression<C> {

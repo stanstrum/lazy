@@ -18,7 +18,6 @@ impl<C: Compiler + 'static> Typify<C> for ExpressionReference<C> {
         a
       },
       lang::expr::Expression::Variable { reference, span } => todo!(),
-      lang::expr::Expression::Unknown { qualified, out } => todo!(),
       lang::expr::Expression::Unary { expr, op, span, out } => todo!(),
       lang::expr::Expression::Binary { a, b, op, span, out } => todo!(),
       lang::expr::Expression::StructInitializer { ty, members, span } => todo!(),

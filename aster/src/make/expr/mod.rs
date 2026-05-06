@@ -121,7 +121,7 @@ fn make_expr_part<'pool, C: Compiler, const N: usize, T: Read>(
     };
 
     if let Some(qualified) = ty::make_qualified(stream, module)? {
-      break 'expr lang::expr::Expression::new_unknown(qualified);
+      todo!()
     };
 
     return Ok(None);

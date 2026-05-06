@@ -88,7 +88,6 @@ impl<'pool, C: Compiler> Store<TypeReference<C>> for C::Store<'pool> {
           | Expression::Literal { out, .. }
           | Expression::Unary { out, .. }
           | Expression::Binary { out, .. }
-          | Expression::Unknown { out, .. }
           | Expression::StructInitializer { ty: out, .. }
             => out,
           &Expression::Variable { reference, .. } => &self.rget(reference).ty,
@@ -136,7 +135,6 @@ impl<'pool, C: Compiler> Store<TypeReference<C>> for C::Store<'pool> {
           | Expression::Unary { out, .. }
           | Expression::Binary { out, .. }
           | Expression::Literal { out, .. }
-          | Expression::Unknown { out, .. }
           | Expression::StructInitializer { ty: out, .. }
           = self.rget_mut(expr)
         {

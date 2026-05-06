@@ -44,9 +44,7 @@ impl<C: Compiler> TypeOf<C> for ExpressionReference<C> {
     match self.rget_from(store) {
       Expression::Block(block) => block.type_of(store),
       Expression::Variable { reference, .. } => reference.type_of(store),
-      //
       | Expression::Literal { out, .. }
-      | Expression::Unknown { out, .. }
       | Expression::Unary { out, .. }
       | Expression::Binary { out, .. }
       | Expression::StructInitializer { ty: out, .. }

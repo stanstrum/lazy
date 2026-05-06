@@ -55,7 +55,6 @@ impl<C: Compiler> GetSpan<C> for crate::expr::Expression<C> {
       | Self::Unary { span, .. }
       | Self::StructInitializer { span, .. }
         => *span,
-      Self::Unknown { qualified, .. } => qualified.span,
     }
   }
 }

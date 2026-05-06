@@ -222,9 +222,6 @@ impl<'store_a, C: Compiler> Pretty<C> for FunctionAnd<'store_a, C, Expression<C>
       Expression::Variable { reference, .. } => vec![
         reference.rget_from(store).name.print(store)
       ].into_iter(),
-      Expression::Unknown { qualified, .. } => vec![
-        format!("{{?}} {}", qualified.print(store))
-      ].into_iter(),
       Expression::Unary { expr, op, .. } => {
         let expr = expr.rget_from(store).print_with(function, store).collect::<String>();
 

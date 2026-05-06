@@ -28,7 +28,6 @@ fn compile_expr<'ctx>(
       // => literal::compile_literal(comp, function, value, out),
     lang::expr::Expression::Variable { reference, .. }
       => variable::compile_variable(comp, reference, scopes),
-    lang::expr::Expression::Unknown { .. } => todo!(),
     lang::expr::Expression::Unary { .. } => todo!(),
     lang::expr::Expression::Binary { a, b, op: (BinaryOperator::Assign, _), .. } => {
       let lhs = compile_expr(comp, function, *a, scopes)?;

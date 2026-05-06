@@ -76,7 +76,7 @@ pub fn make_block_statement<'pool, C: Compiler, const N: usize, T: Read>(
         lang::expr::Expression::Binary {
           a,
           b,
-          op: (lang::expr::operator::BinaryOperator::Assign, variable_span),
+          op: (lang::token::BinaryOperator::Assign, variable_span),
           span,
           out,
         }

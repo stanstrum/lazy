@@ -1,5 +1,3 @@
-pub mod operator;
-
 use string_pool::StringId;
 
 use crate::token::{NumericValue, StringKind};
@@ -50,14 +48,14 @@ pub enum Expression<C: Compiler> {
   },
   Unary {
     expr: ExpressionReference<C>,
-    op: (operator::UnaryOperator<C>, Span<C>),
+    op: (crate::token::UnaryOperator<C>, Span<C>),
     span: Span<C>,
     out: Type<C>,
   },
   Binary {
     a: ExpressionReference<C>,
     b: ExpressionReference<C>,
-    op: (operator::BinaryOperator, Span<C>),
+    op: (crate::token::BinaryOperator, Span<C>),
     span: Span<C>,
     out: Type<C>,
   },

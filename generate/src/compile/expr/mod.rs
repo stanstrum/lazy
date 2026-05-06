@@ -2,7 +2,7 @@ mod literal;
 mod variable;
 
 use gluezy::LazyStructures;
-use lang::expr::operator::BinaryOperator;
+use lang::token::BinaryOperator;
 
 use crate::types::{LazyType, LazyValue};
 

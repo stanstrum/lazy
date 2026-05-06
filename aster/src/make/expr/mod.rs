@@ -135,9 +135,9 @@ fn make_expr_part<'pool, C: Compiler, const N: usize, T: Read>(
 
 #[derive(Debug)]
 enum ExpressionPart<C: Compiler> {
-  UnaryPrefix((lang::expr::operator::UnaryPrefixOperator, Span<C>)),
-  UnarySuffix((lang::expr::operator::UnarySuffixOperator<C>, Span<C>)),
-  Binary((lang::expr::operator::BinaryOperator, Span<C>)),
+  UnaryPrefix((lang::token::UnaryPrefixOperator, Span<C>)),
+  UnarySuffix((lang::token::UnarySuffixOperator<C>, Span<C>)),
+  Binary((lang::token::BinaryOperator, Span<C>)),
   Expression(ExpressionReference<C>),
 }
 

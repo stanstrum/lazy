@@ -1,7 +1,7 @@
 use lazy_macros::print_once_per_thread;
 
 use lang::token::{GroupingKind, GroupingType, Keyword, Operator};
-use lang::expr::operator::{BinaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
+use lang::token::{BinaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 
 use super::*;
 

@@ -4,7 +4,7 @@ use lang::reference::{BlockReference, ExpressionReference, Reference, Store, Typ
 use lang::ty::{Qualified, QualifiedSearchSpace, TypeValue, Type};
 use lang::function::Function;
 use lang::module::{Module, Name};
-use lang::expr::operator::{UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
+use lang::token::{UnaryOperator, UnaryPrefixOperator, UnarySuffixOperator};
 use lang::expr::{BlockExpression, Expression, LiteralKind};
 use lang::{Compiler, CompilerPoolStore};
 

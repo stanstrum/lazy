@@ -12,6 +12,17 @@ pub(crate) trait Resolve<C: Compiler> {
   /// Resolves with the given context [`Resolver`].  Returns `true` if the
   /// object in question should be considered "complete", or `false`
   fn resolve(&self, resolver: &Resolver<C>) -> Result<C, bool>;
+
+  /// Makes unresolved types their default kinds, i.e. [`lang::ty::TypeValue::WeakInteger`]
+  /// becomes [`lang::intrinsic::Intrinsic::I32`]
+  fn default_types(&self, _resolver: &Resolver<C>) -> Result<C> {
+    todo!()
+  }
+
+  /// Verifies that this object is fully resolved in order to generate bytecode
+  fn verify(&self, _resolver: &Resolver<C>) -> Result<C> {
+    todo!()
+  }
 }
 
 pub(crate) trait Coerce<C: Compiler> {

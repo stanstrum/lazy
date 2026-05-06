@@ -4,16 +4,20 @@ mod resolver;
 
 use std::collections::VecDeque;
 
+use lang::span::GetSpan;
 use lazy_macros::{print_message, line_dbg};
 use lang::ty::{Type, TypeOf, TypeValue};
-use lang::reference::Reference;
+use lang::reference::{Reference, Store, TypeReference};
 use lang::{Compiler, CompilerPoolStore};
+use pprint::Pretty;
 use tasks::{Tasks, Task, TaskResponse};
 
 use resolver::Resolver;
 
 pub use lang::error::ResolveError;
 pub use lang::error::ResolveErrorBase;
+
+use crate::typing::Resolve;
 
 pub(crate) type Result<C, T = ()> = std::result::Result<T, Box<ResolveError<C>>>;
 
@@ -97,92 +101,90 @@ pub fn resolve_and_verify<C: Compiler + 'static>(store: &mut C::Store<'_>, globa
 
     resolver.resolve_tasks(format!(line_dbg!("Finish pass {}"), pass))?;
 
-    assert!(have_resolved, "nothing happened!");
+    if !have_resolved {
+      break;
+    };
   };
-
-  todo!();
-
-  resolver.resolve_tasks(line_dbg!("Resolve global").into())?;
 
   resolver.work::<Result<C>>(
     line_dbg!("Make default ambiguous types").into(),
     |resolver| {
-      todo!();
-      // impls::structure::default_types_in_module(resolver.store, &global, tasks)?;
+      for resolvable in typing::function::typify_function_reference(&resolver, main) {
+        resolvable.default_types(resolver)?;
+      };
 
       Ok(())
     },
   )?;
 
-  // resolver.resolve_tasks(line_dbg!("Resolve after make default ambiguous types").into())?;
+  resolver.resolve_tasks(line_dbg!("Resolve after make default ambiguous types").into())?;
 
-  // resolver.tasks.work::<Result<C>>(
-  //   line_dbg!("Verify global").into(),
-  //   |tasks| {
-  //     impls::structure::verify_module(resolver.store, &global, tasks)?;
+  resolver.work::<Result<C>>(
+    line_dbg!("Verify global").into(),
+    |resolver| {
+      for resolvable in typing::module::typify_module_reference(&resolver, global) {
+        resolvable.verify(&resolver)?;
+      };
 
-  //     print_message!(resolver.store, {
-  //       level: Stub,
-  //       force: false,
-  //       description: line_dbg!("verify rest of program, apart from main").into(),
-  //       contents: MessageContents::File::<C>(global),
-  //     });
+      print_message!(resolver.store, {
+        level: Stub,
+        force: false,
+        description: line_dbg!("verify rest of program, apart from main").into(),
+        contents: MessageContents::File::<C>(global),
+      });
 
-  //     Ok(())
-  //   },
-  // )?;
+      Ok(())
+    },
+  )?;
 
-  // resolver.tasks.work::<Result<C>>(
-  //   line_dbg!("Verify main").into(),
-  //   |tasks| {
-  //     // get main and error if it's not present
-  //     let main = find_main(resolver.store, global, tasks)?;
+  resolver.work::<Result<C>>(
+    line_dbg!("Verify main").into(),
+    |resolver| {
+      let borrow = (&*resolver.store).rget(main);
+      let ret_ty_reference = TypeReference::<C>::ReturnTypeOf(main);
 
-  //     let borrow = (&*resolver.store).rget(main);
-  //     let ret_ty_reference = TypeReference::ReturnTypeOf(main);
+      // set up some perfunctory data to coerce return type to i32
+      // TODO: eventually just coerce main as fn(...) -> ...
+      {
+        let ret_ty = &borrow.header.ret_ty;
+        let span = ret_ty.get_span(resolver.store);
 
-  //     // set up some perfunctory data to coerce return type to i32
-  //     // TODO: eventually just coerce main as fn(...) -> ...
-  //     {
-  //       let ret_ty = &borrow.header.ret_ty;
-  //       let span = ret_ty.get_span(resolver.store);
+        print_message!(resolver.store, {
+          level: Debug,
+          force: false,
+          description: format!(line_dbg!("{reference} is {ty}"),
+            reference = ret_ty_reference.print(resolver.store),
+            ty = ret_ty.print(resolver.store),
+          ),
+          contents: MessageContents::WithinSource(WithinSource::new(vec![
+            MessageSection {
+              text: "here".into(),
+              span,
+            }
+          ])),
+        });
 
-  //       print_message!(resolver.store, {
-  //         level: Debug,
-  //         force: false,
-  //         description: format!(line_dbg!("{reference} is {ty}"),
-  //           reference = ret_ty_reference.print(resolver.store),
-  //           ty = ret_ty.print(resolver.store),
-  //         ),
-  //         contents: MessageContents::WithinSource(WithinSource::new(vec![
-  //           MessageSection {
-  //             text: "here".into(),
-  //             span,
-  //           }
-  //         ])),
-  //       });
+        todo!("coerce main ret ty");
+        // ret_ty_reference.coerce(&resolver, &TypeValue::Intrinsic {
+        //   kind: Intrinsic::I32,
+        //   span,
+        // })?;
+      };
 
-  //       ret_ty_reference.coerce(resolver.store, &TypeValue::Intrinsic {
-  //         kind: Intrinsic::I32,
-  //         span,
-  //       }, tasks)?;
-  //     };
+      Ok(())
+    },
+  )?;
 
-  //     Ok(())
-  //   },
-  // )?;
+  print_message!(resolver.store, {
+    level: Info,
+    force: false,
+    description: line_dbg!("No further work should be done.").into(),
+    contents: MessageContents::None::<C>,
+  });
+  assert!(
+    !resolver.execute_pass()?,
+    "verifying should not have queued any more work",
+  );
 
-  // print_message!(resolver.store, {
-  //   level: Info,
-  //   force: false,
-  //   description: line_dbg!("No further work should be done.").into(),
-  //   contents: MessageContents::None::<C>,
-  // });
-  // assert!(
-  //   !resolver.tasks.execute_pass(store)?,
-  //   "verifying should not have queued any more work",
-  // );
-
-  todo!();
   Ok(())
 }

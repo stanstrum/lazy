@@ -2,7 +2,6 @@ pub(crate) mod variable_resolution;
 
 use std::cmp::Ordering;
 
-use lazy_macros::print_message;
 use lang::span::{GetSpan, Span};
 use lang::token::{GroupingKind, GroupingType, Operator};
 use lang::reference::{BlockReference, ExpressionReference, Reference, Store};

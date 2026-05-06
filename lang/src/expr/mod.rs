@@ -5,7 +5,7 @@ use string_pool::StringId;
 use crate::token::{NumericValue, StringKind};
 use crate::span::Span;
 use crate::reference::{BlockReference, ExpressionReference, Store, TypeReference, VariableReference};
-use crate::ty::{Qualified, Type, TypeValue};
+use crate::ty::{Type, TypeValue};
 use crate::module::Name;
 use crate::function::{BlockId, ExprId};
 use crate::Compiler;

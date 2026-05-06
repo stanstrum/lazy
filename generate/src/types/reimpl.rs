@@ -69,13 +69,10 @@ impl<'ctx> From<inkwell::types::FloatType<'ctx>> for LazyType<'ctx> {
 impl<'ctx> From<inkwell::types::BasicTypeEnum<'ctx>> for LazyType<'ctx> {
   fn from(value: inkwell::types::BasicTypeEnum<'ctx>) -> Self {
     match value {
-      inkwell::types::BasicTypeEnum::ArrayType(_) => todo!(),
       inkwell::types::BasicTypeEnum::FloatType(float_type) => Self::Float(float_type),
       inkwell::types::BasicTypeEnum::IntType(int_type) => Self::Int(int_type),
       inkwell::types::BasicTypeEnum::PointerType(pointer_type) => Self::Pointer(pointer_type),
-      inkwell::types::BasicTypeEnum::StructType(_) => todo!(),
-      inkwell::types::BasicTypeEnum::VectorType(_) => todo!(),
-      inkwell::types::BasicTypeEnum::ScalableVectorType(_) => todo!(),
+      other => todo!("{other:#?}"),
     }
   }
 }

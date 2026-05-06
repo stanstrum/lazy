@@ -16,7 +16,7 @@ impl<'store, 'pool, 'tasks, C: Compiler> Resolver<'store, 'pool, 'tasks, C> {
   }
 
   /// SPONGE: I don't think this method is doing what I thought it'd do
-  pub(crate) fn resolve_tasks(&mut self, description: String) -> Result<C> {
+  pub(crate) fn resolve_tasks(&mut self, _description: String) -> Result<C> {
     self.execute_pass().and(Ok(()))
   }
 
@@ -65,7 +65,7 @@ impl<'store, 'pool, 'tasks, C: Compiler> Resolver<'store, 'pool, 'tasks, C> {
       };
 
       let description = {
-        let explain = task.explain::<'tasks>(self);
+        let explain = task.explain(self);
 
         format!(
           "execute_pass: {count}/{total}:\n{explain}",

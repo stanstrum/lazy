@@ -29,14 +29,13 @@ impl<C: Compiler + 'static> Typify<C> for ExpressionReference<C> {
 
         Box::new(std::iter::once(ugh))
       },
-      lang::expr::Expression::Unary { .. } => todo!(),
       lang::expr::Expression::Binary { a, b, .. } => {
         let a = a.get_type_iter(store);
         let b = b.get_type_iter(store);
 
         Box::new(a.chain(b))
       },
-      lang::expr::Expression::StructInitializer { .. } => todo!(),
+      other => todo!("{other:#?}"),
     }
   }
 }

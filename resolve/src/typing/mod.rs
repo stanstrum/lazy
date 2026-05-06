@@ -23,7 +23,7 @@ pub(crate) trait Typify<C: Compiler>: Sized {
 }
 
 impl<C: Compiler, T: TypeOf<C>> Coerce<C> for T {
-  fn coerce(&self, resolver: &Resolver<C>, other: &ResolvedType<C>) -> Result<C> {
+  fn coerce(&self, resolver: &Resolver<C>, _other: &ResolvedType<C>) -> Result<C> {
     let Some(ty) = self.type_of(resolver.store) else {
       print_once_per_thread!(resolver.store, {
         level: Level::Stub,

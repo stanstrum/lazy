@@ -81,7 +81,7 @@ pub fn resolve_and_verify<C: Compiler + 'static>(store: &mut C::Store<'_>, globa
     println!(line_dbg!("Resolve pass {}"), pass);
 
     let mut have_resolved = false;
-    for i in 0..types.len() {
+    for _i in 0..types.len() {
       let dyn_obj = types.pop_front().unwrap();
 
       // println!(line_dbg!("{}: {}"), i, dyn_obj.print(resolver.store));

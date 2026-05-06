@@ -23,7 +23,7 @@ fn compile_expr<'ctx>(
   match comp.lazy.rget(expr) {
     &lang::expr::Expression::Block(block)
       => compile_block(comp, function, block, scopes),
-    &lang::expr::Expression::Literal { value, ref out, .. }
+    &lang::expr::Expression::Literal { .. }
       => todo!(),
       // => literal::compile_literal(comp, function, value, out),
     lang::expr::Expression::Variable { reference, .. }

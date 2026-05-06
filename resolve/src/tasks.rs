@@ -23,18 +23,18 @@ impl<C: Compiler> Tasks<C> {
     }
   }
 
-  pub fn push(&mut self, task: impl Task<C> + 'static, _source: &'static str) {
-    // #[cfg(debug_assertions)] println!(line_dbg!("push from {}"), _source);
-    self.tasks.borrow_mut().push_back(Box::new(task));
-  }
+  // pub fn push(&mut self, task: impl Task<C> + 'static, _source: &'static str) {
+  //   // #[cfg(debug_assertions)] println!(line_dbg!("push from {}"), _source);
+  //   self.tasks.borrow_mut().push_back(Box::new(task));
+  // }
 }
 
 impl<C: Compiler> Task<C> for Box<dyn Task<C>> {
-  fn explain<'store, 'pool, 'tasks>(&self, resolver: &'store Resolver<'store, 'pool, 'tasks, C>) -> String {
+  fn explain<'store, 'pool, 'tasks>(&self, _resolver: &'store Resolver<'store, 'pool, 'tasks, C>) -> String {
     todo!()
   }
 
-  fn execute<'store, 'pool, 'tasks>(self: Box<Self>, resolver: &Resolver<'store, 'pool, 'tasks, C>) -> Result<TaskResponse<C>, Box<ResolveError<C>>> {
+  fn execute<'store, 'pool, 'tasks>(self: Box<Self>, _resolver: &Resolver<'store, 'pool, 'tasks, C>) -> Result<TaskResponse<C>, Box<ResolveError<C>>> {
     todo!()
   }
 }

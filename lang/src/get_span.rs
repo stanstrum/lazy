@@ -10,7 +10,7 @@ impl<C: Compiler> GetSpan<C> for crate::module::Name<C> {
 }
 
 impl<C: Compiler> GetSpan<C> for crate::module::Struct<C> {
-  fn get_span(&self, store: &<C as Compiler>::Store<'_>) -> Span<C> {
+  fn get_span(&self, _store: &<C as Compiler>::Store<'_>) -> Span<C> {
     self.span
   }
 }

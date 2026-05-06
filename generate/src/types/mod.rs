@@ -73,18 +73,12 @@ pub(super) fn make_type<'ctx>(comp: &Compilation<'_, '_, 'ctx>, t: &impl TypeOf<
     .ty;
 
   match ty {
-    lang::ty::TypeValue::Reference(_) => todo!(),
-    lang::ty::TypeValue::Resolved { .. } => todo!(),
     lang::ty::TypeValue::Intrinsic { kind, .. } => Ok(make_intrinsic_type(comp, kind)),
     lang::ty::TypeValue::ReferenceTo { .. } => {
       Ok(LazyType::Pointer(
         comp.llvm.context.ptr_type(Default::default())
       ))
     },
-    lang::ty::TypeValue::UnsizedArrayOf { .. } => todo!(),
-    lang::ty::TypeValue::SizedArrayOf { .. } => todo!(),
-
-    lang::ty::TypeValue::Unresolved { .. } => todo!(),
     | lang::ty::TypeValue::WeakInteger { span, .. }
     | lang::ty::TypeValue::WeakFloat { span, .. }
     | lang::ty::TypeValue::WeakString { span, .. }
@@ -109,5 +103,6 @@ pub(super) fn make_type<'ctx>(comp: &Compilation<'_, '_, 'ctx>, t: &impl TypeOf<
 
       Ok(LazyType::Struct(struct_type))
     },
+    other => todo!("{other:#?}"),
   }
 }

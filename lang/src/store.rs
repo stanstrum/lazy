@@ -72,7 +72,7 @@ impl<'pool, C: Compiler> Store<TypeReference<C>> for C::Store<'pool> {
       TypeReference::ReturnTypeOf(function) => {
         &self.rget(function).header.ret_ty
       },
-      TypeReference::Alias(alias) => {
+      TypeReference::Alias(_alias) => {
         todo!()
         // &self.rget(alias).ty
       },
@@ -109,7 +109,7 @@ impl<'pool, C: Compiler> Store<TypeReference<C>> for C::Store<'pool> {
       TypeReference::StructMember(struct_reference, id) => {
         &mut self.rget_mut(struct_reference).members.get_mut(id).unwrap().ty
       },
-      TypeReference::Alias(alias) => {
+      TypeReference::Alias(_alias) => {
         todo!()
         // &mut self.rget_mut(alias).ty
       },

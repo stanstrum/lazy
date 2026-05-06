@@ -17,7 +17,7 @@ pub enum QualifiedError {}
 ///     for the standard library or internal intrinsic types (see [`crate::intrinsic::Intrinsic`])
 pub fn resolve_qualified_to_space<C: Compiler>(store: &C::Store<'_>, qualified: &Qualified<C>, check_first: bool) -> Result<Option<QualifiedSearchSpace<C>>, QualifiedError> {
   let mut space = qualified.implicit;
-  let super_id = store.pool_keys().super_;
+  // let super_id = store.pool_keys().super_;
 
   // For each part ...
   for (index, part) in qualified.parts.iter().enumerate() {
